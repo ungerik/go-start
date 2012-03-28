@@ -22,18 +22,18 @@ func NewLinkModel(url interface{}, content ...interface{}) LinkModel {
 		}
 		return NewViews(content...)
 	}
-	switch url.(type) {
+	switch s := url.(type) {
 	case **Page:
-		return &PageLink{Page: url.(**Page), Content: getContent()}
+		return &PageLink{Page: s, Content: getContent()}
 	case LinkModel:
 		if len(content) > 0 {
-			return &URLLink{Url: url.(URL), Content: NewViews(content...)}
+			return &URLLink{Url: s, Content: NewViews(content...)}
 		}
 		return url.(LinkModel)
 	case URL:
-		return &URLLink{Url: url.(URL), Content: getContent()}
+		return &URLLink{Url: s, Content: getContent()}
 	case fmt.Stringer:
-		return &StringLink{Url: url.(fmt.Stringer).String(), Content: getContent()}
+		return &StringLink{Url: s.String(), Content: getContent()}
 	}
 	v := reflect.ValueOf(url)
 	if v.Kind() != reflect.String {

@@ -1,8 +1,8 @@
 package view
 
 import (
-	"strings"
 	"github.com/ungerik/go-start/errs"
+	"strings"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -19,13 +19,13 @@ type URL interface {
 // can be passed to this function that encapsulates it with an URL
 // implementation that dereferences the pointers at runtime when they are initialized.
 func IndirectURL(urlPtr interface{}) URL {
-	switch urlPtr.(type) {
+	switch s := urlPtr.(type) {
 	case *URL:
-		return &indirectURL{urlPtr.(*URL)}
+		return &indirectURL{s}
 	case *ViewWithURL:
-		return &IndirectViewWithURL{urlPtr.(*ViewWithURL)}
+		return &IndirectViewWithURL{s}
 	case **Page:
-		return &IndirectPageURL{urlPtr.(**Page)}
+		return &IndirectPageURL{s}
 	}
 	panic(errs.Format("%T not a pointer to a view.URL", urlPtr))
 }

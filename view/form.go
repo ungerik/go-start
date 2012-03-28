@@ -256,9 +256,9 @@ func (self *Form) newFormField(modelValue model.Value, metaData model.MetaData, 
 		panic(fmt.Sprintf("model.Value must be a struct member to get a label and meta data for the form field. Passed as root model.Value: %T", modelValue))
 	}
 
-	switch modelValue.(type) {
+	switch s := modelValue.(type) {
 	case *model.Bool:
-		value := modelValue.(*model.Bool).Get()
+		value := s.Get()
 		checkbox := &Checkbox{
 			Class:    getClass(metaData),
 			Name:     metaData.Selector(),
@@ -269,7 +269,7 @@ func (self *Form) newFormField(modelValue model.Value, metaData model.MetaData, 
 		return &Paragraph{Content: checkbox}
 
 	case *model.Choice:
-		choice := modelValue.(*model.Choice)
+		choice := s
 		selectModel := &StringsSelectModel{choice.Options(metaData), choice.Get()}
 		sel := &Select{
 			Class:    getClass(metaData),
@@ -281,7 +281,7 @@ func (self *Form) newFormField(modelValue model.Value, metaData model.MetaData, 
 		return self.newVerticalFormField(modelValue, metaData, errors, sel)
 
 	case *model.DynamicChoice:
-		dynamicChoice := modelValue.(*model.DynamicChoice)
+		dynamicChoice := s
 		selectModel := &IndexedStringsSelectModel{dynamicChoice.Options(), dynamicChoice.Index()}
 		sel := &Select{
 			Class:    getClass(metaData),
@@ -301,7 +301,7 @@ func (self *Form) newFormField(modelValue model.Value, metaData model.MetaData, 
 		return self.newVerticalFormField(modelValue, metaData, errors, Escape(value))
 
 	case *model.Date:
-		date := modelValue.(*model.Date)
+		date := s
 		textField := &TextField{
 			Class:    getClass(metaData),
 			Name:     metaData.Selector(),
@@ -312,7 +312,7 @@ func (self *Form) newFormField(modelValue model.Value, metaData model.MetaData, 
 		return self.newVerticalFormField(modelValue, metaData, errors, textField, HTML("(Format: "+model.DateFormat+")<br/>"))
 
 	case *model.DateTime:
-		dateTime := modelValue.(*model.DateTime)
+		dateTime := s
 		textField := &TextField{
 			Class:    getClass(metaData),
 			Name:     metaData.Selector(),
@@ -323,7 +323,7 @@ func (self *Form) newFormField(modelValue model.Value, metaData model.MetaData, 
 		return self.newVerticalFormField(modelValue, metaData, errors, textField, HTML("(Format: "+model.DateTimeFormat+")<br/>"))
 
 	case *model.Email:
-		value := modelValue.(*model.Email).Get()
+		value := s.Get()
 		textField := &TextField{
 			Class:    getClass(metaData),
 			Name:     metaData.Selector(),
@@ -353,7 +353,7 @@ func (self *Form) newFormField(modelValue model.Value, metaData model.MetaData, 
 		return self.newVerticalFormField(modelValue, metaData, errors, HTML(value))
 
 	case *model.Password:
-		value := modelValue.(*model.Password).Get()
+		value := s.Get()
 		textField := &TextField{
 			Class:    getClass(metaData),
 			Name:     metaData.Selector(),
@@ -365,7 +365,7 @@ func (self *Form) newFormField(modelValue model.Value, metaData model.MetaData, 
 		return self.newVerticalFormField(modelValue, metaData, errors, textField)
 
 	case *model.Phone:
-		value := modelValue.(*model.Phone).Get()
+		value := s.Get()
 		textField := &TextField{
 			Class:    getClass(metaData),
 			Name:     metaData.Selector(),
@@ -386,7 +386,7 @@ func (self *Form) newFormField(modelValue model.Value, metaData model.MetaData, 
 		return self.newVerticalFormField(modelValue, metaData, errors, HTML(value))
 
 	case *model.String:
-		str := modelValue.(*model.String)
+		str := s
 		if str.Hidden(metaData) {
 			return &HiddenInput{Name: metaData.Selector(), Value: str.String()}
 		}
@@ -404,7 +404,7 @@ func (self *Form) newFormField(modelValue model.Value, metaData model.MetaData, 
 		return self.newVerticalFormField(modelValue, metaData, errors, textField)
 
 	case *model.Text:
-		text := modelValue.(*model.Text)
+		text := s
 		cols, _, _ := text.Cols(metaData) // will be zero if not available, which is OK
 		rows, _, _ := text.Rows(metaData) // will be zero if not available, which is OK
 		textArea := &TextArea{
@@ -418,7 +418,7 @@ func (self *Form) newFormField(modelValue model.Value, metaData model.MetaData, 
 		return self.newVerticalFormField(modelValue, metaData, errors, textArea)
 
 	case *model.Url:
-		value := modelValue.(*model.Url).Get()
+		value := s.Get()
 		textField := &TextField{
 			Class:    getClass(metaData),
 			Name:     metaData.Selector(),
@@ -429,7 +429,7 @@ func (self *Form) newFormField(modelValue model.Value, metaData model.MetaData, 
 		return self.newVerticalFormField(modelValue, metaData, errors, textField)
 
 	case *model.GeoLocation:
-		value := modelValue.(*model.GeoLocation).String()
+		value := s.String()
 		return self.newVerticalFormField(modelValue, metaData, errors, HTML(value))
 	}
 
