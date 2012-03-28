@@ -1,19 +1,4 @@
-go-start is a high level web-framework for Go, like Django for Python or Rails for Ruby.
-
-Install:
-go get github.com/ungerik/go-start
-
-For some reason go get doesn't track master, so you need to:
-git checkout master
-
-Presentation Slides:
-http://speakerdeck.com/u/ungerik/p/the-go-start-webframework
-
-Documentation:
-http://go-start.org/pkg/go-start/gostart/
-
-First real world application:
-http://startuplive.in/
+For licenses of dependencies see LICENSE files in their directories.
 
 MIT License
 Copyright (c) 2012 Erik Unger
