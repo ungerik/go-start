@@ -87,3 +87,7 @@ type IntAboveMax struct {
 func (self *IntAboveMax) Error() string {
 	return fmt.Sprintf("Int %d above maximum of %d", self.Value, self.Max)
 }
+
+func (self *Int) Hidden(metaData MetaData) (hidden bool) {
+	return metaData.TopField().BoolAttrib("hidden")
+}

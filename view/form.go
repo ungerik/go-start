@@ -334,7 +334,25 @@ func (self *Form) newFormField(modelValue model.Value, metaData model.MetaData, 
 		}
 		return self.newVerticalFormField(modelValue, metaData, errors, textField)
 
-	case *model.Float, *model.Int:
+	case *model.Float:
+		str := s
+		if str.Hidden(metaData) {
+			return &HiddenInput{Name: metaData.Selector(), Value: str.String()}
+		}
+		value := modelValue.(fmt.Stringer).String()
+		textField := &TextField{
+			Class:    getClass(metaData),
+			Name:     metaData.Selector(),
+			Text:     value,
+			Disabled: disable,
+		}
+		return self.newVerticalFormField(modelValue, metaData, errors, textField)
+
+	case *model.Int:
+		str := s
+		if str.Hidden(metaData) {
+			return &HiddenInput{Name: metaData.Selector(), Value: str.String()}
+		}
 		value := modelValue.(fmt.Stringer).String()
 		textField := &TextField{
 			Class:    getClass(metaData),

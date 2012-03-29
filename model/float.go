@@ -109,3 +109,7 @@ type FloatNotReal struct {
 func (self *FloatNotReal) Error() string {
 	return fmt.Sprintf("Float %v is not a real number", self.Value)
 }
+
+func (self *Float) Hidden(metaData MetaData) (hidden bool) {
+	return metaData.TopField().BoolAttrib("hidden")
+}
