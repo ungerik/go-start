@@ -7,7 +7,7 @@ import "github.com/ungerik/go-start/utils"
 
 // TODO definition list
 type List struct {
-	ViewBaseWithIdAndDynamicChildren
+	ViewBaseWithId
 	Model       ListModel
 	Ordered     bool
 	OrderOffset uint
@@ -15,8 +15,6 @@ type List struct {
 }
 
 func (self *List) Render(context *Context, writer *utils.XMLWriter) (err error) {
-	self.RemoveChildren()
-
 	if self.Ordered {
 		writer.OpenTag("ol").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 		writer.Attrib("start", self.OrderOffset+1)
@@ -30,7 +28,7 @@ func (self *List) Render(context *Context, writer *utils.XMLWriter) (err error) 
 			writer.OpenTag("li").Attrib("id", self.id, "_", i)
 			view, err := self.Model.ItemView(i, context)
 			if view != nil && err == nil {
-				self.AddAndInitChild(view)
+				view.Init(view)
 				err = view.Render(context, writer)
 			}
 			if err != nil {

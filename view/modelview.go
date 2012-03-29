@@ -18,7 +18,7 @@ func ModelIterator(iter model.Iterator) GetModelIteratorFunc {
 }
 
 type ModelView struct {
-	ViewBaseWithDynamicChildren
+	ViewBase
 	GetModelIterator GetModelIteratorFunc
 	GetModelView     GetModelViewFunc // nil Views will be ignored
 }

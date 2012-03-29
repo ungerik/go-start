@@ -6,7 +6,7 @@ import "github.com/ungerik/go-start/utils"
 // Table
 
 type Table struct {
-	ViewBaseWithIdAndDynamicChildren
+	ViewBaseWithId
 	Model     TableModel
 	Class     string
 	Caption   string
@@ -14,8 +14,6 @@ type Table struct {
 }
 
 func (self *Table) Render(context *Context, writer *utils.XMLWriter) (err error) {
-	self.RemoveChildren()
-
 	writer.OpenTag("table").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 
 	if self.Caption != "" {
@@ -47,7 +45,7 @@ func (self *Table) Render(context *Context, writer *utils.XMLWriter) (err error)
 				}
 				view, err := self.Model.CellView(row, col, context)
 				if view != nil && err == nil {
-					self.AddAndInitChild(view)
+					view.Init(view)
 					err = view.Render(context, writer)
 				}
 				if err != nil {
