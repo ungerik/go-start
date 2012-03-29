@@ -1,6 +1,6 @@
 package view
 
-//import "github.com/ungerik/go-start/debug"
+// import "github.com/ungerik/go-start/debug"
 
 ///////////////////////////////////////////////////////////////////////////////
 // ViewBase
@@ -13,9 +13,9 @@ type ViewBase struct {
 }
 
 func (self *ViewBase) Init(thisView View) {
-	// if self.thisView != nil {
-	// 	panic("View already initialized")
-	// }
+	if thisView == self.thisView {
+		return // already initialized
+	}
 	self.thisView = thisView
 	thisView.IterateChildren(func(parent View, child View) (next bool) {
 		if child != nil {
