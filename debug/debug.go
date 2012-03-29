@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"runtime/debug"
 )
 
 // Set Logger to nil to suppress debug output
@@ -20,6 +21,10 @@ func CallStackInfo(skip int) (info string) {
 		info += fmt.Sprintf("\n%s:%d", file, line)
 	}
 	return
+}
+
+func PrintCallStack() {
+	fmt.Println(string(debug.Stack()))
 }
 
 func FormatSkip(skip int, value interface{}) string {

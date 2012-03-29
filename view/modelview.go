@@ -18,13 +18,13 @@ func ModelIterator(iter model.Iterator) GetModelIteratorFunc {
 }
 
 type ModelView struct {
-	ViewBaseWithDynamicChildren
+	ViewBase
 	GetModelIterator GetModelIteratorFunc
 	GetModelView     GetModelViewFunc // nil Views will be ignored
 }
 
 func (self *ModelView) Render(context *Context, writer *utils.XMLWriter) (err error) {
-	self.RemoveChildren()
+	var children Views
 
 	iter := self.GetModelIterator(context)
 	for model := iter.Next(); model != nil; model = iter.Next() {
@@ -33,12 +33,13 @@ func (self *ModelView) Render(context *Context, writer *utils.XMLWriter) (err er
 			return err
 		}
 		if view != nil {
-			self.AddAndInitChild(view)
+			children = append(children, view)
+			view.Init(view)
 		}
 	}
 	if iter.Err() != nil {
 		return iter.Err()
 	}
 
-	return self.children.Render(context, writer)
+	return children.Render(context, writer)
 }

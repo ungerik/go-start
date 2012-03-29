@@ -13,27 +13,15 @@ func NewDynamicView(getView GetViewFunc) *DynamicView {
 
 type DynamicView struct {
 	ViewBase
-	GetView GetViewFunc // nil Views will be ignored
-	child   View
+	// nil Views will be ignored
+	GetView GetViewFunc
 }
 
-func (self *DynamicView) IterateChildren(callback IterateChildrenCallback) {
-	if self.child != nil {
-		callback(self, self.child)
-	}
-}
-
-func (self *DynamicView) Render(context *Context, writer *utils.XMLWriter) (err error) {
-	if self.child != nil {
-		self.child.OnRemove()
-		self.child = nil
-	}
-
-	self.child, err = self.GetView(context)
-	if err != nil || self.child == nil {
+func (self *DynamicView) Render(context *Context, writer *utils.XMLWriter) error {
+	child, err := self.GetView(context)
+	if err != nil || child == nil {
 		return err
 	}
-	self.child.Init(self.child)
-
-	return self.child.Render(context, writer)
+	child.Init(child)
+	return child.Render(context, writer)
 }
