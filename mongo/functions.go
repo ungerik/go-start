@@ -132,7 +132,7 @@ func SortRefs(refs []Ref, lessFunc func(a, b *Ref) bool) {
 	sort.Sort(&SortableRefs{refs, lessFunc})
 }
 
-//func SortQueryByRef(query Query, selector string) (model.Iterator, os.Error) {
+//func SortQueryByRef(query Query, selector string) (model.Iterator, error) {
 //	collection, selectors := collectionAndSubDocumentSelectors(query)
 //	selectors = append(selectors, selector)
 //	if err := collection.ValidateSelector(selectors...); err != nil {

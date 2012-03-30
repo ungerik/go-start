@@ -5,13 +5,13 @@ import
 //	"bytes"
 "github.com/ungerik/go-start/utils"
 
-//func RenderLink(context *Context, link *Link) (html string, err os.Error) {
+//func RenderLink(context *Context, link *Link) (html string, err error) {
 //	var buf bytes.Buffer
 //	err = link.Render(context, utils.NewXMLWriter(&buf))
 //	return buf.String(), err
 //}
 //
-//func RenderLinkModel(context *Context, model LinkModel) (html string, err os.Error) {
+//func RenderLinkModel(context *Context, model LinkModel) (html string, err error) {
 //	return RenderLink(context, &Link{Model: model})
 //}
 

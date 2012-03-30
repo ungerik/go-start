@@ -121,7 +121,7 @@ See functions under PageWriteFunc below.
 
 Example:
 
-	&Page{WriteTitle: func(context *Context, writer io.Writer) (err os.Error) {
+	&Page{WriteTitle: func(context *Context, writer io.Writer) (err error) {
 		writer.Write([]byte("Could be a dynamic title"))
 		return nil
 	}}
@@ -136,11 +136,11 @@ query and set page wide data only once at the request context.Data.
 Example:
 
 	&Page{
-		OnPreRender: func(page *Page, context *Context) (err os.Error) {
+		OnPreRender: func(page *Page, context *Context) (err error) {
 			context.Data = &MyPerPageData{SomeText: "Hello World!"}
 		},
 		Content: NewDynamicView(
-			func(context *Context) (view View, err os.Error) {
+			func(context *Context) (view View, err error) {
 				myPerPageData := context.Data.(*MyPerPageData)
 				return HTML(myPerPageData.SomeText), nil
 			},

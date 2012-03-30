@@ -5,7 +5,7 @@ import (
 	"github.com/ungerik/go-start/debug"
 )
 
-// FormatSkipStackFrames formats an os.Error with call stack information if FormatWithCallStack is true.
+// FormatSkipStackFrames formats an error with call stack information if FormatWithCallStack is true.
 // It skips skip stack frames.
 func FormatSkipStackFrames(skip int, format string, args ...interface{}) error {
 	if Config.FormatWithCallStack {
@@ -14,7 +14,7 @@ func FormatSkipStackFrames(skip int, format string, args ...interface{}) error {
 	return fmt.Errorf(format, args...)
 }
 
-// Format formats an os.Error with call stack information if FormatWithCallStack is true
+// Format formats an error with call stack information if FormatWithCallStack is true
 func Format(format string, args ...interface{}) error {
 	return FormatSkipStackFrames(2, format, args...)
 }
@@ -26,22 +26,22 @@ func Assert(condition bool, description string, args ...interface{}) {
 }
 
 // todo test
-//func Catch(err *os.Error) {
+//func Catch(err *error) {
 //	if err == nil {
-//		panic(FormatSkipStackFrames(2, "errs.Catch expects non nil os.Error pointer"))
+//		panic(FormatSkipStackFrames(2, "errs.Catch expects non nil error pointer"))
 //	}
-//	CatchCall(func(e os.Error) {
+//	CatchCall(func(e error) {
 //		*err = e
 //	})
 //}
 //
-//func CatchCall(callback func(os.Error)) {
+//func CatchCall(callback func(error)) {
 //	if r := recover(); r != nil {
-//		var err os.Error
+//		var err error
 //		if e, ok := r.(runtime.Error); ok {
 //			panic(e)
 //			//*err = e
-//		} else if e, ok := r.(os.Error); ok {
+//		} else if e, ok := r.(error); ok {
 //			err = e
 //		} else if s, ok := r.(fmt.Stringer); ok {
 //			err = os.NewError(s.String())
@@ -54,8 +54,7 @@ func Assert(condition bool, description string, args ...interface{}) {
 //	}
 //}
 
-// Panic if any of the args is a non nil os.Error
-// Be careful because everything with a String() method qualifies as an os.Error
+// Panic if any of the args is a non nil error
 func AsPanic(args ...interface{}) {
 	for _, arg := range args {
 		if arg != nil {
@@ -66,8 +65,7 @@ func AsPanic(args ...interface{}) {
 	}
 }
 
-// Panic if the last element of args is a non nil os.Error
-// Be careful because everything with a String() method qualifies as an os.Error
+// Panic if the last element of args is a non nil error
 func LastAsPanic(args ...interface{}) {
 	arg := args[len(args)-1]
 	if arg != nil {
@@ -77,7 +75,7 @@ func LastAsPanic(args ...interface{}) {
 	}
 }
 
-// Returns the first os.Error in args
+// Returns the first error in args
 func First(args ...interface{}) error {
 	for _, arg := range args {
 		if arg != nil {

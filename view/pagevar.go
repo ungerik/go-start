@@ -24,7 +24,7 @@ func (self PageVar) IterateChildren(callback IterateChildrenCallback) {
 	(*self.Page).IterateChildren(callback)
 }
 
-func (self PageVar) Render(context *Context, writer *utils.XMLWriter) (err os.Error) {
+func (self PageVar) Render(context *Context, writer *utils.XMLWriter) (err error) {
 	return (*self.Page).Render(context, writer)
 }
 */

@@ -286,7 +286,7 @@ func (self *Collection) RemoveAllNotIn(ids ...bson.ObjectId) error {
 	return self.collection.Remove(bson.M{"_id": bson.M{"$nin": ids}})
 }
 
-//func (self *Collection) EnsureIndex(unique bool, keyNodes ...oldmodel.Node) os.Error {
+//func (self *Collection) EnsureIndex(unique bool, keyNodes ...oldmodel.Node) error {
 //	keys := make([]string, len(keyNodes))
 //	for i, keyNode := range keyNodes {
 //		keys[i] = NodePath(keyNode)

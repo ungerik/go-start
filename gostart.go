@@ -51,7 +51,7 @@ Example of a static view:
 		Ul("red", "green", "blue"),
 		&Template{
 			Filename: "mytemplate.html",
-			GetContext: func(requestContext *Context) (interface{}, os.Error) {
+			GetContext: func(requestContext *Context) (interface{}, error) {
 				return map[string]string{"Key": "Value"}, nil
 			},
 		},
@@ -60,7 +60,7 @@ Example of a static view:
 Example of a dynamic view:
 
 	view := NewDynamicView(
-		func(context *Context) (view View, err os.Error) {
+		func(context *Context) (view View, err error) {
 			var names []string
 			i := models.Users.Sort("Name.First").Sort("Name.Last").Iterator();
 			for doc := i.Next(); doc != nil; doc = i.Next() {
@@ -84,7 +84,7 @@ and creates a dynamic view for every iterated data item:
 		GetModelIterator: func(context *Context) model.Iterator {
 			return models.Users.Sort("Name.First").Sort("Name.Last").Iterator()
 		},
-		GetModelView: func(model interface{}, context *Context) (view View, err os.Error) {
+		GetModelView: func(model interface{}, context *Context) (view View, err error) {
 			user := model.(*models.User)
 			return PrintfEscape("%s, ", user.Name), nil
 		},
@@ -94,10 +94,10 @@ and creates a dynamic view for every iterated data item:
 ===== Pages and URLs: =====
 
 	Homepage := &Page{
-		OnPreRender: func(page *Page, context *Context) (err os.Error) {
+		OnPreRender: func(page *Page, context *Context) (err error) {
 			context.Data = &PerPageData{...} // Set global page data at request context
 		},
-		WriteTitle: func(context *Context, writer io.Writer) (err os.Error) {
+		WriteTitle: func(context *Context, writer io.Writer) (err error) {
 			writer.Write([]byte(context.Data.(*PerPageData).DynamicTitle))
 			return nil
 		},
@@ -167,10 +167,10 @@ Here is how a HTML form is created that displays input fields for the SignupForm
 	form := &Form{
 		ButtonText: "Signup",
 		FormID:     "user_signup",
-		GetModel: func(form *Form, context *Context) (interface{}, os.Error) {
+		GetModel: func(form *Form, context *Context) (interface{}, error) {
 			return &SignupFormModel{}, nil
 		},
-		OnSubmit: func(form *Form, formModel interface{}, context *Context) (err os.Error) {
+		OnSubmit: func(form *Form, formModel interface{}, context *Context) (err error) {
 			m := formModel.(*SignupFormModel)
 			// ... create user in db and send confirmation email ...
 			return err
