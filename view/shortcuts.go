@@ -36,7 +36,7 @@ func A_blank(url interface{}, content ...interface{}) *Link {
 
 // Img creates a HTML img element for an URL with optional width and height.
 // The first int of dimensions is width, the second one height.
-func Img(url string, dimensions ...int) View {
+func IMG(url string, dimensions ...int) View {
 	var width int
 	var height int
 	dimCount := len(dimensions)
@@ -52,12 +52,12 @@ func Img(url string, dimensions ...int) View {
 	return &Image{URL: url, Width: width, Height: height}
 }
 
-func Section(class string, content ...interface{}) View {
+func SECTION(class string, content ...interface{}) View {
 	return &ShortTag{Tag: "section", Class: class, Content: WrapContents(content...)}
 }
 
 // Creates a Div object with a HTML class attribute and optional content.
-func NewDiv(class string, content ...interface{}) *Div {
+func DIV(class string, content ...interface{}) *Div {
 	return &Div{Class: class, Content: WrapContents(content...)}
 }
 
@@ -65,11 +65,11 @@ func DivClearBoth() HTML {
 	return HTML("<div style='clear:both'></div>")
 }
 
-func Br() HTML {
+func BR() HTML {
 	return HTML("<br/>")
 }
 
-func Hr() HTML {
+func HR() HTML {
 	return HTML("<hr/>")
 }
 
@@ -113,37 +113,37 @@ func Q(content ...interface{}) View {
 	return &ShortTag{Tag: "q", Content: WrapContents(content...)}
 }
 
-func Del(content ...interface{}) View {
+func DEL(content ...interface{}) View {
 	return &ShortTag{Tag: "del", Content: WrapContents(content...)}
 }
 
-func Em(content ...interface{}) View {
+func EM(content ...interface{}) View {
 	return &ShortTag{Tag: "em", Content: WrapContents(content...)}
 }
 
-func Strong(content ...interface{}) View {
+func STRONG(content ...interface{}) View {
 	return &ShortTag{Tag: "strong", Content: WrapContents(content...)}
 }
 
-func Dfn(content ...interface{}) View {
+func DFN(content ...interface{}) View {
 	return &ShortTag{Tag: "dfn", Content: WrapContents(content...)}
 }
 
-func Code(content ...interface{}) View {
+func CODE(content ...interface{}) View {
 	return &ShortTag{Tag: "code", Content: WrapContents(content...)}
 }
 
-func Pre(content ...interface{}) View {
+func PRE(content ...interface{}) View {
 	return &ShortTag{Tag: "pre", Content: WrapContents(content...)}
 }
 
-func Abbr(longTitle, abbreviation string) View {
-	return &ShortTag{Tag: "pre", Attribs: map[string]string{"title": longTitle}, Content: Escape(abbreviation)}
+func ABBR(longTitle, abbreviation string) View {
+	return &ShortTag{Tag: "abbr", Attribs: map[string]string{"title": longTitle}, Content: Escape(abbreviation)}
 }
 
 // Ul is a shortcut to create an unordered list by wrapping items as HTML views.
 // NewView will be called for every passed item.
-func Ul(items ...interface{}) *List {
+func UL(items ...interface{}) *List {
 	model := make(ViewsListModel, len(items))
 	for i, item := range items {
 		model[i] = NewView(item)
@@ -153,8 +153,8 @@ func Ul(items ...interface{}) *List {
 
 // Ul is a shortcut to create an ordered list by wrapping items as HTML views.
 // NewView will be called for every passed item.
-func Ol(items ...interface{}) *List {
-	list := Ul(items...)
+func OL(items ...interface{}) *List {
+	list := UL(items...)
 	list.Ordered = true
 	return list
 }

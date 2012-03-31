@@ -37,7 +37,7 @@ And no, it has nothing to do with the mess of intertwined markup and code in PHP
 Example of a static view:
 
 	view := Views{
-		NewDiv("myclass",
+		DIV("myclass",
 			H1("Example HTML structure"),
 			P("This is a paragraph"),
 			P(
@@ -47,9 +47,9 @@ Example of a static view:
 			),
 			A_blank("http://go-lang.org", "A very simple link"),
 		),
-		Hr(),
-		Pre("	<- pre formated text, followed by a list:"),
-		Ul("red", "green", "blue"),
+		HR(),
+		PRE("	<- pre formated text, followed by a list:"),
+		UL("red", "green", "blue"),
 		&Template{
 			Filename: "mytemplate.html",
 			GetContext: func(requestContext *Context) (interface{}, error) {
@@ -70,7 +70,7 @@ Example of a dynamic view:
 			if i.Err() != nil {
 				return nil, i.Err()
 			}			
-			return &List{	// List = higher level abstraction, Ul() = shortcut
+			return &List{	// List = higher level abstraction, UL() = shortcut
 				Class: "my-ol",
 				Ordered: true,
 				Model: EscapeStringsListModel(names),

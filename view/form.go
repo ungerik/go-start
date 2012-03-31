@@ -243,7 +243,7 @@ func (self *Form) newVerticalFormField(modelValue model.Value, metaData model.Me
 				Class:   self.GetErrorMessageClass(),
 				Content: Escape(error.WrappedError.Error()),
 			},
-			Br(),
+			BR(),
 		)
 	}
 	views = append(views, editorView)
