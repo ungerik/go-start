@@ -234,12 +234,17 @@ Example for creating, modifying and saving a document:
 */
 package gostart
 
-// Include dependencies for build and install
+// Include all packages for build and install
 import (
 	_ "github.com/ungerik/go-amiando"
 	_ "github.com/ungerik/go-gravatar"
 	_ "github.com/ungerik/go-mail"
 	_ "github.com/ungerik/go-rss"
+	_ "github.com/ungerik/goconfig"
+	_ "github.com/ungerik/mustache.go"
+	_ "github.com/ungerik/web.go"
+	_ "launchpad.net/mgo"
+
 	_ "github.com/ungerik/go-start/debug"
 	_ "github.com/ungerik/go-start/errs"
 	_ "github.com/ungerik/go-start/i18n"
@@ -250,8 +255,4 @@ import (
 	_ "github.com/ungerik/go-start/user"
 	_ "github.com/ungerik/go-start/utils"
 	_ "github.com/ungerik/go-start/view"
-	_ "github.com/ungerik/goconfig"
-	_ "github.com/ungerik/mustache.go"
-	_ "github.com/ungerik/web.go"
-	_ "launchpad.net/mgo"
 )
