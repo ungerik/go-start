@@ -16,7 +16,7 @@ type TableModelView struct {
 	Caption           string
 	GetModelIterator  GetModelIteratorFunc
 	GetHeaderRowViews func(context *Context) (views Views, err error)
-	GetRowViews       func(rowModel interface{}, context *Context) (views Views, err error)
+	GetRowViews       func(row int, rowModel interface{}, context *Context) (views Views, err error)
 	table             Table
 }
 
@@ -42,14 +42,16 @@ func (self *TableModelView) Render(context *Context, writer *utils.XMLWriter) (e
 		}
 	}
 
+	rowNr := 0
 	iter := self.GetModelIterator(context)
 	for rowModel := iter.Next(); rowModel != nil; rowModel = iter.Next() {
-		views, err := self.GetRowViews(rowModel, context)
+		views, err := self.GetRowViews(rowNr, rowModel, context)
 		if err != nil {
 			return err
 		}
 		if views != nil {
 			tableModel = append(tableModel, views)
+			rowNr++
 		}
 	}
 	if iter.Err() != nil {
