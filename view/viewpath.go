@@ -3,11 +3,12 @@ package view
 import (
 	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/utils"
+	"github.com/ungerik/web.go"
 	"net/http"
 	"net/url"
 	"regexp"
+	"runtime"
 	"strings"
-	"github.com/ungerik/web.go"
 )
 
 const PathFragmentPattern = "([a-zA-Z0-9_\\-\\.]+)"
@@ -101,6 +102,10 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 	}
 
 	htmlFunc := func(webContext *web.Context, args ...string) string {
+		defer func() {
+			go runtime.GC()
+		}()
+
 		context := NewContext(webContext, self.View, args)
 
 		for _, subdomain := range Config.RedirectSubdomains {
