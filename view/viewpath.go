@@ -1,6 +1,7 @@
 package view
 
 import (
+	"fmt"
 	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/utils"
 	"github.com/ungerik/web.go"
@@ -91,7 +92,7 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 	}
 	viewsByPath[path] = self.View
 
-	if Config.DebugPrintPaths {
+	if Config.Debug.PrintPaths {
 		debug.Print(path)
 	}
 
@@ -128,8 +129,14 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 			case NotFound:
 				context.NotFound(err.Error())
 			case Redirect:
+				if Config.Debug.PrintRedirects {
+					fmt.Printf("%d Redirect: %s", http.StatusFound, err.Error())
+				}
 				context.Redirect(http.StatusFound, err.Error())
 			case PermanentRedirect:
+				if Config.Debug.PrintRedirects {
+					fmt.Printf("%d Permanent Redirect: %s", http.StatusMovedPermanently, err.Error())
+				}
 				context.Redirect(http.StatusMovedPermanently, err.Error())
 			case Forbidden:
 				context.Abort(http.StatusForbidden, err.Error())

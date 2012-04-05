@@ -35,10 +35,13 @@ type Configuration struct {
 	LoginSignupPage           **Page
 	Middlewares               []Middleware
 	NumFieldRepeatFormMessage int
-	Debug                     bool
 	FormErrorMessageClass     string
 	FormSuccessMessageClass   string
-	DebugPrintPaths           bool
+	Debug                     struct {
+		Mode           bool
+		PrintPaths     bool
+		PrintRedirects bool
+	}
 }
 
 // Config holds the configuration of the view package.
