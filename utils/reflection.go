@@ -9,6 +9,10 @@ import (
 
 type MatchStructFieldFunc func(field *reflect.StructField) bool
 
+func IsExportedName(name string) bool {
+	return name != "" && unicode.IsUpper(rune(name[0]))
+}
+
 func FindFlattenedStructField(t reflect.Type, matchFunc MatchStructFieldFunc) *reflect.StructField {
 	fieldCount := t.NumField()
 	for i := 0; i < fieldCount; i++ {
@@ -123,4 +127,34 @@ func IsDeepNil(i interface{}) bool {
 		return v.IsNil() || IsDeepNil(v.Elem().Interface())
 	}
 	return false
+}
+
+func ExportedStructFields(s interface{}) map[string]interface{} {
+	result := make(map[string]interface{})
+	v := reflect.ValueOf(s)
+	t := reflect.TypeOf(s)
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if IsExportedName(field.Name) {
+			result[field.Name] = v.Field(i).Interface()
+		}
+	}
+	return result
+}
+
+func CopyExportedStructFields(src, dst interface{}) (copied int) {
+	vsrc := reflect.ValueOf(src)
+	vdst := reflect.ValueOf(dst)
+	tsrc := reflect.TypeOf(src)
+	for i := 0; i < tsrc.NumField(); i++ {
+		tsrcfield := tsrc.Field(i)
+		if IsExportedName(tsrcfield.Name) {
+			dstfield := vdst.FieldByName(tsrcfield.Name)
+			if dstfield.IsValid() && dstfield.CanSet() && tsrcfield.Type.AssignableTo(dstfield.Type()) {
+				dstfield.Set(vsrc.Field(i))
+				copied++
+			}
+		}
+	}
+	return copied
 }
