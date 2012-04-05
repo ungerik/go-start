@@ -56,7 +56,7 @@ type User struct {
 	Password           model.Password
 	Blocked            model.Bool
 	Admin              model.Bool
-	PostalAddress      modelext.PostalAddress
+	PostalAddress      modelext.PostalAddress `gostart:"label=Postal Address"`
 	Phone              []PhoneNumber
 	Web                []Website
 	Email              []EmailIdentity
