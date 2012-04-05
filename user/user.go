@@ -56,6 +56,7 @@ type User struct {
 	Password           model.Password
 	Blocked            model.Bool
 	Admin              model.Bool
+	PostalAddress      modelext.PostalAddress
 	Phone              []PhoneNumber
 	Web                []Website
 	Email              []EmailIdentity
