@@ -6,6 +6,9 @@ Source: https://github.com/ungerik/go-start/
 
 Documentation: http://go-start.org/pkg/go-start/gostart/
 
+Note: Don't use Go on 32 bit systems in production, it has severe memory leaks.
+(If the documentation URL above doesn't work, then godoc -html has has crashed because of that issue)
+
 Features:
 	* HTML views can be defined in Go syntax
 	* Optional template system
@@ -22,7 +25,8 @@ Features:
 			(used by http://startuplive.in)
 
 
-===== Views: =====
+Views:
+======
 
 The philosophy for creating HTML views is (unlike Rails/Django) that you should
 not have to learn yet another language to be able to write templates.
@@ -92,7 +96,8 @@ and creates a dynamic view for every iterated data item:
 	}
 
 
-===== Pages and URLs: =====
+Pages and URLs:
+===============
 
 	Homepage := &Page{
 		OnPreRender: func(page *Page, context *Context) (err error) {
@@ -138,7 +143,8 @@ and creates a dynamic view for every iterated data item:
 
 
 
-===== Models: =====
+Models:
+=======
 
 Data is abstacted as models. The same model abstraction and data validation is
 used for HTML forms and for databases. So a model can be loaded from a database,
