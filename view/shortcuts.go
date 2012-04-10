@@ -65,6 +65,10 @@ func DivClearBoth() HTML {
 	return HTML("<div style='clear:both'></div>")
 }
 
+func CANVAS(class string, width, height int) *Canvas {
+	return &Canvas{Class: class, Width: width, Height: height}
+}
+
 func BR() HTML {
 	return HTML("<br/>")
 }
