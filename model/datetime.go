@@ -5,6 +5,7 @@ import "time"
 const DateTimeFormat = "2006-01-02 15:04:05"
 const ShortDateTimeFormat = "2006-01-02 15:04"
 
+// DateTime 
 type DateTime string
 
 func (self *DateTime) Get() string {

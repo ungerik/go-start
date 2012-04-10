@@ -103,6 +103,9 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 	}
 
 	htmlFunc := func(webContext *web.Context, args ...string) string {
+
+		// See: http://groups.google.com/group/golang-nuts/browse_thread/thread/ab1971bb9459025d
+		// Slows down the memory leak on 32 bit systems a little bit:
 		defer func() {
 			go runtime.GC()
 		}()
