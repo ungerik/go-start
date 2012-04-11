@@ -1,9 +1,11 @@
 package utils
 
 import (
-	"sort"
-	"reflect"
 	"github.com/ungerik/go-start/errs"
+	"reflect"
+	"sort"
+	"strconv"
+	"strings"
 )
 
 func DeleteEmptySliceElementsVal(sliceVal reflect.Value) reflect.Value {
@@ -68,7 +70,7 @@ func SliceDelete(slice []interface{}, index int, count int) (result []interface{
 
 // Implements sort.Interface
 type Sortable struct {
-	Slice []interface{}
+	Slice    []interface{}
 	LessFunc func(a, b interface{}) bool
 }
 
@@ -115,3 +117,52 @@ func CloneByteSlice(original []byte) (clone []byte) {
 	return clone
 }
 */
+
+func MakeVersionTuple(fields ...int) VersionTuple {
+	t := make(VersionTuple, len(fields))
+	for i := range fields {
+		t[i] = fields[i]
+	}
+	return t
+}
+
+func ParseVersionTuple(s string) (VersionTuple, error) {
+	fields := strings.Split(s, ".")
+	t := make(VersionTuple, len(fields))
+	for i := range fields {
+		value, err := strconv.ParseInt(fields[i], 10, 32)
+		if err != nil {
+			return nil, err
+		}
+		t[i] = int(value)
+	}
+	return t, nil
+}
+
+type VersionTuple []int
+
+func (self VersionTuple) GreaterEqual(other VersionTuple) bool {
+	for i := range other {
+		var value int
+		if i < len(self) {
+			value = self[i]
+		}
+		if value > other[i] {
+			return true
+		} else if value < other[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func (self VersionTuple) String() string {
+	var sb StringBuilder
+	for i := range self {
+		if i > 0 {
+			sb.Byte('.')
+		}
+		sb.Int(self[i])
+	}
+	return sb.String()
+}

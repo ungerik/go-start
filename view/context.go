@@ -5,7 +5,6 @@ import (
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/utils"
 	"github.com/ungerik/web.go"
-	"strconv"
 	"strings"
 )
 
@@ -71,33 +70,29 @@ func (self *Context) DecryptCookie(data []byte) (result []byte, err error) {
 }
 
 // todo: all browsers
-func (self *Context) ParseRequestUserAgent() (renderer string, version [4]int) {
-	s := self.Request.Header.Get("User-Agent")
+func (self *Context) ParseRequestUserAgent() (renderer string, version utils.VersionTuple, err error) {
+	s := self.Request.UserAgent()
 	switch {
 	case strings.Contains(s, "Gecko"):
-		renderer = "Gecko"
 		if i := strings.Index(s, "rv:"); i != -1 {
 			i += len("rv:")
 			if l := strings.IndexAny(s[i:], "); "); l != -1 {
-				for n, v := range strings.SplitN(s[i:i+l], ".", 4) {
-					i64, _ := strconv.ParseUint(v, 10, 32)
-					version[n] = int(i64)
+				if version, err = utils.ParseVersionTuple(s[i : i+l]); err == nil {
+					return "Gecko", version, nil
 				}
 			}
 		}
 	case strings.Contains(s, "MSIE "):
-		renderer = "MSIE"
 		if i := strings.Index(s, "MSIE "); i != -1 {
 			i += len("MSIE ")
 			if l := strings.IndexAny(s[i:], "); "); l != -1 {
-				for n, v := range strings.SplitN(s[i:i+l], ".", 4) {
-					i64, _ := strconv.ParseUint(v, 10, 32)
-					version[n] = int(i64)
+				if version, err = utils.ParseVersionTuple(s[i : i+l]); err == nil {
+					return "MSIE", version, nil
 				}
 			}
 		}
 	}
-	return renderer, version
+	return "", nil, nil
 }
 
 //func (self *Context) Cache(key string, value interface{}) {
