@@ -1,13 +1,20 @@
-/*
-go-start is a high level web-framework for Go,
-like Django for Python or Rails for Ruby.
+go-start is a high level web-framework for Go, like Django for Python or Rails for Ruby.
 
-Source: https://github.com/ungerik/go-start/
+Installation:
+go get github.com/ungerik/go-start
 
-Documentation: http://go-start.org/pkg/go-start/gostart/
+Documentation:
+http://go-start.org/pkg/github.com/ungerik/go-start/
 
-Note: Don't use Go on 32 bit systems in production, it has severe memory leaks.
-(If the documentation URL above doesn't work, then godoc -html has has crashed because of that issue)
+Presentation Slides:
+http://speakerdeck.com/u/ungerik/
+
+First real world application:
+http://startuplive.in/
+
+Copyright (c) 2012 Erik Unger
+MIT License See: LICENSE file
+
 
 Intro:
 ======
@@ -239,29 +246,3 @@ Example for creating, modifying and saving a document:
 	err := user.Save()
 
 
-
-*/
-package gostart
-
-// Include all packages for build and install
-import (
-	_ "github.com/ungerik/go-amiando"
-	_ "github.com/ungerik/go-gravatar"
-	_ "github.com/ungerik/go-mail"
-	_ "github.com/ungerik/go-rss"
-	_ "github.com/ungerik/goconfig"
-	_ "github.com/ungerik/mustache.go"
-	_ "github.com/ungerik/web.go"
-	_ "launchpad.net/mgo"
-
-	_ "github.com/ungerik/go-start/debug"
-	_ "github.com/ungerik/go-start/errs"
-	_ "github.com/ungerik/go-start/i18n"
-	_ "github.com/ungerik/go-start/model"
-	_ "github.com/ungerik/go-start/modelext"
-	_ "github.com/ungerik/go-start/mongo"
-	_ "github.com/ungerik/go-start/templatesystem"
-	_ "github.com/ungerik/go-start/user"
-	_ "github.com/ungerik/go-start/utils"
-	_ "github.com/ungerik/go-start/view"
-)
