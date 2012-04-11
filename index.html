@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="go-start : A high level web-framework for Go" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>go-start</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/ungerik/go-start">Fork Me on GitHub</a>
+
+          <h1 id="project_title">go-start</h1>
+          <h2 id="project_tagline">A high level web-framework for Go</h2>
+
+          <section id="downloads">
+            <a class="zip_download_link" href="https://github.com/ungerik/go-start/zipball/master">Download this project as a .zip file</a>
+            <a class="tar_download_link" href="https://github.com/ungerik/go-start/tarball/master">Download this project as a tar.gz file</a>
+          </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <p>go-start is a high level web-framework for Go, like Django for Python or Rails for Ruby.</p>
+
+<p>Installation:
+go get github.com/ungerik/go-start</p>
+
+<p>Documentation:
+<a href="http://go-start.org/pkg/github.com/ungerik/go-start/">http://go-start.org/pkg/github.com/ungerik/go-start/</a></p>
+
+<p>Presentation Slides:
+<a href="http://speakerdeck.com/u/ungerik/">http://speakerdeck.com/u/ungerik/</a></p>
+
+<p>First real world application:
+<a href="http://startuplive.in/">http://startuplive.in/</a></p>
+
+<p>Copyright (c) 2012 Erik Unger
+MIT License See: LICENSE file</p>
+
+<h1>Intro:</h1>
+
+<p>Features:</p>
+
+<ul>
+<li>HTML views can be defined in Go syntax</li>
+<li>Optional template system</li>
+<li>HTML5 Boilerplate page template (Mustache template, will be changed to Go v1 template)</li>
+<li>Unified data model for forms and databases</li>
+<li>Data models are simple Go structs</li>
+<li>MongoDB as default database</li>
+<li>User management/authentication out of the box</li>
+<li>Additional packages for
+
+<ul>
+<li>Email (Google Mail defaults): <a href="http://github.com/ungerik/go-mail">http://github.com/ungerik/go-mail</a></li>
+<li>Gravatar: <a href="http://github.com/ungerik/go-gravatar">http://github.com/ungerik/go-gravatar</a></li>
+<li>RSS parsing: <a href="http://github.com/ungerik/go-rss">http://github.com/ungerik/go-rss</a></li>
+<li>Amiando event management: <a href="http://github.com/ungerik/go-amiando">http://github.com/ungerik/go-amiando</a>
+(used by <a href="http://startuplive.in">http://startuplive.in</a>)</li>
+</ul>
+</li>
+</ul><h1>Views:</h1>
+
+<p>The philosophy for creating HTML views is (unlike Rails/Django) that you should
+not have to learn yet another language to be able to write templates.
+There are several very simple template languages out there that reduce program
+code like logic within the template, but it’s still yet another syntax to learn.</p>
+
+<p>In go-start the HTML structure of a page is represented by a structure of
+type safe Go objects.
+It should feel like writing HTML but using the syntax of Go.
+And no, it has nothing to do with the mess of intertwined markup and code in PHP.</p>
+
+<p>Example of a static view:</p>
+
+<pre><code>view := Views{
+    DIV("myclass",
+        H1("Example HTML structure"),
+        P("This is a paragraph"),
+        P(
+            HTML("Some unescaped HTML:&lt;br/&gt;"),
+            Printf("The number of the beast: %d", 666),
+            Escape("Will be escaped: 666 &lt; 999"),
+        ),
+        A_blank("<a href="http://go-lang.org">http://go-lang.org</a>", "A very simple link"),
+    ),
+    HR(),
+    PRE("   &lt;- pre formated text, followed by a list:"),
+    UL("red", "green", "blue"),
+    &amp;Template{
+        Filename: "mytemplate.html",
+        GetContext: func(requestContext *Context) (interface{}, error) {
+            return map[string]string{"Key": "Value"}, nil
+        },
+    },
+}
+</code></pre>
+
+<p>Example of a dynamic view:</p>
+
+<pre><code>view := NewDynamicView(
+    func(context *Context) (view View, err error) {
+        var names []string
+        i := models.Users.Sort("Name.First").Sort("Name.Last").Iterator();
+        for doc := i.Next(); doc != nil; doc = i.Next() {
+            names = append(names, doc.(*models.User).Name.String())
+        }
+        if i.Err() != nil {
+            return nil, i.Err()
+        }           
+        return &amp;List{   // List = higher level abstraction, UL() = shortcut
+            Class: "my-ol",
+            Ordered: true,
+            Model: EscapeStringsListModel(names),
+        }, nil
+    },
+)
+</code></pre>
+
+<p>Beside DynamicView there is also a ModelView. It takes a model.Iterator
+and creates a dynamic view for every iterated data item:</p>
+
+<pre><code>view := &amp;ModelView{
+    GetModelIterator: func(context *Context) model.Iterator {
+        return models.Users.Sort("Name.First").Sort("Name.Last").Iterator()
+    },
+    GetModelView: func(model interface{}, context *Context) (view View, err error) {
+        user := model.(*models.User)
+        return PrintfEscape("%s, ", user.Name), nil
+    },
+}
+</code></pre>
+
+<h1>Pages and URLs:</h1>
+
+<pre><code>Homepage := &amp;Page{
+    OnPreRender: func(page *Page, context *Context) (err error) {
+        context.Data = &amp;PerPageData{...} // Set global page data at request context
+    },
+    WriteTitle: func(context *Context, writer io.Writer) (err error) {
+        writer.Write([]byte(context.Data.(*PerPageData).DynamicTitle))
+        return nil
+    },
+    CSS:          HomepageCSS,
+    WriteHeader:  RSS("go-start.org RSS Feed", &amp;RssFeed)
+    WriteScripts: PageWriters(
+        Config.Page.DefaultWriteScripts,
+        JQuery,   // jQuery/UI is built-in
+        JQueryUI,
+        JQueryUIAutocompleteFromURL(".select-username", IndirectURL(&amp;API_Usernames), 2),
+        GoogleAnalytics(GoogleAnalyticsID), // Google Analytics is built-in
+    )
+    Content: Views{},
+}
+
+
+Admin_Auth := NewBasicAuth("go-start.org", "admin", "password123")
+
+func Paths() *ViewPath {
+    return &amp;ViewPath{View: Homepage, Sub: []ViewPath{                           // /
+        {Name: "style.css", View: HomepageCSS},                             // /style.css
+        {Name: "feed", View: RssFeed},                                      // /feed/
+        {Name: "admin", View: Admin, Auth: Admin_Auth, Sub: []ViewPath{     // /admin/
+            {Name: "user", Args: 1, View: Admin_User, Auth: Admin_Auth}, // /admin/user/&lt;USER_ID&gt;/
+        }},
+        {Name: "api", Sub: []ViewPath{                                      // 404 because no view defined
+            {Name: "users.json", View: API_Usernames},                  // /api/users.json
+        }},
+    }
+}
+
+view.Init("go-start.org", CookieSecret, "pkg/myproject", "pkg/gostart") // Set site name, cookie secret and static paths
+view.Config.RedirectSubdomains = []string{"www"}     // Redirect from <a href="http://www">www</a>.
+view.Config.Page.DefaultMetaViewport = "width=960px" // Page width for mobile devices
+view.RunConfigFile(Paths(), "run.config")            // Run server with path structure and values from config file
+</code></pre>
+
+<h1>Models:</h1>
+
+<p>Data is abstacted as models. The same model abstraction and data validation is
+used for HTML forms and for databases. So a model can be loaded from a database,
+displayed as an HTML form and saved back to the database after submit.
+This is not always a good practice, but it shows how easy things can be.</p>
+
+<p>A model is a simple Go struct that uses gostart/model types as struct members.
+Custom model wide validation is done by adding a Validate() method to the
+struct type:</p>
+
+<pre><code>type SignupFormModel struct {
+    Email     model.Email    `gostart:"required"`
+    Password1 model.Password `gostart:"required|label=Password|minlen=6"`
+    Password2 model.Password `gostart:"label=Repeat password"`
+}
+
+func (self *SignupFormModel) Validate(metaData model.MetaData) []*model.ValidationError {
+    if self.Password1 != self.Password2 {
+        return model.NewValidationErrors(os.NewError("Passwords don't match"), metaData)
+    }
+    return model.NoValidationErrors
+}
+</code></pre>
+
+<p>Here is how a HTML form is created that displays input fields for the SignupFormModel:</p>
+
+<pre><code>form := &amp;Form{
+    ButtonText: "Signup",
+    FormID:     "user_signup",
+    GetModel: func(form *Form, context *Context) (interface{}, error) {
+        return &amp;SignupFormModel{}, nil
+    },
+    OnSubmit: func(form *Form, formModel interface{}, context *Context) (err error) {
+        m := formModel.(*SignupFormModel)
+        // ... create user in db and send confirmation email ...
+        return err
+    },
+}
+</code></pre>
+
+<p>MongoDB is the default database of go-start utilizing Gustavo Niemeyer's
+great lib mgo (<a href="http://labix.org/mgo">http://labix.org/mgo</a>).</p>
+
+<p>Mongo collections and queries are encapsulated to make them compatible with the
+go-start data model concept, and a little bit easier to use.</p>
+
+<p>Example of a collection and document struct:</p>
+
+<pre><code>var ExampleDocs *mongo.Collection = mongo.NewCollection("exampledocs", (*ExampleDoc)(nil))
+
+type ExampleDoc struct {
+    mongo.DocumentBase `bson:",inline"`                 // Give it a Mongo ID
+    Person             mongo.Ref  `gostart:"to=people"` // Mongo ID ref to a document in "people" collection
+    LongerText         model.Text `gostart:"rows=5|cols=80|maxlen=400"`
+    Integer            model.Int  `gostart:"min=1|max=100"`
+    Email              model.Email    // Normalization + special treament in forms
+    PhoneNumber        model.Phone    // Normalization + special treament in forms
+    Password           model.Password // Hashed + special treament in forms
+    SubDoc             struct {
+        Day       model.Date
+        Drinks    []mongo.Choice `gostart:"options=Beer,Wine,Water"` // Mongo array of strings
+        RealFloat model.Float    `gostart:"valid" // Must be a real float value, not NaN or Inf
+    }
+}
+</code></pre>
+
+<p>Example query:</p>
+
+<pre><code>i := models.Users.Filter("Name.Last", "Smith").Sort("Name.First").Iterator();
+for doc := i.Next(); doc != nil; doc = i.Next() {
+    user := doc.(*models.User)
+    // ...
+}
+// Err() returns any error after Next() returned nil:
+if i.Err() != nil {
+    panic(i.Err())
+}
+</code></pre>
+
+<p>A new mongo.Document is always created by the corresponding collection object
+to initialize it with meta information about its collection.
+This way it is possible to implement Save() or Remove() methods for the document.</p>
+
+<p>Example for creating, modifying and saving a document:</p>
+
+<pre><code>user := models.Users.NewDocument().(*models.User)
+
+user.Name.First.Set("Erik")
+user.Name.Last.Set("Unger")
+
+err := user.Save()
+</code></pre>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">go-start maintained by <a href="https://github.com/ungerik">ungerik</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
