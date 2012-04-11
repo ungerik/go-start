@@ -1,8 +1,8 @@
 package mongo
 
 import (
-	"launchpad.net/mgo/bson"
 	"launchpad.net/mgo"
+	"launchpad.net/mgo/bson"
 )
 
 ///////////////////////////////////////////////////////////////////////////////

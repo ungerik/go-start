@@ -13,19 +13,20 @@ Intro:
 ======
 
 Features:
-	* HTML views can be defined in Go syntax
-	* Optional template system
-	* HTML5 Boilerplate page template (Mustache template, will be changed to Go v1 template)
-	* Unified data model for forms and databases
-	* Data models are simple Go structs
-	* MongoDB as default database
-	* User management/authentication out of the box
-	* Additional packages for
-		* Email (Google Mail defaults): github.com/ungerik/go-mail
-		* Gravatar: github.com/ungerik/go-gravatar
-		* RSS parsing: github.com/ungerik/go-rss
-		* Amiando event management: github.com/ungerik/go-amiando
-			(used by http://startuplive.in)
+
+* HTML views can be defined in Go syntax
+* Optional template system
+* HTML5 Boilerplate page template (Mustache template, will be changed to Go v1 template)
+* Unified data model for forms and databases
+* Data models are simple Go structs
+* MongoDB as default database
+* User management/authentication out of the box
+* Additional packages for
+	* Email (Google Mail defaults): http://github.com/ungerik/go-mail
+	* Gravatar: http://github.com/ungerik/go-gravatar
+	* RSS parsing: http://github.com/ungerik/go-rss
+	* Amiando event management: http://github.com/ungerik/go-amiando
+		(used by http://startuplive.in)
 
 
 Views:
