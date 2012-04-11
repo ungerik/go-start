@@ -12,11 +12,8 @@ import (
 func NewLoginForm(class, errorMessageClass, successMessageClass string, redirectURL view.URL) view.View {
 	return view.NewDynamicView(
 		func(context *view.Context) (v view.View, err error) {
-			var r view.URL
 			if from, ok := context.Params["from"]; ok {
-				r = view.StringURL(from)
-			} else {
-				r = redirectURL
+				redirectURL = view.StringURL(from)
 			}
 			model := &LoginFormModel{}
 			if email, ok := context.Params["email"]; ok {
@@ -30,7 +27,7 @@ func NewLoginForm(class, errorMessageClass, successMessageClass string, redirect
 				ButtonText:          "Login",
 				FormID:              "gostart_user_login",
 				GetModel:            view.FormModel(model),
-				Redirect:            r,
+				Redirect:            redirectURL,
 				OnSubmit: func(form *view.Form, formModel interface{}, context *view.Context) (err error) {
 					m := formModel.(*LoginFormModel)
 					ok, err := LoginEmailPassword(context, m.Email.Get(), m.Password.Get())

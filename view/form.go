@@ -24,7 +24,7 @@ func FormModel(model interface{}) GetFormModelFunc {
 type Form struct {
 	ViewBaseWithId
 	Class               string
-	Action              string
+	Action              string // Default is "." plus any URL params
 	Content             View
 	Method              string
 	FormID              string
@@ -180,6 +180,9 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 	action := self.Action
 	if action == "" {
 		action = "."
+		if i := strings.Index(context.Request.RequestURI, "?"); i != -1 {
+			action += context.Request.RequestURI[i:]
+		}
 	}
 
 	writer.OpenTag("form").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)

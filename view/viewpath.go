@@ -133,12 +133,12 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 				context.NotFound(err.Error())
 			case Redirect:
 				if Config.Debug.PrintRedirects {
-					fmt.Printf("%d Redirect: %s", http.StatusFound, err.Error())
+					fmt.Printf("%d Redirect: %s\n", http.StatusFound, err.Error())
 				}
 				context.Redirect(http.StatusFound, err.Error())
 			case PermanentRedirect:
 				if Config.Debug.PrintRedirects {
-					fmt.Printf("%d Permanent Redirect: %s", http.StatusMovedPermanently, err.Error())
+					fmt.Printf("%d Permanent Redirect: %s\n", http.StatusMovedPermanently, err.Error())
 				}
 				context.Redirect(http.StatusMovedPermanently, err.Error())
 			case Forbidden:
