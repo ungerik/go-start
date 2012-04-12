@@ -19,7 +19,7 @@
 	{{! Mobile viewport optimized: j.mp/bplateviewport }}
 	{{#MetaViewport}}<meta name="viewport" content="{{{MetaViewport}}}">{{/MetaViewport}}
 
-	{{{Header}}}
+	{{{Head}}}
 
 	{{#Favicon16x16URL}}
 		<link rel="shortcut icon" href="{{{Favicon16x16URL}}}">
@@ -46,6 +46,7 @@
        For optimal performance, use a custom Modernizr build: www.modernizr.com/download/ }}
 	<script src="/js/libs/modernizr-2.0.6.min.js"></script>
 
+	{{{HeadScripts}}}
 </head>
 
 <body>

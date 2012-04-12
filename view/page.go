@@ -165,7 +165,7 @@ type Page struct {
 	MetaViewport string
 
 	// Write additional HTML head content
-	WriteHeader PageWriteFunc
+	WriteHead PageWriteFunc
 
 	// Write head content before the stylesheet link
 	WritePreCSS PageWriteFunc
@@ -175,6 +175,9 @@ type Page struct {
 
 	// Write head content after the stylesheet link
 	WritePostCSS PageWriteFunc
+
+	// Write scripts as last element of the HTML head
+	WriteHeadScripts PageWriteFunc
 
 	// HTML body content. Will be wrapped by a div with class="container"
 	Content View
@@ -257,10 +260,11 @@ func (self *Page) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		Title             string
 		MetaDescription   string
 		MetaViewport      string
-		Header            string
+		Head              string
 		PreCSS            string
 		CSS               string
 		PostCSS           string
+		HeadScripts       string
 		Scripts           string
 		Favicon16x16URL   string
 		Favicon57x57URL   string
@@ -293,17 +297,17 @@ func (self *Page) Render(context *Context, writer *utils.XMLWriter) (err error) 
 	}
 	templateContext.MetaViewport = metaViewport
 
-	writeHeader := self.WriteHeader
-	if writeHeader == nil {
-		writeHeader = Config.Page.DefaultWriteHeader
+	writeHead := self.WriteHead
+	if writeHead == nil {
+		writeHead = Config.Page.DefaultWriteHead
 	}
-	if writeHeader != nil {
+	if writeHead != nil {
 		var buf bytes.Buffer
-		err := writeHeader(context, &buf)
+		err := writeHead(context, &buf)
 		if err != nil {
 			return err
 		}
-		templateContext.Header = buf.String()
+		templateContext.Head = buf.String()
 	}
 
 	//templateContext.Meta = self.Meta
@@ -331,6 +335,18 @@ func (self *Page) Render(context *Context, writer *utils.XMLWriter) (err error) 
 			return err
 		}
 		templateContext.PostCSS = buf.String()
+	}
+
+	writeHeadScripts := self.WriteHeadScripts
+	if writeHeadScripts == nil {
+		writeHeadScripts = Config.Page.DefaultWriteHeadScripts
+	}
+	if writeHeadScripts != nil {
+		var buf bytes.Buffer
+		if err = writeHeadScripts(context, &buf); err != nil {
+			return err
+		}
+		templateContext.HeadScripts = buf.String()
 	}
 
 	writeScripts := self.WriteScripts

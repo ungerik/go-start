@@ -9,13 +9,14 @@ import (
 )
 
 type PageConfiguration struct {
-	Template            string
-	DefaultWriteHeader  PageWriteFunc // will be called after WriteTitle
-	DefaultCSS          string
-	DefaultMetaViewport string
-	DefaultWriteScripts PageWriteFunc // will be called if Page.WriteScripts is nil
-	PostWriteScripts    PageWriteFunc // will always be called after Page.WriteScripts
-	DefaultAuth         Authenticator // Will be used for pages with Page.NeedsAuth == true
+	Template                string
+	DefaultWriteHead        PageWriteFunc // will be called after WriteTitle
+	DefaultCSS              string
+	DefaultMetaViewport     string
+	DefaultWriteHeadScripts PageWriteFunc // write scripts as last element of the HTML head
+	DefaultWriteScripts     PageWriteFunc // will be called if Page.WriteScripts is nil
+	PostWriteScripts        PageWriteFunc // will always be called after Page.WriteScripts
+	DefaultAuth             Authenticator // Will be used for pages with Page.NeedsAuth == true
 }
 
 type Configuration struct {
