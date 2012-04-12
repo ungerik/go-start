@@ -24,14 +24,24 @@ func TimeInRange(t, from, until time.Time) bool {
 }
 
 func DayBeginningTime(someTimeOfTheDay time.Time) time.Time {
-	return time.Date(
-		someTimeOfTheDay.Year(),
-		someTimeOfTheDay.Month(),
-		someTimeOfTheDay.Day(),
-		0,
-		0,
-		0,
-		0,
-		someTimeOfTheDay.Location(),
-	)
+	year, month, day := someTimeOfTheDay.Date()
+	return time.Date(year, month, day, 0, 0, 0, 0, someTimeOfTheDay.Location())
+}
+
+type SortableTimeSlice []time.Time
+
+// Len is the number of elements in the collection.
+func (self SortableTimeSlice) Len() int {
+	return len(self)
+}
+
+// Less returns whether the element with index i should sort
+// before the element with index j.
+func (self SortableTimeSlice) Less(i, j int) bool {
+	return self[i].Before(self[j])
+}
+
+// Swap swaps the elements with indexes i and j.
+func (self SortableTimeSlice) Swap(i, j int) {
+	self[i], self[j] = self[j], self[i]
 }
