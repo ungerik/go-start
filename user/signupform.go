@@ -21,9 +21,24 @@ func NewSignupForm(class, errorMessageClass, successMessageClass string, confirm
 		Redirect: redirectURL,
 		OnSubmit: func(form *view.Form, formModel interface{}, context *view.Context) error {
 			m := formModel.(*SignupFormModel)
-			user, _, err := New(m.Email.Get(), m.Password1.Get())
+			email := m.Email.Get()
+			password := m.Password1.Get()
+			var user *User
+			doc, found, err := FindByEmail(email)
 			if err != nil {
 				return err
+			}
+			if found {
+				user = From(doc)
+				if user.EmailPasswordConfirmed() {
+					return errors.New("A user with that email and a password already exists")
+				}
+				user.Password.SetHashed(password)
+			} else {
+				user, _, err = New(email, password)
+				if err != nil {
+					return err
+				}
 			}
 			err = <-user.Email[0].SendConfirmationEmail(context, confirmationURL)
 			if err != nil {
