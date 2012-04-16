@@ -25,11 +25,13 @@ func NewLinkModel(url interface{}, content ...interface{}) LinkModel {
 	switch s := url.(type) {
 	case **Page:
 		return &PageLink{Page: s, Content: getContent()}
+	case *ViewWithURL:
+		return &URLLink{Url: &IndirectViewWithURL{s}, Content: NewViews(content...)}
 	case LinkModel:
 		if len(content) > 0 {
 			return &URLLink{Url: s, Content: NewViews(content...)}
 		}
-		return url.(LinkModel)
+		return s
 	case URL:
 		return &URLLink{Url: s, Content: getContent()}
 	case fmt.Stringer:

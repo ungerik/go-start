@@ -10,43 +10,6 @@ import (
 )
 
 ///////////////////////////////////////////////////////////////////////////////
-// PhoneNumber
-
-type PhoneNumber struct {
-	Number      model.Phone
-	Description model.String
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Website
-
-// Implements view.LinkModel
-type Website struct {
-	Url         model.Url `gostart:"label=URL"`
-	Title       model.String
-	Description model.String
-}
-
-func (self *Website) URL(context *view.Context, args ...string) string {
-	return self.Url.Get()
-}
-
-func (self *Website) LinkContent(context *view.Context) view.View {
-	return view.Escape(self.LinkTitle(context))
-}
-
-func (self *Website) LinkTitle(context *view.Context) string {
-	if self.Title.IsEmpty() {
-		return self.Description.Get()
-	}
-	return self.Title.Get()
-}
-
-func (self *Website) LinkRel(context *view.Context) string {
-	return ""
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // User
 
 type User struct {
@@ -284,4 +247,41 @@ func (self *User) PrimarySkypeIdentity() *SkypeIdentity {
 		return nil
 	}
 	return &self.Skype[0]
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// PhoneNumber
+
+type PhoneNumber struct {
+	Number      model.Phone
+	Description model.String
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Website
+
+// Implements view.LinkModel
+type Website struct {
+	Url         model.Url `gostart:"label=URL"`
+	Title       model.String
+	Description model.String
+}
+
+func (self *Website) URL(context *view.Context, args ...string) string {
+	return self.Url.Get()
+}
+
+func (self *Website) LinkContent(context *view.Context) view.View {
+	return view.Escape(self.LinkTitle(context))
+}
+
+func (self *Website) LinkTitle(context *view.Context) string {
+	if self.Title.IsEmpty() {
+		return self.Description.Get()
+	}
+	return self.Title.Get()
+}
+
+func (self *Website) LinkRel(context *view.Context) string {
+	return ""
 }
