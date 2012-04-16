@@ -10,7 +10,7 @@ import (
 )
 
 func NewLoginForm(class, errorMessageClass, successMessageClass string, redirectURL view.URL) view.View {
-	return view.NewDynamicView(
+	return view.DynamicView(
 		func(context *view.Context) (v view.View, err error) {
 			if from, ok := context.Params["from"]; ok {
 				redirectURL = view.StringURL(from)
