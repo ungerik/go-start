@@ -68,7 +68,7 @@ Example of a static view:
 
 Example of a dynamic view:
 
-	view := NewDynamicView(
+	view := DynamicView(
 		func(context *Context) (view View, err error) {
 			var names []string
 			i := models.Users.Sort("Name.First").Sort("Name.Last").Iterator();

@@ -139,7 +139,7 @@ Example:
 		OnPreRender: func(page *Page, context *Context) (err error) {
 			context.Data = &MyPerPageData{SomeText: "Hello World!"}
 		},
-		Content: NewDynamicView(
+		Content: DynamicView(
 			func(context *Context) (view View, err error) {
 				myPerPageData := context.Data.(*MyPerPageData)
 				return HTML(myPerPageData.SomeText), nil
