@@ -1,9 +1,9 @@
 package user
 
 import (
-	"strings"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/view"
+	"strings"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -53,4 +53,3 @@ func (self *LinkedInIdentity) LinkTitle(context *view.Context) string {
 func (self *LinkedInIdentity) LinkRel(context *view.Context) string {
 	return ""
 }
-

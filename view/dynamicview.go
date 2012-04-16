@@ -2,9 +2,18 @@ package view
 
 import "github.com/ungerik/go-start/utils"
 
-///////////////////////////////////////////////////////////////////////////////
-// DynamicView
+/*
+DynamicView implements View for a function that creates and renders a dynamic
+child-view in the Render method.
 
+Example:
+
+	dynamicView := DynamicView(
+		func(context *Context) (view View, err error) {
+			return HTML("return dynamic created views here"), nil
+		},
+	)
+*/
 type DynamicView func(context *Context) (view View, err error)
 
 func (self DynamicView) Init(thisView View) {

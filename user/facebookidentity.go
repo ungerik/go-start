@@ -48,4 +48,3 @@ func (self *FacebookIdentity) LinkTitle(context *view.Context) string {
 func (self *FacebookIdentity) LinkRel(context *view.Context) string {
 	return ""
 }
-
