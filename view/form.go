@@ -1,7 +1,6 @@
 package view
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/utils"
@@ -79,7 +78,7 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 			if err != nil {
 				return err
 			}
-			model.WalkStructure(formModel, self.ModelMaxDepth, func(data interface{}, metaData model.MetaData) {
+			model.WalkStructure(formModel, self.ModelMaxDepth, func(data interface{}, metaData *model.MetaData) {
 				if modelValue, ok := data.(model.Value); ok {
 					selector := metaData.Selector()
 					arraySelector := metaData.ArrayWildcardSelector()
@@ -214,28 +213,25 @@ func newFormMessage(class, message string) View {
 	}
 }
 
-func getLabel(metaData model.MetaData) string {
-	var buf bytes.Buffer
-	for i := range metaData {
-		if i > 0 {
-			buf.WriteString(" ")
-		}
-		meta := &metaData[i]
-		label, ok := meta.Attrib("label")
+func getLabel(metaData *model.MetaData) string {
+	names := make([]string, metaData.Depth)
+	for i, m := metaData.Depth-1, metaData; i >= 0; i-- {
+		label, ok := m.Attrib("label")
 		if !ok {
-			label = strings.Replace(meta.Name, "_", " ", -1)
+			label = strings.Replace(m.Name, "_", " ", -1)
 		}
-		buf.WriteString(label)
+		names[i] = label
+		m = m.Parent
 	}
-	return buf.String()
+	return strings.Join(names, " ")
 }
 
-func getClass(metaData model.MetaData) string {
-	class, _ := metaData.TopField().Attrib("class")
+func getClass(metaData *model.MetaData) string {
+	class, _ := metaData.Attrib("class")
 	return class
 }
 
-func (self *Form) newVerticalFormField(modelValue model.Value, metaData model.MetaData, errors []*model.ValidationError, editorView View, extraLabels ...View) View {
+func (self *Form) newVerticalFormField(modelValue model.Value, metaData *model.MetaData, errors []*model.ValidationError, editorView View, extraLabels ...View) View {
 	views := make(Views, 0, 2+len(errors)*2+1)
 	views = append(views, &Label{Class: "vertical", Content: Escape(getLabel(metaData)), For: editorView})
 	views = append(views, extraLabels...)
@@ -254,8 +250,8 @@ func (self *Form) newVerticalFormField(modelValue model.Value, metaData model.Me
 	return &Paragraph{Content: views}
 }
 
-func (self *Form) newFormField(modelValue model.Value, metaData model.MetaData, disable bool, errors []*model.ValidationError) View {
-	if len(metaData) == 0 {
+func (self *Form) newFormField(modelValue model.Value, metaData *model.MetaData, disable bool, errors []*model.ValidationError) View {
+	if metaData == nil {
 		panic(fmt.Sprintf("model.Value must be a struct member to get a label and meta data for the form field. Passed as root model.Value: %T", modelValue))
 	}
 

@@ -3,61 +3,26 @@ package model
 import (
 	"reflect"
 	"strings"
-	"github.com/ungerik/go-start/utils"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
 // MetaData
 
-type MetaData []FieldMetaData
-
-func (self MetaData) TopField() *FieldMetaData {
-	return &self[len(self)-1]
-}
-
-func (self MetaData) Selector() string {
-	var sb utils.StringBuilder
-	for i := range self {
-		if i != 0 {
-			sb.Byte('.')
-		}
-		sb.Write(self[i].Name)
-	}
-	return sb.String()
-}
-
-func (self MetaData) ArrayWildcardSelector() string {
-	var sb utils.StringBuilder
-	for i := range self {
-		if i != 0 {
-			sb.Byte('.')
-		}
-		m := &self[i]
-		if m.IsIndex() {
-			sb.Byte('$')
-		} else {
-			sb.Write(m.Name)
-		}
-	}
-	return sb.String()
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// FieldMetaData
-
-type FieldMetaData struct {
+type MetaData struct {
 	ParentStruct reflect.Value
+	Parent       *MetaData
+	Depth        int
 	Name         string
 	Index        int
 	tag          string
 	attributes   map[string]string
 }
 
-func (self *FieldMetaData) IsIndex() bool {
+func (self *MetaData) IsIndex() bool {
 	return self.Index != -1
 }
 
-func (self *FieldMetaData) Attrib(name string) (value string, ok bool) {
+func (self *MetaData) Attrib(name string) (value string, ok bool) {
 	if self.attributes == nil {
 		self.attributes = map[string]string{}
 		for _, s := range strings.Split(self.tag, "|") {
@@ -73,9 +38,29 @@ func (self *FieldMetaData) Attrib(name string) (value string, ok bool) {
 	return value, ok
 }
 
-func (self *FieldMetaData) BoolAttrib(name string) bool {
+func (self *MetaData) BoolAttrib(name string) bool {
 	value, ok := self.Attrib(name)
 	return ok && value == "true"
 }
 
+func (self *MetaData) Selector() string {
+	names := make([]string, self.Depth)
+	for i, m := self.Depth-1, self; i >= 0; i-- {
+		names[i] = m.Name
+		m = m.Parent
+	}
+	return strings.Join(names, ".")
+}
 
+func (self *MetaData) ArrayWildcardSelector() string {
+	names := make([]string, self.Depth)
+	for i, m := self.Depth-1, self; i >= 0; i-- {
+		if m.IsIndex() {
+			names[i] = "$"
+		} else {
+			names[i] = m.Name
+		}
+		m = m.Parent
+	}
+	return strings.Join(names, ".")
+}

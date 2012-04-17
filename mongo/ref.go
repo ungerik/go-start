@@ -56,7 +56,7 @@ func (self *Ref) SetBSON(raw bson.Raw) error {
 	return nil
 }
 
-func (self *Ref) Validate(metaData model.MetaData) (errors []*model.ValidationError) {
+func (self *Ref) Validate(metaData *model.MetaData) (errors []*model.ValidationError) {
 	errors = model.NoValidationErrors
 	if self.CollectionName == "" {
 		errors = append(errors, &model.ValidationError{errs.Format("Missing CollectionName"), metaData})
@@ -71,8 +71,8 @@ func (self *Ref) Validate(metaData model.MetaData) (errors []*model.ValidationEr
 	return errors
 }
 
-func (self *Ref) Required(metaData model.MetaData) bool {
-	return metaData.TopField().BoolAttrib("required")
+func (self *Ref) Required(metaData *model.MetaData) bool {
+	return metaData.BoolAttrib("required")
 }
 
 // Dummy function to implement model.Reference

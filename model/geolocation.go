@@ -17,9 +17,9 @@ func (self *GeoLocation) SetString(str string) error {
 	return nil
 }
 
-func (self *GeoLocation) FixValue(metaData MetaData) {
+func (self *GeoLocation) FixValue(metaData *MetaData) {
 }
 
-func (self *GeoLocation) Validate(metaData MetaData) []*ValidationError {
+func (self *GeoLocation) Validate(metaData *MetaData) []*ValidationError {
 	return NoValidationErrors
 }

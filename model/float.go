@@ -38,10 +38,10 @@ func (self *Float) SetString(str string) error {
 	return err
 }
 
-func (self *Float) FixValue(metaData MetaData) {
+func (self *Float) FixValue(metaData *MetaData) {
 }
 
-func (self *Float) Validate(metaData MetaData) []*ValidationError {
+func (self *Float) Validate(metaData *MetaData) []*ValidationError {
 	value := float64(*self)
 	errors := NoValidationErrors
 	min, ok, err := self.Min(metaData)
@@ -62,8 +62,8 @@ func (self *Float) Validate(metaData MetaData) []*ValidationError {
 	return errors
 }
 
-func (self *Float) Min(metaData MetaData) (min float64, ok bool, err error) {
-	str, ok := metaData.TopField().Attrib("min")
+func (self *Float) Min(metaData *MetaData) (min float64, ok bool, err error) {
+	str, ok := metaData.Attrib("min")
 	if !ok {
 		return 0, false, nil
 	}
@@ -71,8 +71,8 @@ func (self *Float) Min(metaData MetaData) (min float64, ok bool, err error) {
 	return value, err == nil, err
 }
 
-func (self *Float) Max(metaData MetaData) (max float64, ok bool, err error) {
-	str, ok := metaData.TopField().Attrib("max")
+func (self *Float) Max(metaData *MetaData) (max float64, ok bool, err error) {
+	str, ok := metaData.Attrib("max")
 	if !ok {
 		return 0, false, nil
 	}
@@ -80,8 +80,8 @@ func (self *Float) Max(metaData MetaData) (max float64, ok bool, err error) {
 	return value, err == nil, err
 }
 
-func (self *Float) Valid(metaData MetaData) bool {
-	return metaData.TopField().BoolAttrib("valid")
+func (self *Float) Valid(metaData *MetaData) bool {
+	return metaData.BoolAttrib("valid")
 }
 
 type FloatBelowMin struct {
@@ -110,6 +110,6 @@ func (self *FloatNotReal) Error() string {
 	return fmt.Sprintf("Float %v is not a real number", self.Value)
 }
 
-func (self *Float) Hidden(metaData MetaData) (hidden bool) {
-	return metaData.TopField().BoolAttrib("hidden")
+func (self *Float) Hidden(metaData *MetaData) (hidden bool) {
+	return metaData.BoolAttrib("hidden")
 }

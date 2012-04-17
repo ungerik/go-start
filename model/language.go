@@ -42,10 +42,10 @@ func (self *Language) EnglishName() string {
 	return i18n.EnglishLanguageName(self.Get())
 }
 
-func (self *Language) FixValue(metaData MetaData) {
+func (self *Language) FixValue(metaData *MetaData) {
 }
 
-func (self *Language) Validate(metaData MetaData) []*ValidationError {
+func (self *Language) Validate(metaData *MetaData) []*ValidationError {
 	str := self.Get()
 	errors := NoValidationErrors
 	if self.Required(metaData) || str != "" {
@@ -59,8 +59,8 @@ func (self *Language) Validate(metaData MetaData) []*ValidationError {
 	return errors
 }
 
-func (self *Language) Required(metaData MetaData) bool {
-	return metaData.TopField().BoolAttrib("required")
+func (self *Language) Required(metaData *MetaData) bool {
+	return metaData.BoolAttrib("required")
 }
 
 type InvalidLanguageCode struct {

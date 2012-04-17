@@ -32,10 +32,10 @@ func (self *Text) SetString(str string) error {
 	return nil
 }
 
-func (self *Text) FixValue(metaData MetaData) {
+func (self *Text) FixValue(metaData *MetaData) {
 }
 
-func (self *Text) Validate(metaData MetaData) []*ValidationError {
+func (self *Text) Validate(metaData *MetaData) []*ValidationError {
 	value := string(*self)
 	errors := []*ValidationError{}
 
@@ -58,36 +58,36 @@ func (self *Text) Validate(metaData MetaData) []*ValidationError {
 	return errors
 }
 
-func (self *Text) Minlen(metaData MetaData) (minlen int, ok bool, err error) {
+func (self *Text) Minlen(metaData *MetaData) (minlen int, ok bool, err error) {
 	var str string
-	if str, ok = metaData.TopField().Attrib("minlen"); ok {
+	if str, ok = metaData.Attrib("minlen"); ok {
 		minlen, err = strconv.Atoi(str)
 		ok = err == nil
 	}
 	return minlen, ok, err
 }
 
-func (self *Text) Maxlen(metaData MetaData) (maxlen int, ok bool, err error) {
+func (self *Text) Maxlen(metaData *MetaData) (maxlen int, ok bool, err error) {
 	var str string
-	if str, ok = metaData.TopField().Attrib("maxlen"); ok {
+	if str, ok = metaData.Attrib("maxlen"); ok {
 		maxlen, err = strconv.Atoi(str)
 		ok = err == nil
 	}
 	return maxlen, ok, err
 }
 
-func (self *Text) Rows(metaData MetaData) (rows int, ok bool, err error) {
+func (self *Text) Rows(metaData *MetaData) (rows int, ok bool, err error) {
 	var str string
-	if str, ok = metaData.TopField().Attrib("rows"); ok {
+	if str, ok = metaData.Attrib("rows"); ok {
 		rows, err = strconv.Atoi(str)
 		ok = err == nil
 	}
 	return rows, ok, err
 }
 
-func (self *Text) Cols(metaData MetaData) (cols int, ok bool, err error) {
+func (self *Text) Cols(metaData *MetaData) (cols int, ok bool, err error) {
 	var str string
-	if str, ok = metaData.TopField().Attrib("cols"); ok {
+	if str, ok = metaData.Attrib("cols"); ok {
 		cols, err = strconv.Atoi(str)
 		ok = err == nil
 	}

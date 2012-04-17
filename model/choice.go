@@ -28,10 +28,10 @@ func (self *Choice) SetString(str string) error {
 	return nil
 }
 
-func (self *Choice) FixValue(metaData MetaData) {
+func (self *Choice) FixValue(metaData *MetaData) {
 }
 
-func (self *Choice) Validate(metaData MetaData) []*ValidationError {
+func (self *Choice) Validate(metaData *MetaData) []*ValidationError {
 	str := string(*self)
 	options := self.Options(metaData)
 	if options == nil {
@@ -53,8 +53,8 @@ func (self *Choice) Validate(metaData MetaData) []*ValidationError {
 	return NoValidationErrors
 }
 
-func (self *Choice) Options(metaData MetaData) []string {
-	options, ok := metaData.TopField().Attrib("options")
+func (self *Choice) Options(metaData *MetaData) []string {
+	options, ok := metaData.Attrib("options")
 	if !ok {
 		return nil
 	}

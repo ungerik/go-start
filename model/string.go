@@ -39,10 +39,10 @@ func (self *String) SetString(str string) error {
 	return nil
 }
 
-func (self *String) FixValue(metaData MetaData) {
+func (self *String) FixValue(metaData *MetaData) {
 }
 
-func (self *String) Validate(metaData MetaData) []*ValidationError {
+func (self *String) Validate(metaData *MetaData) []*ValidationError {
 	value := string(*self)
 	e := NoValidationErrors
 
@@ -70,26 +70,26 @@ func (self *String) Validate(metaData MetaData) []*ValidationError {
 	return e
 }
 
-func (self *String) Minlen(metaData MetaData) (minlen int, ok bool, err error) {
+func (self *String) Minlen(metaData *MetaData) (minlen int, ok bool, err error) {
 	var str string
-	if str, ok = metaData.TopField().Attrib("minlen"); ok {
+	if str, ok = metaData.Attrib("minlen"); ok {
 		minlen, err = strconv.Atoi(str)
 		ok = err == nil
 	}
 	return minlen, ok, err
 }
 
-func (self *String) Maxlen(metaData MetaData) (maxlen int, ok bool, err error) {
+func (self *String) Maxlen(metaData *MetaData) (maxlen int, ok bool, err error) {
 	var str string
-	if str, ok = metaData.TopField().Attrib("maxlen"); ok {
+	if str, ok = metaData.Attrib("maxlen"); ok {
 		maxlen, err = strconv.Atoi(str)
 		ok = err == nil
 	}
 	return maxlen, ok, err
 }
 
-func (self *String) Hidden(metaData MetaData) (hidden bool) {
-	return metaData.TopField().BoolAttrib("hidden")
+func (self *String) Hidden(metaData *MetaData) (hidden bool) {
+	return metaData.BoolAttrib("hidden")
 }
 
 type StringTooShort struct {

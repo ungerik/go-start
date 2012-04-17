@@ -31,10 +31,10 @@ func (self *Int) SetString(str string) error {
 	return err
 }
 
-func (self *Int) FixValue(metaData MetaData) {
+func (self *Int) FixValue(metaData *MetaData) {
 }
 
-func (self *Int) Validate(metaData MetaData) []*ValidationError {
+func (self *Int) Validate(metaData *MetaData) []*ValidationError {
 	value := int64(*self)
 	errors := NoValidationErrors
 	min, ok, err := self.Min(metaData)
@@ -52,8 +52,8 @@ func (self *Int) Validate(metaData MetaData) []*ValidationError {
 	return errors
 }
 
-func (self *Int) Min(metaData MetaData) (min int64, ok bool, err error) {
-	str, ok := metaData.TopField().Attrib("min")
+func (self *Int) Min(metaData *MetaData) (min int64, ok bool, err error) {
+	str, ok := metaData.Attrib("min")
 	if !ok {
 		return 0, false, nil
 	}
@@ -61,8 +61,8 @@ func (self *Int) Min(metaData MetaData) (min int64, ok bool, err error) {
 	return value, err == nil, err
 }
 
-func (self *Int) Max(metaData MetaData) (max int64, ok bool, err error) {
-	str, ok := metaData.TopField().Attrib("max")
+func (self *Int) Max(metaData *MetaData) (max int64, ok bool, err error) {
+	str, ok := metaData.Attrib("max")
 	if !ok {
 		return 0, false, nil
 	}
@@ -88,6 +88,6 @@ func (self *IntAboveMax) Error() string {
 	return fmt.Sprintf("Int %d above maximum of %d", self.Value, self.Max)
 }
 
-func (self *Int) Hidden(metaData MetaData) (hidden bool) {
-	return metaData.TopField().BoolAttrib("hidden")
+func (self *Int) Hidden(metaData *MetaData) (hidden bool) {
+	return metaData.BoolAttrib("hidden")
 }

@@ -36,10 +36,10 @@ func (self *Password) SetString(str string) error {
 	return nil
 }
 
-func (self *Password) FixValue(metaData MetaData) {
+func (self *Password) FixValue(metaData *MetaData) {
 }
 
-func (self *Password) Validate(metaData MetaData) []*ValidationError {
+func (self *Password) Validate(metaData *MetaData) []*ValidationError {
 	return NoValidationErrors
 }
 

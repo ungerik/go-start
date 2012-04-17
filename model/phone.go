@@ -28,10 +28,10 @@ func (self *Phone) SetString(str string) error {
 	return nil
 }
 
-func (self *Phone) FixValue(metaData MetaData) {
+func (self *Phone) FixValue(metaData *MetaData) {
 }
 
-func (self *Phone) Validate(metaData MetaData) []*ValidationError {
+func (self *Phone) Validate(metaData *MetaData) []*ValidationError {
 	return NoValidationErrors
 }
 

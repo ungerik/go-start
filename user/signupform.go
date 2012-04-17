@@ -58,7 +58,7 @@ type SignupFormModel struct {
 	Password2 model.Password `gostart:"label=Repeat password"`
 }
 
-func (self *SignupFormModel) Validate(metaData model.MetaData) []*model.ValidationError {
+func (self *SignupFormModel) Validate(metaData *model.MetaData) []*model.ValidationError {
 	if self.Password1 != self.Password2 {
 		return model.NewValidationErrors(errors.New("Passwords don't match"), metaData)
 	}

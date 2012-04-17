@@ -67,11 +67,11 @@ func (self *Date) SetString(str string) error {
 	return self.Set(str)
 }
 
-func (self *Date) FixValue(metaData MetaData) {
+func (self *Date) FixValue(metaData *MetaData) {
 }
 
 // todo min max
-func (self *Date) Validate(metaData MetaData) []*ValidationError {
+func (self *Date) Validate(metaData *MetaData) []*ValidationError {
 	value := self.Get()
 	errors := NoValidationErrors
 	if self.Required(metaData) || value != "" {
@@ -85,6 +85,6 @@ func (self *Date) Validate(metaData MetaData) []*ValidationError {
 	return errors
 }
 
-func (self *Date) Required(metaData MetaData) bool {
-	return metaData.TopField().BoolAttrib("required")
+func (self *Date) Required(metaData *MetaData) bool {
+	return metaData.BoolAttrib("required")
 }

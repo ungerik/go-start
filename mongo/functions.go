@@ -154,13 +154,13 @@ func SortRefs(refs []Ref, lessFunc func(a, b *Ref) bool) {
 
 func InitRefs(document interface{}) {
 	model.WalkStructure(document, 0,
-		func(data interface{}, metaData model.MetaData) {
+		func(data interface{}, metaData *model.MetaData) {
 			if ref, ok := data.(*Ref); ok && ref.CollectionName == "" {
-				fieldMeta := metaData.TopField()
-				if fieldMeta.IsIndex() {
-					fieldMeta = &metaData[len(metaData)-2]
+				m := metaData
+				if m.IsIndex() {
+					m = m.Parent
 				}
-				ref.CollectionName, ok = fieldMeta.Attrib("to")
+				ref.CollectionName, ok = m.Attrib("to")
 				if !ok {
 					panic(metaData.Selector() + " is missing the 'to' meta-data tag")
 				}

@@ -30,10 +30,10 @@ func (self *Email) SetString(str string) (err error) {
 	return self.Set(str)
 }
 
-func (self *Email) FixValue(metaData MetaData) {
+func (self *Email) FixValue(metaData *MetaData) {
 }
 
-func (self *Email) Validate(metaData MetaData) []*ValidationError {
+func (self *Email) Validate(metaData *MetaData) []*ValidationError {
 	str := self.Get()
 	if self.Required(metaData) || str != "" {
 		if _, err := email.ValidateAddress(str); err != nil {
@@ -43,6 +43,6 @@ func (self *Email) Validate(metaData MetaData) []*ValidationError {
 	return NoValidationErrors
 }
 
-func (self *Email) Required(metaData MetaData) bool {
-	return metaData.TopField().BoolAttrib("required")
+func (self *Email) Required(metaData *MetaData) bool {
+	return metaData.BoolAttrib("required")
 }

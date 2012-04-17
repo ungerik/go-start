@@ -26,9 +26,9 @@ func (self *Bool) SetString(str string) error {
 	return err
 }
 
-func (self *Bool) FixValue(metaData MetaData) {
+func (self *Bool) FixValue(metaData *MetaData) {
 }
 
-func (self *Bool) Validate(metaData MetaData) []*ValidationError {
+func (self *Bool) Validate(metaData *MetaData) []*ValidationError {
 	return NoValidationErrors
 }

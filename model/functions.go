@@ -13,7 +13,7 @@ func init() {
 
 func Validate(data interface{}, maxDepth int) []*ValidationError {
 	errors := []*ValidationError{}
-	WalkStructure(data, maxDepth, func(data interface{}, metaData MetaData) {
+	WalkStructure(data, maxDepth, func(data interface{}, metaData *MetaData) {
 		if validator, ok := data.(Validator); ok {
 			errors = append(errors, validator.Validate(metaData)...)
 		}
@@ -21,7 +21,7 @@ func Validate(data interface{}, maxDepth int) []*ValidationError {
 	return errors
 }
 
-//func HasParent(value reflect.Value, metaData MetaData) bool {
+//func HasParent(value reflect.Value, metaData *MetaData) bool {
 //	if value.Kind() == reflect.Struct {
 //		for i := range metaData {
 //			if metaData[i].ParentStruct.Pointer() == value.Pointer() {
@@ -32,21 +32,21 @@ func Validate(data interface{}, maxDepth int) []*ValidationError {
 //	return false
 //}
 
-type WalkStructureCallback func(data interface{}, metaData MetaData)
+type WalkStructureCallback func(data interface{}, metaData *MetaData)
 
 // If maxDepth is zero, no limit will be used
 func WalkStructure(data interface{}, maxDepth int, callback WalkStructureCallback) {
 	if maxDepth == 0 {
 		maxDepth = int(^uint(0) >> 1) // Max int
 	}
-	metaData := MetaData{}
+	metaData := &MetaData{}
 	walkStructure(reflect.ValueOf(data), metaData, maxDepth, callback)
 }
 
-func walkStructure(v reflect.Value, metaData MetaData, maxDepth int, callback WalkStructureCallback) {
+func walkStructure(v reflect.Value, metaData *MetaData, maxDepth int, callback WalkStructureCallback) {
 	switch v.Kind() {
 	case reflect.Struct:
-		if len(metaData) >= maxDepth {
+		if metaData.Depth > maxDepth {
 			break
 		}
 		if v.CanAddr() {
@@ -58,17 +58,17 @@ func walkStructure(v reflect.Value, metaData MetaData, maxDepth int, callback Wa
 		for i := 0; i < n; i++ {
 			fieldType := v.Type().Field(i)
 			// Only walk exported fields
-			firstChar := rune(fieldType.Name[0])
-			if unicode.IsUpper(firstChar) {
+			if unicode.IsUpper(rune(fieldType.Name[0])) {
 				m := metaData
 				if !fieldType.Anonymous {
-					fieldMeta := FieldMetaData{
+					m = &MetaData{
+						Parent:       metaData,
+						Depth:        metaData.Depth + 1,
 						ParentStruct: v,
 						Name:         fieldType.Name,
 						Index:        -1,
 						tag:          fieldType.Tag.Get("gostart"),
 					}
-					m = append(m, fieldMeta)
 				}
 				walkStructure(v.Field(i), m, maxDepth, callback)
 			}
@@ -77,12 +77,14 @@ func walkStructure(v reflect.Value, metaData MetaData, maxDepth int, callback Wa
 	case reflect.Slice, reflect.Array:
 		l := v.Len()
 		for i := 0; i < l; i++ {
-			fieldMeta := FieldMetaData{
+			m := &MetaData{
+				Parent:       metaData,
+				Depth:        metaData.Depth + 1,
 				ParentStruct: v,
 				Name:         strconv.Itoa(i),
 				Index:        i,
 			}
-			walkStructure(v.Index(i), append(metaData, fieldMeta), maxDepth, callback)
+			walkStructure(v.Index(i), m, maxDepth, callback)
 		}
 		return
 

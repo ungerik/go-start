@@ -39,10 +39,10 @@ func (self *Url) SetString(str string) error {
 	return self.Set(str)
 }
 
-func (self *Url) FixValue(metaData MetaData) {
+func (self *Url) FixValue(metaData *MetaData) {
 }
 
-func (self *Url) Validate(metaData MetaData) []*ValidationError {
+func (self *Url) Validate(metaData *MetaData) []*ValidationError {
 	errors := NoValidationErrors
 	if self.IsEmpty() {
 		if self.Required(metaData) {
@@ -56,6 +56,6 @@ func (self *Url) Validate(metaData MetaData) []*ValidationError {
 	return errors
 }
 
-func (self *Url) Required(metaData MetaData) bool {
-	return metaData.TopField().BoolAttrib("required")
+func (self *Url) Required(metaData *MetaData) bool {
+	return metaData.BoolAttrib("required")
 }

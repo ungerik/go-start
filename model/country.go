@@ -37,10 +37,10 @@ func (self *Country) EnglishName() string {
 	return i18n.EnglishCountryName(self.Get())
 }
 
-func (self *Country) FixValue(metaData MetaData) {
+func (self *Country) FixValue(metaData *MetaData) {
 }
 
-func (self *Country) Validate(metaData MetaData) []*ValidationError {
+func (self *Country) Validate(metaData *MetaData) []*ValidationError {
 	str := self.Get()
 	errors := NoValidationErrors
 	if self.Required(metaData) || str != "" {
@@ -54,8 +54,8 @@ func (self *Country) Validate(metaData MetaData) []*ValidationError {
 	return errors
 }
 
-func (self *Country) Required(metaData MetaData) bool {
-	return metaData.TopField().BoolAttrib("required")
+func (self *Country) Required(metaData *MetaData) bool {
+	return metaData.BoolAttrib("required")
 }
 
 type InvalidCountryCode struct {
