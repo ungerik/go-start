@@ -1,18 +1,47 @@
 package user
 
 import (
-	"github.com/ungerik/go-start/utils"
 	"github.com/ungerik/go-start/view"
-	"net/url"
+	// "net/url"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
 // EmailConfirmationView
 
+func EmailConfirmationView(profileURL view.URL) view.View {
+	return view.DynamicView(
+		func(context *view.Context) (view.View, error) {
+			confirmationCode, ok := context.Params["code"]
+			if !ok {
+				return view.DIV("error", view.HTML("Invalid email confirmation code!")), nil
+			}
+
+			doc, email, confirmed, err := ConfirmEmail(confirmationCode)
+			if !confirmed {
+				return view.DIV("error", view.HTML("Invalid email confirmation code!")), err
+			}
+
+			Login(context, doc)
+
+			return view.Views{
+				view.DIV("success", view.Printf("Email address %s confirmed!", email)),
+				&view.If{
+					Condition: profileURL != nil,
+					Content: view.P(
+						view.HTML("Continue to your "),
+						view.A(profileURL, "profile..."),
+					),
+				},
+			}, nil
+		},
+	)
+}
+
+/*
 // The confirmation code will be passed in the GET parameter "confirm"
 type EmailConfirmationView struct {
 	view.ViewBase
-	LoginURL view.URL
+
 }
 
 func (self *EmailConfirmationView) Render(context *view.Context, writer *utils.XMLWriter) (err error) {
@@ -41,3 +70,4 @@ func (self *EmailConfirmationView) Render(context *view.Context, writer *utils.X
 
 	return nil
 }
+*/

@@ -112,13 +112,13 @@ func FindByEmail(addr string) (doc interface{}, found bool, err error) {
 	return query.TryOne()
 }
 
-func ConfirmEmail(confirmationCode string) (email string, confirmed bool, err error) {
+func ConfirmEmail(confirmationCode string) (userDoc interface{}, email string, confirmed bool, err error) {
 	query := Config.Collection.Filter("Email.ConfirmationCode", confirmationCode)
-	doc, found, err := query.TryOne()
+	userDoc, found, err := query.TryOne()
 	if !found {
-		return "", false, err
+		return nil, "", false, err
 	}
-	user := From(doc)
+	user := From(userDoc)
 
 	for i := range user.Email {
 		if user.Email[i].ConfirmationCode.Get() == confirmationCode {
@@ -130,10 +130,10 @@ func ConfirmEmail(confirmationCode string) (email string, confirmed bool, err er
 
 	err = user.Save()
 	if err != nil {
-		return "", false, err
+		return nil, "", false, err
 	}
 
-	return email, true, nil
+	return userDoc, email, true, nil
 }
 
 ///////////////////////////////////////////////////////////////////////////////

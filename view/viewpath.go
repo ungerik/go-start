@@ -57,7 +57,7 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 		addSlash = true
 		if self.Auth != nil {
 			if self.NoAuth == nil && Config.LoginSignupPage != nil && *Config.LoginSignupPage != nil {
-				self.NoAuth = &IndirectPageURL{Config.LoginSignupPage}
+				self.NoAuth = IndirectURL(Config.LoginSignupPage)
 			}
 		}
 	}

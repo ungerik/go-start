@@ -14,6 +14,9 @@ type URL interface {
 	URL(context *Context, args ...string) string
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// IndirectURL
+
 // IndirectURL encapsulates pointers to URL implementations.
 // To break circular dependencies, addresses of URL implementing variables
 // can be passed to this function that encapsulates it with an URL
@@ -23,9 +26,9 @@ func IndirectURL(urlPtr interface{}) URL {
 	case *URL:
 		return &indirectURL{s}
 	case *ViewWithURL:
-		return &IndirectViewWithURL{s}
+		return &indirectViewWithURL{s}
 	case **Page:
-		return &IndirectPageURL{s}
+		return &indirectPageURL{s}
 	}
 	panic(errs.Format("%T not a pointer to a view.URL", urlPtr))
 }
@@ -36,6 +39,22 @@ type indirectURL struct {
 
 func (self *indirectURL) URL(context *Context, args ...string) string {
 	return (*self.url).URL(context)
+}
+
+type indirectPageURL struct {
+	page **Page
+}
+
+func (self *indirectPageURL) URL(context *Context, args ...string) string {
+	return self.page.URL(context)
+}
+
+type indirectViewWithURL struct {
+	viewWithURL *ViewWithURL
+}
+
+func (self *indirectViewWithURL) URL(context *Context, args ...string) string {
+	return (*self.viewWithURL).URL(context)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -53,30 +72,4 @@ func (self StringURL) URL(context *Context, args ...string) string {
 		url = strings.Replace(url, PathFragmentPattern, arg, 1)
 	}
 	return url
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// PageURL
-
-// IndirectPageURL implements the URL interface for pointer to a Page pointer.
-// Used to break circular dependencies by referencing a Page pointer variable.
-type IndirectPageURL struct {
-	Page **Page
-}
-
-func (self *IndirectPageURL) URL(context *Context, args ...string) string {
-	return self.Page.URL(context)
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// IndirectViewWithURL
-
-// IndirectViewWithURL implements the URL interface for pointer to a ViewWithURL.
-// Used to break circular dependencies by referencing a ViewWithURL variable.
-type IndirectViewWithURL struct {
-	ViewWithURL *ViewWithURL
-}
-
-func (self *IndirectViewWithURL) URL(context *Context, args ...string) string {
-	return (*self.ViewWithURL).URL(context)
 }
