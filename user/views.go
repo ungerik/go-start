@@ -37,7 +37,7 @@ func EmailConfirmationView(profileURL view.URL) view.View {
 	)
 }
 
-func NewLoginForm(class, errorMessageClass, successMessageClass string, redirectURL view.URL) view.View {
+func NewLoginForm(buttonText, class, errorMessageClass, successMessageClass string, redirectURL view.URL) view.View {
 	return view.DynamicView(
 		func(context *view.Context) (v view.View, err error) {
 			if from, ok := context.Params["from"]; ok {
@@ -52,7 +52,7 @@ func NewLoginForm(class, errorMessageClass, successMessageClass string, redirect
 				ErrorMessageClass:   errorMessageClass,
 				SuccessMessageClass: successMessageClass,
 				SuccessMessage:      "Login successful",
-				ButtonText:          "Login",
+				ButtonText:          buttonText,
 				FormID:              "gostart_user_login",
 				GetModel:            view.FormModel(model),
 				Redirect:            redirectURL,
@@ -96,20 +96,20 @@ func LogoutView(redirect view.URL) view.View {
 }
 
 // confirmationPage must have the confirmation code as first URL parameter
-func NewSignupForm(class, errorMessageClass, successMessageClass string, confirmationURL, redirectURL view.URL) *view.Form {
+func NewSignupForm(buttonText, class, errorMessageClass, successMessageClass string, confirmationURL, redirectURL view.URL) *view.Form {
 	return &view.Form{
 		Class:               class,
 		ErrorMessageClass:   errorMessageClass,
 		SuccessMessageClass: successMessageClass,
 		SuccessMessage:      Config.ConfirmationSent,
-		ButtonText:          "Signup",
+		ButtonText:          buttonText,
 		FormID:              "gostart_user_signup",
 		GetModel: func(form *view.Form, context *view.Context) (interface{}, error) {
-			return &SignupFormModel{}, nil
+			return &EmailPasswordFormModel{}, nil
 		},
 		Redirect: redirectURL,
 		OnSubmit: func(form *view.Form, formModel interface{}, context *view.Context) error {
-			m := formModel.(*SignupFormModel)
+			m := formModel.(*EmailPasswordFormModel)
 			email := m.Email.Get()
 			password := m.Password1.Get()
 			var user *User
@@ -136,17 +136,4 @@ func NewSignupForm(class, errorMessageClass, successMessageClass string, confirm
 			return user.Save()
 		},
 	}
-}
-
-type SignupFormModel struct {
-	Email     model.Email    `gostart:"required"`
-	Password1 model.Password `gostart:"required|label=Password|minlen=6"`
-	Password2 model.Password `gostart:"label=Repeat password"`
-}
-
-func (self *SignupFormModel) Validate(metaData *model.MetaData) []*model.ValidationError {
-	if self.Password1 != self.Password2 {
-		return model.NewValidationErrors(errors.New("Passwords don't match"), metaData)
-	}
-	return model.NoValidationErrors
 }

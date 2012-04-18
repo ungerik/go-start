@@ -108,6 +108,12 @@ func (self *User) EmailConfirmed(email string) bool {
 	return false
 }
 
+func (self *User) ConfirmEmailPassword() {
+	if len(self.Email) > 0 {
+		self.Email[0].Confirmed.SetNowUTC()
+	}
+}
+
 func (self *User) FacebookIdentityConfirmed() bool {
 	for i := range self.Facebook {
 		if self.Facebook[i].Confirmed != "" {
