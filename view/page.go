@@ -44,6 +44,20 @@ func PageWriters(funcs ...PageWriteFunc) PageWriteFunc {
 	}
 }
 
+// PageWritersFilterPort calls funcs only
+// if the request is made to a specific port
+func PageWritersFilterPort(port uint16, funcs ...PageWriteFunc) PageWriteFunc {
+	if len(funcs) == 0 {
+		return nil
+	}
+	return func(context *Context, writer io.Writer) (err error) {
+		if context.RequestPort() != port {
+			return nil
+		}
+		return PageWriters(funcs...)(context, writer)
+	}
+}
+
 // Stylesheet writes a HTML style tag with the passed css as content.
 func Stylesheet(css string) PageWriteFunc {
 	return func(context *Context, writer io.Writer) (err error) {

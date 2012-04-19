@@ -5,6 +5,7 @@ import (
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/utils"
 	"github.com/ungerik/web.go"
+	"strconv"
 	"strings"
 )
 
@@ -93,6 +94,15 @@ func (self *Context) ParseRequestUserAgent() (renderer string, version utils.Ver
 		}
 	}
 	return "", nil, nil
+}
+
+func (self *Context) RequestPort() uint16 {
+	i := strings.LastIndex(self.Request.Host, ":")
+	if i == -1 {
+		return 80
+	}
+	port, _ := strconv.ParseInt(self.Request.Host[i+1:], 10, 16)
+	return uint16(port)
 }
 
 //func (self *Context) Cache(key string, value interface{}) {
