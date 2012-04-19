@@ -25,8 +25,7 @@ func (self *PostalAddress) StringSep(sep string) string {
 	return utils.JoinNonEmptyStrings(
 		sep, self.FirstLine.Get(),
 		self.SecondLine.Get(),
-		self.ZIP.Get(),
-		self.City.Get(),
+		utils.JoinNonEmptyStrings(" ", self.ZIP.Get(), self.City.Get()),
 		self.State.Get(),
 		self.Country.Get(),
 	)
