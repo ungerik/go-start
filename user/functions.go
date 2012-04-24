@@ -65,6 +65,7 @@ func EnsureExists(username, email, password string, admin bool) (doc interface{}
 
 	user.Username.Set(username)
 	user.Name.First.Set(username)
+	user.Name.Last.Set(username)
 
 	if user.PrimaryEmail() == "" {
 		err = user.AddEmail(email, "via gostart/user.EnsureExists()")
