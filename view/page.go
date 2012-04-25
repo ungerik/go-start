@@ -44,6 +44,16 @@ func PageWriters(funcs ...PageWriteFunc) PageWriteFunc {
 	}
 }
 
+// IndirectPageWriter takes the pointer to a PageWriteFunc variable
+// and dereferences it when the returned PageWriteFunc is called.
+// Used to break dependency cycles of variable initializations by
+// using a pointer to a variable instead of its value.
+func IndirectPageWriter(pageWritePtr *PageWriteFunc) PageWriteFunc {
+	return func(context *Context, writer io.Writer) (err error) {
+		return (*pageWritePtr)(context, writer)
+	}
+}
+
 // PageWritersFilterPort calls funcs only
 // if the request is made to a specific port
 func PageWritersFilterPort(port uint16, funcs ...PageWriteFunc) PageWriteFunc {
