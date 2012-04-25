@@ -161,6 +161,12 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 			return handleErr(Forbidden("403 Forbidden: authentication required"))
 		}
 
+		if Config.OnPreAuth != nil {
+			if err := Config.OnPreAuth(context); err != nil {
+				return handleErr(err)
+			}
+		}
+
 		if Config.GlobalAuth != nil {
 			if ok, err := Config.GlobalAuth.Authenticate(context); !ok {
 				return handleNoAuth(err)

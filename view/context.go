@@ -30,7 +30,19 @@ type Context struct {
 	// Arguments parsed from the URL path
 	PathArgs []string
 
-	// User object of the session
+	/*
+		Cached user object of the session.
+		User won't be set automatically, use user.OfSession(context) instead.
+
+		Example for setting it automatically for every request:
+
+			import "github.com/ungerik/go-start/user"
+
+			Config.OnPreAuth = func(context *Context) error {
+				user.OfSession(context) // Sets context.User
+				return nil
+			}
+	*/
 	User interface{}
 
 	// Custom request wide data that can be set by the application
