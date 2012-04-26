@@ -29,9 +29,19 @@ func A(url interface{}, content ...interface{}) *Link {
 	return &Link{Model: NewLinkModel(url, content...)}
 }
 
+// A creates a HTML link.
+func A_nofollow(url interface{}, content ...interface{}) *Link {
+	return &Link{Model: NewLinkModelRel(url, "nofollow", content...)}
+}
+
 // A_blank creates a HTML link with target="_blank"
 func A_blank(url interface{}, content ...interface{}) *Link {
 	return &Link{NewWindow: true, Model: NewLinkModel(url, content...)}
+}
+
+// A_blank creates a HTML link with target="_blank" and rel="nofollow"
+func A_blank_nofollow(url interface{}, content ...interface{}) *Link {
+	return &Link{NewWindow: true, Model: NewLinkModelRel(url, "nofollow", content...)}
 }
 
 // Img creates a HTML img element for an URL with optional width and height.
