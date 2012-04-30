@@ -71,6 +71,10 @@ func DIV(class string, content ...interface{}) *Div {
 	return &Div{Class: class, Content: WrapContents(content...)}
 }
 
+func SPAN(class string, content ...interface{}) *Span {
+	return &Span{Class: class, Content: WrapContents(content...)}
+}
+
 func DivClearBoth() HTML {
 	return HTML("<div style='clear:both'></div>")
 }
