@@ -7,7 +7,7 @@ import (
 
 type PasswordFormModel struct {
 	Password1 model.Password `gostart:"required|label=Password|minlen=6"`
-	Password2 model.Password `gostart:"label=Repeat password"`
+	Password2 model.Password `gostart:"required|label=Repeat password"`
 }
 
 func (self *PasswordFormModel) Validate(metaData *model.MetaData) []*model.ValidationError {
@@ -21,5 +21,11 @@ type EmailPasswordFormModel struct {
 	Email             model.Email `gostart:"required"`
 	PasswordFormModel `bson:",inline"`
 }
+
+type LoginFormModel struct {
+	Email    model.Email `gostart:"required"`
+	Password model.Password `gostart:"required"`
+}
+
 
 

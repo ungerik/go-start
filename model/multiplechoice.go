@@ -13,7 +13,8 @@ func (self *MultipleChoice) SetString(str string) error {
 	return nil
 }
 
-func (self *MultipleChoice) FixValue(metaData *MetaData) {
+func (self *MultipleChoice) IsEmpty() bool {
+	return false
 }
 
 func (self *MultipleChoice) Validate(metaData *MetaData) []*ValidationError {

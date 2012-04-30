@@ -2,7 +2,6 @@ package user
 
 import (
 	"errors"
-	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/utils"
 	"github.com/ungerik/go-start/view"
 )
@@ -75,11 +74,6 @@ func NewLoginForm(buttonText, class, errorMessageClass, successMessageClass stri
 			return form, nil
 		},
 	)
-}
-
-type LoginFormModel struct {
-	Email    model.Email
-	Password model.Password
 }
 
 // If redirect is nil, the redirect will go to "/"

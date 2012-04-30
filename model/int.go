@@ -31,7 +31,8 @@ func (self *Int) SetString(str string) error {
 	return err
 }
 
-func (self *Int) FixValue(metaData *MetaData) {
+func (self *Int) IsEmpty() bool {
+	return false
 }
 
 func (self *Int) Validate(metaData *MetaData) []*ValidationError {

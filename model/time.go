@@ -19,3 +19,7 @@ func (self *Time) Set(t time.Time) {
 	unixmsec := int64(t.Nanosecond()) / 1e6
 	*self = Time((unixsec+unixDateSec)*1000 + unixmsec)
 }
+
+func (self *Time) IsEmpty() bool {
+	return *self == 0
+}

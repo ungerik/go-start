@@ -31,6 +31,7 @@ type Form struct {
 	ModelMaxDepth       int      // if zero, no depth limit
 	HideFields          []string // Use point notation for nested fields
 	DisableFields       []string // Use point notation for nested fields
+	RequireFields       []string // Also available as static struct field tag. Use point notation for nested fields
 	OnSubmit            OnSubmitFormFunc
 	ErrorMessageClass   string // If empty, Config.FormErrorMessageClass will be used
 	SuccessMessageClass string // If empty, Config.FormSuccessMessageClass will be used
@@ -46,6 +47,23 @@ func (self *Form) IterateChildren(callback IterateChildrenCallback) {
 		callback(self, self.Content)
 	}
 }
+
+func (self *Form) isFieldRequired(metaData *model.MetaData) bool {
+	if metaData.BoolAttrib("required") {
+		return true
+	}
+	selector := metaData.Selector()
+	arraySelector := metaData.ArrayWildcardSelector()
+	return utils.StringIn(selector, self.RequireFields) || utils.StringIn(arraySelector, self.RequireFields)
+}
+
+func (self *Form) isFieldRequiredSelectors(metaData *model.MetaData, selector, arraySelector string) bool {
+	if metaData.BoolAttrib("required") {
+		return true
+	}
+	return utils.StringIn(selector, self.RequireFields) || utils.StringIn(arraySelector, self.RequireFields)
+}
+
 
 func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) {
 	if self.OnSubmit != nil {
@@ -96,6 +114,11 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 							err = modelValue.SetString(formValue)
 							if err == nil {
 								valueErrors = modelValue.Validate(metaData)
+								if len(valueErrors) == 0 {
+									if modelValue.IsEmpty() && self.isFieldRequiredSelectors(metaData, selector, arraySelector) {
+									   valueErrors = []*model.ValidationError{model.NewRequiredValidationError(metaData)}
+									}
+								}
 							} else {
 								valueErrors = model.NewValidationErrors(err, metaData)
 							}
@@ -233,7 +256,11 @@ func getClass(metaData *model.MetaData) string {
 
 func (self *Form) newVerticalFormField(modelValue model.Value, metaData *model.MetaData, errors []*model.ValidationError, editorView View, extraLabels ...View) View {
 	views := make(Views, 0, 2+len(errors)*2+1)
-	views = append(views, &Label{Class: "vertical", Content: Escape(getLabel(metaData)), For: editorView})
+	label := Views{Escape(getLabel(metaData))}
+	if self.isFieldRequired(metaData) {
+		label = append(label, SPAN("required", HTML("*")))
+	}
+	views = append(views, &Label{Class: "vertical", Content: label, For: editorView})
 	views = append(views, extraLabels...)
 	for _, error := range errors {
 		views = append(

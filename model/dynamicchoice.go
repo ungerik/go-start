@@ -63,7 +63,8 @@ func (self *DynamicChoice) SetBSON(raw bson.Raw) (err error) {
 	return self.SetString(s)
 }
 
-func (self *DynamicChoice) FixValue(metaData *MetaData) {
+func (self *DynamicChoice) IsEmpty() bool {
+	return self.CheckIndex(self.index) != nil
 }
 
 func (self *DynamicChoice) Validate(metaData *MetaData) []*ValidationError {

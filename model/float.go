@@ -38,7 +38,8 @@ func (self *Float) SetString(str string) error {
 	return err
 }
 
-func (self *Float) FixValue(metaData *MetaData) {
+func (self *Float) IsEmpty() bool {
+	return !self.IsValid()
 }
 
 func (self *Float) Validate(metaData *MetaData) []*ValidationError {

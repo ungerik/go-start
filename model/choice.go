@@ -28,7 +28,8 @@ func (self *Choice) SetString(str string) error {
 	return nil
 }
 
-func (self *Choice) FixValue(metaData *MetaData) {
+func (self *Choice) IsEmpty() bool {
+	return *self == ""
 }
 
 func (self *Choice) Validate(metaData *MetaData) []*ValidationError {

@@ -26,7 +26,8 @@ func (self *Bool) SetString(str string) error {
 	return err
 }
 
-func (self *Bool) FixValue(metaData *MetaData) {
+func (self *Bool) IsEmpty() bool {
+	return *self == false
 }
 
 func (self *Bool) Validate(metaData *MetaData) []*ValidationError {
