@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 ///////////////////////////////////////////////////////////////////////////////
 // Views
 
@@ -40,10 +38,10 @@ func (self Views) IterateChildren(callback IterateChildrenCallback) {
 	}
 }
 
-func (self Views) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self Views) Render(request *Request, session *Session, response *Response) (err error) {
 	for _, view := range self {
 		if view != nil {
-			err = view.Render(context, writer)
+			err = view.Render(request, session, response)
 			if err != nil {
 				return err
 			}

@@ -12,15 +12,16 @@ type Label struct {
 	Content View
 }
 
-func (self *Label) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *Label) Render(request *Request, session *Session, response *Response) (err error) {
 	var forID string
 	if self.For != nil {
 		forID = self.For.ID()
 	}
+	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("label").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	writer.AttribIfNotDefault("for", forID)
 	if self.Content != nil {
-		err = self.Content.Render(context, writer)
+		err = self.Content.Render(request, session, response)
 	}
 	writer.CloseTag()
 	return err

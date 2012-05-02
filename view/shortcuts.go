@@ -44,6 +44,31 @@ func A_blank_nofollow(url interface{}, content ...interface{}) *Link {
 	return &Link{NewWindow: true, Model: NewLinkModelRel(url, "nofollow", content...)}
 }
 
+func STYLE(css string) HTML {
+	return Printf("<style>%s</style>", css)
+}
+
+func StylesheetLink(url string) HTML {
+	return Printf("<link rel='stylesheet' href='%s'>", url)
+}
+
+func SCRIPT(script string) HTML {
+	return Printf("<script>%s</script>", script)
+}
+
+func ScriptLink(url string) HTML {
+	return Printf("<script src='%s'></script>", url)
+}
+
+func RSSLink(title string, url URL) View {
+	return RenderView(
+		func(request *Request, session *Session, response *Response) error {
+			href := url.URL(request, session, response)
+			fmt.Fprintf(response, "<link rel='alternate' type='application/rss+xml' title='%s' href='%s'>", title, href)
+		},
+	)
+}
+
 // Img creates a HTML img element for an URL with optional width and height.
 // The first int of dimensions is width, the second one height.
 func IMG(url string, dimensions ...int) View {

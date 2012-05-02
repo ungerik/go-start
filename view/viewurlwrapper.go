@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 func NewViewURLWrapper(view View) *ViewURLWrapper {
 	return &ViewURLWrapper{View: view}
 }
@@ -27,15 +25,15 @@ func (self *ViewURLWrapper) IterateChildren(callback IterateChildrenCallback) {
 	self.View.IterateChildren(callback)
 }
 
-func (self *ViewURLWrapper) Render(context *Context, writer *utils.XMLWriter) (err error) {
-	return self.View.Render(context, writer)
+func (self *ViewURLWrapper) Render(request *Request, session *Session, response *Response) (err error) {
+	return self.View.Render(request, session, response)
 }
 
 func (self *ViewURLWrapper) SetPath(path string) {
 	self.path = path
 }
 
-func (self *ViewURLWrapper) URL(context *Context, args ...string) string {
-	path := StringURL(self.path).URL(context, args...)
-	return "http://" + context.Request.Host + path
+func (self *ViewURLWrapper) URL(request *Request, session *Session, response *Response, args ...string) string {
+	path := StringURL(self.path).URL(request, session, response, args...)
+	return "http://" + request.Host + path
 }

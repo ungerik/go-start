@@ -11,7 +11,8 @@ type HiddenInput struct {
 	Value string
 }
 
-func (self *HiddenInput) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *HiddenInput) Render(request *Request, session *Session, response *Response) (err error) {
+	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("input").Attrib("id", self.id)
 	writer.Attrib("type", "hidden")
 	writer.Attrib("name", self.Name)

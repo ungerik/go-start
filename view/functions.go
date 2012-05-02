@@ -5,9 +5,9 @@ import (
 	"github.com/ungerik/go-start/templatesystem"
 	"github.com/ungerik/go-start/utils"
 	"github.com/ungerik/goconfig"
+	"github.com/ungerik/web.go"
 	"io"
 	"strconv"
-	"github.com/ungerik/web.go"
 
 //	"github.com/ungerik/go-start/debug"
 )
@@ -100,10 +100,10 @@ func RenderTemplate(filename string, out io.Writer, context interface{}) (err er
 	return templ.Render(out, context)
 }
 
-func RenderChildViewsHTML(parent View, context *Context, writer *utils.XMLWriter) (err error) {
+func RenderChildViewsHTML(parent View, request *Request, session *Session, response *Response) (err error) {
 	parent.IterateChildren(func(parent View, child View) (next bool) {
 		if child != nil {
-			err = child.Render(context, writer)
+			err = child.Render(request, session, response)
 			if err != nil {
 				return false
 			}

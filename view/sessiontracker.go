@@ -8,9 +8,9 @@ import (
 // SessionTracker
 
 type SessionTracker interface {
-	ID(context *Context) (id string, ok bool)
-	SetID(context *Context, id string)
-	DeleteID(context *Context)
+	ID(request *Request, session *Session, response *Response) (id string, ok bool)
+	SetID(request *Request, session *Session, response *Response, id string)
+	DeleteID(request *Request, session *Session, response *Response)
 }
 
 const sessionIdCookie = "gostart_sid"
@@ -22,14 +22,14 @@ const sessionIdCookie = "gostart_sid"
 type CookieSessionTracker struct {
 }
 
-func (self *CookieSessionTracker) ID(context *Context) (id string, ok bool) {
+func (self *CookieSessionTracker) ID(request *Request, session *Session, response *Response) (id string, ok bool) {
 	return context.GetSecureCookie(sessionIdCookie)
 }
 
-func (self *CookieSessionTracker) SetID(context *Context, id string) {
+func (self *CookieSessionTracker) SetID(request *Request, session *Session, response *Response, id string) {
 	context.SetSecureCookie(sessionIdCookie, id, 0, "/")
 }
 
-func (self *CookieSessionTracker) DeleteID(context *Context) {
+func (self *CookieSessionTracker) DeleteID(request *Request, session *Session, response *Response) {
 	context.SetSecureCookie(sessionIdCookie, "delete", -time.Now().Unix(), "/")
 }

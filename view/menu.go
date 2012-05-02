@@ -15,10 +15,11 @@ type Menu struct {
 	Reverse         bool
 }
 
-func (self *Menu) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *Menu) Render(request *Request, session *Session, response *Response) (err error) {
+	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("ul").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 
-	requestURL := context.RequestURL()
+	requestURL := request.URL()
 
 	// Find active item
 	activeIndex := -1
@@ -26,7 +27,7 @@ func (self *Menu) Render(context *Context, writer *utils.XMLWriter) (err error) 
 	if self.ActiveItemClass != "" {
 		// First try exact URL match
 		for i := range self.Items {
-			url := self.Items[i].URL(context)
+			url := self.Items[i].URL(request, session, response)
 			if url == requestURL {
 				activeIndex = i
 				break
@@ -36,7 +37,7 @@ func (self *Menu) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		// If no exact URL match is found, search for sub pages
 		if activeIndex == -1 {
 			for i := range self.Items {
-				url := self.Items[i].URL(context)
+				url := self.Items[i].URL(request, session, response)
 				if utils.StringStartsWith(requestURL, url) {
 					activeIndex = i
 					// todo
@@ -53,7 +54,7 @@ func (self *Menu) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		}
 		itemClass := self.ItemClass
 		linkModel := self.Items[index]
-		url := linkModel.URL(context)
+		url := linkModel.URL(request, session, response)
 
 		// use i instead of index
 		if i == activeIndex {
@@ -68,11 +69,11 @@ func (self *Menu) Render(context *Context, writer *utils.XMLWriter) (err error) 
 
 		writer.OpenTag("a")
 		writer.Attrib("href", url)
-		writer.AttribIfNotDefault("title", linkModel.LinkTitle(context))
-		writer.AttribIfNotDefault("rel", linkModel.LinkRel(context))
-		content := linkModel.LinkContent(context)
+		writer.AttribIfNotDefault("title", linkModel.LinkTitle(request, session, response))
+		writer.AttribIfNotDefault("rel", linkModel.LinkRel(request, session, response))
+		content := linkModel.LinkContent(request, session, response)
 		if content != nil {
-			err = content.Render(context, writer)
+			err = content.Render(request, session, response)
 			if err != nil {
 				return err
 			}

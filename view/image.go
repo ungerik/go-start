@@ -14,7 +14,8 @@ type Image struct {
 	Description string
 }
 
-func (self *Image) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *Image) Render(request *Request, session *Session, response *Response) (err error) {
+	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("img").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	writer.Attrib("src", self.URL)
 	writer.AttribIfNotDefault("width", self.Width)

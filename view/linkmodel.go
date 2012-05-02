@@ -10,9 +10,9 @@ import (
 
 type LinkModel interface {
 	URL
-	LinkContent(context *Context) View
-	LinkTitle(context *Context) string
-	LinkRel(context *Context) string
+	LinkContent(request *Request, session *Session, response *Response) View
+	LinkTitle(request *Request, session *Session, response *Response) string
+	LinkRel(request *Request, session *Session, response *Response) string
 }
 
 func NewLinkModel(url interface{}, content ...interface{}) LinkModel {
@@ -87,25 +87,25 @@ type PageLink struct {
 	Rel     string
 }
 
-func (self *PageLink) URL(context *Context, args ...string) string {
-	return self.Page.URL(context, args...)
+func (self *PageLink) URL(request *Request, session *Session, response *Response, args ...string) string {
+	return self.Page.URL(request, session, response, args...)
 }
 
-func (self *PageLink) LinkContent(context *Context) View {
+func (self *PageLink) LinkContent(request *Request, session *Session, response *Response) View {
 	if self.Content == nil {
-		return HTML(self.LinkTitle(context))
+		return HTML(self.LinkTitle(request, session, response))
 	}
 	return self.Content
 }
 
-func (self *PageLink) LinkTitle(context *Context) string {
+func (self *PageLink) LinkTitle(request *Request, session *Session, response *Response) string {
 	if self.Title == "" {
-		return self.Page.LinkTitle(context)
+		return self.Page.LinkTitle(request, session, response)
 	}
 	return self.Title
 }
 
-func (self *PageLink) LinkRel(context *Context) string {
+func (self *PageLink) LinkRel(request *Request, session *Session, response *Response) string {
 	return self.Rel
 }
 
@@ -119,25 +119,25 @@ type StringLink struct {
 	Rel     string
 }
 
-func (self *StringLink) URL(context *Context, args ...string) string {
-	return StringURL(self.Url).URL(context, args...)
+func (self *StringLink) URL(request *Request, session *Session, response *Response, args ...string) string {
+	return StringURL(self.Url).URL(request, session, response, args...)
 }
 
-func (self *StringLink) LinkContent(context *Context) View {
+func (self *StringLink) LinkContent(request *Request, session *Session, response *Response) View {
 	if self.Content == nil {
-		return HTML(self.LinkTitle(context))
+		return HTML(self.LinkTitle(request, session, response))
 	}
 	return self.Content
 }
 
-func (self *StringLink) LinkTitle(context *Context) string {
+func (self *StringLink) LinkTitle(request *Request, session *Session, response *Response) string {
 	if self.Title == "" {
 		return self.Url
 	}
 	return self.Title
 }
 
-func (self *StringLink) LinkRel(context *Context) string {
+func (self *StringLink) LinkRel(request *Request, session *Session, response *Response) string {
 	return self.Rel
 }
 
@@ -151,24 +151,24 @@ type URLLink struct {
 	Rel     string
 }
 
-func (self *URLLink) URL(context *Context, args ...string) string {
-	return self.Url.URL(context, args...)
+func (self *URLLink) URL(request *Request, session *Session, response *Response, args ...string) string {
+	return self.Url.URL(request, session, response, args...)
 }
 
-func (self *URLLink) LinkContent(context *Context) View {
+func (self *URLLink) LinkContent(request *Request, session *Session, response *Response) View {
 	if self.Content == nil {
-		return HTML(self.LinkTitle(context))
+		return HTML(self.LinkTitle(request, session, response))
 	}
 	return self.Content
 }
 
-func (self *URLLink) LinkTitle(context *Context) string {
+func (self *URLLink) LinkTitle(request *Request, session *Session, response *Response) string {
 	if self.Title == "" {
-		return self.Url.URL(context)
+		return self.Url.URL(request, session, response)
 	}
 	return self.Title
 }
 
-func (self *URLLink) LinkRel(context *Context) string {
+func (self *URLLink) LinkRel(request *Request, session *Session, response *Response) string {
 	return self.Rel
 }

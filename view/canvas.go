@@ -9,7 +9,8 @@ type Canvas struct {
 	Height int
 }
 
-func (self *Canvas) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *Canvas) Render(request *Request, session *Session, response *Response) (err error) {
+	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("label").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	writer.Attrib("width", self.Width).Attrib("height", self.Height)
 	writer.ExtraCloseTag()

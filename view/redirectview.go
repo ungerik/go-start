@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 ///////////////////////////////////////////////////////////////////////////////
 // RedirectView
 
@@ -12,7 +10,7 @@ type RedirectView struct {
 	Permanent bool
 }
 
-func (self *RedirectView) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *RedirectView) Render(request *Request, session *Session, response *Response) (err error) {
 	if self.Permanent {
 		return PermanentRedirect(self.URL)
 	}

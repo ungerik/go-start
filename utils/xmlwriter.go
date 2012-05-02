@@ -24,10 +24,6 @@ type XMLWriter struct {
 	inOpenTag bool
 }
 
-//func (self *XMLWriter) Writer() io.Writer {
-//	return self.Writer
-//}
-
 func (self *XMLWriter) OpenTag(tag string) *XMLWriter {
 	self.finishOpenTag()
 

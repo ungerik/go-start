@@ -3,11 +3,10 @@ package view
 import (
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/templatesystem"
-	"github.com/ungerik/go-start/utils"
 	"path"
 )
 
-type GetTemplateContextFunc func(requestContext *Context) (context interface{}, err error)
+type GetTemplateContextFunc func(request *Request, session *Session, response *Response) (context interface{}, err error)
 
 func NewTemplate(filename string, getContext GetTemplateContextFunc) *Template {
 	return &Template{Filename: filename, GetContext: getContext}
@@ -24,7 +23,7 @@ func NewHTML5BoilerplateCSSTemplate(getContext GetTemplateContextFunc, filenames
 }
 
 func TemplateContext(context interface{}) GetTemplateContextFunc {
-	return func(requestContext *Context) (interface{}, error) {
+	return func(request *Request, session *Session, response *Response) (interface{}, error) {
 		return context, nil
 	}
 }
@@ -67,7 +66,7 @@ func (self *Template) parseTemplate() (templ templatesystem.Template, err error)
 	return templateSystem.ParseFile(filePath)
 }
 
-func (self *Template) Render(requestContext *Context, writer *utils.XMLWriter) (err error) {
+func (self *Template) Render(request *Request, session *Session, response *Response) (err error) {
 	if self.template != nil && self.Filename != "" {
 		_, found, modified := FindTemplateFile(self.Filename)
 		if !found {
@@ -92,7 +91,7 @@ func (self *Template) Render(requestContext *Context, writer *utils.XMLWriter) (
 
 	var context interface{}
 	if self.GetContext != nil {
-		context, err = self.GetContext(requestContext)
+		context, err = self.GetContext(request, session, response)
 		if err != nil {
 			return err
 		}
@@ -101,7 +100,7 @@ func (self *Template) Render(requestContext *Context, writer *utils.XMLWriter) (
 	// todo: how to add config data to context if it's not a slice?
 	// map[string][]string{"args": context.PathArgs}
 	// Config, context.Web
-	return self.template.Render(writer, context)
+	return self.template.Render(response, context)
 }
 
 //func (self *Template) SetFilename(filename string) {

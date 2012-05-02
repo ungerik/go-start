@@ -7,7 +7,7 @@ package view
 type Authenticator interface {
 	// Authenticate returns the auth result in ok,
 	// err is used for real errors not negative authentication
-	Authenticate(context *Context) (ok bool, err error)
+	Authenticate(request *Request, session *Session, response *Response) (ok bool, err error)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -17,7 +17,7 @@ type Authenticator interface {
 // Can be used for debugging.
 type BoolAuth bool
 
-func (self BoolAuth) Authenticate(context *Context) (ok bool, err error) {
+func (self BoolAuth) Authenticate(request *Request, session *Session, response *Response) (ok bool, err error) {
 	return bool(self), nil
 }
 
@@ -27,9 +27,9 @@ func (self BoolAuth) Authenticate(context *Context) (ok bool, err error) {
 // AnyAuthenticator returns true if any of its authenticators returns true.
 type AnyAuthenticator []Authenticator
 
-func (self AnyAuthenticator) Authenticate(context *Context) (ok bool, err error) {
+func (self AnyAuthenticator) Authenticate(request *Request, session *Session, response *Response) (ok bool, err error) {
 	for _, auth := range self {
-		if ok, err = auth.Authenticate(context); ok || err != nil {
+		if ok, err = auth.Authenticate(request, session, response); ok || err != nil {
 			return ok, err
 		}
 	}
@@ -42,9 +42,9 @@ func (self AnyAuthenticator) Authenticate(context *Context) (ok bool, err error)
 // AllAuthenticators returns true if all of its authenticators return true.
 type AllAuthenticators []Authenticator
 
-func (self AllAuthenticators) Authenticate(context *Context) (ok bool, err error) {
+func (self AllAuthenticators) Authenticate(request *Request, session *Session, response *Response) (ok bool, err error) {
 	for _, auth := range self {
-		if ok, err = auth.Authenticate(context); !ok {
+		if ok, err = auth.Authenticate(request, session, response); !ok {
 			return false, err
 		}
 	}

@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 ///////////////////////////////////////////////////////////////////////////////
 // If
 
@@ -56,7 +54,7 @@ func (self *If) IterateChildren(callback IterateChildrenCallback) {
 	}
 }
 
-func (self *If) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *If) Render(request *Request, session *Session, response *Response) (err error) {
 	content := self.Content
 	if !self.Condition {
 		content = self.ElseContent
@@ -64,5 +62,5 @@ func (self *If) Render(context *Context, writer *utils.XMLWriter) (err error) {
 	if content == nil {
 		return nil
 	}
-	return content.Render(context, writer)
+	return content.Render(request, session, response)
 }

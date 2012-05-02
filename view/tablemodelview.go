@@ -1,12 +1,5 @@
 package view
 
-import
-
-//	"github.com/ungerik/go-start/model"
-"github.com/ungerik/go-start/utils"
-
-//	"github.com/ungerik/go-start/debug"
-
 ///////////////////////////////////////////////////////////////////////////////
 // TableModelView
 
@@ -15,8 +8,8 @@ type TableModelView struct {
 	Class             string
 	Caption           string
 	GetModelIterator  GetModelIteratorFunc
-	GetHeaderRowViews func(context *Context) (views Views, err error)
-	GetRowViews       func(row int, rowModel interface{}, context *Context) (views Views, err error)
+	GetHeaderRowViews func(request *Request, session *Session, response *Response) (views Views, err error)
+	GetRowViews       func(row int, rowModel interface{}, request *Request, session *Session, response *Response) (views Views, err error)
 	table             Table
 }
 
@@ -24,7 +17,7 @@ func (self *TableModelView) IterateChildren(callback IterateChildrenCallback) {
 	callback(self, &self.table)
 }
 
-func (self *TableModelView) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *TableModelView) Render(request *Request, session *Session, response *Response) (err error) {
 	self.table.Class = self.Class
 	self.table.Caption = self.Caption
 
@@ -59,5 +52,5 @@ func (self *TableModelView) Render(context *Context, writer *utils.XMLWriter) (e
 	}
 	self.table.Model = tableModel
 
-	return self.table.Render(context, writer)
+	return self.table.Render(request, session, response)
 }

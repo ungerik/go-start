@@ -18,7 +18,7 @@ type Video struct {
 	//Description string
 }
 
-func (self *Video) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *Video) Render(request *Request, session *Session, response *Response) (err error) {
 	youtubeId := ""
 
 	switch {
@@ -32,6 +32,7 @@ func (self *Video) Render(context *Context, writer *utils.XMLWriter) (err error)
 	}
 
 	if youtubeId != "" {
+		writer := utils.NewXMLWriter(response)
 		writer.OpenTag("iframe").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 		width := self.Width
 		if width == 0 {

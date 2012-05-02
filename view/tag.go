@@ -21,13 +21,14 @@ func (self *Tag) IterateChildren(callback IterateChildrenCallback) {
 	}
 }
 
-func (self *Tag) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *Tag) Render(request *Request, session *Session, response *Response) (err error) {
+	writer := utils.NewXMLWriter(response)
 	writer.OpenTag(self.Tag).Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	for key, value := range self.Attribs {
 		writer.Attrib(key, value)
 	}
 	if self.Content != nil {
-		err = self.Content.Render(context, writer)
+		err = self.Content.Render(request, session, response)
 	}
 	if self.ExtraClose {
 		writer.ExtraCloseTag()

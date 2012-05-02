@@ -11,9 +11,9 @@ import (
 // SessionDataStore
 
 type SessionDataStore interface {
-	Get(context *Context, data interface{}) (ok bool, err error)
-	Set(context *Context, data interface{}) (err error)
-	Delete(context *Context) (err error)
+	Get(session *Session, data interface{}) (ok bool, err error)
+	Set(session *Session, data interface{}) (err error)
+	Delete(session *Session) (err error)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -31,7 +31,7 @@ func (self *CookieSessionDataStore) cookieName(sessionID string) string {
 	return self.cookieNameBase + sessionID
 }
 
-func (self *CookieSessionDataStore) Get(context *Context, data interface{}) (ok bool, err error) {
+func (self *CookieSessionDataStore) Get(session *Session, data interface{}) (ok bool, err error) {
 	sessionID, ok := context.SessionID()
 	if !ok {
 		return false, errs.Format("Can't set session data without a session id")
@@ -52,7 +52,7 @@ func (self *CookieSessionDataStore) Get(context *Context, data interface{}) (ok 
 	return err == nil, err
 }
 
-func (self *CookieSessionDataStore) Set(context *Context, data interface{}) (err error) {
+func (self *CookieSessionDataStore) Set(session *Session, data interface{}) (err error) {
 	sessionID, ok := context.SessionID()
 	if !ok {
 		return errs.Format("Can't set session data without a session id")
@@ -64,7 +64,7 @@ func (self *CookieSessionDataStore) Set(context *Context, data interface{}) (err
 	if err != nil {
 		return err
 	}
-	dataBytes, err := context.EncryptCookie(buffer.Bytes())
+	dataBytes, err := EncryptCookie(buffer.Bytes())
 	if err != nil {
 		return err
 	}
@@ -73,11 +73,11 @@ func (self *CookieSessionDataStore) Set(context *Context, data interface{}) (err
 		return errs.Format("Session %s data size %d is larger than cookie limit of 4000 bytes", sessionID, len(dataBytes))
 	}
 
-	context.SetSecureCookie(self.cookieName(sessionID), string(dataBytes), 0, "/")
+	session.Response.SetSecureCookie(self.cookieName(sessionID), string(dataBytes), 0, "/")
 	return nil
 }
 
-func (self *CookieSessionDataStore) Delete(context *Context) (err error) {
+func (self *CookieSessionDataStore) Delete(session *Session) (err error) {
 	sessionID, ok := context.SessionID()
 	if !ok {
 		return errs.Format("Can't delete session data without a session id")

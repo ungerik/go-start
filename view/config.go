@@ -9,14 +9,14 @@ import (
 )
 
 type PageConfiguration struct {
-	Template                string
-	DefaultWriteHead        PageWriteFunc // will be called after WriteTitle
-	DefaultCSS              string
-	DefaultMetaViewport     string
-	DefaultWriteHeadScripts PageWriteFunc // write scripts as last element of the HTML head
-	DefaultWriteScripts     PageWriteFunc // will be called if Page.WriteScripts is nil
-	PostWriteScripts        PageWriteFunc // will always be called after Page.WriteScripts
-	DefaultAuth             Authenticator // Will be used for pages with Page.NeedsAuth == true
+	Template              string
+	DefaultAdditionalHead Renderer // will be invoked after Title
+	DefaultCSS            string
+	DefaultMetaViewport   string
+	DefaultHeadScripts    Renderer      // write scripts as last element of the HTML head
+	DefaultScripts        Renderer      // will be invoked if Page.Scripts is nil
+	PostScripts           Renderer      // will always be invoked after Page.Scripts
+	DefaultAuth           Authenticator // Will be used for pages with Page.NeedsAuth == true
 }
 
 type Configuration struct {
@@ -31,7 +31,7 @@ type Configuration struct {
 	CookieSecret              string
 	SessionTracker            SessionTracker
 	SessionDataStore          SessionDataStore
-	OnPreAuth                 func(context *Context) error
+	OnPreAuth                 func(request *Request, session *Session, response *Response) error
 	GlobalAuth                Authenticator // Will allways be used before all other authenticators
 	FallbackAuth              Authenticator // Will be used when no other authenticator is defined for the view
 	LoginSignupPage           **Page

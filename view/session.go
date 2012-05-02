@@ -1,7 +1,117 @@
 package view
 
-///////////////////////////////////////////////////////////////////////////////
-// Response
+import (
+	"encoding/base64"
+	"github.com/ungerik/go-start/errs"
+	// "github.com/ungerik/go-start/utils"
+	// "strconv"
+	// "strings"
+)
+
+func newSession(request *Request, response *Response) *Session {
+	return &Session{
+		Tracker:   Config.SessionTracker,
+		DataStore: Config.SessionDataStore,
+		Request:   request,
+		Response:  response,
+	}
+}
 
 type Session struct {
+	/*
+		Cached user object of the session.
+		User won't be set automatically, use user.OfSession(context) instead.
+
+		Example for setting it automatically for every request:
+
+			import "github.com/ungerik/go-start/user"
+
+			Config.OnPreAuth = func(request *Request, session *Session, response *Response) error {
+				user.OfSession(context) // Sets context.User
+				return nil
+			}
+	*/
+	User interface{}
+
+	Tracker   SessionTracker
+	DataStore SessionDataStore
+
+	Request  *Request
+	Response *Response
+
+	cachedID string
+}
+
+// SessionID returns the id of the session and if there is a session active.
+func (self *Session) ID() (id string, ok bool) {
+	if self.cachedID != "" {
+		return self.cachedID, true
+	}
+
+	if Config.SessionTracker == nil {
+		return "", false
+	}
+
+	self.cachedID, ok = self.Tracker.ID(self)
+	return self.cachedID, ok
+}
+
+func (self *Session) SetID(id string) {
+	if self.Tracker != nil {
+		self.Tracker.SetID(self, id)
+		self.cachedID = id
+	}
+}
+
+func (self *Session) DeleteID() {
+	self.cachedID = ""
+	if self.Tracker == nil {
+		return
+	}
+	self.Tracker.DeleteID(self)
+}
+
+// SessionData returns all session data in out.
+func (self *Session) Data(out interface{}) (ok bool, err error) {
+	if self.DataStore == nil {
+		return false, errs.Format("Can't get session data without gostart/views.Config.SessionDataStore")
+	}
+	return self.DataStore.Get(self, out)
+}
+
+// SetSessionData sets all session data.
+func (self *Session) SetData(data interface{}) (err error) {
+	if self.DataStore == nil {
+		return errs.Format("Can't set session data without gostart/views.Config.SessionDataStore")
+	}
+	return self.DataStore.Set(self, data)
+}
+
+// DeleteSessionData deletes all session data.
+func (self *Session) DeleteData() (err error) {
+	if self.DataStore == nil {
+		return errs.Format("Can't delete session data without gostart/views.Config.SessionDataStore")
+	}
+	return self.DataStore.Delete(self)
+}
+
+func EncryptCookie(data []byte) (result []byte, err error) {
+	// todo crypt
+
+	e := base64.StdEncoding
+	result = make([]byte, e.EncodedLen(len(data)))
+	e.Encode(result, data)
+	return result, nil
+}
+
+func DecryptCookie(data []byte) (result []byte, err error) {
+	// todo crypt
+
+	e := base64.StdEncoding
+	result = make([]byte, e.DecodedLen(len(data)))
+	_, err = e.Decode(result, data)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }

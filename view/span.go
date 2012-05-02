@@ -18,10 +18,11 @@ func (self *Span) IterateChildren(callback IterateChildrenCallback) {
 	}
 }
 
-func (self *Span) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *Span) Render(request *Request, session *Session, response *Response) (err error) {
+	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("span").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	if self.Content != nil {
-		err = self.Content.Render(context, writer)
+		err = self.Content.Render(request, session, response)
 	}
 	writer.ExtraCloseTag()
 	return err

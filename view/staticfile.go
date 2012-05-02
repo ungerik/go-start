@@ -2,7 +2,6 @@ package view
 
 import (
 	"github.com/ungerik/go-start/errs"
-	"github.com/ungerik/go-start/utils"
 	"io/ioutil"
 	"path"
 )
@@ -18,7 +17,7 @@ type StaticFile struct {
 	fileContent    []byte
 }
 
-func (self *StaticFile) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *StaticFile) Render(request *Request, session *Session, response *Response) (err error) {
 	filePath, found, modified := FindStaticFile(self.Filename)
 	if !found {
 		return errs.Format("Static file not found: %s", self.Filename)
@@ -36,6 +35,6 @@ func (self *StaticFile) Render(context *Context, writer *utils.XMLWriter) (err e
 	}
 
 	context.ContentType(self.ContentTypeExt)
-	writer.Write(self.fileContent)
+	response.Write(self.fileContent)
 	return nil
 }

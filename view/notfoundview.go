@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 ///////////////////////////////////////////////////////////////////////////////
 // NotFoundView
 
@@ -10,6 +8,6 @@ type NotFoundView struct {
 	Message string
 }
 
-func (self *NotFoundView) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *NotFoundView) Render(request *Request, session *Session, response *Response) (err error) {
 	return NotFound(self.Message)
 }

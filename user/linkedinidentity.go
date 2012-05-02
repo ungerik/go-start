@@ -31,15 +31,15 @@ func (self *LinkedInIdentity) ProfileURL() string {
 	return ""
 }
 
-func (self *LinkedInIdentity) URL(context *view.Context, args ...string) string {
+func (self *LinkedInIdentity) URL(request *view.Request, session *view.Session, response *view.Response, args ...string) string {
 	return self.ProfileURL()
 }
 
-func (self *LinkedInIdentity) LinkContent(context *view.Context) view.View {
+func (self *LinkedInIdentity) LinkContent(request *view.Request, session *view.Session, response *view.Response) view.View {
 	return view.Escape(self.LinkTitle(context))
 }
 
-func (self *LinkedInIdentity) LinkTitle(context *view.Context) string {
+func (self *LinkedInIdentity) LinkTitle(request *view.Request, session *view.Session, response *view.Response) string {
 	name := self.Name.Get()
 	if name == "" {
 		name = self.ID.Get()
@@ -50,6 +50,6 @@ func (self *LinkedInIdentity) LinkTitle(context *view.Context) string {
 	return name
 }
 
-func (self *LinkedInIdentity) LinkRel(context *view.Context) string {
+func (self *LinkedInIdentity) LinkRel(request *view.Request, session *view.Session, response *view.Response) string {
 	return ""
 }

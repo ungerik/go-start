@@ -11,7 +11,7 @@ import (
 // URL is an interface to return URL strings depending on the request context.
 type URL interface {
 	// If args are passed, they will be used instead of context.PathArgs.
-	URL(context *Context, args ...string) string
+	URL(request *Request, session *Session, response *Response, args ...string) string
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -37,24 +37,24 @@ type indirectURL struct {
 	url *URL
 }
 
-func (self *indirectURL) URL(context *Context, args ...string) string {
-	return (*self.url).URL(context)
+func (self *indirectURL) URL(request *Request, session *Session, response *Response, args ...string) string {
+	return (*self.url).URL(request, session, response)
 }
 
 type indirectPageURL struct {
 	page **Page
 }
 
-func (self *indirectPageURL) URL(context *Context, args ...string) string {
-	return self.page.URL(context)
+func (self *indirectPageURL) URL(request *Request, session *Session, response *Response, args ...string) string {
+	return self.page.URL(request, session, response)
 }
 
 type indirectViewWithURL struct {
 	viewWithURL *ViewWithURL
 }
 
-func (self *indirectViewWithURL) URL(context *Context, args ...string) string {
-	return (*self.viewWithURL).URL(context)
+func (self *indirectViewWithURL) URL(request *Request, session *Session, response *Response, args ...string) string {
+	return (*self.viewWithURL).URL(request, session, response)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ func (self *indirectViewWithURL) URL(context *Context, args ...string) string {
 // StringURL implements the URL interface for a string.
 type StringURL string
 
-func (self StringURL) URL(context *Context, args ...string) string {
+func (self StringURL) URL(request *Request, session *Session, response *Response, args ...string) string {
 	if len(args) == 0 {
 		args = context.PathArgs
 	}

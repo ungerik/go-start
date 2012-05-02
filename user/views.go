@@ -9,7 +9,7 @@ import (
 // The confirmation code will be passed in the GET parameter "code"
 func EmailConfirmationView(profileURL view.URL) view.View {
 	return view.DynamicView(
-		func(context *view.Context) (view.View, error) {
+		func(request *view.Request, session *view.Session, response *view.Response) (view.View, error) {
 			confirmationCode, ok := context.Params["code"]
 			if !ok {
 				return view.DIV("error", view.HTML("Invalid email confirmation code!")), nil
@@ -38,7 +38,7 @@ func EmailConfirmationView(profileURL view.URL) view.View {
 
 func NewLoginForm(buttonText, class, errorMessageClass, successMessageClass string, redirectURL view.URL) view.View {
 	return view.DynamicView(
-		func(context *view.Context) (v view.View, err error) {
+		func(request *view.Request, session *view.Session, response *view.Response) (v view.View, err error) {
 			if from, ok := context.Params["from"]; ok {
 				redirectURL = view.StringURL(from)
 			}
@@ -55,7 +55,7 @@ func NewLoginForm(buttonText, class, errorMessageClass, successMessageClass stri
 				FormID:              "gostart_user_login",
 				GetModel:            view.FormModel(model),
 				Redirect:            redirectURL,
-				OnSubmit: func(form *view.Form, formModel interface{}, context *view.Context) (err error) {
+				OnSubmit: func(form *view.Form, formModel interface{}, request *view.Request, session *view.Session, response *view.Response) (err error) {
 					m := formModel.(*LoginFormModel)
 					ok, err := LoginEmailPassword(context, m.Email.Get(), m.Password.Get())
 					if err != nil {
@@ -79,7 +79,7 @@ func NewLoginForm(buttonText, class, errorMessageClass, successMessageClass stri
 // If redirect is nil, the redirect will go to "/"
 func LogoutView(redirect view.URL) view.View {
 	return view.RenderView(
-		func(context *view.Context, writer *utils.XMLWriter) (err error) {
+		func(request *view.Request, session *view.Session, response *view.Response, writer *utils.XMLWriter) (err error) {
 			Logout(context)
 			if redirect != nil {
 				return view.Redirect(redirect.URL(context))
@@ -98,11 +98,11 @@ func NewSignupForm(buttonText, class, errorMessageClass, successMessageClass str
 		SuccessMessage:      Config.ConfirmationSent,
 		ButtonText:          buttonText,
 		FormID:              "gostart_user_signup",
-		GetModel: func(form *view.Form, context *view.Context) (interface{}, error) {
+		GetModel: func(form *view.Form, request *view.Request, session *view.Session, response *view.Response) (interface{}, error) {
 			return &EmailPasswordFormModel{}, nil
 		},
 		Redirect: redirectURL,
-		OnSubmit: func(form *view.Form, formModel interface{}, context *view.Context) error {
+		OnSubmit: func(form *view.Form, formModel interface{}, request *view.Request, session *view.Session, response *view.Response) error {
 			m := formModel.(*EmailPasswordFormModel)
 			email := m.Email.Get()
 			password := m.Password1.Get()

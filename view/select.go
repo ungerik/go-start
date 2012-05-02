@@ -18,7 +18,8 @@ func (self *Select) IterateChildren(callback IterateChildrenCallback) {
 	self.Model.IterateChildren(self, callback)
 }
 
-func (self *Select) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *Select) Render(request *Request, session *Session, response *Response) (err error) {
+	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("select").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	writer.Attrib("name", self.Name)
 	if self.Disabled {
@@ -65,7 +66,7 @@ type SelectModel interface {
 	Value(index int) string
 	Selected(index int) bool
 	Disabled(index int) bool
-	RenderItem(index int, context *Context, writer *utils.XMLWriter) (err error)
+	RenderItem(index int, request *Request, session *Session, response *Response, writer *utils.XMLWriter) (err error)
 	IterateChildren(parent *Select, callback func(parent View, child View) (next bool))
 }
 
@@ -93,7 +94,7 @@ func (self *StringsSelectModel) Disabled(index int) bool {
 	return false
 }
 
-func (self *StringsSelectModel) RenderItem(index int, context *Context, writer *utils.XMLWriter) (err error) {
+func (self *StringsSelectModel) RenderItem(index int, request *Request, session *Session, response *Response, writer *utils.XMLWriter) (err error) {
 	writer.Content(self.Options[index])
 	return nil
 }
@@ -125,7 +126,7 @@ func (self *IndexedStringsSelectModel) Disabled(index int) bool {
 	return false
 }
 
-func (self *IndexedStringsSelectModel) RenderItem(index int, context *Context, writer *utils.XMLWriter) (err error) {
+func (self *IndexedStringsSelectModel) RenderItem(index int, request *Request, session *Session, response *Response, writer *utils.XMLWriter) (err error) {
 	writer.Content(self.Options[index])
 	return nil
 }

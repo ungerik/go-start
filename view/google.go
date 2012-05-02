@@ -7,15 +7,13 @@ import (
 	//	"github.com/ungerik/go-start/utils"
 )
 
-func GoogleAnalytics(trackingID string) PageWriteFunc {
-	script := fmt.Sprintf("window._gaq = [['_setAccount','%s'],['_trackPageview'],['_trackPageLoadTime']];Modernizr.load({load: ('https:' == location.protocol ? '//ssl' : '//www') + '.google-analytics.com/ga.js'});", trackingID)
-	return Script(script)
+func GoogleAnalytics(trackingID string) HTML {
+	return Printf("<script>window._gaq = [['_setAccount','%s'],['_trackPageview'],['_trackPageLoadTime']];Modernizr.load({load: ('https:' == location.protocol ? '//ssl' : '//www') + '.google-analytics.com/ga.js'});</script>", trackingID)
 }
 
 // todo: replace http with https if necessary
-func GoogleMaps(apiKey string, sensor bool, callback string) PageWriteFunc {
-	url := fmt.Sprintf("http://maps.googleapis.com/maps/api/js?key=%s&sensor=%t&callback=", apiKey, sensor, callback)
-	return ScriptURL(url)
+func GoogleMaps(apiKey string, sensor bool, callback string) HTML {
+	return Printf("<script src='http://maps.googleapis.com/maps/api/js?key=%s&sensor=%t&callback=%s'></script>", apiKey, sensor, callback)
 }
 
 func GoogleMapsIframe(width, height int, location string) *Iframe {
@@ -52,6 +50,6 @@ func GoogleMapsIframe(width, height int, location string) *Iframe {
 //	Zoom      float64
 //}
 //
-//func (self *GoogleMap) Render(context *Context, writer *utils.XMLWriter) (err error) {
+//func (self *GoogleMap) Render(request *Request, session *Session, response *Response) (err error) {
 //	return nil
 //}

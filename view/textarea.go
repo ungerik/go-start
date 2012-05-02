@@ -22,7 +22,8 @@ type TextArea struct {
 	Class    string
 }
 
-func (self *TextArea) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *TextArea) Render(request *Request, session *Session, response *Response) (err error) {
+	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("textarea").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 
 	cols := self.Cols

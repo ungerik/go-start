@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 type IterateChildrenCallback func(parent View, child View) (next bool)
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -17,7 +15,7 @@ type View interface {
 	IterateChildren(callback IterateChildrenCallback)
 	// Everything written to out will be discarded if there was an error
 	// out.Write() is not expected to return errors like bytes.Buffer 
-	Render(context *Context, writer *utils.XMLWriter) (err error)
+	Render(request *Request, session *Session, response *Response) (err error)
 }
 
 ///////////////////////////////////////////////////////////////////////////////

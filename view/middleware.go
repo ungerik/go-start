@@ -4,6 +4,6 @@ package view
 // Middleware
 
 type Middleware interface {
-	PreRender(context *Context) (abort bool)
-	PostRender(context *Context, html string, err error) (newHtml string, newErr error)
+	PreRender(request *Request, session *Session, response *Response) (abort bool)
+	PostRender(request *Request, session *Session, response *Response, html string, err error) (newHtml string, newErr error)
 }

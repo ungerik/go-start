@@ -32,15 +32,15 @@ func (self *TwitterIdentity) ProfileURL() string {
 	return "http://twitter.com/" + name
 }
 
-func (self *TwitterIdentity) URL(context *view.Context, args ...string) string {
+func (self *TwitterIdentity) URL(request *view.Request, session *view.Session, response *view.Response, args ...string) string {
 	return self.ProfileURL()
 }
 
-func (self *TwitterIdentity) LinkContent(context *view.Context) view.View {
+func (self *TwitterIdentity) LinkContent(request *view.Request, session *view.Session, response *view.Response) view.View {
 	return view.Escape(self.LinkTitle(context))
 }
 
-func (self *TwitterIdentity) LinkTitle(context *view.Context) string {
+func (self *TwitterIdentity) LinkTitle(request *view.Request, session *view.Session, response *view.Response) string {
 	name := self.Name.Get()
 	if name == "" {
 		name = self.ID.Get()
@@ -54,6 +54,6 @@ func (self *TwitterIdentity) LinkTitle(context *view.Context) string {
 	return name
 }
 
-func (self *TwitterIdentity) LinkRel(context *view.Context) string {
+func (self *TwitterIdentity) LinkRel(request *view.Request, session *view.Session, response *view.Response) string {
 	return ""
 }

@@ -15,7 +15,8 @@ type Checkbox struct {
 	Class    string
 }
 
-func (self *Checkbox) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *Checkbox) Render(request *Request, session *Session, response *Response) (err error) {
+	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	writer.Attrib("type", "checkbox")
 	writer.Attrib("name", self.Name)

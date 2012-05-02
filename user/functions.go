@@ -142,19 +142,19 @@ func ConfirmEmail(confirmationCode string) (userDoc interface{}, email string, c
 
 const ContextCacheKey = "github.com/ungerik/go-start/user.ContextCacheKey"
 
-func Login(context *view.Context, userDoc interface{}) {
+func Login(request *view.Request, session *view.Session, response *view.Response, userDoc interface{}) {
 	context.SetSessionID(userDoc.(mongo.Document).ObjectId().Hex())
 	//context.Cache(ContextCacheKey, userDoc)
 	context.User = userDoc
 }
 
-func Logout(context *view.Context) {
+func Logout(request *view.Request, session *view.Session, response *view.Response) {
 	context.DeleteSessionID()
 	//context.DeleteCached(ContextCacheKey)
 	context.User = nil
 }
 
-func LoginEmailPassword(context *view.Context, email, password string) (emailPasswdMatch bool, err error) {
+func LoginEmailPassword(request *view.Request, session *view.Session, response *view.Response, email, password string) (emailPasswdMatch bool, err error) {
 	userDoc, found, err := FindByEmail(email)
 	if !found {
 		return false, err
@@ -167,7 +167,7 @@ func LoginEmailPassword(context *view.Context, email, password string) (emailPas
 }
 
 // Returns nil if there is no session user
-func OfSession(context *view.Context) (userDoc interface{}) {
+func OfSession(request *view.Request, session *view.Session, response *view.Response) (userDoc interface{}) {
 	if context.User != nil {
 		return context.User
 	}

@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 ///////////////////////////////////////////////////////////////////////////////
 // HTML
 
@@ -20,7 +18,7 @@ func (self HTML) ID() string {
 func (self HTML) IterateChildren(callback IterateChildrenCallback) {
 }
 
-func (self HTML) Render(context *Context, writer *utils.XMLWriter) (err error) {
-	writer.Content(string(self))
+func (self HTML) Render(request *Request, session *Session, response *Response) (err error) {
+	response.WriteString(string(self))
 	return nil
 }

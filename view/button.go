@@ -16,7 +16,8 @@ type Button struct {
 	TabIndex int
 }
 
-func (self *Button) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *Button) Render(request *Request, session *Session, response *Response) (err error) {
+	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	if self.Submit {
 		writer.Attrib("type", "submit")

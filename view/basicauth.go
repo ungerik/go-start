@@ -22,8 +22,8 @@ type BasicAuth struct {
 	UserPassword map[string]string
 }
 
-func (self *BasicAuth) Authenticate(context *Context) (ok bool, err error) {
-	header := context.Header().Get("Authorization")
+func (self *BasicAuth) Authenticate(request *Request, session *Session, response *Response) (ok bool, err error) {
+	header := request.Header().Get("Authorization")
 	f := strings.Fields(header)
 	if len(f) == 2 && f[0] == "Basic" {
 		if b, err := base64.StdEncoding.DecodeString(f[1]); err == nil {
@@ -39,7 +39,7 @@ func (self *BasicAuth) Authenticate(context *Context) (ok bool, err error) {
 		}
 	}
 
-	context.SetHeader("WWW-Authenticate", "Basic realm=\""+self.Realm+"\"", false)
-	context.Abort(401, "Authorization Required")
+	response.SetHeader("WWW-Authenticate", "Basic realm=\""+self.Realm+"\"", false)
+	response.AuthorizationRequired401()
 	return false, nil
 }

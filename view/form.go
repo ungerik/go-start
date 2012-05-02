@@ -8,11 +8,11 @@ import (
 	//	"github.com/ungerik/go-start/debug"
 )
 
-type GetFormModelFunc func(form *Form, context *Context) (model interface{}, err error)
-type OnSubmitFormFunc func(form *Form, formModel interface{}, context *Context) error
+type GetFormModelFunc func(form *Form, request *Request, session *Session, response *Response) (model interface{}, err error)
+type OnSubmitFormFunc func(form *Form, formModel interface{}, request *Request, session *Session, response *Response) error
 
 func FormModel(model interface{}) GetFormModelFunc {
-	return func(form *Form, context *Context) (interface{}, error) {
+	return func(form *Form, request *Request, session *Session, response *Response) (interface{}, error) {
 		return model, nil
 	}
 }
@@ -64,14 +64,13 @@ func (self *Form) isFieldRequiredSelectors(metaData *model.MetaData, selector, a
 	return utils.StringIn(selector, self.RequireFields) || utils.StringIn(arraySelector, self.RequireFields)
 }
 
-
-func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *Form) Render(request *Request, session *Session, response *Response) (err error) {
 	if self.OnSubmit != nil {
 		// Determine if it's a POST request for this form:
 		isPOST := false
-		if context.Request.Method == "POST" {
+		if request.Method == "POST" {
 			// Every HTML form gets an ID to allow more than one form per page:
-			id, ok := context.Params["form_id"]
+			id, ok := request.Params["form_id"]
 			if ok && id == self.FormID {
 				isPOST = true
 			}
@@ -92,7 +91,7 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		var formModel interface{}
 
 		if self.GetModel != nil {
-			formModel, err = self.GetModel(self, context)
+			formModel, err = self.GetModel(self, request, session, response)
 			if err != nil {
 				return err
 			}
@@ -107,7 +106,7 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 
 					var valueErrors []*model.ValidationError
 					if isPOST {
-						formValue, ok := context.Params[selector]
+						formValue, ok := request.Params[selector]
 						if b, isBool := modelValue.(*model.Bool); isBool {
 							b.Set(formValue != "")
 						} else if ok {
@@ -116,7 +115,7 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 								valueErrors = modelValue.Validate(metaData)
 								if len(valueErrors) == 0 {
 									if modelValue.IsEmpty() && self.isFieldRequiredSelectors(metaData, selector, arraySelector) {
-									   valueErrors = []*model.ValidationError{model.NewRequiredValidationError(metaData)}
+										valueErrors = []*model.ValidationError{model.NewRequiredValidationError(metaData)}
 									}
 								}
 							} else {
@@ -149,7 +148,7 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 				}
 			} else {
 				// Try to save the new form field values
-				err = self.OnSubmit(self, formModel, context)
+				err = self.OnSubmit(self, formModel, request, session, response)
 				if err == nil {
 					message = self.SuccessMessage
 				} else {
@@ -159,7 +158,7 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 
 				// Redirect if saved without errors and redirect URL is set
 				if !hasErrors && self.Redirect != nil {
-					return Redirect(self.Redirect.URL(context))
+					return Redirect(self.Redirect.URL(request, session, response))
 				}
 			}
 
@@ -202,15 +201,17 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 	action := self.Action
 	if action == "" {
 		action = "."
-		if i := strings.Index(context.Request.RequestURI, "?"); i != -1 {
-			action += context.Request.RequestURI[i:]
+		url := request.URL()
+		if i := strings.Index(url, "?"); i != -1 {
+			action += url[i:]
 		}
 	}
 
+	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("form").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	writer.Attrib("method", method)
 	writer.Attrib("action", action)
-	err = RenderChildViewsHTML(self, context, writer)
+	err = RenderChildViewsHTML(self, request, session, response)
 	writer.ExtraCloseTag() // form
 	return err
 }
