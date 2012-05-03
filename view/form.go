@@ -201,7 +201,7 @@ func (self *Form) Render(request *Request, session *Session, response *Response)
 	action := self.Action
 	if action == "" {
 		action = "."
-		url := request.URL()
+		url := request.URLString()
 		if i := strings.Index(url, "?"); i != -1 {
 			action += url[i:]
 		}

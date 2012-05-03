@@ -278,7 +278,7 @@ func (self *Website) URL(request *view.Request, session *view.Session, response 
 }
 
 func (self *Website) LinkContent(request *view.Request, session *view.Session, response *view.Response) view.View {
-	return view.Escape(self.LinkTitle(context))
+	return view.Escape(self.LinkTitle(request, session, response))
 }
 
 func (self *Website) LinkTitle(request *view.Request, session *view.Session, response *view.Response) string {

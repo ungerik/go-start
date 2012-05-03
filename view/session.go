@@ -18,6 +18,12 @@ func newSession(request *Request, response *Response) *Session {
 }
 
 type Session struct {
+	Tracker   SessionTracker
+	DataStore SessionDataStore
+
+	Request  *Request
+	Response *Response
+
 	/*
 		Cached user object of the session.
 		User won't be set automatically, use user.OfSession(context) instead.
@@ -33,25 +39,21 @@ type Session struct {
 	*/
 	User interface{}
 
-	Tracker   SessionTracker
-	DataStore SessionDataStore
-
-	Request  *Request
-	Response *Response
-
 	cachedID string
 }
 
-// SessionID returns the id of the session and if there is a session active.
+// ID returns the id of the session and if there is a session active.
+// It's valid to call this method on a nil pointer.
 func (self *Session) ID() (id string, ok bool) {
+	if self == nil {
+		return "", false
+	}
 	if self.cachedID != "" {
 		return self.cachedID, true
 	}
-
 	if Config.SessionTracker == nil {
 		return "", false
 	}
-
 	self.cachedID, ok = self.Tracker.ID(self)
 	return self.cachedID, ok
 }

@@ -31,7 +31,7 @@ func (self *FacebookIdentity) URL(request *view.Request, session *view.Session, 
 }
 
 func (self *FacebookIdentity) LinkContent(request *view.Request, session *view.Session, response *view.Response) view.View {
-	return view.Escape(self.LinkTitle(context))
+	return view.Escape(self.LinkTitle(request, session, response))
 }
 
 func (self *FacebookIdentity) LinkTitle(request *view.Request, session *view.Session, response *view.Response) string {

@@ -44,7 +44,7 @@ func (self *Table) Render(request *Request, session *Session, response *Response
 				} else {
 					writer.Attrib("class", "col", col, " odd")
 				}
-				view, err := self.Model.CellView(row, col, context)
+				view, err := self.Model.CellView(row, col, request, session, response)
 				if view != nil && err == nil {
 					view.Init(view)
 					err = view.Render(request, session, response)

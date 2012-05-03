@@ -25,7 +25,7 @@ func (self *SkypeIdentity) URL(request *view.Request, session *view.Session, res
 }
 
 func (self *SkypeIdentity) LinkContent(request *view.Request, session *view.Session, response *view.Response) view.View {
-	return view.Escape(self.LinkTitle(context))
+	return view.Escape(self.LinkTitle(request, session, response))
 }
 
 func (self *SkypeIdentity) LinkTitle(request *view.Request, session *view.Session, response *view.Response) string {

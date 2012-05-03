@@ -8,22 +8,26 @@ import (
 	"strings"
 )
 
-///////////////////////////////////////////////////////////////////////////////
-// Request
+func newRequest(webContext *web.Context, urlArgs []string) *Request {
+	return &Request{
+		Request:    webContext.Request,
+		webContext: webContext,
+		Params:     webContext.Params,
+		URLArgs:    urlArgs,
+	}
+}
 
-// not used atm.
 type Request struct {
+	*http.Request
 	webContext *web.Context
-	Method     string
-	Host       string
 	Params     map[string]string
 	// Arguments parsed from the URL path
 	URLArgs []string
 }
 
 // URL returns the complete URL of the request including protocol and host.
-func (self *Request) URL() string {
-	url := self.webContext.Request.RequestURI
+func (self *Request) URLString() string {
+	url := self.RequestURI
 	if !utils.StringStartsWith(url, "http") {
 		url = "http://" + self.webContext.Request.Host + url
 	}
@@ -32,7 +36,7 @@ func (self *Request) URL() string {
 
 // todo: all browsers
 func (self *Request) ParseUserAgent() (renderer string, version utils.VersionTuple, err error) {
-	s := self.webContext.Request.UserAgent()
+	s := self.UserAgent()
 	switch {
 	case strings.Contains(s, "Gecko"):
 		if i := strings.Index(s, "rv:"); i != -1 {
@@ -57,18 +61,14 @@ func (self *Request) ParseUserAgent() (renderer string, version utils.VersionTup
 }
 
 func (self *Request) Port() uint16 {
-	i := strings.LastIndex(self.webContext.Request.Host, ":")
+	i := strings.LastIndex(self.Host, ":")
 	if i == -1 {
 		return 80
 	}
-	port, _ := strconv.ParseInt(self.webContext.Request.Host[i+1:], 10, 16)
+	port, _ := strconv.ParseInt(self.Host[i+1:], 10, 16)
 	return uint16(port)
 }
 
 func (self *Request) GetSecureCookie(name string) (string, bool) {
 	return self.webContext.GetSecureCookie(name)
-}
-
-func (self *Request) Header() http.Header {
-	return self.webContext.Request.Header
 }

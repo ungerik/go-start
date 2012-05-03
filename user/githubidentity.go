@@ -27,7 +27,7 @@ func (self *GitHubIdentity) URL(request *view.Request, session *view.Session, re
 }
 
 func (self *GitHubIdentity) LinkContent(request *view.Request, session *view.Session, response *view.Response) view.View {
-	return view.Escape(self.LinkTitle(context))
+	return view.Escape(self.LinkTitle(request, session, response))
 }
 
 func (self *GitHubIdentity) LinkTitle(request *view.Request, session *view.Session, response *view.Response) string {

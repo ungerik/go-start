@@ -23,7 +23,7 @@ type BasicAuth struct {
 }
 
 func (self *BasicAuth) Authenticate(request *Request, session *Session, response *Response) (ok bool, err error) {
-	header := request.Header().Get("Authorization")
+	header := request.Header.Get("Authorization")
 	f := strings.Fields(header)
 	if len(f) == 2 && f[0] == "Basic" {
 		if b, err := base64.StdEncoding.DecodeString(f[1]); err == nil {

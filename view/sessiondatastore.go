@@ -32,17 +32,17 @@ func (self *CookieSessionDataStore) cookieName(sessionID string) string {
 }
 
 func (self *CookieSessionDataStore) Get(session *Session, data interface{}) (ok bool, err error) {
-	sessionID, ok := context.SessionID()
+	sessionID, ok := session.ID()
 	if !ok {
 		return false, errs.Format("Can't set session data without a session id")
 	}
 
-	cookieValue, ok := context.GetSecureCookie(self.cookieName(sessionID))
+	cookieValue, ok := session.Request.GetSecureCookie(self.cookieName(sessionID))
 	if !ok {
 		return false, nil
 	}
 
-	decryptedCookieValue, err := context.DecryptCookie([]byte(cookieValue))
+	decryptedCookieValue, err := DecryptCookie([]byte(cookieValue))
 	if err != nil {
 		return false, err
 	}
@@ -53,7 +53,7 @@ func (self *CookieSessionDataStore) Get(session *Session, data interface{}) (ok 
 }
 
 func (self *CookieSessionDataStore) Set(session *Session, data interface{}) (err error) {
-	sessionID, ok := context.SessionID()
+	sessionID, ok := session.ID()
 	if !ok {
 		return errs.Format("Can't set session data without a session id")
 	}
@@ -78,11 +78,11 @@ func (self *CookieSessionDataStore) Set(session *Session, data interface{}) (err
 }
 
 func (self *CookieSessionDataStore) Delete(session *Session) (err error) {
-	sessionID, ok := context.SessionID()
+	sessionID, ok := session.ID()
 	if !ok {
 		return errs.Format("Can't delete session data without a session id")
 	}
 
-	context.SetSecureCookie(self.cookieName(sessionID), "", -time.Now().Unix(), "/")
+	session.Response.SetSecureCookie(self.cookieName(sessionID), "", -time.Now().Unix(), "/")
 	return nil
 }

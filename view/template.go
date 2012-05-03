@@ -86,7 +86,7 @@ func (self *Template) Render(request *Request, session *Session, response *Respo
 	}
 
 	if self.ContentTypeExt != "" {
-		requestContext.ContentType(self.ContentTypeExt)
+		response.ContentType(self.ContentTypeExt)
 	}
 
 	var context interface{}

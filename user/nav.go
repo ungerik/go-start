@@ -12,7 +12,7 @@ import (
 func Nav(login, signup, logout, profile *view.Link, separator view.View) view.View {
 	return view.DynamicView(
 		func(request *view.Request, session *view.Session, response *view.Response) (view.View, error) {
-			if _, ok := context.SessionID(); ok {
+			if _, ok := session.ID(); ok {
 				if profile == nil {
 					return logout, nil
 				}

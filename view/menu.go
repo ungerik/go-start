@@ -19,7 +19,7 @@ func (self *Menu) Render(request *Request, session *Session, response *Response)
 	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("ul").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 
-	requestURL := request.URL()
+	requestURL := request.URLString()
 
 	// Find active item
 	activeIndex := -1

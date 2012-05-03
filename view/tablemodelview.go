@@ -25,7 +25,7 @@ func (self *TableModelView) Render(request *Request, session *Session, response 
 
 	self.table.HeaderRow = false
 	if self.GetHeaderRowViews != nil {
-		views, err := self.GetHeaderRowViews(context)
+		views, err := self.GetHeaderRowViews(request, session, response)
 		if err != nil {
 			return err
 		}
@@ -36,9 +36,9 @@ func (self *TableModelView) Render(request *Request, session *Session, response 
 	}
 
 	rowNr := 0
-	iter := self.GetModelIterator(context)
+	iter := self.GetModelIterator(request, session, response)
 	for rowModel := iter.Next(); rowModel != nil; rowModel = iter.Next() {
-		views, err := self.GetRowViews(rowNr, rowModel, context)
+		views, err := self.GetRowViews(rowNr, rowModel, request, session, response)
 		if err != nil {
 			return err
 		}

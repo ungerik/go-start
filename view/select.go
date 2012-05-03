@@ -44,7 +44,7 @@ func (self *Select) Render(request *Request, session *Session, response *Respons
 			if self.Model.Disabled(i) {
 				writer.Attrib("disabled", "disabled")
 			}
-			err = self.Model.RenderItem(i, context, writer)
+			err = self.Model.RenderItem(i, request, session, response)
 			if err != nil {
 				return err
 			}
@@ -66,7 +66,7 @@ type SelectModel interface {
 	Value(index int) string
 	Selected(index int) bool
 	Disabled(index int) bool
-	RenderItem(index int, request *Request, session *Session, response *Response, writer *utils.XMLWriter) (err error)
+	RenderItem(index int, request *Request, session *Session, response *Response) (err error)
 	IterateChildren(parent *Select, callback func(parent View, child View) (next bool))
 }
 
@@ -94,8 +94,8 @@ func (self *StringsSelectModel) Disabled(index int) bool {
 	return false
 }
 
-func (self *StringsSelectModel) RenderItem(index int, request *Request, session *Session, response *Response, writer *utils.XMLWriter) (err error) {
-	writer.Content(self.Options[index])
+func (self *StringsSelectModel) RenderItem(index int, request *Request, session *Session, response *Response) (err error) {
+	response.WriteString(self.Options[index])
 	return nil
 }
 
@@ -126,8 +126,8 @@ func (self *IndexedStringsSelectModel) Disabled(index int) bool {
 	return false
 }
 
-func (self *IndexedStringsSelectModel) RenderItem(index int, request *Request, session *Session, response *Response, writer *utils.XMLWriter) (err error) {
-	writer.Content(self.Options[index])
+func (self *IndexedStringsSelectModel) RenderItem(index int, request *Request, session *Session, response *Response) (err error) {
+	response.WriteString(self.Options[index])
 	return nil
 }
 

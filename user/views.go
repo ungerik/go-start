@@ -2,7 +2,6 @@ package user
 
 import (
 	"errors"
-	"github.com/ungerik/go-start/utils"
 	"github.com/ungerik/go-start/view"
 )
 
@@ -10,7 +9,7 @@ import (
 func EmailConfirmationView(profileURL view.URL) view.View {
 	return view.DynamicView(
 		func(request *view.Request, session *view.Session, response *view.Response) (view.View, error) {
-			confirmationCode, ok := context.Params["code"]
+			confirmationCode, ok := request.Params["code"]
 			if !ok {
 				return view.DIV("error", view.HTML("Invalid email confirmation code!")), nil
 			}
@@ -20,7 +19,7 @@ func EmailConfirmationView(profileURL view.URL) view.View {
 				return view.DIV("error", view.HTML("Invalid email confirmation code!")), err
 			}
 
-			Login(context, doc)
+			Login(session, doc)
 
 			return view.Views{
 				view.DIV("success", view.Printf("Email address %s confirmed!", email)),
@@ -39,11 +38,11 @@ func EmailConfirmationView(profileURL view.URL) view.View {
 func NewLoginForm(buttonText, class, errorMessageClass, successMessageClass string, redirectURL view.URL) view.View {
 	return view.DynamicView(
 		func(request *view.Request, session *view.Session, response *view.Response) (v view.View, err error) {
-			if from, ok := context.Params["from"]; ok {
+			if from, ok := request.Params["from"]; ok {
 				redirectURL = view.StringURL(from)
 			}
 			model := &LoginFormModel{}
-			if email, ok := context.Params["email"]; ok {
+			if email, ok := request.Params["email"]; ok {
 				model.Email.Set(email)
 			}
 			form := &view.Form{
@@ -57,7 +56,7 @@ func NewLoginForm(buttonText, class, errorMessageClass, successMessageClass stri
 				Redirect:            redirectURL,
 				OnSubmit: func(form *view.Form, formModel interface{}, request *view.Request, session *view.Session, response *view.Response) (err error) {
 					m := formModel.(*LoginFormModel)
-					ok, err := LoginEmailPassword(context, m.Email.Get(), m.Password.Get())
+					ok, err := LoginEmailPassword(session, m.Email.Get(), m.Password.Get())
 					if err != nil {
 						if view.Config.Debug.Mode {
 							return err
@@ -79,10 +78,10 @@ func NewLoginForm(buttonText, class, errorMessageClass, successMessageClass stri
 // If redirect is nil, the redirect will go to "/"
 func LogoutView(redirect view.URL) view.View {
 	return view.RenderView(
-		func(request *view.Request, session *view.Session, response *view.Response, writer *utils.XMLWriter) (err error) {
-			Logout(context)
+		func(request *view.Request, session *view.Session, response *view.Response) (err error) {
+			Logout(session)
 			if redirect != nil {
-				return view.Redirect(redirect.URL(context))
+				return view.Redirect(redirect.URL(request, session, response))
 			}
 			return view.Redirect("/")
 		},
@@ -123,7 +122,7 @@ func NewSignupForm(buttonText, class, errorMessageClass, successMessageClass str
 					return err
 				}
 			}
-			err = <-user.Email[0].SendConfirmationEmail(context, confirmationURL)
+			err = <-user.Email[0].SendConfirmationEmail(request, session, response, confirmationURL)
 			if err != nil {
 				return err
 			}

@@ -37,7 +37,7 @@ func (self *TwitterIdentity) URL(request *view.Request, session *view.Session, r
 }
 
 func (self *TwitterIdentity) LinkContent(request *view.Request, session *view.Session, response *view.Response) view.View {
-	return view.Escape(self.LinkTitle(context))
+	return view.Escape(self.LinkTitle(request, session, response))
 }
 
 func (self *TwitterIdentity) LinkTitle(request *view.Request, session *view.Session, response *view.Response) string {

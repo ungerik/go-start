@@ -2,14 +2,17 @@ package view
 
 import (
 	"bytes"
-	// "github.com/ungerik/go-start/utils"
+	"fmt"
 	"github.com/ungerik/web.go"
 )
 
-///////////////////////////////////////////////////////////////////////////////
-// Response
+func newResponse(webContext *web.Context, respondingView View) *Response {
+	return &Response{
+		webContext:     webContext,
+		RespondingView: respondingView,
+	}
+}
 
-// not used atm.
 type Response struct {
 	buffer     bytes.Buffer
 	webContext *web.Context
@@ -17,6 +20,16 @@ type Response struct {
 	RespondingView View
 	// Custom response wide data that can be set by the application
 	Data interface{}
+}
+
+// New creates a clone of the response with an empty buffer.
+// Used to render preliminary text.
+func (self *Response) New() *Response {
+	return &Response{
+		webContext:     self.webContext,
+		RespondingView: self.RespondingView,
+		Data:           self.Data,
+	}
 }
 
 func (self *Response) Write(p []byte) (n int, err error) {
@@ -33,6 +46,10 @@ func (self *Response) WriteRune(r rune) (n int, err error) {
 
 func (self *Response) WriteString(s string) (n int, err error) {
 	return self.buffer.WriteString(s)
+}
+
+func (self *Response) Printf(format string, args ...interface{}) (n int, err error) {
+	return fmt.Fprintf(&self.buffer, format, args...)
 }
 
 func (self *Response) String() string {
@@ -55,12 +72,16 @@ func (self *Response) RedirectTemporary302(url string) {
 	self.webContext.Redirect(302, url)
 }
 
-func (self *Response) NotModified304(url string) {
+func (self *Response) NotModified304() {
 	self.webContext.NotModified()
 }
 
-func (self *Response) NotFound404(url string) {
-	self.Abort(404, "Not found")
+func (self *Response) Forbidden403(message string) {
+	self.Abort(403, message)
+}
+
+func (self *Response) NotFound404(message string) {
+	self.Abort(404, message)
 }
 
 func (self *Response) AuthorizationRequired401() {
@@ -69,4 +90,8 @@ func (self *Response) AuthorizationRequired401() {
 
 func (self *Response) SetHeader(header string, value string, unique bool) {
 	self.webContext.SetHeader(header, value, unique)
+}
+
+func (self *Response) ContentType(ext string) {
+	self.webContext.ContentType(ext)
 }

@@ -142,19 +142,17 @@ func ConfirmEmail(confirmationCode string) (userDoc interface{}, email string, c
 
 const ContextCacheKey = "github.com/ungerik/go-start/user.ContextCacheKey"
 
-func Login(request *view.Request, session *view.Session, response *view.Response, userDoc interface{}) {
-	context.SetSessionID(userDoc.(mongo.Document).ObjectId().Hex())
-	//context.Cache(ContextCacheKey, userDoc)
-	context.User = userDoc
+func Login(session *view.Session, userDoc interface{}) {
+	session.SetID(userDoc.(mongo.Document).ObjectId().Hex())
+	session.User = userDoc
 }
 
-func Logout(request *view.Request, session *view.Session, response *view.Response) {
-	context.DeleteSessionID()
-	//context.DeleteCached(ContextCacheKey)
-	context.User = nil
+func Logout(session *view.Session) {
+	session.DeleteID()
+	session.User = nil
 }
 
-func LoginEmailPassword(request *view.Request, session *view.Session, response *view.Response, email, password string) (emailPasswdMatch bool, err error) {
+func LoginEmailPassword(session *view.Session, email, password string) (emailPasswdMatch bool, err error) {
 	userDoc, found, err := FindByEmail(email)
 	if !found {
 		return false, err
@@ -162,23 +160,20 @@ func LoginEmailPassword(request *view.Request, session *view.Session, response *
 	if !From(userDoc).EmailPasswordMatch(email, password) {
 		return false, nil
 	}
-	Login(context, userDoc)
+	Login(session, userDoc)
 	return true, nil
 }
 
 // Returns nil if there is no session user
-func OfSession(request *view.Request, session *view.Session, response *view.Response) (userDoc interface{}) {
-	if context.User != nil {
-		return context.User
+func OfSession(session *view.Session) (userDoc interface{}) {
+	if session.User != nil {
+		return session.User
 	}
-	//	if userDoc, ok := context.Cached(ContextCacheKey); ok {
-	//		return userDoc
-	//	}
-	id, ok := context.SessionID()
+	id, ok := session.ID()
 	if !ok {
 		return nil
 	}
 	userDoc, _, _ = FindByID(id)
-	context.User = userDoc
+	session.User = userDoc
 	return userDoc
 }

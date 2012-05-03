@@ -1,7 +1,6 @@
 package view
 
 import (
-	"bytes"
 	"github.com/ungerik/go-start/templatesystem"
 	// "github.com/ungerik/go-start/utils"
 	"html"
@@ -70,7 +69,7 @@ type Page struct {
 
 	// Content of the head meta viewport tag,
 	// Config.Page.DefaultMetaViewport will be used if ""
-	Viewport string
+	MetaViewport string
 
 	// Write additional HTML head content
 	AdditionalHead Renderer
@@ -139,16 +138,16 @@ func (self *Page) LinkContent(request *Request, session *Session, response *Resp
 
 // Implements the LinkModel interface
 func (self *Page) LinkTitle(request *Request, session *Session, response *Response) string {
-	if self.WriteTitle == nil {
+	if self.Title == nil {
 		return ""
 	}
-	var buf bytes.Buffer
-	err := self.WriteTitle(context, &buf)
+	r := response.New()
+	err := self.Title.Render(request, session, r)
 	if err != nil {
 		//return err.String()
 		panic(err)
 	}
-	return buf.String()
+	return r.String()
 }
 
 // Implements the LinkModel interface
@@ -158,7 +157,7 @@ func (self *Page) LinkRel(request *Request, session *Session, response *Response
 
 func (self *Page) Render(request *Request, session *Session, response *Response) (err error) {
 	if self.OnPreRender != nil {
-		err = self.OnPreRender(self, context)
+		err = self.OnPreRender(self, request, session, response)
 		if err != nil {
 			return err
 		}
@@ -183,20 +182,20 @@ func (self *Page) Render(request *Request, session *Session, response *Response)
 	}
 
 	if self.Title != nil {
-		var buf bytes.Buffer
-		err := self.Title.Render(request, session, response)
+		r := response.New()
+		err := self.Title.Render(request, session, r)
 		if err != nil {
 			return err
 		}
-		templateContext.Title = html.EscapeString(buf.String())
+		templateContext.Title = html.EscapeString(r.String())
 	}
 	if self.MetaDescription != nil {
-		var buf bytes.Buffer
-		err := self.MetaDescription.Render(request, session, response)
+		r := response.New()
+		err := self.MetaDescription.Render(request, session, r)
 		if err != nil {
 			return err
 		}
-		templateContext.MetaDescription = html.EscapeString(buf.String())
+		templateContext.MetaDescription = html.EscapeString(r.String())
 	}
 
 	metaViewport := self.MetaViewport
@@ -210,12 +209,12 @@ func (self *Page) Render(request *Request, session *Session, response *Response)
 		additionalHead = Config.Page.DefaultAdditionalHead
 	}
 	if additionalHead != nil {
-		var buf bytes.Buffer
-		err := additionalHead.Render(request, session, response)
+		r := response.New()
+		err := additionalHead.Render(request, session, r)
 		if err != nil {
 			return err
 		}
-		templateContext.Head = buf.String()
+		templateContext.Head = r.String()
 	}
 
 	//templateContext.Meta = self.Meta
@@ -226,23 +225,23 @@ func (self *Page) Render(request *Request, session *Session, response *Response)
 	templateContext.Favicon129x129URL = self.Favicon129x129URL
 
 	if self.PreCSS != nil {
-		var buf bytes.Buffer
-		if err = self.PreCSS.Render(request, session, response); err != nil {
+		r := response.New()
+		if err = self.PreCSS.Render(request, session, r); err != nil {
 			return err
 		}
-		templateContext.PreCSS = buf.String()
+		templateContext.PreCSS = r.String()
 	}
 	if self.CSS != nil {
-		templateContext.CSS = self.CSS.URL(context)
+		templateContext.CSS = self.CSS.URL(request, session, response)
 	} else {
 		templateContext.CSS = Config.Page.DefaultCSS
 	}
 	if self.PostCSS != nil {
-		var buf bytes.Buffer
-		if err = self.PostCSS.Render(request, session, response); err != nil {
+		r := response.New()
+		if err = self.PostCSS.Render(request, session, r); err != nil {
 			return err
 		}
-		templateContext.PostCSS = buf.String()
+		templateContext.PostCSS = r.String()
 	}
 
 	headScripts := self.HeadScripts
@@ -250,11 +249,11 @@ func (self *Page) Render(request *Request, session *Session, response *Response)
 		headScripts = Config.Page.DefaultHeadScripts
 	}
 	if headScripts != nil {
-		var buf bytes.Buffer
-		if err = headScripts.Render(request, session, response); err != nil {
+		r := response.New()
+		if err = headScripts.Render(request, session, r); err != nil {
 			return err
 		}
-		templateContext.HeadScripts = buf.String()
+		templateContext.HeadScripts = r.String()
 	}
 
 	scripts := self.Scripts
@@ -262,25 +261,26 @@ func (self *Page) Render(request *Request, session *Session, response *Response)
 		scripts = Config.Page.DefaultScripts
 	}
 	if scripts != nil {
-		var buf bytes.Buffer
-		if err = scripts.Render(request, session, response); err != nil {
+		r := response.New()
+		if err = scripts.Render(request, session, r); err != nil {
 			return err
 		}
 		if Config.Page.PostScripts != nil {
-			if err = Config.Page.PostScripts.Render(request, session, response); err != nil {
+			if err = Config.Page.PostScripts.Render(request, session, r); err != nil {
 				return err
 			}
 		}
-		templateContext.Scripts = buf.String()
+		templateContext.Scripts = r.String()
 	}
 
 	if self.Content != nil {
-		err = self.Content.Render(request, session, response)
+		r := response.New()
+		err = self.Content.Render(request, session, r)
 		if err != nil {
 			return err
 		}
+		templateContext.Content = r.String()
 	}
-	templateContext.Content = response.String()
 
 	self.Template.GetContext = TemplateContext(templateContext)
 	return self.Template.Render(request, session, response)

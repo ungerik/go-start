@@ -65,7 +65,7 @@ type StringURL string
 
 func (self StringURL) URL(request *Request, session *Session, response *Response, args ...string) string {
 	if len(args) == 0 {
-		args = context.PathArgs
+		args = request.URLArgs
 	}
 	url := string(self)
 	for _, arg := range args {
