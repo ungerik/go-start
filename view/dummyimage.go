@@ -20,7 +20,7 @@ type DummyImage struct {
 	Text            string
 }
 
-func (self *DummyImage) Render(request *Request, session *Session, response *Response) (err error) {
+func (self *DummyImage) Render(response *Response) (err error) {
 	writer := utils.NewXMLWriter(response)
 	src := fmt.Sprintf("http://dummyimage.com/%dx%d", self.Width, self.Height)
 

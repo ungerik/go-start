@@ -17,11 +17,11 @@ func (self *Paragraph) IterateChildren(callback IterateChildrenCallback) {
 	}
 }
 
-func (self *Paragraph) Render(request *Request, session *Session, response *Response) (err error) {
+func (self *Paragraph) Render(response *Response) (err error) {
 	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("p").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	if self.Content != nil {
-		err = self.Content.Render(request, session, response)
+		err = self.Content.Render(response)
 	}
 	writer.ExtraCloseTag()
 	return err

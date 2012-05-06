@@ -8,15 +8,6 @@ import (
 	// "strings"
 )
 
-func newSession(request *Request, response *Response) *Session {
-	return &Session{
-		Tracker:   Config.SessionTracker,
-		DataStore: Config.SessionDataStore,
-		Request:   request,
-		Response:  response,
-	}
-}
-
 type Session struct {
 	Tracker   SessionTracker
 	DataStore SessionDataStore
@@ -32,7 +23,7 @@ type Session struct {
 
 			import "github.com/ungerik/go-start/user"
 
-			Config.OnPreAuth = func(request *Request, session *Session, response *Response) error {
+			Config.OnPreAuth = func(response *Response) error {
 				user.OfSession(context) // Sets context.User
 				return nil
 			}
@@ -40,6 +31,13 @@ type Session struct {
 	User interface{}
 
 	cachedID string
+}
+
+func (self *Session) init(request *Request, response *Response) {
+	self.Tracker = Config.SessionTracker
+	self.DataStore = Config.SessionDataStore
+	self.Request = request
+	self.Response = response
 }
 
 // ID returns the id of the session and if there is a session active.

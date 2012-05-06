@@ -18,11 +18,11 @@ func (self *Div) IterateChildren(callback IterateChildrenCallback) {
 	}
 }
 
-func (self *Div) Render(request *Request, session *Session, response *Response) (err error) {
+func (self *Div) Render(response *Response) (err error) {
 	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("div").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	if self.Content != nil {
-		err = self.Content.Render(request, session, response)
+		err = self.Content.Render(response)
 	}
 	writer.ExtraCloseTag()
 	return err

@@ -12,7 +12,7 @@ type Format struct {
 	Escape bool
 }
 
-func (self *Format) Render(request *Request, session *Session, response *Response) (err error) {
+func (self *Format) Render(response *Response) (err error) {
 	writer := utils.NewXMLWriter(response)
 	if self.Escape {
 		writer.PrintfEscape(self.Text, self.Args...)

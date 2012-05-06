@@ -38,10 +38,10 @@ func (self Views) IterateChildren(callback IterateChildrenCallback) {
 	}
 }
 
-func (self Views) Render(request *Request, session *Session, response *Response) (err error) {
+func (self Views) Render(response *Response) (err error) {
 	for _, view := range self {
 		if view != nil {
-			err = view.Render(request, session, response)
+			err = view.Render(response)
 			if err != nil {
 				return err
 			}

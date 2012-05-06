@@ -9,15 +9,15 @@ type Auth struct {
 	LoginURL view.URL
 }
 
-func (self *Auth) Authenticate(request *view.Request, session *view.Session, response *view.Response) (ok bool, err error) {
-	id, ok := session.ID()
+func (self *Auth) Authenticate(response *view.Response) (ok bool, err error) {
+	id, ok := response.Session.ID()
 	if !ok {
 		return false, nil
 	}
 
 	ok, err = IsConfirmedUserID(id)
 	if !ok && err == nil && self.LoginURL != nil {
-		err = view.Redirect(self.LoginURL.URL(request, session, response))
+		err = view.Redirect(self.LoginURL.URL(response))
 	}
 	return ok, err
 }

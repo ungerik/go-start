@@ -22,10 +22,10 @@ func NewContactForm(recipientEmail, subjectPrefix, formClass, buttonClass, formI
 		ButtonText:     "Send",
 		SuccessMessage: "Message sent",
 		FormID:         formID,
-		GetModel: func(form *Form, request *Request, session *Session, response *Response) (interface{}, error) {
+		GetModel: func(form *Form, response *Response) (interface{}, error) {
 			return &ContactFormModel{}, nil
 		},
-		OnSubmit: func(form *Form, formModel interface{}, request *Request, session *Session, response *Response) error {
+		OnSubmit: func(form *Form, formModel interface{}, response *Response) error {
 			model := formModel.(*ContactFormModel)
 			subject := fmt.Sprintf("%sFrom %s <%s>: %s", subjectPrefix, model.Name, model.Email, model.Subject)
 			return email.NewBriefMessage(subject, model.Message.Get(), recipientEmail).Send()

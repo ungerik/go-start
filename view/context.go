@@ -38,7 +38,7 @@ import (
 
 // 			import "github.com/ungerik/go-start/user"
 
-// 			Config.OnPreAuth = func(request *Request, session *Session, response *Response) error {
+// 			Config.OnPreAuth = func(response *Response) error {
 // 				user.OfSession(context) // Sets context.User
 // 				return nil
 // 			}

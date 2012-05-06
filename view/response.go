@@ -6,16 +6,24 @@ import (
 	"github.com/ungerik/web.go"
 )
 
-func newResponse(webContext *web.Context, respondingView View) *Response {
-	return &Response{
+func newResponse(webContext *web.Context, respondingView View, urlArgs []string) *Response {
+	response := &Response{
 		webContext:     webContext,
 		RespondingView: respondingView,
+		Request:        newRequest(webContext, urlArgs),
+		Session:        new(Session),
 	}
+	response.Session.init(response.Request, response)
+	return response
 }
 
 type Response struct {
 	buffer     bytes.Buffer
 	webContext *web.Context
+
+	Request *Request
+	Session *Session
+
 	// View that responds to the HTTP request
 	RespondingView View
 	// Custom response wide data that can be set by the application
@@ -27,6 +35,8 @@ type Response struct {
 func (self *Response) New() *Response {
 	return &Response{
 		webContext:     self.webContext,
+		Request:        self.Request,
+		Session:        self.Session,
 		RespondingView: self.RespondingView,
 		Data:           self.Data,
 	}

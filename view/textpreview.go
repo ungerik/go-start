@@ -16,7 +16,7 @@ type TextPreview struct {
 	MoreLink    LinkModel
 }
 
-func (self *TextPreview) Render(request *Request, session *Session, response *Response) (err error) {
+func (self *TextPreview) Render(response *Response) (err error) {
 	writer := utils.NewXMLWriter(response)
 	if len(self.PlainText) < self.MaxLength {
 		writer.Content(self.PlainText)
@@ -40,11 +40,11 @@ func (self *TextPreview) Render(request *Request, session *Session, response *Re
 		writer.Content("... ")
 		if self.MoreLink != nil {
 			writer.OpenTag("a")
-			writer.Attrib("href", self.MoreLink.URL(request, session, response))
-			writer.AttribIfNotDefault("title", self.MoreLink.LinkTitle(request, session, response))
-			content := self.MoreLink.LinkContent(request, session, response)
+			writer.Attrib("href", self.MoreLink.URL(response))
+			writer.AttribIfNotDefault("title", self.MoreLink.LinkTitle(response))
+			content := self.MoreLink.LinkContent(response)
 			if content != nil {
-				err = content.Render(request, session, response)
+				err = content.Render(response)
 			}
 			writer.ExtraCloseTag() // a
 		}

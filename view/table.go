@@ -13,7 +13,7 @@ type Table struct {
 	HeaderRow bool
 }
 
-func (self *Table) Render(request *Request, session *Session, response *Response) (err error) {
+func (self *Table) Render(response *Response) (err error) {
 	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("table").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 
@@ -44,10 +44,10 @@ func (self *Table) Render(request *Request, session *Session, response *Response
 				} else {
 					writer.Attrib("class", "col", col, " odd")
 				}
-				view, err := self.Model.CellView(row, col, request, session, response)
+				view, err := self.Model.CellView(row, col, response)
 				if view != nil && err == nil {
 					view.Init(view)
-					err = view.Render(request, session, response)
+					err = view.Render(response)
 				}
 				if err != nil {
 					return err
@@ -69,7 +69,7 @@ func (self *Table) Render(request *Request, session *Session, response *Response
 type TableModel interface {
 	Rows() int
 	Columns() int
-	CellView(row int, column int, request *Request, session *Session, response *Response) (view View, err error)
+	CellView(row int, column int, response *Response) (view View, err error)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -88,7 +88,7 @@ func (self ViewsTableModel) Columns() int {
 	return len(self[0])
 }
 
-func (self ViewsTableModel) CellView(row int, column int, request *Request, session *Session, response *Response) (view View, err error) {
+func (self ViewsTableModel) CellView(row int, column int, response *Response) (view View, err error) {
 	return self[row][column], nil
 }
 
@@ -108,7 +108,7 @@ func (self HTMLStringsTableModel) Columns() int {
 	return len(self[0])
 }
 
-func (self HTMLStringsTableModel) CellView(row int, column int, request *Request, session *Session, response *Response) (view View, err error) {
+func (self HTMLStringsTableModel) CellView(row int, column int, response *Response) (view View, err error) {
 	return HTML(self[row][column]), nil
 }
 
@@ -128,6 +128,6 @@ func (self EscapeStringsTableModel) Columns() int {
 	return len(self[0])
 }
 
-func (self EscapeStringsTableModel) CellView(row int, column int, request *Request, session *Session, response *Response) (view View, err error) {
+func (self EscapeStringsTableModel) CellView(row int, column int, response *Response) (view View, err error) {
 	return Escape(self[row][column]), nil
 }

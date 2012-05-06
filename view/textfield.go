@@ -26,7 +26,7 @@ type TextField struct {
 	Class     string
 }
 
-func (self *TextField) Render(request *Request, session *Session, response *Response) (err error) {
+func (self *TextField) Render(response *Response) (err error) {
 	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 

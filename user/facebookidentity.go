@@ -26,15 +26,15 @@ func (self *FacebookIdentity) ProfileURL() string {
 	return "http://facebook.com/" + name
 }
 
-func (self *FacebookIdentity) URL(request *view.Request, session *view.Session, response *view.Response, args ...string) string {
+func (self *FacebookIdentity) URL(response *view.Response, args ...string) string {
 	return self.ProfileURL()
 }
 
-func (self *FacebookIdentity) LinkContent(request *view.Request, session *view.Session, response *view.Response) view.View {
-	return view.Escape(self.LinkTitle(request, session, response))
+func (self *FacebookIdentity) LinkContent(response *view.Response) view.View {
+	return view.Escape(self.LinkTitle(response))
 }
 
-func (self *FacebookIdentity) LinkTitle(request *view.Request, session *view.Session, response *view.Response) string {
+func (self *FacebookIdentity) LinkTitle(response *view.Response) string {
 	name := self.Name.Get()
 	if name == "" {
 		name = self.ID.Get()
@@ -45,6 +45,6 @@ func (self *FacebookIdentity) LinkTitle(request *view.Request, session *view.Ses
 	return name
 }
 
-func (self *FacebookIdentity) LinkRel(request *view.Request, session *view.Session, response *view.Response) string {
+func (self *FacebookIdentity) LinkRel(response *view.Response) string {
 	return ""
 }

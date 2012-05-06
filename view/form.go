@@ -8,11 +8,11 @@ import (
 	//	"github.com/ungerik/go-start/debug"
 )
 
-type GetFormModelFunc func(form *Form, request *Request, session *Session, response *Response) (model interface{}, err error)
-type OnSubmitFormFunc func(form *Form, formModel interface{}, request *Request, session *Session, response *Response) error
+type GetFormModelFunc func(form *Form, response *Response) (model interface{}, err error)
+type OnSubmitFormFunc func(form *Form, formModel interface{}, response *Response) error
 
 func FormModel(model interface{}) GetFormModelFunc {
-	return func(form *Form, request *Request, session *Session, response *Response) (interface{}, error) {
+	return func(form *Form, response *Response) (interface{}, error) {
 		return model, nil
 	}
 }
@@ -64,13 +64,13 @@ func (self *Form) isFieldRequiredSelectors(metaData *model.MetaData, selector, a
 	return utils.StringIn(selector, self.RequireFields) || utils.StringIn(arraySelector, self.RequireFields)
 }
 
-func (self *Form) Render(request *Request, session *Session, response *Response) (err error) {
+func (self *Form) Render(response *Response) (err error) {
 	if self.OnSubmit != nil {
 		// Determine if it's a POST request for this form:
 		isPOST := false
-		if request.Method == "POST" {
+		if response.Request.Method == "POST" {
 			// Every HTML form gets an ID to allow more than one form per page:
-			id, ok := request.Params["form_id"]
+			id, ok := response.Request.Params["form_id"]
 			if ok && id == self.FormID {
 				isPOST = true
 			}
@@ -91,7 +91,7 @@ func (self *Form) Render(request *Request, session *Session, response *Response)
 		var formModel interface{}
 
 		if self.GetModel != nil {
-			formModel, err = self.GetModel(self, request, session, response)
+			formModel, err = self.GetModel(self, response)
 			if err != nil {
 				return err
 			}
@@ -106,7 +106,7 @@ func (self *Form) Render(request *Request, session *Session, response *Response)
 
 					var valueErrors []*model.ValidationError
 					if isPOST {
-						formValue, ok := request.Params[selector]
+						formValue, ok := response.Request.Params[selector]
 						if b, isBool := modelValue.(*model.Bool); isBool {
 							b.Set(formValue != "")
 						} else if ok {
@@ -148,7 +148,7 @@ func (self *Form) Render(request *Request, session *Session, response *Response)
 				}
 			} else {
 				// Try to save the new form field values
-				err = self.OnSubmit(self, formModel, request, session, response)
+				err = self.OnSubmit(self, formModel, response)
 				if err == nil {
 					message = self.SuccessMessage
 				} else {
@@ -158,7 +158,7 @@ func (self *Form) Render(request *Request, session *Session, response *Response)
 
 				// Redirect if saved without errors and redirect URL is set
 				if !hasErrors && self.Redirect != nil {
-					return Redirect(self.Redirect.URL(request, session, response))
+					return Redirect(self.Redirect.URL(response))
 				}
 			}
 
@@ -201,7 +201,7 @@ func (self *Form) Render(request *Request, session *Session, response *Response)
 	action := self.Action
 	if action == "" {
 		action = "."
-		url := request.URLString()
+		url := response.Request.URLString()
 		if i := strings.Index(url, "?"); i != -1 {
 			action += url[i:]
 		}
@@ -211,7 +211,7 @@ func (self *Form) Render(request *Request, session *Session, response *Response)
 	writer.OpenTag("form").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	writer.Attrib("method", method)
 	writer.Attrib("action", action)
-	err = RenderChildViewsHTML(self, request, session, response)
+	err = RenderChildViewsHTML(self, response)
 	writer.ExtraCloseTag() // form
 	return err
 }

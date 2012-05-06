@@ -54,7 +54,7 @@ func (self *If) IterateChildren(callback IterateChildrenCallback) {
 	}
 }
 
-func (self *If) Render(request *Request, session *Session, response *Response) (err error) {
+func (self *If) Render(response *Response) (err error) {
 	content := self.Content
 	if !self.Condition {
 		content = self.ElseContent
@@ -62,5 +62,5 @@ func (self *If) Render(request *Request, session *Session, response *Response) (
 	if content == nil {
 		return nil
 	}
-	return content.Render(request, session, response)
+	return content.Render(response)
 }

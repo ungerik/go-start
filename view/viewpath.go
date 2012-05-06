@@ -110,19 +110,17 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 			go runtime.GC()
 		}()
 
-		request := newRequest(webContext, args)
-		response := newResponse(webContext, self.View)
-		session := newSession(request, response)
+		response := newResponse(webContext, self.View, args)
 
 		for _, subdomain := range Config.RedirectSubdomains {
 			if len(subdomain) > 0 {
 				if subdomain[len(subdomain)-1] != '.' {
 					subdomain += "."
 				}
-				host := request.Host
+				host := response.Request.Host
 				if strings.Index(host, subdomain) == 0 {
 					host = host[len(subdomain):]
-					url := "http://" + host + request.URL.Path
+					url := "http://" + host + response.Request.URL.Path
 					response.RedirectPermanently301(url)
 					return ""
 				}
@@ -156,21 +154,21 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 			case err != nil:
 				return handleErr(err)
 			case self.NoAuth != nil:
-				from := url.QueryEscape(request.RequestURI)
-				to := self.NoAuth.URL(request, session, response) + "?from=" + from
+				from := url.QueryEscape(response.Request.RequestURI)
+				to := self.NoAuth.URL(response) + "?from=" + from
 				return handleErr(Redirect(to))
 			}
 			return handleErr(Forbidden("403 Forbidden: authentication required"))
 		}
 
 		if Config.OnPreAuth != nil {
-			if err := Config.OnPreAuth(request, session, response); err != nil {
+			if err := Config.OnPreAuth(response); err != nil {
 				return handleErr(err)
 			}
 		}
 
 		if Config.GlobalAuth != nil {
-			if ok, err := Config.GlobalAuth.Authenticate(request, session, response); !ok {
+			if ok, err := Config.GlobalAuth.Authenticate(response); !ok {
 				return handleNoAuth(err)
 			}
 		}
@@ -179,7 +177,7 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 			self.Auth = Config.FallbackAuth
 		}
 		if self.Auth != nil {
-			if ok, err := self.Auth.Authenticate(request, session, response); !ok {
+			if ok, err := self.Auth.Authenticate(response); !ok {
 				return handleNoAuth(err)
 			}
 		}
@@ -191,7 +189,7 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 		//			}
 		//		}
 
-		err := self.View.Render(request, session, response)
+		err := self.View.Render(response)
 
 		//		for i := numMiddlewares - 1; i >= 0; i-- {
 		//			html, err = Config.Middlewares[i].PostRender(context, html, err)

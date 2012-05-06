@@ -15,11 +15,11 @@ type Menu struct {
 	Reverse         bool
 }
 
-func (self *Menu) Render(request *Request, session *Session, response *Response) (err error) {
+func (self *Menu) Render(response *Response) (err error) {
 	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("ul").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 
-	requestURL := request.URLString()
+	requestURL := response.Request.URLString()
 
 	// Find active item
 	activeIndex := -1
@@ -27,7 +27,7 @@ func (self *Menu) Render(request *Request, session *Session, response *Response)
 	if self.ActiveItemClass != "" {
 		// First try exact URL match
 		for i := range self.Items {
-			url := self.Items[i].URL(request, session, response)
+			url := self.Items[i].URL(response)
 			if url == requestURL {
 				activeIndex = i
 				break
@@ -37,7 +37,7 @@ func (self *Menu) Render(request *Request, session *Session, response *Response)
 		// If no exact URL match is found, search for sub pages
 		if activeIndex == -1 {
 			for i := range self.Items {
-				url := self.Items[i].URL(request, session, response)
+				url := self.Items[i].URL(response)
 				if utils.StringStartsWith(requestURL, url) {
 					activeIndex = i
 					// todo
@@ -54,7 +54,7 @@ func (self *Menu) Render(request *Request, session *Session, response *Response)
 		}
 		itemClass := self.ItemClass
 		linkModel := self.Items[index]
-		url := linkModel.URL(request, session, response)
+		url := linkModel.URL(response)
 
 		// use i instead of index
 		if i == activeIndex {
@@ -69,11 +69,11 @@ func (self *Menu) Render(request *Request, session *Session, response *Response)
 
 		writer.OpenTag("a")
 		writer.Attrib("href", url)
-		writer.AttribIfNotDefault("title", linkModel.LinkTitle(request, session, response))
-		writer.AttribIfNotDefault("rel", linkModel.LinkRel(request, session, response))
-		content := linkModel.LinkContent(request, session, response)
+		writer.AttribIfNotDefault("title", linkModel.LinkTitle(response))
+		writer.AttribIfNotDefault("rel", linkModel.LinkRel(response))
+		content := linkModel.LinkContent(response)
 		if content != nil {
-			err = content.Render(request, session, response)
+			err = content.Render(response)
 			if err != nil {
 				return err
 			}

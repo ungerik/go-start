@@ -18,7 +18,7 @@ type Video struct {
 	//Description string
 }
 
-func (self *Video) Render(request *Request, session *Session, response *Response) (err error) {
+func (self *Video) Render(response *Response) (err error) {
 	youtubeId := ""
 
 	switch {

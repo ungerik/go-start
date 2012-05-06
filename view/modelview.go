@@ -8,11 +8,11 @@ import (
 ///////////////////////////////////////////////////////////////////////////////
 // ModelView
 
-type GetModelIteratorFunc func(request *Request, session *Session, response *Response) model.Iterator
-type GetModelViewFunc func(model interface{}, request *Request, session *Session, response *Response) (view View, err error)
+type GetModelIteratorFunc func(response *Response) model.Iterator
+type GetModelViewFunc func(model interface{}, response *Response) (view View, err error)
 
 func ModelIterator(iter model.Iterator) GetModelIteratorFunc {
-	return func(request *Request, session *Session, response *Response) model.Iterator {
+	return func(response *Response) model.Iterator {
 		return iter
 	}
 }
@@ -23,12 +23,12 @@ type ModelView struct {
 	GetModelView     GetModelViewFunc // nil Views will be ignored
 }
 
-func (self *ModelView) Render(request *Request, session *Session, response *Response) (err error) {
+func (self *ModelView) Render(response *Response) (err error) {
 	var children Views
 
-	iter := self.GetModelIterator(request, session, response)
+	iter := self.GetModelIterator(response)
 	for model := iter.Next(); model != nil; model = iter.Next() {
-		view, err := self.GetModelView(model, request, session, response)
+		view, err := self.GetModelView(model, response)
 		if err != nil {
 			return err
 		}
@@ -41,5 +41,5 @@ func (self *ModelView) Render(request *Request, session *Session, response *Resp
 		return iter.Err()
 	}
 
-	return children.Render(request, session, response)
+	return children.Render(response)
 }

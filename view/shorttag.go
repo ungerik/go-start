@@ -20,14 +20,14 @@ func (self *ShortTag) IterateChildren(callback IterateChildrenCallback) {
 	}
 }
 
-func (self *ShortTag) Render(request *Request, session *Session, response *Response) (err error) {
+func (self *ShortTag) Render(response *Response) (err error) {
 	writer := utils.NewXMLWriter(response)
 	writer.OpenTag(self.Tag).AttribIfNotDefault("class", self.Class)
 	for key, value := range self.Attribs {
 		writer.Attrib(key, value)
 	}
 	if self.Content != nil {
-		err = self.Content.Render(request, session, response)
+		err = self.Content.Render(response)
 	}
 	writer.ExtraCloseTag()
 	return err

@@ -11,8 +11,8 @@ import (
 // signup, profile, and separator are optional and can be nil.
 func Nav(login, signup, logout, profile *view.Link, separator view.View) view.View {
 	return view.DynamicView(
-		func(request *view.Request, session *view.Session, response *view.Response) (view.View, error) {
-			if _, ok := session.ID(); ok {
+		func(response *view.Response) (view.View, error) {
+			if _, ok := response.Session.ID(); ok {
 				if profile == nil {
 					return logout, nil
 				}

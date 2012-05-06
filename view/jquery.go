@@ -7,8 +7,8 @@ var (
 
 func JQueryUIAutocompleteFromURL(domSelector string, dataURL URL, minLength int) View {
 	return RenderView(
-		func(request *Request, session *Session, response *Response) (err error) {
-			url := dataURL.URL(request, session, response)
+		func(response *Response) (err error) {
+			url := dataURL.URL(response)
 			response.Printf("<script>$('%s').autocomplete({source:'%s',minLength:%d});</script>", domSelector, url, minLength)
 			return nil
 		},
@@ -17,7 +17,7 @@ func JQueryUIAutocompleteFromURL(domSelector string, dataURL URL, minLength int)
 
 func JQueryUIAutocomplete(domSelector string, options []string, minLength int) View {
 	return RenderView(
-		func(request *Request, session *Session, response *Response) (err error) {
+		func(response *Response) (err error) {
 			response.Printf("<script>$('%s').autocomplete({source:[", domSelector)
 			for i := range options {
 				if i > 0 {

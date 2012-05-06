@@ -18,7 +18,7 @@ type Iframe struct {
 	URL          string
 }
 
-func (self *Iframe) Render(request *Request, session *Session, response *Response) (err error) {
+func (self *Iframe) Render(response *Response) (err error) {
 	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("iframe").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	writer.Attrib("width", self.Width).Attrib("height", self.Height)

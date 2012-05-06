@@ -8,8 +8,8 @@ type TableModelView struct {
 	Class             string
 	Caption           string
 	GetModelIterator  GetModelIteratorFunc
-	GetHeaderRowViews func(request *Request, session *Session, response *Response) (views Views, err error)
-	GetRowViews       func(row int, rowModel interface{}, request *Request, session *Session, response *Response) (views Views, err error)
+	GetHeaderRowViews func(response *Response) (views Views, err error)
+	GetRowViews       func(row int, rowModel interface{}, response *Response) (views Views, err error)
 	table             Table
 }
 
@@ -17,7 +17,7 @@ func (self *TableModelView) IterateChildren(callback IterateChildrenCallback) {
 	callback(self, &self.table)
 }
 
-func (self *TableModelView) Render(request *Request, session *Session, response *Response) (err error) {
+func (self *TableModelView) Render(response *Response) (err error) {
 	self.table.Class = self.Class
 	self.table.Caption = self.Caption
 
@@ -25,7 +25,7 @@ func (self *TableModelView) Render(request *Request, session *Session, response 
 
 	self.table.HeaderRow = false
 	if self.GetHeaderRowViews != nil {
-		views, err := self.GetHeaderRowViews(request, session, response)
+		views, err := self.GetHeaderRowViews(response)
 		if err != nil {
 			return err
 		}
@@ -36,9 +36,9 @@ func (self *TableModelView) Render(request *Request, session *Session, response 
 	}
 
 	rowNr := 0
-	iter := self.GetModelIterator(request, session, response)
+	iter := self.GetModelIterator(response)
 	for rowModel := iter.Next(); rowModel != nil; rowModel = iter.Next() {
-		views, err := self.GetRowViews(rowNr, rowModel, request, session, response)
+		views, err := self.GetRowViews(rowNr, rowModel, response)
 		if err != nil {
 			return err
 		}
@@ -52,5 +52,5 @@ func (self *TableModelView) Render(request *Request, session *Session, response 
 	}
 	self.table.Model = tableModel
 
-	return self.table.Render(request, session, response)
+	return self.table.Render(response)
 }

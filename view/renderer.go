@@ -1,15 +1,15 @@
 package view
 
 type Renderer interface {
-	Render(request *Request, session *Session, response *Response) error
+	Render(response *Response) error
 }
 
 type Renderers []Renderer
 
-func (self Renderers) Render(request *Request, session *Session, response *Response) error {
+func (self Renderers) Render(response *Response) error {
 	for _, r := range self {
 		if r != nil {
-			if err := r.Render(request, session, response); err != nil {
+			if err := r.Render(response); err != nil {
 				return err
 			}
 		}
@@ -17,15 +17,15 @@ func (self Renderers) Render(request *Request, session *Session, response *Respo
 	return nil
 }
 
-type Render func(request *Request, session *Session, response *Response) error
+type Render func(response *Response) error
 
-func (self Render) Render(request *Request, session *Session, response *Response) error {
-	return self(request, session, response)
+func (self Render) Render(response *Response) error {
+	return self(response)
 }
 
 // type ResponseRenderFunc func(response *Response) error
 
-// func (self ResponseRenderFunc) Render(request *Request, session *Session, response *Response) error {
+// func (self ResponseRenderFunc) Render(response *Response) error {
 // 	return self(response)
 // }
 
@@ -35,8 +35,8 @@ func (self Render) Render(request *Request, session *Session, response *Response
 // using a pointer to a variable instead of its value.
 func IndirectRenderer(rendererPtr *Renderer) Renderer {
 	return Render(
-		func(request *Request, session *Session, response *Response) (err error) {
-			return (*rendererPtr).Render(request, session, response)
+		func(response *Response) (err error) {
+			return (*rendererPtr).Render(response)
 		},
 	)
 }
@@ -48,11 +48,11 @@ func FilterPortRenderer(port uint16, renderer Renderer) Renderer {
 		return nil
 	}
 	return Render(
-		func(request *Request, session *Session, response *Response) (err error) {
-			if request.Port() != port {
+		func(response *Response) (err error) {
+			if response.Request.Port() != port {
 				return nil
 			}
-			return renderer.Render(request, session, response)
+			return renderer.Render(response)
 		},
 	)
 }

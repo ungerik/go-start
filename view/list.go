@@ -14,7 +14,7 @@ type List struct {
 	Class       string
 }
 
-func (self *List) Render(request *Request, session *Session, response *Response) (err error) {
+func (self *List) Render(response *Response) (err error) {
 	writer := utils.NewXMLWriter(response)
 	if self.Ordered {
 		writer.OpenTag("ol").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
@@ -27,10 +27,10 @@ func (self *List) Render(request *Request, session *Session, response *Response)
 		numItems := self.Model.NumItems()
 		for i := 0; i < numItems; i++ {
 			writer.OpenTag("li").Attrib("id", self.id, "_", i)
-			view, err := self.Model.ItemView(i, request, session, response)
+			view, err := self.Model.ItemView(i, response)
 			if view != nil && err == nil {
 				view.Init(view)
-				err = view.Render(request, session, response)
+				err = view.Render(response)
 			}
 			if err != nil {
 				return err
@@ -48,7 +48,7 @@ func (self *List) Render(request *Request, session *Session, response *Response)
 
 type ListModel interface {
 	NumItems() int
-	ItemView(index int, request *Request, session *Session, response *Response) (view View, err error)
+	ItemView(index int, response *Response) (view View, err error)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -60,7 +60,7 @@ func (self ViewsListModel) NumItems() int {
 	return len(self)
 }
 
-func (self ViewsListModel) ItemView(index int, request *Request, session *Session, response *Response) (view View, err error) {
+func (self ViewsListModel) ItemView(index int, response *Response) (view View, err error) {
 	return self[index], nil
 }
 
@@ -73,7 +73,7 @@ func (self MultiViewsListModel) NumItems() int {
 	return len(self)
 }
 
-func (self MultiViewsListModel) ItemView(index int, request *Request, session *Session, response *Response) (view View, err error) {
+func (self MultiViewsListModel) ItemView(index int, response *Response) (view View, err error) {
 	return self[index], nil
 }
 
@@ -86,7 +86,7 @@ func (self HTMLStringsListModel) NumItems() int {
 	return len(self)
 }
 
-func (self HTMLStringsListModel) ItemView(index int, request *Request, session *Session, response *Response) (view View, err error) {
+func (self HTMLStringsListModel) ItemView(index int, response *Response) (view View, err error) {
 	return HTML(self[index]), nil
 }
 
@@ -99,6 +99,6 @@ func (self EscapeStringsListModel) NumItems() int {
 	return len(self)
 }
 
-func (self EscapeStringsListModel) ItemView(index int, request *Request, session *Session, response *Response) (view View, err error) {
+func (self EscapeStringsListModel) ItemView(index int, response *Response) (view View, err error) {
 	return Escape(self[index]), nil
 }

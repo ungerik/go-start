@@ -24,7 +24,7 @@ func (self PageVar) IterateChildren(callback IterateChildrenCallback) {
 	(*self.Page).IterateChildren(callback)
 }
 
-func (self PageVar) Render(request *Request, session *Session, response *Response) (err error) {
-	return (*self.Page).Render(request, session, response)
+func (self PageVar) Render(response *Response) (err error) {
+	return (*self.Page).Render(response)
 }
 */

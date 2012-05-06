@@ -6,7 +6,7 @@ import (
 	"path"
 )
 
-type GetTemplateContextFunc func(request *Request, session *Session, response *Response) (context interface{}, err error)
+type GetTemplateContextFunc func(response *Response) (context interface{}, err error)
 
 func NewTemplate(filename string, getContext GetTemplateContextFunc) *Template {
 	return &Template{Filename: filename, GetContext: getContext}
@@ -23,7 +23,7 @@ func NewHTML5BoilerplateCSSTemplate(getContext GetTemplateContextFunc, filenames
 }
 
 func TemplateContext(context interface{}) GetTemplateContextFunc {
-	return func(request *Request, session *Session, response *Response) (interface{}, error) {
+	return func(response *Response) (interface{}, error) {
 		return context, nil
 	}
 }
@@ -66,7 +66,7 @@ func (self *Template) parseTemplate() (templ templatesystem.Template, err error)
 	return templateSystem.ParseFile(filePath)
 }
 
-func (self *Template) Render(request *Request, session *Session, response *Response) (err error) {
+func (self *Template) Render(response *Response) (err error) {
 	if self.template != nil && self.Filename != "" {
 		_, found, modified := FindTemplateFile(self.Filename)
 		if !found {
@@ -91,7 +91,7 @@ func (self *Template) Render(request *Request, session *Session, response *Respo
 
 	var context interface{}
 	if self.GetContext != nil {
-		context, err = self.GetContext(request, session, response)
+		context, err = self.GetContext(response)
 		if err != nil {
 			return err
 		}

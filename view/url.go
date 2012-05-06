@@ -11,7 +11,7 @@ import (
 // URL is an interface to return URL strings depending on the request context.
 type URL interface {
 	// If args are passed, they will be used instead of context.PathArgs.
-	URL(request *Request, session *Session, response *Response, args ...string) string
+	URL(response *Response, args ...string) string
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -37,24 +37,24 @@ type indirectURL struct {
 	url *URL
 }
 
-func (self *indirectURL) URL(request *Request, session *Session, response *Response, args ...string) string {
-	return (*self.url).URL(request, session, response)
+func (self *indirectURL) URL(response *Response, args ...string) string {
+	return (*self.url).URL(response)
 }
 
 type indirectPageURL struct {
 	page **Page
 }
 
-func (self *indirectPageURL) URL(request *Request, session *Session, response *Response, args ...string) string {
-	return self.page.URL(request, session, response)
+func (self *indirectPageURL) URL(response *Response, args ...string) string {
+	return self.page.URL(response)
 }
 
 type indirectViewWithURL struct {
 	viewWithURL *ViewWithURL
 }
 
-func (self *indirectViewWithURL) URL(request *Request, session *Session, response *Response, args ...string) string {
-	return (*self.viewWithURL).URL(request, session, response)
+func (self *indirectViewWithURL) URL(response *Response, args ...string) string {
+	return (*self.viewWithURL).URL(response)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -63,9 +63,9 @@ func (self *indirectViewWithURL) URL(request *Request, session *Session, respons
 // StringURL implements the URL interface for a string.
 type StringURL string
 
-func (self StringURL) URL(request *Request, session *Session, response *Response, args ...string) string {
+func (self StringURL) URL(response *Response, args ...string) string {
 	if len(args) == 0 {
-		args = request.URLArgs
+		args = response.Request.URLArgs
 	}
 	url := string(self)
 	for _, arg := range args {

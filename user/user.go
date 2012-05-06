@@ -273,21 +273,21 @@ type Website struct {
 	Description model.String
 }
 
-func (self *Website) URL(request *view.Request, session *view.Session, response *view.Response, args ...string) string {
+func (self *Website) URL(response *view.Response, args ...string) string {
 	return self.Url.Get()
 }
 
-func (self *Website) LinkContent(request *view.Request, session *view.Session, response *view.Response) view.View {
-	return view.Escape(self.LinkTitle(request, session, response))
+func (self *Website) LinkContent(response *view.Response) view.View {
+	return view.Escape(self.LinkTitle(response))
 }
 
-func (self *Website) LinkTitle(request *view.Request, session *view.Session, response *view.Response) string {
+func (self *Website) LinkTitle(response *view.Response) string {
 	if self.Title.IsEmpty() {
 		return self.Description.Get()
 	}
 	return self.Title.Get()
 }
 
-func (self *Website) LinkRel(request *view.Request, session *view.Session, response *view.Response) string {
+func (self *Website) LinkRel(response *view.Response) string {
 	return ""
 }

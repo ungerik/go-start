@@ -28,7 +28,7 @@ See functions under Renderer below.
 
 Example:
 
-	&Page{WriteTitle: func(request *Request, session *Session, response *Response, writer io.Writer) (err error) {
+	&Page{WriteTitle: func(response *Response, writer io.Writer) (err error) {
 		writer.Write([]byte("Could be a dynamic title"))
 		return nil
 	}}
@@ -43,11 +43,11 @@ query and set page wide data only once at the request context.Data.
 Example:
 
 	&Page{
-		OnPreRender: func(page *Page, request *Request, session *Session, response *Response) (err error) {
+		OnPreRender: func(page *Page, response *Response) (err error) {
 			context.Data = &MyPerPageData{SomeText: "Hello World!"}
 		},
 		Content: DynamicView(
-			func(request *Request, session *Session, response *Response) (view View, err error) {
+			func(response *Response) (view View, err error) {
 				myPerPageData := context.Data.(*MyPerPageData)
 				return HTML(myPerPageData.SomeText), nil
 			},
@@ -59,7 +59,7 @@ type Page struct {
 	Template
 
 	// Called before any other function when rendering the page
-	OnPreRender func(page *Page, request *Request, session *Session, response *Response) (err error)
+	OnPreRender func(page *Page, response *Response) (err error)
 
 	// Writes the head title tag (HTML escaped)
 	Title Renderer
@@ -126,23 +126,23 @@ func (self *Page) SetPath(path string) {
 }
 
 // Implements the URL and LinkModel interface
-func (self *Page) URL(request *Request, session *Session, response *Response, args ...string) string {
-	path := StringURL(self.path).URL(request, session, response, args...)
-	return "http://" + request.Host + path
+func (self *Page) URL(response *Response, args ...string) string {
+	path := StringURL(self.path).URL(response, args...)
+	return "http://" + response.Request.Host + path
 }
 
 // Implements the LinkModel interface
-func (self *Page) LinkContent(request *Request, session *Session, response *Response) View {
-	return HTML(self.LinkTitle(request, session, response))
+func (self *Page) LinkContent(response *Response) View {
+	return HTML(self.LinkTitle(response))
 }
 
 // Implements the LinkModel interface
-func (self *Page) LinkTitle(request *Request, session *Session, response *Response) string {
+func (self *Page) LinkTitle(response *Response) string {
 	if self.Title == nil {
 		return ""
 	}
 	r := response.New()
-	err := self.Title.Render(request, session, r)
+	err := self.Title.Render(r)
 	if err != nil {
 		//return err.String()
 		panic(err)
@@ -151,13 +151,13 @@ func (self *Page) LinkTitle(request *Request, session *Session, response *Respon
 }
 
 // Implements the LinkModel interface
-func (self *Page) LinkRel(request *Request, session *Session, response *Response) string {
+func (self *Page) LinkRel(response *Response) string {
 	return ""
 }
 
-func (self *Page) Render(request *Request, session *Session, response *Response) (err error) {
+func (self *Page) Render(response *Response) (err error) {
 	if self.OnPreRender != nil {
-		err = self.OnPreRender(self, request, session, response)
+		err = self.OnPreRender(self, response)
 		if err != nil {
 			return err
 		}
@@ -183,7 +183,7 @@ func (self *Page) Render(request *Request, session *Session, response *Response)
 
 	if self.Title != nil {
 		r := response.New()
-		err := self.Title.Render(request, session, r)
+		err := self.Title.Render(r)
 		if err != nil {
 			return err
 		}
@@ -191,7 +191,7 @@ func (self *Page) Render(request *Request, session *Session, response *Response)
 	}
 	if self.MetaDescription != nil {
 		r := response.New()
-		err := self.MetaDescription.Render(request, session, r)
+		err := self.MetaDescription.Render(r)
 		if err != nil {
 			return err
 		}
@@ -210,7 +210,7 @@ func (self *Page) Render(request *Request, session *Session, response *Response)
 	}
 	if additionalHead != nil {
 		r := response.New()
-		err := additionalHead.Render(request, session, r)
+		err := additionalHead.Render(r)
 		if err != nil {
 			return err
 		}
@@ -226,19 +226,19 @@ func (self *Page) Render(request *Request, session *Session, response *Response)
 
 	if self.PreCSS != nil {
 		r := response.New()
-		if err = self.PreCSS.Render(request, session, r); err != nil {
+		if err = self.PreCSS.Render(r); err != nil {
 			return err
 		}
 		templateContext.PreCSS = r.String()
 	}
 	if self.CSS != nil {
-		templateContext.CSS = self.CSS.URL(request, session, response)
+		templateContext.CSS = self.CSS.URL(response)
 	} else {
 		templateContext.CSS = Config.Page.DefaultCSS
 	}
 	if self.PostCSS != nil {
 		r := response.New()
-		if err = self.PostCSS.Render(request, session, r); err != nil {
+		if err = self.PostCSS.Render(r); err != nil {
 			return err
 		}
 		templateContext.PostCSS = r.String()
@@ -250,7 +250,7 @@ func (self *Page) Render(request *Request, session *Session, response *Response)
 	}
 	if headScripts != nil {
 		r := response.New()
-		if err = headScripts.Render(request, session, r); err != nil {
+		if err = headScripts.Render(r); err != nil {
 			return err
 		}
 		templateContext.HeadScripts = r.String()
@@ -262,11 +262,11 @@ func (self *Page) Render(request *Request, session *Session, response *Response)
 	}
 	if scripts != nil {
 		r := response.New()
-		if err = scripts.Render(request, session, r); err != nil {
+		if err = scripts.Render(r); err != nil {
 			return err
 		}
 		if Config.Page.PostScripts != nil {
-			if err = Config.Page.PostScripts.Render(request, session, r); err != nil {
+			if err = Config.Page.PostScripts.Render(r); err != nil {
 				return err
 			}
 		}
@@ -275,7 +275,7 @@ func (self *Page) Render(request *Request, session *Session, response *Response)
 
 	if self.Content != nil {
 		r := response.New()
-		err = self.Content.Render(request, session, r)
+		err = self.Content.Render(r)
 		if err != nil {
 			return err
 		}
@@ -283,5 +283,5 @@ func (self *Page) Render(request *Request, session *Session, response *Response)
 	}
 
 	self.Template.GetContext = TemplateContext(templateContext)
-	return self.Template.Render(request, session, response)
+	return self.Template.Render(response)
 }
