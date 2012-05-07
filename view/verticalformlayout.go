@@ -5,6 +5,23 @@ import (
 	"github.com/ungerik/go-start/model"
 )
 
+/*
+VerticalFormLayout puts labels above the input fields, except for checkboxes.
+
+CSS needed form vertical form layout:
+
+	form label:after {
+		content: ":";
+	}
+
+	form input[type=checkbox] + label:after {
+		content: "";
+	}
+
+	form label.vertical {
+		display: block;
+	}
+*/
 type VerticalFormLayout struct {
 }
 
@@ -35,7 +52,7 @@ func (self *VerticalFormLayout) NewField(form *Form, modelValue model.Value, met
 			Disabled: disable,
 			Size:     1,
 		}
-		return self.newVerticalFormField(form, modelValue, metaData, errors, sel)
+		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, sel)
 
 	case *model.DynamicChoice:
 		dynamicChoice := s
@@ -47,7 +64,7 @@ func (self *VerticalFormLayout) NewField(form *Form, modelValue model.Value, met
 			Disabled: disable,
 			Size:     1,
 		}
-		return self.newVerticalFormField(form, modelValue, metaData, errors, sel)
+		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, sel)
 
 	case *model.Country:
 		// todo
@@ -55,7 +72,7 @@ func (self *VerticalFormLayout) NewField(form *Form, modelValue model.Value, met
 		if value == "" {
 			value = "[empty]"
 		}
-		return self.newVerticalFormField(form, modelValue, metaData, errors, Escape(value))
+		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, Escape(value))
 
 	case *model.Date:
 		date := s
@@ -66,7 +83,7 @@ func (self *VerticalFormLayout) NewField(form *Form, modelValue model.Value, met
 			Size:     len(model.DateFormat),
 			Disabled: disable,
 		}
-		return self.newVerticalFormField(form, modelValue, metaData, errors, textField, HTML("(Format: "+model.DateFormat+")<br/>"))
+		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, textField, HTML("(Format: "+model.DateFormat+")<br/>"))
 
 	case *model.DateTime:
 		dateTime := s
@@ -77,7 +94,7 @@ func (self *VerticalFormLayout) NewField(form *Form, modelValue model.Value, met
 			Size:     len(model.DateTimeFormat),
 			Disabled: disable,
 		}
-		return self.newVerticalFormField(form, modelValue, metaData, errors, textField, HTML("(Format: "+model.DateTimeFormat+")<br/>"))
+		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, textField, HTML("(Format: "+model.DateTimeFormat+")<br/>"))
 
 	case *model.Email:
 		value := s.Get()
@@ -89,7 +106,7 @@ func (self *VerticalFormLayout) NewField(form *Form, modelValue model.Value, met
 			Size:     40,
 			Disabled: disable,
 		}
-		return self.newVerticalFormField(form, modelValue, metaData, errors, textField)
+		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, textField)
 
 	case *model.Float:
 		str := s
@@ -103,7 +120,7 @@ func (self *VerticalFormLayout) NewField(form *Form, modelValue model.Value, met
 			Text:     value,
 			Disabled: disable,
 		}
-		return self.newVerticalFormField(form, modelValue, metaData, errors, textField)
+		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, textField)
 
 	case *model.Int:
 		str := s
@@ -117,7 +134,7 @@ func (self *VerticalFormLayout) NewField(form *Form, modelValue model.Value, met
 			Text:     value,
 			Disabled: disable,
 		}
-		return self.newVerticalFormField(form, modelValue, metaData, errors, textField)
+		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, textField)
 
 	case *model.Language:
 		// todo
@@ -125,7 +142,7 @@ func (self *VerticalFormLayout) NewField(form *Form, modelValue model.Value, met
 		if value == "" {
 			value = "[empty]"
 		}
-		return self.newVerticalFormField(form, modelValue, metaData, errors, HTML(value))
+		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, HTML(value))
 
 	case *model.Password:
 		value := s.Get()
@@ -137,7 +154,7 @@ func (self *VerticalFormLayout) NewField(form *Form, modelValue model.Value, met
 			Size:     40,
 			Disabled: disable,
 		}
-		return self.newVerticalFormField(form, modelValue, metaData, errors, textField)
+		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, textField)
 
 	case *model.Phone:
 		value := s.Get()
@@ -148,7 +165,7 @@ func (self *VerticalFormLayout) NewField(form *Form, modelValue model.Value, met
 			Size:     20,
 			Disabled: disable,
 		}
-		return self.newVerticalFormField(form, modelValue, metaData, errors, textField)
+		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, textField)
 
 	case model.Reference:
 		if !form.ShowRefIDs {
@@ -158,7 +175,7 @@ func (self *VerticalFormLayout) NewField(form *Form, modelValue model.Value, met
 		if value == "" {
 			value = "[empty]"
 		}
-		return self.newVerticalFormField(form, modelValue, metaData, errors, HTML(value))
+		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, HTML(value))
 
 	case *model.String:
 		str := s
@@ -176,7 +193,7 @@ func (self *VerticalFormLayout) NewField(form *Form, modelValue model.Value, met
 			textField.Size = maxlen
 			textField.MaxLength = maxlen
 		}
-		return self.newVerticalFormField(form, modelValue, metaData, errors, textField)
+		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, textField)
 
 	case *model.Text:
 		text := s
@@ -190,7 +207,7 @@ func (self *VerticalFormLayout) NewField(form *Form, modelValue model.Value, met
 			Rows:     rows,
 			Disabled: disable,
 		}
-		return self.newVerticalFormField(form, modelValue, metaData, errors, textArea)
+		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, textArea)
 
 	case *model.Url:
 		value := s.Get()
@@ -201,17 +218,17 @@ func (self *VerticalFormLayout) NewField(form *Form, modelValue model.Value, met
 			Size:     80,
 			Disabled: disable,
 		}
-		return self.newVerticalFormField(form, modelValue, metaData, errors, textField)
+		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, textField)
 
 	case *model.GeoLocation:
 		value := s.String()
-		return self.newVerticalFormField(form, modelValue, metaData, errors, HTML(value))
+		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, HTML(value))
 	}
 
 	panic(fmt.Sprintf("Unsupported model.Value type %T", modelValue))
 }
 
-func (self *VerticalFormLayout) newVerticalFormField(form *Form, modelValue model.Value, metaData *model.MetaData, errors []*model.ValidationError, editorView View, extraLabels ...View) View {
+func (self *VerticalFormLayout) addLabelToEditorWidget(form *Form, modelValue model.Value, metaData *model.MetaData, errors []*model.ValidationError, editorView View, extraLabels ...View) View {
 	views := make(Views, 0, 2+len(errors)*2+1)
 	label := Views{Escape(getLabel(metaData))}
 	if form.IsFieldRequired(metaData) {
@@ -222,11 +239,8 @@ func (self *VerticalFormLayout) newVerticalFormField(form *Form, modelValue mode
 	for _, error := range errors {
 		views = append(
 			views,
-			&Span{
-				Class:   form.GetErrorMessageClass(),
-				Content: Escape(error.WrappedError.Error()),
-			},
-			BR(),
+			SPAN(form.GetErrorMessageClass(), Escape(error.WrappedError.Error())),
+			//BR(),
 		)
 	}
 	views = append(views, editorView)

@@ -35,13 +35,13 @@ type Form struct {
 	// that are generated via GetModel()
 	StaticContent       View
 	GetModel            GetFormModelFunc
+	OnSubmit            OnSubmitFormFunc
 	ModelMaxDepth       int      // if zero, no depth limit
 	HideFields          []string // Use point notation for nested fields
 	DisableFields       []string // Use point notation for nested fields
 	RequireFields       []string // Also available as static struct field tag. Use point notation for nested fields
-	OnSubmit            OnSubmitFormFunc
-	ErrorMessageClass   string // If empty, Config.FormErrorMessageClass will be used
-	SuccessMessageClass string // If empty, Config.FormSuccessMessageClass will be used
+	ErrorMessageClass   string   // If empty, Config.FormErrorMessageClass will be used
+	SuccessMessageClass string   // If empty, Config.FormSuccessMessageClass will be used
 	SuccessMessage      string
 	ButtonText          string
 	ButtonClass         string
