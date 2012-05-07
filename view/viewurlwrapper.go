@@ -15,10 +15,6 @@ func (self *ViewURLWrapper) Init(thisView View) {
 	self.View.Init(self.View)
 }
 
-func (self *ViewURLWrapper) OnRemove() {
-	self.View.OnRemove()
-}
-
 func (self *ViewURLWrapper) ID() string {
 	return self.View.ID()
 }

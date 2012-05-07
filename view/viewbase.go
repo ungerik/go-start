@@ -25,16 +25,6 @@ func (self *ViewBase) Init(thisView View) {
 	})
 }
 
-func (self *ViewBase) OnRemove() {
-	self.thisView.IterateChildren(func(parent View, child View) (next bool) {
-		if child != nil {
-			child.OnRemove()
-		}
-		return true
-	})
-	self.thisView = nil
-}
-
 func (self *ViewBase) ID() string {
 	return ""
 }

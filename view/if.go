@@ -28,22 +28,6 @@ func (self *If) Init(thisView View) {
 	}
 }
 
-func (self *If) OnRemove() {
-	self.ViewBaseWithId.OnRemove()
-
-	// ViewBaseWithId.OnRemove() removes the child reported by IterateChildren(),
-	// we need to remove the child for the other case of !self.Condition
-	var child View
-	if !self.Condition {
-		child = self.Content
-	} else {
-		child = self.ElseContent
-	}
-	if child != nil {
-		child.OnRemove()
-	}
-}
-
 func (self *If) IterateChildren(callback IterateChildrenCallback) {
 	var child View
 	if self.Condition {

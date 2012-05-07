@@ -14,12 +14,6 @@ func (self *ViewBaseWithId) Init(thisView View) {
 	self.id = NewViewID(thisView)
 }
 
-func (self *ViewBaseWithId) OnRemove() {
-	DeleteViewID(self.id)
-	self.id = ""
-	self.ViewBase.OnRemove()
-}
-
 func (self *ViewBaseWithId) ID() string {
 	return self.id
 }

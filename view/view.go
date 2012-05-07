@@ -12,7 +12,6 @@ type IterateChildrenCallback func(parent View, child View) (next bool)
 // nil is permitted as View value and will be ignored while rendering HTML.
 type View interface {
 	Init(thisView View)
-	OnRemove()
 	ID() string
 	IterateChildren(callback IterateChildrenCallback)
 	// Everything written to out will be discarded if there was an error

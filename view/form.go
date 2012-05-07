@@ -25,13 +25,15 @@ type FormLayout interface {
 
 type Form struct {
 	ViewBaseWithId
-	Class               string
-	Action              string // Default is "." plus any URL params
-	Content             View
-	Method              string
-	FormID              string
-	CSRFProtector       CSRFProtector
-	Layout              FormLayout // Config.DefaultFormLayout will be used if nil
+	Class         string
+	Action        string // Default is "." plus any URL params
+	Method        string
+	FormID        string
+	CSRFProtector CSRFProtector
+	Layout        FormLayout // Config.DefaultFormLayout will be used if nil
+	// Static content rendered before the dynamic form fields
+	// that are generated via GetModel()
+	StaticContent       View
 	GetModel            GetFormModelFunc
 	ModelMaxDepth       int      // if zero, no depth limit
 	HideFields          []string // Use point notation for nested fields
@@ -64,8 +66,8 @@ func (self *Form) GetCSRFProtector() CSRFProtector {
 }
 
 func (self *Form) IterateChildren(callback IterateChildrenCallback) {
-	if self.Content != nil {
-		callback(self, self.Content)
+	if self.StaticContent != nil {
+		callback(self, self.StaticContent)
 	}
 }
 
@@ -86,6 +88,9 @@ func (self *Form) isFieldRequiredSelectors(metaData *model.MetaData, selector, a
 }
 
 func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) {
+
+	var dynamicFields Views
+
 	if self.OnSubmit != nil {
 		// Determine if it's a POST request for this form:
 		isPOST := false
@@ -104,7 +109,7 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		// (won't be rendered if nil)
 		// Also add a hidden form field with the form id
 		// and a submit button
-		views := make(Views, 1, 32)
+		dynamicFields = make(Views, 1, 32)
 
 		numValueErrors := 0
 		generalErrors := []*model.ValidationError{}
@@ -116,46 +121,48 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 			if err != nil {
 				return err
 			}
-			model.WalkStructure(formModel, self.ModelMaxDepth, func(data interface{}, metaData *model.MetaData) {
-				if modelValue, ok := data.(model.Value); ok {
-					selector := metaData.Selector()
-					arraySelector := metaData.ArrayWildcardSelector()
+			model.WalkStructure(formModel, self.ModelMaxDepth,
+				func(data interface{}, metaData *model.MetaData) {
+					if modelValue, ok := data.(model.Value); ok {
+						selector := metaData.Selector()
+						arraySelector := metaData.ArrayWildcardSelector()
 
-					if utils.StringIn(selector, self.HideFields) || utils.StringIn(arraySelector, self.HideFields) {
-						return
-					}
-
-					var valueErrors []*model.ValidationError
-					if isPOST {
-						formValue, ok := context.Params[selector]
-						if b, isBool := modelValue.(*model.Bool); isBool {
-							b.Set(formValue != "")
-						} else if ok {
-							err = modelValue.SetString(formValue)
-							if err == nil {
-								valueErrors = modelValue.Validate(metaData)
-								if len(valueErrors) == 0 {
-									if modelValue.IsEmpty() && self.isFieldRequiredSelectors(metaData, selector, arraySelector) {
-										valueErrors = []*model.ValidationError{model.NewRequiredValidationError(metaData)}
-									}
-								}
-							} else {
-								valueErrors = model.NewValidationErrors(err, metaData)
-							}
-							numValueErrors += len(valueErrors)
+						if utils.StringIn(selector, self.HideFields) || utils.StringIn(arraySelector, self.HideFields) {
+							return
 						}
+
+						var valueErrors []*model.ValidationError
+						if isPOST {
+							formValue, ok := context.Params[selector]
+							if b, isBool := modelValue.(*model.Bool); isBool {
+								b.Set(formValue != "")
+							} else if ok {
+								err = modelValue.SetString(formValue)
+								if err == nil {
+									valueErrors = modelValue.Validate(metaData)
+									if len(valueErrors) == 0 {
+										if modelValue.IsEmpty() && self.isFieldRequiredSelectors(metaData, selector, arraySelector) {
+											valueErrors = []*model.ValidationError{model.NewRequiredValidationError(metaData)}
+										}
+									}
+								} else {
+									valueErrors = model.NewValidationErrors(err, metaData)
+								}
+								numValueErrors += len(valueErrors)
+							}
+						}
+
+						disable := utils.StringIn(selector, self.DisableFields)
+
+						dynamicFields = append(dynamicFields, self.GetLayout().NewField(self, modelValue, metaData, disable, valueErrors))
+
+					} else if validator, ok := data.(model.Validator); ok {
+
+						generalErrors = append(generalErrors, validator.Validate(metaData)...)
+
 					}
-
-					disable := utils.StringIn(selector, self.DisableFields)
-
-					views = append(views, self.GetLayout().NewField(self, modelValue, metaData, disable, valueErrors))
-
-				} else if validator, ok := data.(model.Validator); ok {
-
-					generalErrors = append(generalErrors, validator.Validate(metaData)...)
-
-				}
-			})
+				},
+			)
 		}
 
 		hasErrors := numValueErrors > 0 || len(generalErrors) > 0
@@ -184,14 +191,14 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 			}
 
 			if hasErrors {
-				views[0] = newFormMessage(self.GetErrorMessageClass(), message)
-				if len(views)-1 > Config.NumFieldRepeatFormMessage {
-					views = append(views, newFormMessage(self.GetErrorMessageClass(), message))
+				dynamicFields[0] = newFormMessage(self.GetErrorMessageClass(), message)
+				if len(dynamicFields)-1 > Config.NumFieldRepeatFormMessage {
+					dynamicFields = append(dynamicFields, newFormMessage(self.GetErrorMessageClass(), message))
 				}
 			} else {
-				views[0] = newFormMessage(self.GetSuccessMessageClass(), message)
-				if len(views)-1 > Config.NumFieldRepeatFormMessage {
-					views = append(views, newFormMessage(self.GetSuccessMessageClass(), message))
+				dynamicFields[0] = newFormMessage(self.GetSuccessMessageClass(), message)
+				if len(dynamicFields)-1 > Config.NumFieldRepeatFormMessage {
+					dynamicFields = append(dynamicFields, newFormMessage(self.GetSuccessMessageClass(), message))
 				}
 			}
 
@@ -204,14 +211,7 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		}
 		formId := &HiddenInput{Name: "form_id", Value: self.FormID}
 		submitButton := &Button{Submit: true, Value: buttonText, Class: self.ButtonClass}
-		views = append(views, formId, submitButton)
-
-		// Replace old form fields with the new ones:
-		if self.Content != nil {
-			self.Content.OnRemove()
-		}
-		self.Content = views
-		views.Init(views)
+		dynamicFields = append(dynamicFields, formId, submitButton)
 	}
 
 	// Render HTML form element
@@ -231,8 +231,18 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 	writer.Attrib("method", method)
 	writer.Attrib("action", action)
 	err = RenderChildViewsHTML(self, context, writer)
+	if err != nil {
+		return err
+	}
+	if dynamicFields != nil {
+		dynamicFields.Init(dynamicFields)
+		err = dynamicFields.Render(context, writer)
+		if err != nil {
+			return err
+		}
+	}
 	writer.ExtraCloseTag() // form
-	return err
+	return nil
 }
 
 func (self *Form) GetErrorMessageClass() string {

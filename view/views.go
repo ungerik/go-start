@@ -18,15 +18,6 @@ func (self Views) Init(thisView View) {
 	})
 }
 
-func (self Views) OnRemove() {
-	self.IterateChildren(func(parent View, child View) (next bool) {
-		if child != nil {
-			child.OnRemove()
-		}
-		return true
-	})
-}
-
 func (self Views) ID() string {
 	return ""
 }
