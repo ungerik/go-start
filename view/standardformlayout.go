@@ -6,9 +6,9 @@ import (
 )
 
 /*
-VerticalFormLayout puts labels above the input fields, except for checkboxes.
+StandardFormLayout.
 
-CSS needed form vertical form layout:
+CSS needed for StandardFormLayout:
 
 	form label:after {
 		content: ":";
@@ -18,14 +18,27 @@ CSS needed form vertical form layout:
 		content: "";
 	}
 
-	form label.vertical {
+Additional CSS for labels above input fields (except checkboxes):
+
+	form label {
 		display: block;
 	}
+
+	form input[type=checkbox] + label {
+		display: inline;
+	}
+
+DIV classes for coloring:
+
+	form .required {}
+	form .error {}
+	form .success {}
+
 */
-type VerticalFormLayout struct {
+type StandardFormLayout struct {
 }
 
-func (self *VerticalFormLayout) NewField(form *Form, modelValue model.Value, metaData *model.MetaData, disable bool, errors []*model.ValidationError) View {
+func (self *StandardFormLayout) NewField(form *Form, modelValue model.Value, metaData *model.MetaData, disable bool, errors []*model.ValidationError) View {
 	if metaData == nil {
 		panic(fmt.Sprintf("model.Value must be a struct member to get a label and meta data for the form field. Passed as root model.Value: %T", modelValue))
 	}
@@ -228,22 +241,17 @@ func (self *VerticalFormLayout) NewField(form *Form, modelValue model.Value, met
 	panic(fmt.Sprintf("Unsupported model.Value type %T", modelValue))
 }
 
-func (self *VerticalFormLayout) addLabelToEditorWidget(form *Form, modelValue model.Value, metaData *model.MetaData, errors []*model.ValidationError, editorView View, extraLabels ...View) View {
+func (self *StandardFormLayout) addLabelToEditorWidget(form *Form, modelValue model.Value, metaData *model.MetaData, errors []*model.ValidationError, editorView View, extraLabels ...View) View {
 	views := make(Views, 0, 2+len(errors)*2+1)
-	label := Views{Escape(getLabel(metaData))}
+	var labelContent View = Escape(getLabel(metaData))
 	if form.IsFieldRequired(metaData) {
-		label = append(label, SPAN("required", HTML("*")))
+		labelContent = Views{labelContent, SPAN("required", HTML("*"))}
 	}
-	views = append(views, &Label{Class: "vertical", Content: label, For: editorView})
+	views = append(views, &Label{Class: "vertical", Content: labelContent, For: editorView})
 	views = append(views, extraLabels...)
 	for _, error := range errors {
-		views = append(
-			views,
-			SPAN(form.GetErrorMessageClass(), Escape(error.WrappedError.Error())),
-			//BR(),
-		)
+		views = append(views, SPAN(form.GetErrorMessageClass(), Escape(error.WrappedError.Error())))
 	}
 	views = append(views, editorView)
-
-	return &Paragraph{Content: views}
+	return P(views)
 }

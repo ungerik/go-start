@@ -65,7 +65,7 @@ var Config Configuration = Configuration{
 	NumFieldRepeatFormMessage: 6,
 	FormErrorMessageClass:     "error",
 	FormSuccessMessageClass:   "success",
-	DefaultFormLayout:         new(VerticalFormLayout),
+	DefaultFormLayout:         new(StandardFormLayout),
 }
 
 // Init updates Config with the site-name, cookie secret and base directories used for static and template file search.
