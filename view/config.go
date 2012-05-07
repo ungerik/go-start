@@ -20,23 +20,24 @@ type PageConfiguration struct {
 }
 
 type Configuration struct {
-	TemplateSystem            templatesystem.Implementation
-	Page                      PageConfiguration
-	DefaultFormLayout         FormLayout
-	BaseDirs                  []string
-	StaticDirs                []string
-	TemplateDirs              []string
-	RedirectSubdomains        []string // Exapmle: "www"
-	BaseURL                   string
-	SiteName                  string
-	CookieSecret              string
-	SessionTracker            SessionTracker
-	SessionDataStore          SessionDataStore
-	OnPreAuth                 func(context *Context) error
-	GlobalAuth                Authenticator // Will allways be used before all other authenticators
-	FallbackAuth              Authenticator // Will be used when no other authenticator is defined for the view
-	LoginSignupPage           **Page
-	Middlewares               []Middleware
+	TemplateSystem       templatesystem.Implementation
+	Page                 PageConfiguration
+	BaseDirs             []string
+	StaticDirs           []string
+	TemplateDirs         []string
+	RedirectSubdomains   []string // Exapmle: "www"
+	BaseURL              string
+	SiteName             string
+	CookieSecret         string
+	DefaultFormLayout    FormLayout
+	DefaultCSRFProtector CSRFProtector
+	SessionTracker       SessionTracker
+	SessionDataStore     SessionDataStore
+	OnPreAuth            func(context *Context) error
+	GlobalAuth           Authenticator // Will allways be used before all other authenticators
+	FallbackAuth         Authenticator // Will be used when no other authenticator is defined for the view
+	LoginSignupPage      **Page
+	// Middlewares               []Middleware
 	NumFieldRepeatFormMessage int
 	FormErrorMessageClass     string
 	FormSuccessMessageClass   string
@@ -64,6 +65,7 @@ var Config Configuration = Configuration{
 	NumFieldRepeatFormMessage: 6,
 	FormErrorMessageClass:     "error",
 	FormSuccessMessageClass:   "success",
+	DefaultFormLayout:         new(VerticalFormLayout),
 }
 
 // Init updates Config with the site-name, cookie secret and base directories used for static and template file search.
