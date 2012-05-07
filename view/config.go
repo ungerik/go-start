@@ -22,6 +22,7 @@ type PageConfiguration struct {
 type Configuration struct {
 	TemplateSystem            templatesystem.Implementation
 	Page                      PageConfiguration
+	DefaultFormLayout         FormLayout
 	BaseDirs                  []string
 	StaticDirs                []string
 	TemplateDirs              []string

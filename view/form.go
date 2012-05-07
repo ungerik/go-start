@@ -17,6 +17,10 @@ func FormModel(model interface{}) GetFormModelFunc {
 	}
 }
 
+type FormLayout interface {
+	NewField(modelValue model.Value, metaData *model.MetaData, disable bool, errors []*model.ValidationError) View
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Form
 
@@ -27,6 +31,7 @@ type Form struct {
 	Content             View
 	Method              string
 	FormID              string
+	Layout              FormLayout // Config.DefaultFormLayout will be used if nil
 	GetModel            GetFormModelFunc
 	ModelMaxDepth       int      // if zero, no depth limit
 	HideFields          []string // Use point notation for nested fields
@@ -40,6 +45,15 @@ type Form struct {
 	ButtonClass         string
 	Redirect            URL // 302 redirect after successful Save()
 	ShowRefIDs          bool
+}
+
+// GetLayout returns self.Layout if not nil,
+// else Config.DefaultFormLayout will be used.
+func (self *Form) GetLayout() FormLayout {
+	if self.Layout == nil {
+		return Config.DefaultFormLayout
+	}
+	return self.Layout
 }
 
 func (self *Form) IterateChildren(callback IterateChildrenCallback) {
@@ -63,7 +77,6 @@ func (self *Form) isFieldRequiredSelectors(metaData *model.MetaData, selector, a
 	}
 	return utils.StringIn(selector, self.RequireFields) || utils.StringIn(arraySelector, self.RequireFields)
 }
-
 
 func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) {
 	if self.OnSubmit != nil {
@@ -116,7 +129,7 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 								valueErrors = modelValue.Validate(metaData)
 								if len(valueErrors) == 0 {
 									if modelValue.IsEmpty() && self.isFieldRequiredSelectors(metaData, selector, arraySelector) {
-									   valueErrors = []*model.ValidationError{model.NewRequiredValidationError(metaData)}
+										valueErrors = []*model.ValidationError{model.NewRequiredValidationError(metaData)}
 									}
 								}
 							} else {
