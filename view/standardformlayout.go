@@ -39,10 +39,6 @@ type StandardFormLayout struct {
 }
 
 func (self *StandardFormLayout) NewField(form *Form, modelValue model.Value, metaData *model.MetaData, disable bool, errors []*model.ValidationError) View {
-	if metaData == nil {
-		panic(fmt.Sprintf("model.Value must be a struct member to get a label and meta data for the form field. Passed as root model.Value: %T", modelValue))
-	}
-
 	switch s := modelValue.(type) {
 	case *model.Bool:
 		value := s.Get()

@@ -19,29 +19,35 @@ type PageConfiguration struct {
 	DefaultAuth             Authenticator // Will be used for pages with Page.NeedsAuth == true
 }
 
+type FormConfiguration struct {
+	DefaultLayout              FormLayout
+	DefaultFieldFactory        FormFieldFactory
+	DefaultCSRFProtector       CSRFProtector
+	DefaultErrorMessageClass   string
+	DefaultSuccessMessageClass string
+	DefaultRequiredMarker      View
+	NumFieldRepeatMessage      int
+}
+
 type Configuration struct {
-	TemplateSystem       templatesystem.Implementation
-	Page                 PageConfiguration
-	BaseDirs             []string
-	StaticDirs           []string
-	TemplateDirs         []string
-	RedirectSubdomains   []string // Exapmle: "www"
-	BaseURL              string
-	SiteName             string
-	CookieSecret         string
-	DefaultFormLayout    FormLayout
-	DefaultCSRFProtector CSRFProtector
-	SessionTracker       SessionTracker
-	SessionDataStore     SessionDataStore
-	OnPreAuth            func(context *Context) error
-	GlobalAuth           Authenticator // Will allways be used before all other authenticators
-	FallbackAuth         Authenticator // Will be used when no other authenticator is defined for the view
-	LoginSignupPage      **Page
+	TemplateSystem     templatesystem.Implementation
+	Page               PageConfiguration
+	Form               FormConfiguration
+	BaseDirs           []string
+	StaticDirs         []string
+	TemplateDirs       []string
+	RedirectSubdomains []string // Exapmle: "www"
+	BaseURL            string
+	SiteName           string
+	CookieSecret       string
+	SessionTracker     SessionTracker
+	SessionDataStore   SessionDataStore
+	OnPreAuth          func(context *Context) error
+	GlobalAuth         Authenticator // Will allways be used before all other authenticators
+	FallbackAuth       Authenticator // Will be used when no other authenticator is defined for the view
+	LoginSignupPage    **Page
 	// Middlewares               []Middleware
-	NumFieldRepeatFormMessage int
-	FormErrorMessageClass     string
-	FormSuccessMessageClass   string
-	Debug                     struct {
+	Debug struct {
 		Mode           bool
 		PrintPaths     bool
 		PrintRedirects bool
@@ -57,15 +63,20 @@ var Config Configuration = Configuration{
 		DefaultMetaViewport: "width=device-width",
 		//DefaultWriteScripts: JQuery,
 	},
-	BaseDirs:                  []string{"."},
-	StaticDirs:                []string{"static"},    // every StaticDir will be appended to every BaseDir to search for static files
-	TemplateDirs:              []string{"templates"}, // every TemplateDir will be appended to every BaseDir to search for template files
-	SessionTracker:            &CookieSessionTracker{},
-	SessionDataStore:          NewCookieSessionDataStore(),
-	NumFieldRepeatFormMessage: 6,
-	FormErrorMessageClass:     "error",
-	FormSuccessMessageClass:   "success",
-	DefaultFormLayout:         new(StandardFormLayout),
+	Form: FormConfiguration{
+		DefaultLayout:              new(StandardFormLayout),
+		DefaultFieldFactory:        new(StandardFormFieldFactory),
+		DefaultCSRFProtector:       nil,
+		DefaultErrorMessageClass:   "error",
+		DefaultSuccessMessageClass: "success",
+		DefaultRequiredMarker:      HTML("<span class='required'>*</span>"),
+		NumFieldRepeatMessage:      6,
+	},
+	BaseDirs:         []string{"."},
+	StaticDirs:       []string{"static"},    // every StaticDir will be appended to every BaseDir to search for static files
+	TemplateDirs:     []string{"templates"}, // every TemplateDir will be appended to every BaseDir to search for template files
+	SessionTracker:   &CookieSessionTracker{},
+	SessionDataStore: NewCookieSessionDataStore(),
 }
 
 // Init updates Config with the site-name, cookie secret and base directories used for static and template file search.

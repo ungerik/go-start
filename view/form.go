@@ -1,6 +1,7 @@
 package view
 
 import (
+	"fmt"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/utils"
 	"strings"
@@ -20,6 +21,14 @@ type FormLayout interface {
 	NewField(form *Form, modelValue model.Value, metaData *model.MetaData, disable bool, errors []*model.ValidationError) View
 }
 
+type FormFieldFactory interface {
+	NewInput(form *Form, data interface{}, metaData *model.MetaData) View
+	NewLabel(form *Form, forView View, data interface{}, metaData *model.MetaData) View
+	NewFieldErrorMessage(form *Form, message string, metaData *model.MetaData) View
+	NewFormErrorMessage(form *Form, message string) View
+	NewSuccessMessage(form *Form, message string) View
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Form
 
@@ -30,7 +39,8 @@ type Form struct {
 	Method        string
 	FormID        string
 	CSRFProtector CSRFProtector
-	Layout        FormLayout // Config.DefaultFormLayout will be used if nil
+	Layout        FormLayout       // Config.DefaultFormLayout will be used if nil
+	FieldFactory  FormFieldFactory // Config.DefaultFormFieldFactory will be used if nil
 	// Static content rendered before the dynamic form fields
 	// that are generated via GetModel()
 	StaticContent       View
@@ -40,8 +50,9 @@ type Form struct {
 	HideFields          []string // Use point notation for nested fields
 	DisableFields       []string // Use point notation for nested fields
 	RequireFields       []string // Also available as static struct field tag. Use point notation for nested fields
-	ErrorMessageClass   string   // If empty, Config.FormErrorMessageClass will be used
-	SuccessMessageClass string   // If empty, Config.FormSuccessMessageClass will be used
+	ErrorMessageClass   string   // If empty, Config.Form.DefaultErrorMessageClass will be used
+	SuccessMessageClass string   // If empty, Config.Form.DefaultSuccessMessageClass will be used
+	RequiredMarker      View     // If nil, Config.Form.DefaultRequiredMarker will be used
 	SuccessMessage      string
 	ButtonText          string
 	ButtonClass         string
@@ -50,19 +61,51 @@ type Form struct {
 }
 
 // GetLayout returns self.Layout if not nil,
-// else Config.DefaultFormLayout will be used.
+// else Config.Form.DefaultLayout will be returned.
 func (self *Form) GetLayout() FormLayout {
 	if self.Layout == nil {
-		return Config.DefaultFormLayout
+		return Config.Form.DefaultLayout
 	}
 	return self.Layout
 }
 
+// GetFieldFactory returns self.FieldFactory if not nil,
+// else Config.Form.DefaultFieldFactory will be returned.
+func (self *Form) GetFieldFactory() FormFieldFactory {
+	if self.FieldFactory == nil {
+		return Config.Form.DefaultFieldFactory
+	}
+	return self.FieldFactory
+}
+
+// GetCSRFProtector returns self.CSRFProtector if not nil,
+// else Config.Form.DefaultCSRFProtector will be returned.
 func (self *Form) GetCSRFProtector() CSRFProtector {
 	if self.CSRFProtector == nil {
-		return Config.DefaultCSRFProtector
+		return Config.Form.DefaultCSRFProtector
 	}
 	return self.CSRFProtector
+}
+
+func (self *Form) GetErrorMessageClass() string {
+	if self.ErrorMessageClass == "" {
+		return Config.Form.DefaultErrorMessageClass
+	}
+	return self.ErrorMessageClass
+}
+
+func (self *Form) GetSuccessMessageClass() string {
+	if self.SuccessMessageClass == "" {
+		return Config.Form.DefaultSuccessMessageClass
+	}
+	return self.SuccessMessageClass
+}
+
+func (self *Form) GetRequiredMarker() View {
+	if self.RequiredMarker == nil {
+		return Config.Form.DefaultRequiredMarker
+	}
+	return self.RequiredMarker
 }
 
 func (self *Form) IterateChildren(callback IterateChildrenCallback) {
@@ -85,6 +128,15 @@ func (self *Form) isFieldRequiredSelectors(metaData *model.MetaData, selector, a
 		return true
 	}
 	return utils.StringIn(selector, self.RequireFields) || utils.StringIn(arraySelector, self.RequireFields)
+}
+
+func (self *Form) IsFieldDisabled(metaData *model.MetaData) bool {
+	if metaData.BoolAttrib("disabled") {
+		return true
+	}
+	selector := metaData.Selector()
+	arraySelector := metaData.ArrayWildcardSelector()
+	return utils.StringIn(selector, self.DisableFields) || utils.StringIn(arraySelector, self.DisableFields)
 }
 
 func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) {
@@ -124,6 +176,9 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 			model.WalkStructure(formModel, self.ModelMaxDepth,
 				func(data interface{}, metaData *model.MetaData) {
 					if modelValue, ok := data.(model.Value); ok {
+						if metaData == nil {
+							panic(fmt.Sprintf("model.Value must be a struct member to get a label and meta data for the form field. Passed as root model.Value: %T", modelValue))
+						}
 						selector := metaData.Selector()
 						arraySelector := metaData.ArrayWildcardSelector()
 
@@ -191,14 +246,14 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 			}
 
 			if hasErrors {
-				dynamicFields[0] = newFormMessage(self.GetErrorMessageClass(), message)
-				if len(dynamicFields)-1 > Config.NumFieldRepeatFormMessage {
-					dynamicFields = append(dynamicFields, newFormMessage(self.GetErrorMessageClass(), message))
+				dynamicFields[0] = DIV(self.GetErrorMessageClass(), Escape(message))
+				if len(dynamicFields)-1 > Config.Form.NumFieldRepeatMessage {
+					dynamicFields = append(dynamicFields, DIV(self.GetErrorMessageClass(), Escape(message)))
 				}
 			} else {
-				dynamicFields[0] = newFormMessage(self.GetSuccessMessageClass(), message)
-				if len(dynamicFields)-1 > Config.NumFieldRepeatFormMessage {
-					dynamicFields = append(dynamicFields, newFormMessage(self.GetSuccessMessageClass(), message))
+				dynamicFields[0] = DIV(self.GetSuccessMessageClass(), Escape(message))
+				if len(dynamicFields)-1 > Config.Form.NumFieldRepeatMessage {
+					dynamicFields = append(dynamicFields, DIV(self.GetSuccessMessageClass(), Escape(message)))
 				}
 			}
 
@@ -243,27 +298,6 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 	}
 	writer.ExtraCloseTag() // form
 	return nil
-}
-
-func (self *Form) GetErrorMessageClass() string {
-	if self.ErrorMessageClass == "" {
-		return Config.FormErrorMessageClass
-	}
-	return self.ErrorMessageClass
-}
-
-func (self *Form) GetSuccessMessageClass() string {
-	if self.SuccessMessageClass == "" {
-		return Config.FormSuccessMessageClass
-	}
-	return self.SuccessMessageClass
-}
-
-func newFormMessage(class, message string) View {
-	return &Div{
-		Class:   class,
-		Content: HTML(message),
-	}
 }
 
 func getLabel(metaData *model.MetaData) string {
