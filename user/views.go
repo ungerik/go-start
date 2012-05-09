@@ -55,20 +55,20 @@ func NewLoginForm(buttonText, class, errorMessageClass, successMessageClass stri
 				FormID:              "gostart_user_login",
 				GetModel:            view.FormModel(model),
 				Redirect:            redirectURL,
-				OnSubmit: func(form *view.Form, formModel interface{}, context *view.Context) (err error) {
+				OnSubmit: func(form *view.Form, formModel interface{}, context *view.Context) (view.URL, error) {
 					m := formModel.(*LoginFormModel)
 					ok, err := LoginEmailPassword(context, m.Email.Get(), m.Password.Get())
 					if err != nil {
 						if view.Config.Debug.Mode {
-							return err
+							return nil, err
 						} else {
-							return errors.New("An internal error ocoured")
+							return nil, errors.New("An internal error ocoured")
 						}
 					}
 					if !ok {
-						return errors.New("Wrong email and password combination")
+						return nil, errors.New("Wrong email and password combination")
 					}
-					return nil
+					return nil, nil
 				},
 			}
 			return form, nil
@@ -102,32 +102,32 @@ func NewSignupForm(buttonText, class, errorMessageClass, successMessageClass str
 			return &EmailPasswordFormModel{}, nil
 		},
 		Redirect: redirectURL,
-		OnSubmit: func(form *view.Form, formModel interface{}, context *view.Context) error {
+		OnSubmit: func(form *view.Form, formModel interface{}, context *view.Context) (view.URL, error) {
 			m := formModel.(*EmailPasswordFormModel)
 			email := m.Email.Get()
 			password := m.Password1.Get()
 			var user *User
 			doc, found, err := FindByEmail(email)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			if found {
 				user = From(doc)
 				if user.EmailPasswordConfirmed() {
-					return errors.New("A user with that email and a password already exists")
+					return nil, errors.New("A user with that email and a password already exists")
 				}
 				user.Password.SetHashed(password)
 			} else {
 				user, _, err = New(email, password)
 				if err != nil {
-					return err
+					return nil, err
 				}
 			}
 			err = <-user.Email[0].SendConfirmationEmail(context, confirmationURL)
 			if err != nil {
-				return err
+				return nil, err
 			}
-			return user.Save()
+			return nil, user.Save()
 		},
 	}
 }

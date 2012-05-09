@@ -9,7 +9,6 @@ import (
 )
 
 type GetFormModelFunc func(form *Form, context *Context) (model interface{}, err error)
-type OnSubmitFormFunc func(form *Form, formModel interface{}, context *Context) error
 
 func FormModel(model interface{}) GetFormModelFunc {
 	return func(form *Form, context *Context) (interface{}, error) {
@@ -66,9 +65,10 @@ type Form struct {
 	FieldFactory  FormFieldFactory // Config.DefaultFormFieldFactory will be used if nil
 	// Static content rendered before the dynamic form fields
 	// that are generated via GetModel()
-	StaticContent       View
-	GetModel            GetFormModelFunc
-	OnSubmit            OnSubmitFormFunc
+	StaticContent View
+	GetModel      GetFormModelFunc
+	// If redirect result is non nil, it will be used instead of Form.Redirect
+	OnSubmit            func(form *Form, formModel interface{}, context *Context) (redirect URL, err error)
 	ModelMaxDepth       int      // if zero, no depth limit
 	HideFields          []string // Use point notation for nested fields
 	DisableFields       []string // Use point notation for nested fields
@@ -259,17 +259,20 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 				}
 			} else {
 				// Try to save the new form field values
-				err = self.OnSubmit(self, formModel, context)
+				redirect, err := self.OnSubmit(self, formModel, context)
 				if err == nil {
 					message = self.SuccessMessage
+					if redirect == nil {
+						redirect = self.Redirect
+					}
 				} else {
 					message = err.Error()
 					hasErrors = true
 				}
 
 				// Redirect if saved without errors and redirect URL is set
-				if !hasErrors && self.Redirect != nil {
-					return Redirect(self.Redirect.URL(context))
+				if !hasErrors && redirect != nil {
+					return Redirect(redirect.URL(context))
 				}
 			}
 
