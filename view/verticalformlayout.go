@@ -6,9 +6,9 @@ import (
 )
 
 /*
-StandardFormLayout.
+VerticalFormLayout.
 
-CSS needed for StandardFormLayout:
+CSS needed for VerticalFormLayout:
 
 	form label:after {
 		content: ":";
@@ -35,10 +35,10 @@ DIV classes for coloring:
 	form .success {}
 
 */
-type StandardFormLayout struct {
+type VerticalFormLayout struct {
 }
 
-func (self *StandardFormLayout) NewField(form *Form, modelValue model.Value, metaData *model.MetaData, disable bool, errors []*model.ValidationError) View {
+func (self *VerticalFormLayout) NewField_old(form *Form, modelValue model.Value, metaData *model.MetaData, errors []*model.ValidationError) View {
 	switch s := modelValue.(type) {
 	case *model.Bool:
 		value := s.Get()
@@ -46,7 +46,7 @@ func (self *StandardFormLayout) NewField(form *Form, modelValue model.Value, met
 			Class:    getClass(metaData),
 			Name:     metaData.Selector(),
 			Label:    getLabel(metaData),
-			Disabled: disable,
+			Disabled: form.IsFieldDisabled(metaData),
 			Checked:  value,
 		}
 		return &Paragraph{Content: checkbox}
@@ -58,7 +58,7 @@ func (self *StandardFormLayout) NewField(form *Form, modelValue model.Value, met
 			Class:    getClass(metaData),
 			Name:     metaData.Selector(),
 			Model:    selectModel,
-			Disabled: disable,
+			Disabled: form.IsFieldDisabled(metaData),
 			Size:     1,
 		}
 		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, sel)
@@ -70,7 +70,7 @@ func (self *StandardFormLayout) NewField(form *Form, modelValue model.Value, met
 			Class:    getClass(metaData),
 			Name:     metaData.Selector(),
 			Model:    selectModel,
-			Disabled: disable,
+			Disabled: form.IsFieldDisabled(metaData),
 			Size:     1,
 		}
 		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, sel)
@@ -90,7 +90,7 @@ func (self *StandardFormLayout) NewField(form *Form, modelValue model.Value, met
 			Name:     metaData.Selector(),
 			Text:     date.Get(),
 			Size:     len(model.DateFormat),
-			Disabled: disable,
+			Disabled: form.IsFieldDisabled(metaData),
 		}
 		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, textField, HTML("(Format: "+model.DateFormat+")<br/>"))
 
@@ -101,7 +101,7 @@ func (self *StandardFormLayout) NewField(form *Form, modelValue model.Value, met
 			Name:     metaData.Selector(),
 			Text:     dateTime.Get(),
 			Size:     len(model.DateTimeFormat),
-			Disabled: disable,
+			Disabled: form.IsFieldDisabled(metaData),
 		}
 		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, textField, HTML("(Format: "+model.DateTimeFormat+")<br/>"))
 
@@ -113,7 +113,7 @@ func (self *StandardFormLayout) NewField(form *Form, modelValue model.Value, met
 			Type:     EmailTextField,
 			Text:     value,
 			Size:     40,
-			Disabled: disable,
+			Disabled: form.IsFieldDisabled(metaData),
 		}
 		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, textField)
 
@@ -127,7 +127,7 @@ func (self *StandardFormLayout) NewField(form *Form, modelValue model.Value, met
 			Class:    getClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     value,
-			Disabled: disable,
+			Disabled: form.IsFieldDisabled(metaData),
 		}
 		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, textField)
 
@@ -141,7 +141,7 @@ func (self *StandardFormLayout) NewField(form *Form, modelValue model.Value, met
 			Class:    getClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     value,
-			Disabled: disable,
+			Disabled: form.IsFieldDisabled(metaData),
 		}
 		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, textField)
 
@@ -161,7 +161,7 @@ func (self *StandardFormLayout) NewField(form *Form, modelValue model.Value, met
 			Type:     PasswordTextField,
 			Text:     value,
 			Size:     40,
-			Disabled: disable,
+			Disabled: form.IsFieldDisabled(metaData),
 		}
 		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, textField)
 
@@ -172,7 +172,7 @@ func (self *StandardFormLayout) NewField(form *Form, modelValue model.Value, met
 			Name:     metaData.Selector(),
 			Text:     value,
 			Size:     20,
-			Disabled: disable,
+			Disabled: form.IsFieldDisabled(metaData),
 		}
 		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, textField)
 
@@ -196,7 +196,7 @@ func (self *StandardFormLayout) NewField(form *Form, modelValue model.Value, met
 			Name:     metaData.Selector(),
 			Text:     str.Get(),
 			Size:     80,
-			Disabled: disable,
+			Disabled: form.IsFieldDisabled(metaData),
 		}
 		if maxlen, ok, _ := str.Maxlen(metaData); ok {
 			textField.Size = maxlen
@@ -214,7 +214,7 @@ func (self *StandardFormLayout) NewField(form *Form, modelValue model.Value, met
 			Text:     text.Get(),
 			Cols:     cols,
 			Rows:     rows,
-			Disabled: disable,
+			Disabled: form.IsFieldDisabled(metaData),
 		}
 		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, textArea)
 
@@ -225,7 +225,7 @@ func (self *StandardFormLayout) NewField(form *Form, modelValue model.Value, met
 			Name:     metaData.Selector(),
 			Text:     value,
 			Size:     80,
-			Disabled: disable,
+			Disabled: form.IsFieldDisabled(metaData),
 		}
 		return self.addLabelToEditorWidget(form, modelValue, metaData, errors, textField)
 
@@ -237,7 +237,7 @@ func (self *StandardFormLayout) NewField(form *Form, modelValue model.Value, met
 	panic(fmt.Sprintf("Unsupported model.Value type %T", modelValue))
 }
 
-func (self *StandardFormLayout) addLabelToEditorWidget(form *Form, modelValue model.Value, metaData *model.MetaData, errors []*model.ValidationError, editorView View, extraLabels ...View) View {
+func (self *VerticalFormLayout) addLabelToEditorWidget(form *Form, modelValue model.Value, metaData *model.MetaData, errors []*model.ValidationError, editorView View, extraLabels ...View) View {
 	views := make(Views, 0, 2+len(errors)*2+1)
 	var labelContent View = Escape(getLabel(metaData))
 	if form.IsFieldRequired(metaData) {
@@ -250,4 +250,48 @@ func (self *StandardFormLayout) addLabelToEditorWidget(form *Form, modelValue mo
 	}
 	views = append(views, editorView)
 	return P(views)
+}
+
+func (self *VerticalFormLayout) BeforeFormContent(form *Form) View {
+	return nil
+}
+
+func (self *VerticalFormLayout) AfterFormContent(form *Form) View {
+	return nil
+}
+
+func (self *VerticalFormLayout) BeforeStruct(form *Form, data interface{}, metaData *model.MetaData) View {
+	return nil
+}
+
+func (self *VerticalFormLayout) StructField(form *Form, data interface{}, metaData *model.MetaData) View {
+	return nil
+}
+
+func (self *VerticalFormLayout) AfterStruct(form *Form, data interface{}, metaData *model.MetaData) View {
+	return nil
+}
+
+func (self *VerticalFormLayout) BeforeArray(form *Form, data interface{}, metaData *model.MetaData) View {
+	return nil
+}
+
+func (self *VerticalFormLayout) ArrayField(form *Form, data interface{}, metaData *model.MetaData) View {
+	return nil
+}
+
+func (self *VerticalFormLayout) AfterArray(form *Form, data interface{}, metaData *model.MetaData) View {
+	return nil
+}
+
+func (self *VerticalFormLayout) BeforeSlice(form *Form, data interface{}, metaData *model.MetaData) View {
+	return nil
+}
+
+func (self *VerticalFormLayout) SliceField(form *Form, data interface{}, metaData *model.MetaData) View {
+	return nil
+}
+
+func (self *VerticalFormLayout) AfterSlice(form *Form, data interface{}, metaData *model.MetaData) View {
+	return nil
 }

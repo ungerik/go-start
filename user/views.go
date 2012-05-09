@@ -51,7 +51,7 @@ func NewLoginForm(buttonText, class, errorMessageClass, successMessageClass stri
 				ErrorMessageClass:   errorMessageClass,
 				SuccessMessageClass: successMessageClass,
 				SuccessMessage:      "Login successful",
-				ButtonText:          buttonText,
+				SubmitButtonText:    buttonText,
 				FormID:              "gostart_user_login",
 				GetModel:            view.FormModel(model),
 				Redirect:            redirectURL,
@@ -96,7 +96,7 @@ func NewSignupForm(buttonText, class, errorMessageClass, successMessageClass str
 		ErrorMessageClass:   errorMessageClass,
 		SuccessMessageClass: successMessageClass,
 		SuccessMessage:      Config.ConfirmationSent,
-		ButtonText:          buttonText,
+		SubmitButtonText:    buttonText,
 		FormID:              "gostart_user_signup",
 		GetModel: func(form *view.Form, context *view.Context) (interface{}, error) {
 			return &EmailPasswordFormModel{}, nil

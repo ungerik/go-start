@@ -25,6 +25,7 @@ type FormConfiguration struct {
 	DefaultCSRFProtector       CSRFProtector
 	DefaultErrorMessageClass   string
 	DefaultSuccessMessageClass string
+	DefaultSubmitButtonClass   string
 	DefaultRequiredMarker      View
 	NumFieldRepeatMessage      int
 }
@@ -64,7 +65,7 @@ var Config Configuration = Configuration{
 		//DefaultWriteScripts: JQuery,
 	},
 	Form: FormConfiguration{
-		DefaultLayout:              new(StandardFormLayout),
+		DefaultLayout:              new(VerticalFormLayout),
 		DefaultFieldFactory:        new(StandardFormFieldFactory),
 		DefaultCSRFProtector:       nil,
 		DefaultErrorMessageClass:   "error",

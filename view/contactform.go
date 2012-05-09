@@ -17,11 +17,11 @@ type ContactFormModel struct {
 // NewContactForm creates a new contact form that sends submitted data to recipientEmail.
 func NewContactForm(recipientEmail, subjectPrefix, formClass, buttonClass, formID string) *Form {
 	return &Form{
-		Class:          formClass,
-		ButtonClass:    buttonClass,
-		ButtonText:     "Send",
-		SuccessMessage: "Message sent",
-		FormID:         formID,
+		Class:             formClass,
+		SubmitButtonClass: buttonClass,
+		SubmitButtonText:  "Send",
+		SuccessMessage:    "Message sent",
+		FormID:            formID,
 		GetModel: func(form *Form, context *Context) (interface{}, error) {
 			return &ContactFormModel{}, nil
 		},

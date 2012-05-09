@@ -210,13 +210,25 @@ func (self *StandardFormFieldFactory) NewLabel(form *Form, forView View, data in
 }
 
 func (self *StandardFormFieldFactory) NewFieldErrorMessage(form *Form, message string, metaData *model.MetaData) View {
-	return nil
+	return DIV(form.GetErrorMessageClass(), Escape(message))
 }
 
 func (self *StandardFormFieldFactory) NewFormErrorMessage(form *Form, message string) View {
-	return nil
+	return DIV(form.GetErrorMessageClass(), Escape(message))
 }
 
 func (self *StandardFormFieldFactory) NewSuccessMessage(form *Form, message string) View {
-	return nil
+	return DIV(form.GetSuccessMessageClass(), Escape(message))
+}
+
+func (self *StandardFormFieldFactory) NewSubmitButton(form *Form, text string) View {
+	return &Button{Class: form.GetSubmitButtonClass(), Submit: true, Value: text}
+}
+
+func (self *StandardFormFieldFactory) NewAddSliceItemButton(form *Form) View {
+	return &Button{Value: "+"}
+}
+
+func (self *StandardFormFieldFactory) NewRemoveSliceItemButton(form *Form) View {
+	return &Button{Value: "-"}
 }

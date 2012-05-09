@@ -17,8 +17,28 @@ func FormModel(model interface{}) GetFormModelFunc {
 	}
 }
 
+/*
+FormLayout is responsible for creating and structuring all dynamic content
+of the form including the submit button.
+It uses From.GetFieldFactory() to create the field views.
+*/
 type FormLayout interface {
-	NewField(form *Form, modelValue model.Value, metaData *model.MetaData, disable bool, errors []*model.ValidationError) View
+	NewField_old(form *Form, modelValue model.Value, metaData *model.MetaData, errors []*model.ValidationError) View
+
+	BeforeFormContent(form *Form) View
+	AfterFormContent(form *Form) View
+
+	BeforeStruct(form *Form, data interface{}, metaData *model.MetaData) View
+	StructField(form *Form, data interface{}, metaData *model.MetaData) View
+	AfterStruct(form *Form, data interface{}, metaData *model.MetaData) View
+
+	BeforeArray(form *Form, data interface{}, metaData *model.MetaData) View
+	ArrayField(form *Form, data interface{}, metaData *model.MetaData) View
+	AfterArray(form *Form, data interface{}, metaData *model.MetaData) View
+
+	BeforeSlice(form *Form, data interface{}, metaData *model.MetaData) View
+	SliceField(form *Form, data interface{}, metaData *model.MetaData) View
+	AfterSlice(form *Form, data interface{}, metaData *model.MetaData) View
 }
 
 type FormFieldFactory interface {
@@ -27,6 +47,9 @@ type FormFieldFactory interface {
 	NewFieldErrorMessage(form *Form, message string, metaData *model.MetaData) View
 	NewFormErrorMessage(form *Form, message string) View
 	NewSuccessMessage(form *Form, message string) View
+	NewSubmitButton(form *Form, text string) View
+	NewAddSliceItemButton(form *Form) View
+	NewRemoveSliceItemButton(form *Form) View
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -54,8 +77,8 @@ type Form struct {
 	SuccessMessageClass string   // If empty, Config.Form.DefaultSuccessMessageClass will be used
 	RequiredMarker      View     // If nil, Config.Form.DefaultRequiredMarker will be used
 	SuccessMessage      string
-	ButtonText          string
-	ButtonClass         string
+	SubmitButtonText    string
+	SubmitButtonClass   string
 	Redirect            URL // 302 redirect after successful Save()
 	ShowRefIDs          bool
 }
@@ -101,6 +124,13 @@ func (self *Form) GetSuccessMessageClass() string {
 	return self.SuccessMessageClass
 }
 
+func (self *Form) GetSubmitButtonClass() string {
+	if self.SubmitButtonClass == "" {
+		return Config.Form.DefaultSubmitButtonClass
+	}
+	return self.SubmitButtonClass
+}
+
 func (self *Form) GetRequiredMarker() View {
 	if self.RequiredMarker == nil {
 		return Config.Form.DefaultRequiredMarker
@@ -119,15 +149,15 @@ func (self *Form) IsFieldRequired(metaData *model.MetaData) bool {
 		return true
 	}
 	selector := metaData.Selector()
-	arraySelector := metaData.ArrayWildcardSelector()
-	return utils.StringIn(selector, self.RequireFields) || utils.StringIn(arraySelector, self.RequireFields)
+	arrayWildcardSelector := metaData.ArrayWildcardSelector()
+	return utils.StringIn(selector, self.RequireFields) || utils.StringIn(arrayWildcardSelector, self.RequireFields)
 }
 
-func (self *Form) isFieldRequiredSelectors(metaData *model.MetaData, selector, arraySelector string) bool {
+func (self *Form) isFieldRequiredSelectors(metaData *model.MetaData, selector, arrayWildcardSelector string) bool {
 	if metaData.BoolAttrib("required") {
 		return true
 	}
-	return utils.StringIn(selector, self.RequireFields) || utils.StringIn(arraySelector, self.RequireFields)
+	return utils.StringIn(selector, self.RequireFields) || utils.StringIn(arrayWildcardSelector, self.RequireFields)
 }
 
 func (self *Form) IsFieldDisabled(metaData *model.MetaData) bool {
@@ -135,8 +165,8 @@ func (self *Form) IsFieldDisabled(metaData *model.MetaData) bool {
 		return true
 	}
 	selector := metaData.Selector()
-	arraySelector := metaData.ArrayWildcardSelector()
-	return utils.StringIn(selector, self.DisableFields) || utils.StringIn(arraySelector, self.DisableFields)
+	arrayWildcardSelector := metaData.ArrayWildcardSelector()
+	return utils.StringIn(selector, self.DisableFields) || utils.StringIn(arrayWildcardSelector, self.DisableFields)
 }
 
 func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) {
@@ -180,9 +210,9 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 							panic(fmt.Sprintf("model.Value must be a struct member to get a label and meta data for the form field. Passed as root model.Value: %T", modelValue))
 						}
 						selector := metaData.Selector()
-						arraySelector := metaData.ArrayWildcardSelector()
+						arrayWildcardSelector := metaData.ArrayWildcardSelector()
 
-						if utils.StringIn(selector, self.HideFields) || utils.StringIn(arraySelector, self.HideFields) {
+						if utils.StringIn(selector, self.HideFields) || utils.StringIn(arrayWildcardSelector, self.HideFields) {
 							return
 						}
 
@@ -196,7 +226,7 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 								if err == nil {
 									valueErrors = modelValue.Validate(metaData)
 									if len(valueErrors) == 0 {
-										if modelValue.IsEmpty() && self.isFieldRequiredSelectors(metaData, selector, arraySelector) {
+										if modelValue.IsEmpty() && self.isFieldRequiredSelectors(metaData, selector, arrayWildcardSelector) {
 											valueErrors = []*model.ValidationError{model.NewRequiredValidationError(metaData)}
 										}
 									}
@@ -207,9 +237,7 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 							}
 						}
 
-						disable := utils.StringIn(selector, self.DisableFields)
-
-						dynamicFields = append(dynamicFields, self.GetLayout().NewField(self, modelValue, metaData, disable, valueErrors))
+						dynamicFields = append(dynamicFields, self.GetLayout().NewField_old(self, modelValue, metaData, valueErrors))
 
 					} else if validator, ok := data.(model.Validator); ok {
 
@@ -260,12 +288,12 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		}
 
 		// Add submit button and form ID:
-		buttonText := self.ButtonText
+		buttonText := self.SubmitButtonText
 		if buttonText == "" {
 			buttonText = "Save"
 		}
 		formId := &HiddenInput{Name: "form_id", Value: self.FormID}
-		submitButton := &Button{Submit: true, Value: buttonText, Class: self.ButtonClass}
+		submitButton := self.GetFieldFactory().NewSubmitButton(self, buttonText)
 		dynamicFields = append(dynamicFields, formId, submitButton)
 	}
 
