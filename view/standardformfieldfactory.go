@@ -14,9 +14,9 @@ func (self *StandardFormFieldFactory) NewInput(form *Form, data interface{}, met
 		case *model.Bool:
 			value := s.Get()
 			return &Checkbox{
-				Class:    getClass(metaData),
+				Class:    form.FieldInputClass(metaData),
 				Name:     metaData.Selector(),
-				Label:    getLabel(metaData),
+				Label:    form.FieldLabel(metaData),
 				Disabled: form.IsFieldDisabled(metaData),
 				Checked:  value,
 			}
@@ -25,7 +25,7 @@ func (self *StandardFormFieldFactory) NewInput(form *Form, data interface{}, met
 			choice := s
 			selectModel := &StringsSelectModel{choice.Options(metaData), choice.Get()}
 			return &Select{
-				Class:    getClass(metaData),
+				Class:    form.FieldInputClass(metaData),
 				Name:     metaData.Selector(),
 				Model:    selectModel,
 				Disabled: form.IsFieldDisabled(metaData),
@@ -36,7 +36,7 @@ func (self *StandardFormFieldFactory) NewInput(form *Form, data interface{}, met
 			dynamicChoice := s
 			selectModel := &IndexedStringsSelectModel{dynamicChoice.Options(), dynamicChoice.Index()}
 			return &Select{
-				Class:    getClass(metaData),
+				Class:    form.FieldInputClass(metaData),
 				Name:     metaData.Selector(),
 				Model:    selectModel,
 				Disabled: form.IsFieldDisabled(metaData),
@@ -54,7 +54,7 @@ func (self *StandardFormFieldFactory) NewInput(form *Form, data interface{}, met
 		case *model.Date:
 			date := s
 			return &TextField{
-				Class:    getClass(metaData),
+				Class:    form.FieldInputClass(metaData),
 				Name:     metaData.Selector(),
 				Text:     date.Get(),
 				Size:     len(model.DateFormat),
@@ -64,7 +64,7 @@ func (self *StandardFormFieldFactory) NewInput(form *Form, data interface{}, met
 		case *model.DateTime:
 			dateTime := s
 			return &TextField{
-				Class:    getClass(metaData),
+				Class:    form.FieldInputClass(metaData),
 				Name:     metaData.Selector(),
 				Text:     dateTime.Get(),
 				Size:     len(model.DateTimeFormat),
@@ -74,7 +74,7 @@ func (self *StandardFormFieldFactory) NewInput(form *Form, data interface{}, met
 		case *model.Email:
 			value := s.Get()
 			return &TextField{
-				Class:    getClass(metaData),
+				Class:    form.FieldInputClass(metaData),
 				Name:     metaData.Selector(),
 				Type:     EmailTextField,
 				Text:     value,
@@ -89,7 +89,7 @@ func (self *StandardFormFieldFactory) NewInput(form *Form, data interface{}, met
 			}
 			value := modelValue.(fmt.Stringer).String()
 			return &TextField{
-				Class:    getClass(metaData),
+				Class:    form.FieldInputClass(metaData),
 				Name:     metaData.Selector(),
 				Text:     value,
 				Disabled: form.IsFieldDisabled(metaData),
@@ -102,7 +102,7 @@ func (self *StandardFormFieldFactory) NewInput(form *Form, data interface{}, met
 			}
 			value := modelValue.(fmt.Stringer).String()
 			return &TextField{
-				Class:    getClass(metaData),
+				Class:    form.FieldInputClass(metaData),
 				Name:     metaData.Selector(),
 				Text:     value,
 				Disabled: form.IsFieldDisabled(metaData),
@@ -119,7 +119,7 @@ func (self *StandardFormFieldFactory) NewInput(form *Form, data interface{}, met
 		case *model.Password:
 			value := s.Get()
 			return &TextField{
-				Class:    getClass(metaData),
+				Class:    form.FieldInputClass(metaData),
 				Name:     metaData.Selector(),
 				Type:     PasswordTextField,
 				Text:     value,
@@ -130,7 +130,7 @@ func (self *StandardFormFieldFactory) NewInput(form *Form, data interface{}, met
 		case *model.Phone:
 			value := s.Get()
 			return &TextField{
-				Class:    getClass(metaData),
+				Class:    form.FieldInputClass(metaData),
 				Name:     metaData.Selector(),
 				Text:     value,
 				Size:     20,
@@ -153,7 +153,7 @@ func (self *StandardFormFieldFactory) NewInput(form *Form, data interface{}, met
 				return &HiddenInput{Name: metaData.Selector(), Value: str.String()}
 			}
 			textField := &TextField{
-				Class:    getClass(metaData),
+				Class:    form.FieldInputClass(metaData),
 				Name:     metaData.Selector(),
 				Text:     str.Get(),
 				Size:     80,
@@ -170,7 +170,7 @@ func (self *StandardFormFieldFactory) NewInput(form *Form, data interface{}, met
 			cols, _, _ := text.Cols(metaData) // will be zero if not available, which is OK
 			rows, _, _ := text.Rows(metaData) // will be zero if not available, which is OK
 			return &TextArea{
-				Class:    getClass(metaData),
+				Class:    form.FieldInputClass(metaData),
 				Name:     metaData.Selector(),
 				Text:     text.Get(),
 				Cols:     cols,
@@ -181,7 +181,7 @@ func (self *StandardFormFieldFactory) NewInput(form *Form, data interface{}, met
 		case *model.Url:
 			value := s.Get()
 			return &TextField{
-				Class:    getClass(metaData),
+				Class:    form.FieldInputClass(metaData),
 				Name:     metaData.Selector(),
 				Text:     value,
 				Size:     80,
@@ -202,7 +202,7 @@ func (self *StandardFormFieldFactory) NewLabel(form *Form, forView View, data in
 	// todo add extra label for date/time
 	// HTML("(Format: "+model.DateFormat+")<br/>")
 	// HTML("(Format: "+model.DateTimeFormat+")<br/>")
-	var labelContent View = Escape(getLabel(metaData))
+	var labelContent View = Escape(form.FieldLabel(metaData))
 	if form.IsFieldRequired(metaData) {
 		labelContent = Views{labelContent, form.GetRequiredMarker()}
 	}

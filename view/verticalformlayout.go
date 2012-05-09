@@ -43,9 +43,9 @@ func (self *VerticalFormLayout) NewField_old(form *Form, modelValue model.Value,
 	case *model.Bool:
 		value := s.Get()
 		checkbox := &Checkbox{
-			Class:    getClass(metaData),
+			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
-			Label:    getLabel(metaData),
+			Label:    form.FieldLabel(metaData),
 			Disabled: form.IsFieldDisabled(metaData),
 			Checked:  value,
 		}
@@ -55,7 +55,7 @@ func (self *VerticalFormLayout) NewField_old(form *Form, modelValue model.Value,
 		choice := s
 		selectModel := &StringsSelectModel{choice.Options(metaData), choice.Get()}
 		sel := &Select{
-			Class:    getClass(metaData),
+			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Model:    selectModel,
 			Disabled: form.IsFieldDisabled(metaData),
@@ -67,7 +67,7 @@ func (self *VerticalFormLayout) NewField_old(form *Form, modelValue model.Value,
 		dynamicChoice := s
 		selectModel := &IndexedStringsSelectModel{dynamicChoice.Options(), dynamicChoice.Index()}
 		sel := &Select{
-			Class:    getClass(metaData),
+			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Model:    selectModel,
 			Disabled: form.IsFieldDisabled(metaData),
@@ -86,7 +86,7 @@ func (self *VerticalFormLayout) NewField_old(form *Form, modelValue model.Value,
 	case *model.Date:
 		date := s
 		textField := &TextField{
-			Class:    getClass(metaData),
+			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     date.Get(),
 			Size:     len(model.DateFormat),
@@ -97,7 +97,7 @@ func (self *VerticalFormLayout) NewField_old(form *Form, modelValue model.Value,
 	case *model.DateTime:
 		dateTime := s
 		textField := &TextField{
-			Class:    getClass(metaData),
+			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     dateTime.Get(),
 			Size:     len(model.DateTimeFormat),
@@ -108,7 +108,7 @@ func (self *VerticalFormLayout) NewField_old(form *Form, modelValue model.Value,
 	case *model.Email:
 		value := s.Get()
 		textField := &TextField{
-			Class:    getClass(metaData),
+			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Type:     EmailTextField,
 			Text:     value,
@@ -124,7 +124,7 @@ func (self *VerticalFormLayout) NewField_old(form *Form, modelValue model.Value,
 		}
 		value := modelValue.(fmt.Stringer).String()
 		textField := &TextField{
-			Class:    getClass(metaData),
+			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     value,
 			Disabled: form.IsFieldDisabled(metaData),
@@ -138,7 +138,7 @@ func (self *VerticalFormLayout) NewField_old(form *Form, modelValue model.Value,
 		}
 		value := modelValue.(fmt.Stringer).String()
 		textField := &TextField{
-			Class:    getClass(metaData),
+			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     value,
 			Disabled: form.IsFieldDisabled(metaData),
@@ -156,7 +156,7 @@ func (self *VerticalFormLayout) NewField_old(form *Form, modelValue model.Value,
 	case *model.Password:
 		value := s.Get()
 		textField := &TextField{
-			Class:    getClass(metaData),
+			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Type:     PasswordTextField,
 			Text:     value,
@@ -168,7 +168,7 @@ func (self *VerticalFormLayout) NewField_old(form *Form, modelValue model.Value,
 	case *model.Phone:
 		value := s.Get()
 		textField := &TextField{
-			Class:    getClass(metaData),
+			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     value,
 			Size:     20,
@@ -192,7 +192,7 @@ func (self *VerticalFormLayout) NewField_old(form *Form, modelValue model.Value,
 			return &HiddenInput{Name: metaData.Selector(), Value: str.String()}
 		}
 		textField := &TextField{
-			Class:    getClass(metaData),
+			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     str.Get(),
 			Size:     80,
@@ -209,7 +209,7 @@ func (self *VerticalFormLayout) NewField_old(form *Form, modelValue model.Value,
 		cols, _, _ := text.Cols(metaData) // will be zero if not available, which is OK
 		rows, _, _ := text.Rows(metaData) // will be zero if not available, which is OK
 		textArea := &TextArea{
-			Class:    getClass(metaData),
+			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     text.Get(),
 			Cols:     cols,
@@ -221,7 +221,7 @@ func (self *VerticalFormLayout) NewField_old(form *Form, modelValue model.Value,
 	case *model.Url:
 		value := s.Get()
 		textField := &TextField{
-			Class:    getClass(metaData),
+			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     value,
 			Size:     80,
@@ -239,7 +239,7 @@ func (self *VerticalFormLayout) NewField_old(form *Form, modelValue model.Value,
 
 func (self *VerticalFormLayout) addLabelToEditorWidget(form *Form, modelValue model.Value, metaData *model.MetaData, errors []*model.ValidationError, editorView View, extraLabels ...View) View {
 	views := make(Views, 0, 2+len(errors)*2+1)
-	var labelContent View = Escape(getLabel(metaData))
+	var labelContent View = Escape(form.FieldLabel(metaData))
 	if form.IsFieldRequired(metaData) {
 		labelContent = Views{labelContent, SPAN("required", HTML("*"))}
 	}
