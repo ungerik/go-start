@@ -1,9 +1,9 @@
 package view
 
 import (
-	"fmt"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/utils"
+	"reflect"
 	"strings"
 	//	"github.com/ungerik/go-start/debug"
 )
@@ -27,22 +27,22 @@ type FormLayout interface {
 	BeforeFormContent(form *Form) View
 	AfterFormContent(form *Form) View
 
-	BeforeStruct(form *Form, data interface{}, metaData *model.MetaData) View
-	StructField(form *Form, data interface{}, metaData *model.MetaData) View
-	AfterStruct(form *Form, data interface{}, metaData *model.MetaData) View
+	BeforeStruct(form *Form, strct reflect.Value, metaData *model.MetaData) View
+	StructField(form *Form, field reflect.Value, metaData *model.MetaData) View
+	AfterStruct(form *Form, strct reflect.Value, metaData *model.MetaData) View
 
-	BeforeArray(form *Form, data interface{}, metaData *model.MetaData) View
-	ArrayField(form *Form, data interface{}, metaData *model.MetaData) View
-	AfterArray(form *Form, data interface{}, metaData *model.MetaData) View
+	BeforeArray(form *Form, field reflect.Value, metaData *model.MetaData) View
+	ArrayField(form *Form, field reflect.Value, metaData *model.MetaData) View
+	AfterArray(form *Form, field reflect.Value, metaData *model.MetaData) View
 
-	BeforeSlice(form *Form, data interface{}, metaData *model.MetaData) View
-	SliceField(form *Form, data interface{}, metaData *model.MetaData) View
-	AfterSlice(form *Form, data interface{}, metaData *model.MetaData) View
+	BeforeSlice(form *Form, field reflect.Value, metaData *model.MetaData) View
+	SliceField(form *Form, field reflect.Value, metaData *model.MetaData) View
+	AfterSlice(form *Form, field reflect.Value, metaData *model.MetaData) View
 }
 
 type FormFieldFactory interface {
-	NewInput(form *Form, data interface{}, metaData *model.MetaData) View
-	NewLabel(form *Form, forView View, data interface{}, metaData *model.MetaData) View
+	NewInput(form *Form, field reflect.Value, metaData *model.MetaData) View
+	NewLabel(form *Form, forView View, field reflect.Value, metaData *model.MetaData) View
 	NewFieldErrorMessage(form *Form, message string, metaData *model.MetaData) View
 	NewFormErrorMessage(form *Form, message string) View
 	NewSuccessMessage(form *Form, message string) View
@@ -213,15 +213,23 @@ func (self *Form) newRender(context *Context, writer *utils.XMLWriter) (err erro
 			if err != nil {
 				return err
 			}
+			//var lastParent *model.MetaData
 			model.WalkStructure(formModel, self.ModelMaxDepth,
-				func(data interface{}, metaData *model.MetaData) {
+				func(data *model.MetaData) {
+					// if data.Parent != lastMetaDataParent {
+					// 	lastMetaDataParent = data.Parent
+					// 	layout.BeforeStruct(self, metaData.Parent.Value, metaData.Parent)
+					// }
 
-					if modelValue, ok := data.(model.Value); ok {
-						if metaData == nil {
-							panic(fmt.Sprintf("model.Value must be a struct member to get a label and meta data for the form field. Passed as root model.Value: %T", modelValue))
-						}
-						selector := metaData.Selector()
-						arrayWildcardSelector := metaData.ArrayWildcardSelector()
+					// k := field.Kind()
+					// switch k {
+					// case reflect.Struct:
+					// 	layout.AfterStruct(self, field, metaData)
+					// }
+
+					if modelValue, ok := data.Value.Addr().Interface().(model.Value); ok {
+						selector := data.Selector()
+						arrayWildcardSelector := data.ArrayWildcardSelector()
 
 						if utils.StringIn(selector, self.HideFields) || utils.StringIn(arrayWildcardSelector, self.HideFields) {
 							return
@@ -235,24 +243,24 @@ func (self *Form) newRender(context *Context, writer *utils.XMLWriter) (err erro
 							} else if ok {
 								err = modelValue.SetString(formValue)
 								if err == nil {
-									valueErrors = modelValue.Validate(metaData)
+									valueErrors = modelValue.Validate(data)
 									if len(valueErrors) == 0 {
-										if modelValue.IsEmpty() && self.isFieldRequiredSelectors(metaData, selector, arrayWildcardSelector) {
-											valueErrors = []*model.ValidationError{model.NewRequiredValidationError(metaData)}
+										if modelValue.IsEmpty() && self.isFieldRequiredSelectors(data, selector, arrayWildcardSelector) {
+											valueErrors = []*model.ValidationError{model.NewRequiredValidationError(data)}
 										}
 									}
 								} else {
-									valueErrors = model.NewValidationErrors(err, metaData)
+									valueErrors = model.NewValidationErrors(err, data)
 								}
 								numValueErrors += len(valueErrors)
 							}
 						}
 
-						dynamicFields = append(dynamicFields, self.GetLayout().NewField_old(self, modelValue, metaData, valueErrors))
+						dynamicFields = append(dynamicFields, self.GetLayout().NewField_old(self, modelValue, data, valueErrors))
 
-					} else if validator, ok := data.(model.Validator); ok {
+					} else if validator, ok := data.Value.Interface().(model.Validator); ok {
 
-						generalErrors = append(generalErrors, validator.Validate(metaData)...)
+						generalErrors = append(generalErrors, validator.Validate(data)...)
 
 					}
 				},
@@ -396,13 +404,10 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 				return err
 			}
 			model.WalkStructure(formModel, self.ModelMaxDepth,
-				func(data interface{}, metaData *model.MetaData) {
-					if modelValue, ok := data.(model.Value); ok {
-						if metaData == nil {
-							panic(fmt.Sprintf("model.Value must be a struct member to get a label and meta data for the form field. Passed as root model.Value: %T", modelValue))
-						}
-						selector := metaData.Selector()
-						arrayWildcardSelector := metaData.ArrayWildcardSelector()
+				func(data *model.MetaData) {
+					if modelValue, ok := data.Value.Addr().Interface().(model.Value); ok {
+						selector := data.Selector()
+						arrayWildcardSelector := data.ArrayWildcardSelector()
 
 						if utils.StringIn(selector, self.HideFields) || utils.StringIn(arrayWildcardSelector, self.HideFields) {
 							return
@@ -416,24 +421,24 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 							} else if ok {
 								err = modelValue.SetString(formValue)
 								if err == nil {
-									valueErrors = modelValue.Validate(metaData)
+									valueErrors = modelValue.Validate(data)
 									if len(valueErrors) == 0 {
-										if modelValue.IsEmpty() && self.isFieldRequiredSelectors(metaData, selector, arrayWildcardSelector) {
-											valueErrors = []*model.ValidationError{model.NewRequiredValidationError(metaData)}
+										if modelValue.IsEmpty() && self.isFieldRequiredSelectors(data, selector, arrayWildcardSelector) {
+											valueErrors = []*model.ValidationError{model.NewRequiredValidationError(data)}
 										}
 									}
 								} else {
-									valueErrors = model.NewValidationErrors(err, metaData)
+									valueErrors = model.NewValidationErrors(err, data)
 								}
 								numValueErrors += len(valueErrors)
 							}
 						}
 
-						dynamicFields = append(dynamicFields, self.GetLayout().NewField_old(self, modelValue, metaData, valueErrors))
+						dynamicFields = append(dynamicFields, self.GetLayout().NewField_old(self, modelValue, data, valueErrors))
 
-					} else if validator, ok := data.(model.Validator); ok {
+					} else if validator, ok := data.Value.Interface().(model.Validator); ok {
 
-						generalErrors = append(generalErrors, validator.Validate(metaData)...)
+						generalErrors = append(generalErrors, validator.Validate(data)...)
 
 					}
 				},

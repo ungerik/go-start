@@ -9,13 +9,13 @@ import (
 // MetaData
 
 type MetaData struct {
-	ParentStruct reflect.Value
-	Parent       *MetaData
-	Depth        int
-	Name         string
-	Index        int
-	tag          string
-	attributes   map[string]string
+	Value      reflect.Value
+	Parent     *MetaData
+	Depth      int
+	Name       string
+	Index      int
+	tag        string
+	attributes map[string]string
 }
 
 func (self *MetaData) IsIndex() bool {

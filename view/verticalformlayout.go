@@ -3,6 +3,7 @@ package view
 import (
 	"fmt"
 	"github.com/ungerik/go-start/model"
+	"reflect"
 )
 
 /*
@@ -260,38 +261,38 @@ func (self *VerticalFormLayout) AfterFormContent(form *Form) View {
 	return nil
 }
 
-func (self *VerticalFormLayout) BeforeStruct(form *Form, data interface{}, metaData *model.MetaData) View {
+func (self *VerticalFormLayout) BeforeStruct(form *Form, strct reflect.Value, metaData *model.MetaData) View {
 	return nil
 }
 
-func (self *VerticalFormLayout) StructField(form *Form, data interface{}, metaData *model.MetaData) View {
+func (self *VerticalFormLayout) StructField(form *Form, field reflect.Value, metaData *model.MetaData) View {
 	return nil
 }
 
-func (self *VerticalFormLayout) AfterStruct(form *Form, data interface{}, metaData *model.MetaData) View {
+func (self *VerticalFormLayout) AfterStruct(form *Form, strct reflect.Value, metaData *model.MetaData) View {
 	return nil
 }
 
-func (self *VerticalFormLayout) BeforeArray(form *Form, data interface{}, metaData *model.MetaData) View {
+func (self *VerticalFormLayout) BeforeArray(form *Form, field reflect.Value, metaData *model.MetaData) View {
 	return nil
 }
 
-func (self *VerticalFormLayout) ArrayField(form *Form, data interface{}, metaData *model.MetaData) View {
+func (self *VerticalFormLayout) ArrayField(form *Form, field reflect.Value, metaData *model.MetaData) View {
 	return nil
 }
 
-func (self *VerticalFormLayout) AfterArray(form *Form, data interface{}, metaData *model.MetaData) View {
+func (self *VerticalFormLayout) AfterArray(form *Form, field reflect.Value, metaData *model.MetaData) View {
 	return nil
 }
 
-func (self *VerticalFormLayout) BeforeSlice(form *Form, data interface{}, metaData *model.MetaData) View {
+func (self *VerticalFormLayout) BeforeSlice(form *Form, field reflect.Value, metaData *model.MetaData) View {
 	return nil
 }
 
-func (self *VerticalFormLayout) SliceField(form *Form, data interface{}, metaData *model.MetaData) View {
+func (self *VerticalFormLayout) SliceField(form *Form, field reflect.Value, metaData *model.MetaData) View {
 	return nil
 }
 
-func (self *VerticalFormLayout) AfterSlice(form *Form, data interface{}, metaData *model.MetaData) View {
+func (self *VerticalFormLayout) AfterSlice(form *Form, field reflect.Value, metaData *model.MetaData) View {
 	return nil
 }

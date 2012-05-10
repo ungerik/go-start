@@ -3,12 +3,14 @@ package view
 import (
 	"fmt"
 	"github.com/ungerik/go-start/model"
+	"reflect"
 )
 
 type StandardFormFieldFactory struct {
 }
 
-func (self *StandardFormFieldFactory) NewInput(form *Form, data interface{}, metaData *model.MetaData) View {
+func (self *StandardFormFieldFactory) NewInput(form *Form, field reflect.Value, metaData *model.MetaData) View {
+	data := field.Addr().Interface()
 	if modelValue, ok := data.(model.Value); ok {
 		switch s := modelValue.(type) {
 		case *model.Bool:
@@ -198,7 +200,7 @@ func (self *StandardFormFieldFactory) NewInput(form *Form, data interface{}, met
 	return nil
 }
 
-func (self *StandardFormFieldFactory) NewLabel(form *Form, forView View, data interface{}, metaData *model.MetaData) View {
+func (self *StandardFormFieldFactory) NewLabel(form *Form, forView View, field reflect.Value, metaData *model.MetaData) View {
 	// todo add extra label for date/time
 	// HTML("(Format: "+model.DateFormat+")<br/>")
 	// HTML("(Format: "+model.DateTimeFormat+")<br/>")

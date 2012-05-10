@@ -13,78 +13,39 @@ func init() {
 
 func Validate(data interface{}, maxDepth int) []*ValidationError {
 	errors := []*ValidationError{}
-	WalkStructure(data, maxDepth, func(data interface{}, metaData *MetaData) {
-		if validator, ok := data.(Validator); ok {
-			errors = append(errors, validator.Validate(metaData)...)
-		}
-	})
+	WalkStructure(data, maxDepth,
+		func(data *MetaData) {
+			if validator, ok := data.Value.Addr().Interface().(Validator); ok {
+				errors = append(errors, validator.Validate(data)...)
+			}
+		},
+	)
 	return errors
 }
 
-//func HasParent(value reflect.Value, metaData *MetaData) bool {
-//	if value.Kind() == reflect.Struct {
-//		for i := range metaData {
-//			if metaData[i].ParentStruct.Pointer() == value.Pointer() {
-//				return true
-//			}
-//		}
-//	}
-//	return false
-//}
-
-type WalkStructureCallback func(data interface{}, metaData *MetaData)
-
+// WalkStructure walks recursively over all fields of data and
+// reports them depth first via callback.
 // If maxDepth is zero, no limit will be used
-func WalkStructure(data interface{}, maxDepth int, callback WalkStructureCallback) {
+func WalkStructure(data interface{}, maxDepth int, callback func(data *MetaData)) {
 	if maxDepth == 0 {
 		maxDepth = int(^uint(0) >> 1) // Max int
 	}
-	metaData := &MetaData{}
-	walkStructure(reflect.ValueOf(data), metaData, maxDepth, callback)
+	walkStructure(&MetaData{Value: reflect.ValueOf(data)}, maxDepth, callback)
 }
 
-func walkStructure(v reflect.Value, metaData *MetaData, maxDepth int, callback WalkStructureCallback) {
+func walkStructure(data *MetaData, maxDepth int, callback func(data *MetaData)) {
+	v := data.Value
 	switch v.Kind() {
-	case reflect.Struct:
-		if metaData.Depth > maxDepth {
-			break
-		}
-		if v.CanAddr() {
-			if _, ok := v.Addr().Interface().(Reference); ok {
-				break // Don't go deeper into references
-			}
-		}
-		n := v.NumField()
-		for i := 0; i < n; i++ {
-			fieldType := v.Type().Field(i)
-			// Only walk exported fields
-			if unicode.IsUpper(rune(fieldType.Name[0])) {
-				m := metaData
-				if !fieldType.Anonymous {
-					m = &MetaData{
-						Parent:       metaData,
-						Depth:        metaData.Depth + 1,
-						ParentStruct: v,
-						Name:         fieldType.Name,
-						Index:        -1,
-						tag:          fieldType.Tag.Get("gostart"),
-					}
-				}
-				walkStructure(v.Field(i), m, maxDepth, callback)
-			}
-		}
-
 	case reflect.Slice, reflect.Array:
-		l := v.Len()
-		for i := 0; i < l; i++ {
-			m := &MetaData{
-				Parent:       metaData,
-				Depth:        metaData.Depth + 1,
-				ParentStruct: v,
-				Name:         strconv.Itoa(i),
-				Index:        i,
+		for i := 0; i < v.Len(); i++ {
+			child := &MetaData{
+				Value:  v.Index(i),
+				Parent: data,
+				Depth:  data.Depth + 1,
+				Name:   strconv.Itoa(i),
+				Index:  i,
 			}
-			walkStructure(v.Index(i), m, maxDepth, callback)
+			walkStructure(child, maxDepth, callback)
 		}
 		return
 
@@ -93,15 +54,45 @@ func walkStructure(v reflect.Value, metaData *MetaData, maxDepth int, callback W
 
 	case reflect.Ptr, reflect.Interface:
 		if !v.IsNil() {
+			data.Value = v.Elem()
 			// TODO: Don't go into cyclic reference when value has itself as parent
-			walkStructure(v.Elem(), metaData, maxDepth, callback)
+			walkStructure(data, maxDepth, callback)
 		}
+		return
+
+	case reflect.Struct:
+		if data.Depth > maxDepth {
+			break
+		}
+		if v.CanAddr() {
+			if _, ok := v.Addr().Interface().(Reference); ok {
+				break // Don't go deeper into references
+			}
+		}
+		for i := 0; i < v.NumField(); i++ {
+			fieldType := v.Type().Field(i)
+			// Only walk exported fields
+			if unicode.IsUpper(rune(fieldType.Name[0])) {
+				child := data
+				if !fieldType.Anonymous {
+					child = &MetaData{
+						Value:  v.Field(i),
+						Parent: data,
+						Depth:  data.Depth + 1,
+						Name:   fieldType.Name,
+						Index:  -1,
+						tag:    fieldType.Tag.Get("gostart"),
+					}
+				}
+				walkStructure(child, maxDepth, callback)
+			}
+		}
+	}
+
+	if !v.CanAddr() {
+		// will this ever be the case???
 		return
 	}
 
-	// v.Addr() to create a pointer type to enable changing the value and
-	// casting to struct types whose methods use pointer to struct
-	if v.CanAddr() {
-		callback(v.Addr().Interface(), metaData)
-	}
+	callback(data)
 }
