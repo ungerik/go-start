@@ -2,63 +2,143 @@ package model
 
 import (
 	"reflect"
+	"strconv"
 	"strings"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
 // MetaData
 
+// MetaDataKind is the kind of a data item described by MetaData.
+type MetaDataKind int
+
+func (self MetaDataKind) String() string {
+	switch self {
+	case StructKind:
+		return "Struct"
+	case ArrayKind:
+		return "Array"
+	case SliceKind:
+		return "Slice"
+	case ValueKind:
+		return "Value"
+	}
+	return "[Error: Unknown MetaDataKind!]"
+}
+
+const (
+	StructKind MetaDataKind = iota
+	ArrayKind
+	SliceKind
+	ValueKind // everything else, no children
+)
+
+func GetMetaDataKind(v reflect.Value) MetaDataKind {
+	switch v.Kind() {
+	case reflect.Struct:
+		return StructKind
+	case reflect.Array:
+		return ArrayKind
+	case reflect.Slice:
+		return SliceKind
+	}
+	return ValueKind
+}
+
+// MetaData holds meta data about an model data item.
 type MetaData struct {
-	Value      reflect.Value
-	Parent     *MetaData
-	Depth      int
-	Name       string
-	Index      int
-	tag        string
-	attributes map[string]string
+	Value   reflect.Value
+	Kind    MetaDataKind
+	Parent  *MetaData
+	Depth   int    // number of steps up to the root parent
+	Name    string // empty for array and slice fields
+	Index   int    // will also be set for struct fields
+	tag     string
+	attribs map[string]string // cached tag attributes
 }
 
-func (self *MetaData) IsIndex() bool {
-	return self.Index != -1
+// ParentKind returns the parent's MetaDataKind.
+// It returns StructKind if Parent is nil because the root parent will
+// always be a struct.
+func (self *MetaData) ParentKind() MetaDataKind {
+	if self.Parent == nil {
+		return StructKind
+	}
+	return self.Parent.Kind
 }
 
+// // GetDepth returns self.Depth or -1 if self is nil.
+// func (self *MetaData) GetDepth() int {
+// 	if self == nil {
+// 		return -1
+// 	}
+// 	return self.Depth
+// }
+
+/*
+Attrib returns the value of a tag attribute if available.
+Array and slice fields inherit the attributes of their named
+parent fields.
+The meaning of attributes is interpreted by the package that reads them.
+Attributes are defined in a struct tag named "gostart" and written
+as name=value. Multiple attributes are separated by '|'.
+Example:
+
+	type Struct {
+		X int `gostart:"min=0|max=10"`
+		S []int `gostart:"maxlen=3|min=0|max=10"
+		hidden int
+		Ignore int `gostart:"-"`
+	}
+*/
 func (self *MetaData) Attrib(name string) (value string, ok bool) {
-	if self.attributes == nil {
-		self.attributes = map[string]string{}
+	if self.attribs == nil {
+		self.attribs = make(map[string]string)
 		for _, s := range strings.Split(self.tag, "|") {
 			pos := strings.Index(s, "=")
 			if pos == -1 {
-				self.attributes[s] = "true"
+				self.attribs[s] = "true"
 			} else {
-				self.attributes[s[:pos]] = s[pos+1:]
+				self.attribs[s[:pos]] = s[pos+1:]
 			}
 		}
 	}
-	value, ok = self.attributes[name]
+	value, ok = self.attribs[name]
 	return value, ok
 }
 
+// BoolAttrib uses Attrib() to check if the value of an attribute is "true".
+// A non existing attribibute is considered to be false.
 func (self *MetaData) BoolAttrib(name string) bool {
 	value, ok := self.Attrib(name)
 	return ok && value == "true"
 }
 
+// Selector returns the field names or indices for array/slice fields
+// from the root parent up the the current data item concatenated with with '.'.
 func (self *MetaData) Selector() string {
-	names := make([]string, self.Depth)
-	for i, m := self.Depth-1, self; i >= 0; i-- {
-		names[i] = m.Name
+	names := make([]string, self.Depth-1)
+	for i, m := self.Depth-2, self; i >= 0; i-- {
+		if m.Name != "" {
+			names[i] = m.Name
+		} else {
+			names[i] = strconv.Itoa(m.Index)
+		}
 		m = m.Parent
 	}
 	return strings.Join(names, ".")
 }
 
-func (self *MetaData) ArrayWildcardSelector() string {
-	names := make([]string, self.Depth)
-	for i, m := self.Depth-1, self; i >= 0; i-- {
-		if m.IsIndex() {
-			names[i] = "$"
-		} else {
+// WildcardSelector returns the field names or the wildcard '$' for array/slice
+// fields from the root parent up the the current data item
+// concatenated with with '.'.
+func (self *MetaData) WildcardSelector() string {
+	names := make([]string, self.Depth-1)
+	for i, m := self.Depth-2, self; i >= 0; i-- {
+		if m.Name != "" {
 			names[i] = m.Name
+		} else {
+			names[i] = "$"
 		}
 		m = m.Parent
 	}

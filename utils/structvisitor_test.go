@@ -76,11 +76,11 @@ func ExampleVisitStruct_flatStructWithSliceAndArray() {
 	//     SliceField(1, int = 2)
 	//   EndSlice([]int)
 	//   StructField(2, Array [3]int)
-	//   BeginSlice([3]int)
+	//   BeginArray([3]int)
 	//     ArrayField(0, int = 1)
 	//     ArrayField(1, int = 2)
 	//     ArrayField(2, int = 3)
-	//   EndSlice([3]int)
+	//   EndArray([3]int)
 	// EndStruct(utils.exampleStruct)
 }
 
@@ -158,6 +158,63 @@ func ExampleVisitStruct_deepAnonymousStructFields() {
 	// EndStruct(utils.exampleStruct)
 }
 
+func ExampleVisitStruct_deepStructFields() {
+	type A struct {
+		A0 interface{}
+		A1 int
+	}
+	type B struct {
+		B0 bool
+		A  A
+		B1 bool
+	}
+	type C struct {
+		A  A
+		C0 string
+		B  *B
+		C1 string
+	}
+	type exampleStruct struct {
+		C C
+	}
+	val := &exampleStruct{
+		C: C{
+			A:  A{A0: 0, A1: 1},
+			C0: "C0",
+			B: &B{
+				B0: false,
+				A:  A{A0: 0, A1: 1},
+				B1: true,
+			},
+			C1: "C1",
+		},
+	}
+	VisitStruct(val, NewStdLogStructVisitor())
+	// Output:
+	// BeginStruct(utils.exampleStruct)
+	//   StructField(0, C utils.C)
+	//   BeginStruct(utils.C)
+	//     StructField(0, A utils.A)
+	//     BeginStruct(utils.A)
+	//       StructField(0, A0 int = 0)
+	//       StructField(1, A1 int = 1)
+	//     EndStruct(utils.A)
+	//     StructField(1, C0 string = "C0")
+	//     StructField(2, B utils.B)
+	//     BeginStruct(utils.B)
+	//       StructField(0, B0 bool = false)
+	//       StructField(1, A utils.A)
+	//       BeginStruct(utils.A)
+	//         StructField(0, A0 int = 0)
+	//         StructField(1, A1 int = 1)
+	//       EndStruct(utils.A)
+	//       StructField(2, B1 bool = true)
+	//     EndStruct(utils.B)
+	//     StructField(3, C1 string = "C1")
+	//   EndStruct(utils.C)
+	// EndStruct(utils.exampleStruct)
+}
+
 func ExampleVisitStruct_limitDepth() {
 	type A struct {
 		A0 interface{}
@@ -165,34 +222,43 @@ func ExampleVisitStruct_limitDepth() {
 	}
 	type B struct {
 		B0 bool
-		A
+		A  A
 		B1 bool
 	}
-	type exampleStruct struct {
+	type C struct {
 		A  A
 		C0 string
-		*B
+		B  *B
 		C1 string
 	}
-	val := &exampleStruct{
-		A:  A{A0: 0, A1: 1},
-		C0: "C0",
-		B: &B{
-			B0: false,
-			A:  A{A0: 0, A1: 1},
-			B1: true,
-		},
-		C1: "C1",
+	type exampleStruct struct {
+		C C
 	}
-	VisitStructDepth(val, NewStdLogStructVisitor(), 0)
+	val := &exampleStruct{
+		C: C{
+			A:  A{A0: 0, A1: 1},
+			C0: "C0",
+			B: &B{
+				B0: false,
+				A:  A{A0: 0, A1: 1},
+				B1: true,
+			},
+			C1: "C1",
+		},
+	}
+	VisitStructDepth(val, NewStdLogStructVisitor(), 2)
 	// Output:
 	// BeginStruct(utils.exampleStruct)
-	//   StructField(0, A utils.A)
-	//   StructField(1, C0 string = "C0")
-	//   StructField(2, B0 bool = false)
-	//   StructField(3, A0 int = 0)
-	//   StructField(4, A1 int = 1)
-	//   StructField(5, B1 bool = true)
-	//   StructField(6, C1 string = "C1")
+	//   StructField(0, C utils.C)
+	//   BeginStruct(utils.C)
+	//     StructField(0, A utils.A)
+	//     BeginStruct(utils.A)
+	//     EndStruct(utils.A)
+	//     StructField(1, C0 string = "C0")
+	//     StructField(2, B utils.B)
+	//     BeginStruct(utils.B)
+	//     EndStruct(utils.B)
+	//     StructField(3, C1 string = "C1")
+	//   EndStruct(utils.C)
 	// EndStruct(utils.exampleStruct)
 }

@@ -22,22 +22,20 @@ of the form including the submit button.
 It uses From.GetFieldFactory() to create the field views.
 */
 type FormLayout interface {
-	NewField_old(form *Form, modelValue model.Value, metaData *model.MetaData, errors []*model.ValidationError) View
+	BeginFormContent(form *Form) View
+	EndFormContent(form *Form) View
 
-	BeforeFormContent(form *Form) View
-	AfterFormContent(form *Form) View
+	BeginStruct(form *Form, strct *model.MetaData) View
+	StructField(form *Form, field *model.MetaData) View
+	EndStruct(form *Form, strct *model.MetaData) View
 
-	BeforeStruct(form *Form, strct reflect.Value, metaData *model.MetaData) View
-	StructField(form *Form, field reflect.Value, metaData *model.MetaData) View
-	AfterStruct(form *Form, strct reflect.Value, metaData *model.MetaData) View
+	BeginArray(form *Form, array *model.MetaData) View
+	ArrayField(form *Form, field *model.MetaData) View
+	EndArray(form *Form, array *model.MetaData) View
 
-	BeforeArray(form *Form, field reflect.Value, metaData *model.MetaData) View
-	ArrayField(form *Form, field reflect.Value, metaData *model.MetaData) View
-	AfterArray(form *Form, field reflect.Value, metaData *model.MetaData) View
-
-	BeforeSlice(form *Form, field reflect.Value, metaData *model.MetaData) View
-	SliceField(form *Form, field reflect.Value, metaData *model.MetaData) View
-	AfterSlice(form *Form, field reflect.Value, metaData *model.MetaData) View
+	BeginSlice(form *Form, slice *model.MetaData) View
+	SliceField(form *Form, field *model.MetaData) View
+	EndSlice(form *Form, slice *model.MetaData) View
 }
 
 type FormFieldFactory interface {
@@ -49,6 +47,37 @@ type FormFieldFactory interface {
 	NewSubmitButton(form *Form, text string) View
 	NewAddSliceItemButton(form *Form) View
 	NewRemoveSliceItemButton(form *Form) View
+}
+
+type formLayoutStructVisitor struct {
+	FormLayout *FormLayout
+}
+
+func (self *formLayoutStructVisitor) BeginStruct(depth int, v reflect.Value) {
+}
+
+func (self *formLayoutStructVisitor) StructField(depth int, v reflect.Value, f reflect.StructField, index int) {
+}
+
+func (self *formLayoutStructVisitor) EndStruct(depth int, v reflect.Value) {
+}
+
+func (self *formLayoutStructVisitor) BeginSlice(depth int, v reflect.Value) {
+}
+
+func (self *formLayoutStructVisitor) SliceField(depth int, v reflect.Value, index int) {
+}
+
+func (self *formLayoutStructVisitor) EndSlice(depth int, v reflect.Value) {
+}
+
+func (self *formLayoutStructVisitor) BeginArray(depth int, v reflect.Value) {
+}
+
+func (self *formLayoutStructVisitor) ArrayField(depth int, v reflect.Value, index int) {
+}
+
+func (self *formLayoutStructVisitor) EndArray(depth int, v reflect.Value) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
