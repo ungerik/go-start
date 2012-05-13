@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"github.com/ungerik/go-start/utils"
 	"reflect"
 )
 
@@ -17,6 +18,14 @@ type Visitor interface {
 	BeginArray(array *MetaData)
 	ArrayField(field *MetaData)
 	EndArray(array *MetaData)
+}
+
+func Visit(model interface{}, visitor Visitor) {
+	utils.VisitStruct(model, &structVisitorWrapper{visitor: visitor})
+}
+
+func VisitMaxDepth(model interface{}, visitor Visitor, maxDepth int) {
+	utils.VisitStructDepth(model, &structVisitorWrapper{visitor: visitor}, maxDepth)
 }
 
 type structVisitorWrapper struct {
