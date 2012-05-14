@@ -93,15 +93,7 @@ Example:
 */
 func (self *MetaData) Attrib(name string) (value string, ok bool) {
 	if self.attribs == nil {
-		self.attribs = make(map[string]string)
-		for _, s := range strings.Split(self.tag, "|") {
-			pos := strings.Index(s, "=")
-			if pos == -1 {
-				self.attribs[s] = "true"
-			} else {
-				self.attribs[s[:pos]] = s[pos+1:]
-			}
-		}
+		self.attribs = ParseTagAttribs(self.tag)
 	}
 	value, ok = self.attribs[name]
 	return value, ok
@@ -143,4 +135,17 @@ func (self *MetaData) WildcardSelector() string {
 		m = m.Parent
 	}
 	return strings.Join(names, ".")
+}
+
+func ParseTagAttribs(tag string) map[string]string {
+	attribs := make(map[string]string)
+	for _, s := range strings.Split(tag, "|") {
+		pos := strings.Index(s, "=")
+		if pos == -1 {
+			attribs[s] = "true"
+		} else {
+			attribs[s[:pos]] = s[pos+1:]
+		}
+	}
+	return attribs
 }
