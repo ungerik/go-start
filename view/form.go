@@ -19,65 +19,80 @@ func FormModel(model interface{}) GetFormModelFunc {
 /*
 FormLayout is responsible for creating and structuring all dynamic content
 of the form including the submit button.
-It uses From.GetFieldFactory() to create the field views.
+It uses Form.GetFieldFactory() to create the field views.
 */
 type FormLayout interface {
-	BeginFormContent(form *Form) View
-	EndFormContent(form *Form) View
+	BeginFormContent() View
+	EndFormContent() View
 
-	BeginStruct(form *Form, strct *model.MetaData) View
-	StructField(form *Form, field *model.MetaData) View
-	EndStruct(form *Form, strct *model.MetaData) View
+	BeginStruct(strct *model.MetaData) View
+	StructField(field *model.MetaData) View
+	EndStruct(strct *model.MetaData) View
 
-	BeginArray(form *Form, array *model.MetaData) View
-	ArrayField(form *Form, field *model.MetaData) View
-	EndArray(form *Form, array *model.MetaData) View
+	BeginArray(array *model.MetaData) View
+	ArrayField(field *model.MetaData) View
+	EndArray(array *model.MetaData) View
 
-	BeginSlice(form *Form, slice *model.MetaData) View
-	SliceField(form *Form, field *model.MetaData) View
-	EndSlice(form *Form, slice *model.MetaData) View
+	BeginSlice(slice *model.MetaData) View
+	SliceField(field *model.MetaData) View
+	EndSlice(slice *model.MetaData) View
 }
 
 type FormFieldFactory interface {
-	NewInput(form *Form, field reflect.Value, metaData *model.MetaData) View
-	NewLabel(form *Form, forView View, field reflect.Value, metaData *model.MetaData) View
-	NewFieldErrorMessage(form *Form, message string, metaData *model.MetaData) View
-	NewFormErrorMessage(form *Form, message string) View
-	NewSuccessMessage(form *Form, message string) View
-	NewSubmitButton(form *Form, text string) View
-	NewAddSliceItemButton(form *Form) View
-	NewRemoveSliceItemButton(form *Form) View
+	Init(form *Form)
+	NewInput(metaData *model.MetaData) View
+	NewLabel(forView View, metaData *model.MetaData) View
+	NewFieldErrorMessage(message string, metaData *model.MetaData) View
+	NewFormErrorMessage(message string) View
+	NewSuccessMessage(message string) View
+	NewSubmitButton(text string) View
+	NewAddSliceItemButton() View
+	NewRemoveSliceItemButton() View
 }
 
 type formLayoutStructVisitor struct {
-	FormLayout *FormLayout
+	form       *Form
+	formLayout *FormLayout
+	formFields Views
 }
 
-func (self *formLayoutStructVisitor) BeginStruct(depth int, v reflect.Value) {
+func (self *formLayoutStructVisitor) BeginStruct(strct *MetaData) {
+	view := self.formLayout.BeginStruct(strct)
+	if view != nil {
+		self.formFields = append(self.formFields, view)
+	}
 }
 
-func (self *formLayoutStructVisitor) StructField(depth int, v reflect.Value, f reflect.StructField, index int) {
+func (self *formLayoutStructVisitor) StructField(field *MetaData) {
+
 }
 
-func (self *formLayoutStructVisitor) EndStruct(depth int, v reflect.Value) {
+func (self *formLayoutStructVisitor) EndStruct(strct *MetaData) {
+
 }
 
-func (self *formLayoutStructVisitor) BeginSlice(depth int, v reflect.Value) {
+func (self *formLayoutStructVisitor) BeginSlice(slice *MetaData) {
+
 }
 
-func (self *formLayoutStructVisitor) SliceField(depth int, v reflect.Value, index int) {
+func (self *formLayoutStructVisitor) SliceField(field *MetaData) {
+
 }
 
-func (self *formLayoutStructVisitor) EndSlice(depth int, v reflect.Value) {
+func (self *formLayoutStructVisitor) EndSlice(slice *MetaData) {
+
 }
 
-func (self *formLayoutStructVisitor) BeginArray(depth int, v reflect.Value) {
+func (self *formLayoutStructVisitor) BeginArray(array *MetaData) {
+
 }
 
-func (self *formLayoutStructVisitor) ArrayField(depth int, v reflect.Value, index int) {
+func (self *formLayoutStructVisitor) ArrayField(field *MetaData) {
+
 }
 
-func (self *formLayoutStructVisitor) EndArray(depth int, v reflect.Value) {
+func (self *formLayoutStructVisitor) EndArray(array *MetaData) {
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////

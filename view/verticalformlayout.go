@@ -37,48 +37,41 @@ DIV classes for coloring:
 
 */
 type VerticalFormLayout struct {
+	form *Form
 }
 
-func (self *VerticalFormLayout) BeginFormContent(form *Form) View {
-	return nil
+func (self *VerticalFormLayout) BeginStruct(strct *model.MetaData) {
+
 }
 
-func (self *VerticalFormLayout) EndFormContent(form *Form) View {
-	return nil
+func (self *VerticalFormLayout) StructField(field *model.MetaData) {
+
 }
 
-func (self *VerticalFormLayout) BeginStruct(form *Form, strct *model.MetaData) View {
-	return nil
+func (self *VerticalFormLayout) EndStruct(strct *model.MetaData) {
+
 }
 
-func (self *VerticalFormLayout) StructField(form *Form, field *model.MetaData) View {
-	return nil
+func (self *VerticalFormLayout) BeginSlice(slice *model.MetaData) {
+
 }
 
-func (self *VerticalFormLayout) EndStruct(form *Form, strct *model.MetaData) View {
-	return nil
+func (self *VerticalFormLayout) SliceField(field *model.MetaData) {
+
 }
 
-func (self *VerticalFormLayout) BeginArray(form *Form, array *model.MetaData) View {
-	return nil
+func (self *VerticalFormLayout) EndSlice(slice *model.MetaData) {
+
 }
 
-func (self *VerticalFormLayout) ArrayField(form *Form, field *model.MetaData) View {
-	return nil
+func (self *VerticalFormLayout) BeginArray(array *model.MetaData) {
+
 }
 
-func (self *VerticalFormLayout) EndArray(form *Form, array *model.MetaData) View {
-	return nil
+func (self *VerticalFormLayout) ArrayField(field *model.MetaData) {
+
 }
 
-func (self *VerticalFormLayout) BeginSlice(form *Form, slice *model.MetaData) View {
-	return nil
-}
+func (self *VerticalFormLayout) EndArray(array *model.MetaData) {
 
-func (self *VerticalFormLayout) SliceField(form *Form, field *model.MetaData) View {
-	return nil
-}
-
-func (self *VerticalFormLayout) EndSlice(form *Form, slice *model.MetaData) View {
-	return nil
 }
