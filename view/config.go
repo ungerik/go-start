@@ -20,7 +20,7 @@ type PageConfiguration struct {
 }
 
 type FormConfiguration struct {
-	DefaultLayout              model.Visitor
+	DefaultLayout              FormLayout
 	DefaultFieldFactory        FormFieldFactory
 	DefaultCSRFProtector       CSRFProtector
 	DefaultErrorMessageClass   string

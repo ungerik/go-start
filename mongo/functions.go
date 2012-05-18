@@ -153,20 +153,21 @@ func SortRefs(refs []Ref, lessFunc func(a, b *Ref) bool) {
 //}
 
 func InitRefs(document interface{}) {
-	model.WalkStructure(document, 0,
-		func(data *model.MetaData) {
-			if ref, ok := data.Value.Addr().Interface().(*Ref); ok && ref.CollectionName == "" {
-				m := data
-				if m.IsIndex() {
-					m = m.Parent
-				}
-				ref.CollectionName, ok = m.Attrib("to")
-				if !ok {
-					panic(data.Selector() + " is missing the 'to' meta-data tag")
-				}
-			}
-		},
-	)
+	// todo
+	// model.WalkStructure(document, 0,
+	// 	func(data *model.MetaData) {
+	// 		if ref, ok := data.Value.Addr().Interface().(*Ref); ok && ref.CollectionName == "" {
+	// 			m := data
+	// 			if m.IsIndex() {
+	// 				m = m.Parent
+	// 			}
+	// 			ref.CollectionName, ok = m.Attrib("to")
+	// 			if !ok {
+	// 				panic(data.Selector() + " is missing the 'to' meta-data tag")
+	// 			}
+	// 		}
+	// 	},
+	// )
 }
 
 // Returns an iterator of dereferenced refs, or an error iterator if there was an error

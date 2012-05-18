@@ -3,14 +3,14 @@ package view
 import (
 	"fmt"
 	"github.com/ungerik/go-start/model"
-	"reflect"
+	// "reflect"
 )
 
 type StandardFormFieldFactory struct {
 }
 
-func (self *StandardFormFieldFactory) NewInput(form *Form, field reflect.Value, metaData *model.MetaData) View {
-	data := field.Addr().Interface()
+func (self *StandardFormFieldFactory) NewInput(metaData *model.MetaData, form *Form) View {
+	data := metaData.Value.Addr().Interface()
 	if modelValue, ok := data.(model.Value); ok {
 		switch s := modelValue.(type) {
 		case *model.Bool:
@@ -200,7 +200,7 @@ func (self *StandardFormFieldFactory) NewInput(form *Form, field reflect.Value, 
 	return nil
 }
 
-func (self *StandardFormFieldFactory) NewLabel(form *Form, forView View, field reflect.Value, metaData *model.MetaData) View {
+func (self *StandardFormFieldFactory) NewLabel(forView View, metaData *model.MetaData, form *Form) View {
 	// todo add extra label for date/time
 	// HTML("(Format: "+model.DateFormat+")<br/>")
 	// HTML("(Format: "+model.DateTimeFormat+")<br/>")
@@ -211,19 +211,19 @@ func (self *StandardFormFieldFactory) NewLabel(form *Form, forView View, field r
 	return &Label{For: forView, Content: labelContent}
 }
 
-func (self *StandardFormFieldFactory) NewFieldErrorMessage(form *Form, message string, metaData *model.MetaData) View {
+func (self *StandardFormFieldFactory) NewFieldErrorMessage(message string, metaData *model.MetaData, form *Form) View {
 	return DIV(form.GetErrorMessageClass(), Escape(message))
 }
 
-func (self *StandardFormFieldFactory) NewFormErrorMessage(form *Form, message string) View {
+func (self *StandardFormFieldFactory) NewFormErrorMessage(message string, form *Form) View {
 	return DIV(form.GetErrorMessageClass(), Escape(message))
 }
 
-func (self *StandardFormFieldFactory) NewSuccessMessage(form *Form, message string) View {
+func (self *StandardFormFieldFactory) NewSuccessMessage(message string, form *Form) View {
 	return DIV(form.GetSuccessMessageClass(), Escape(message))
 }
 
-func (self *StandardFormFieldFactory) NewSubmitButton(form *Form, text string) View {
+func (self *StandardFormFieldFactory) NewSubmitButton(text string, form *Form) View {
 	return &Button{Class: form.GetSubmitButtonClass(), Submit: true, Value: text}
 }
 

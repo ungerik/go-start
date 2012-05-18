@@ -1,9 +1,9 @@
 package view
 
 import (
-	"fmt"
+	// "fmt"
 	"github.com/ungerik/go-start/model"
-	"reflect"
+	// "reflect"
 )
 
 /*
@@ -40,38 +40,46 @@ type VerticalFormLayout struct {
 	form *Form
 }
 
-func (self *VerticalFormLayout) BeginStruct(strct *model.MetaData) {
-
+func (self *VerticalFormLayout) BeginFormContent(form *Form, formFields Views) Views {
+	return formFields
 }
 
-func (self *VerticalFormLayout) StructField(field *model.MetaData) {
-
+func (self *VerticalFormLayout) EndFormContent(form *Form, formFields Views) Views {
+	return formFields
 }
 
-func (self *VerticalFormLayout) EndStruct(strct *model.MetaData) {
-
+func (self *VerticalFormLayout) BeginStruct(strct *model.MetaData, form *Form, formFields Views) Views {
+	return formFields
 }
 
-func (self *VerticalFormLayout) BeginSlice(slice *model.MetaData) {
-
+func (self *VerticalFormLayout) StructField(field *model.MetaData, form *Form, formFields Views) Views {
+	return formFields
 }
 
-func (self *VerticalFormLayout) SliceField(field *model.MetaData) {
-
+func (self *VerticalFormLayout) EndStruct(strct *model.MetaData, form *Form, formFields Views) Views {
+	return formFields
 }
 
-func (self *VerticalFormLayout) EndSlice(slice *model.MetaData) {
-
+func (self *VerticalFormLayout) BeginArray(array *model.MetaData, form *Form, formFields Views) Views {
+	return formFields
 }
 
-func (self *VerticalFormLayout) BeginArray(array *model.MetaData) {
-
+func (self *VerticalFormLayout) ArrayField(field *model.MetaData, form *Form, formFields Views) Views {
+	return formFields
 }
 
-func (self *VerticalFormLayout) ArrayField(field *model.MetaData) {
-
+func (self *VerticalFormLayout) EndArray(array *model.MetaData, form *Form, formFields Views) Views {
+	return formFields
 }
 
-func (self *VerticalFormLayout) EndArray(array *model.MetaData) {
+func (self *VerticalFormLayout) BeginSlice(slice *model.MetaData, form *Form, formFields Views) Views {
+	return formFields
+}
 
+func (self *VerticalFormLayout) SliceField(field *model.MetaData, form *Form, formFields Views) Views {
+	return formFields
+}
+
+func (self *VerticalFormLayout) EndSlice(slice *model.MetaData, form *Form, formFields Views) Views {
+	return formFields
 }
