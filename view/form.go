@@ -253,6 +253,16 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 			if err != nil {
 				return err
 			}
+
+			// hidden input vs removed
+			//if self.IsFieldHidden() {
+			// 	exit
+			// }
+
+			// if s.Hidden(metaData) {
+			// 	return &HiddenInput{Name: metaData.Selector(), Value: s.String()}
+			// }
+
 			//var lastParent *model.MetaData
 			model.WalkStructure(formModel, self.ModelMaxDepth,
 				func(data *model.MetaData) {
