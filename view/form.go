@@ -70,7 +70,7 @@ type Form struct {
 	// If redirect result is non nil, it will be used instead of Form.Redirect
 	OnSubmit            func(form *Form, formModel interface{}, context *Context) (redirect URL, err error)
 	ModelMaxDepth       int      // if zero, no depth limit
-	HideFields          []string // Use point notation for nested fields
+	ExcludeFields       []string // Use point notation for nested fields
 	DisableFields       []string // Use point notation for nested fields
 	RequireFields       []string // Also available as static struct field tag. Use point notation for nested fields
 	ErrorMessageClass   string   // If empty, Config.Form.DefaultErrorMessageClass will be used
@@ -212,7 +212,7 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 						selector := metaData.Selector()
 						arrayWildcardSelector := metaData.ArrayWildcardSelector()
 
-						if utils.StringIn(selector, self.HideFields) || utils.StringIn(arrayWildcardSelector, self.HideFields) {
+						if utils.StringIn(selector, self.ExcludeFields) || utils.StringIn(arrayWildcardSelector, self.ExcludeFields) {
 							return
 						}
 
