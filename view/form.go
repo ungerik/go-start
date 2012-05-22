@@ -285,28 +285,6 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 	var dynamicFields Views
 
 	if self.OnSubmit != nil {
-		// Determine if it's a POST request for this form:
-		// isPOST := false
-		// if context.Request.Method == "POST" {
-		// 	// Every HTML form gets an ID to allow more than one form per page:
-		// 	id, ok := context.Params["form_id"]
-		// 	if ok && id == self.FormID {
-		// 		isPOST = true
-		// 	}
-		// }
-
-		// Create views for form fields:
-
-		// Set a view before and after the form fields
-		// if there is an error or success message
-		// (won't be rendered if nil)
-		// Also add a hidden form field with the form id
-		// and a submit button
-		dynamicFields = make(Views, 1, 32)
-
-		// numValueErrors := 0
-		// generalErrors := []*model.ValidationError{}
-
 		var formModel interface{}
 
 		if self.GetModel != nil {
@@ -315,108 +293,65 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 				return err
 			}
 
-			// hidden input vs removed
-			//if self.IsFieldHidden() {
-			// 	exit
+			visitor := &formLayoutWrappingStructVisitor{
+				form:       self,
+				formLayout: self.GetLayout(),
+				context:    context,
+			}
+
+			model.Visit(formModel, visitor)
+
+			// hasErrors := numValueErrors > 0 || len(generalErrors) > 0
+
+			// if isPOST {
+			// 	var message string
+			// 	if hasErrors {
+			// 		message = "Form not saved because of invalid values! "
+			// 		for _, err := range generalErrors {
+			// 			message = message + err.WrappedError.Error() + ". "
+			// 		}
+			// 	} else {
+			// 		// Try to save the new form field values
+			// 		redirect, err := self.OnSubmit(self, formModel, context)
+			// 		if err == nil {
+			// 			message = self.SuccessMessage
+			// 			if redirect == nil {
+			// 				redirect = self.Redirect
+			// 			}
+			// 		} else {
+			// 			message = err.Error()
+			// 			hasErrors = true
+			// 		}
+
+			// 		// Redirect if saved without errors and redirect URL is set
+			// 		if !hasErrors && redirect != nil {
+			// 			return Redirect(redirect.URL(context))
+			// 		}
+			// 	}
+
+			// 	if hasErrors {
+			// 		dynamicFields[0] = DIV(self.GetErrorMessageClass(), Escape(message))
+			// 		if len(dynamicFields)-1 > Config.Form.NumFieldRepeatMessage {
+			// 			dynamicFields = append(dynamicFields, DIV(self.GetErrorMessageClass(), Escape(message)))
+			// 		}
+			// 	} else {
+			// 		dynamicFields[0] = DIV(self.GetSuccessMessageClass(), Escape(message))
+			// 		if len(dynamicFields)-1 > Config.Form.NumFieldRepeatMessage {
+			// 			dynamicFields = append(dynamicFields, DIV(self.GetSuccessMessageClass(), Escape(message)))
+			// 		}
+			// 	}
+
 			// }
 
-			// if s.Hidden(metaData) {
-			// 	return &HiddenInput{Name: metaData.Selector(), Value: s.String()}
+			// // Add submit button and form ID:
+			// buttonText := self.SubmitButtonText
+			// if buttonText == "" {
+			// 	buttonText = "Save"
 			// }
-
-			//var lastParent *model.MetaData
-			model.WalkStructure(formModel, self.ModelMaxDepth,
-				func(data *model.MetaData) {
-					// 	if modelValue, ok := data.Value.Addr().Interface().(model.Value); ok {
-					// 		selector := data.Selector()
-					// 		arrayWildcardSelector := data.WildcardSelector()
-
-					// 		if utils.StringIn(selector, self.HideFields) || utils.StringIn(arrayWildcardSelector, self.HideFields) {
-					// 			return
-					// 		}
-
-					// 		var valueErrors []*model.ValidationError
-					// 		if isPOST {
-					// 			formValue, ok := context.Params[selector]
-					// 			if b, isBool := modelValue.(*model.Bool); isBool {
-					// 				b.Set(formValue != "")
-					// 			} else if ok {
-					// 				err = modelValue.SetString(formValue)
-					// 				if err == nil {
-					// 					valueErrors = modelValue.Validate(data)
-					// 					if len(valueErrors) == 0 {
-					// 						if modelValue.IsEmpty() && self.isFieldRequiredSelectors(data, selector, arrayWildcardSelector) {
-					// 							valueErrors = []*model.ValidationError{model.NewRequiredValidationError(data)}
-					// 						}
-					// 					}
-					// 				} else {
-					// 					valueErrors = model.NewValidationErrors(err, data)
-					// 				}
-					// 				numValueErrors += len(valueErrors)
-					// 			}
-					// 		}
-
-					// 		dynamicFields = append(dynamicFields, self.GetLayout().NewField_old(self, modelValue, data, valueErrors))
-
-					// 	} else if validator, ok := data.Value.Interface().(model.Validator); ok {
-
-					// 		generalErrors = append(generalErrors, validator.Validate(data)...)
-
-					// 	}
-				},
-			)
+			// formId := &HiddenInput{Name: "form_id", Value: self.FormID}
+			// submitButton := self.GetFieldFactory().NewSubmitButton(self, buttonText)
+			// dynamicFields = append(dynamicFields, formId, submitButton)
 		}
-
-		// hasErrors := numValueErrors > 0 || len(generalErrors) > 0
-
-		// if isPOST {
-		// 	var message string
-		// 	if hasErrors {
-		// 		message = "Form not saved because of invalid values! "
-		// 		for _, err := range generalErrors {
-		// 			message = message + err.WrappedError.Error() + ". "
-		// 		}
-		// 	} else {
-		// 		// Try to save the new form field values
-		// 		redirect, err := self.OnSubmit(self, formModel, context)
-		// 		if err == nil {
-		// 			message = self.SuccessMessage
-		// 			if redirect == nil {
-		// 				redirect = self.Redirect
-		// 			}
-		// 		} else {
-		// 			message = err.Error()
-		// 			hasErrors = true
-		// 		}
-
-		// 		// Redirect if saved without errors and redirect URL is set
-		// 		if !hasErrors && redirect != nil {
-		// 			return Redirect(redirect.URL(context))
-		// 		}
-		// 	}
-
-		// 	if hasErrors {
-		// 		dynamicFields[0] = DIV(self.GetErrorMessageClass(), Escape(message))
-		// 		if len(dynamicFields)-1 > Config.Form.NumFieldRepeatMessage {
-		// 			dynamicFields = append(dynamicFields, DIV(self.GetErrorMessageClass(), Escape(message)))
-		// 		}
-		// 	} else {
-		// 		dynamicFields[0] = DIV(self.GetSuccessMessageClass(), Escape(message))
-		// 		if len(dynamicFields)-1 > Config.Form.NumFieldRepeatMessage {
-		// 			dynamicFields = append(dynamicFields, DIV(self.GetSuccessMessageClass(), Escape(message)))
-		// 		}
-		// 	}
-
-		// }
-
-		// // Add submit button and form ID:
-		// buttonText := self.SubmitButtonText
-		// if buttonText == "" {
-		// 	buttonText = "Save"
-		// }
-		// formId := &HiddenInput{Name: "form_id", Value: self.FormID}
-		// submitButton := self.GetFieldFactory().NewSubmitButton(self, buttonText)
-		// dynamicFields = append(dynamicFields, formId, submitButton)
 	}
 
 	// Render HTML form element

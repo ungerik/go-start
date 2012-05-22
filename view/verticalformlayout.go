@@ -68,9 +68,9 @@ func (self *VerticalFormLayout) StructField(field *model.MetaData, validationErr
 		label := fieldFactory.NewLabel(input, field, form)
 		views = append(views, label)
 	}
-	// for _, error := range errors {
-	// 	views = append(views)
-	// }
+	for _, err := range validationErrs {
+		views = append(views, fieldFactory.NewFieldErrorMessage(err.Error(), field, form))
+	}
 	views = append(views, input)
 	return append(formFields, P(views))
 }
