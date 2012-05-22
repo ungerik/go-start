@@ -54,23 +54,28 @@ func (self *VerticalFormLayout) BeginStruct(strct *model.MetaData, form *Form, f
 	return formFields
 }
 
-func (self *VerticalFormLayout) StructField(field *model.MetaData, form *Form, formFields Views) Views {
-	if field.Kind == model.ValueKind {
-		views := make(Views, 0, 2)
-		fieldFactory := form.GetFieldFactory()
-		input := fieldFactory.NewInput(field, form)
+func (self *VerticalFormLayout) StructField(field *model.MetaData, validationErrs []*model.ValidationError, form *Form, formFields Views) Views {
+	if field.Kind != model.ValueKind || form.IsFieldExcluded(field) {
+		return formFields
+	}
+	fieldFactory := form.GetFieldFactory()
+	if form.IsFieldHidden(field) {
+		return append(formFields, fieldFactory.NewHiddenInput(field, form))
+	}
+	views := make(Views, 0, 2)
+	input := fieldFactory.NewInput(field, form)
+	if self.FieldNeedsLabel(field, form) {
 		label := fieldFactory.NewLabel(input, field, form)
 		views = append(views, label)
-		// for _, error := range errors {
-		// 	views = append(views)
-		// }
-		views = append(views, input)
-		formFields = append(formFields, P(views))
 	}
-	return formFields
+	// for _, error := range errors {
+	// 	views = append(views)
+	// }
+	views = append(views, input)
+	return append(formFields, P(views))
 }
 
-func (self *VerticalFormLayout) EndStruct(strct *model.MetaData, form *Form, formFields Views) Views {
+func (self *VerticalFormLayout) EndStruct(strct *model.MetaData, validationErrs []*model.ValidationError, form *Form, formFields Views) Views {
 	return formFields
 }
 
@@ -78,14 +83,14 @@ func (self *VerticalFormLayout) BeginArray(array *model.MetaData, form *Form, fo
 	return formFields
 }
 
-func (self *VerticalFormLayout) ArrayField(field *model.MetaData, form *Form, formFields Views) Views {
+func (self *VerticalFormLayout) ArrayField(field *model.MetaData, validationErrs []*model.ValidationError, form *Form, formFields Views) Views {
 
-	return self.StructField(field, form, formFields) // todo replace
+	return self.StructField(field, validationErrs, form, formFields) // todo replace
 
 	return formFields
 }
 
-func (self *VerticalFormLayout) EndArray(array *model.MetaData, form *Form, formFields Views) Views {
+func (self *VerticalFormLayout) EndArray(array *model.MetaData, validationErrs []*model.ValidationError, form *Form, formFields Views) Views {
 	return formFields
 }
 
@@ -93,13 +98,21 @@ func (self *VerticalFormLayout) BeginSlice(slice *model.MetaData, form *Form, fo
 	return formFields
 }
 
-func (self *VerticalFormLayout) SliceField(field *model.MetaData, form *Form, formFields Views) Views {
+func (self *VerticalFormLayout) SliceField(field *model.MetaData, validationErrs []*model.ValidationError, form *Form, formFields Views) Views {
 
-	return self.StructField(field, form, formFields) // todo replace
+	return self.StructField(field, validationErrs, form, formFields) // todo replace
 
 	return formFields
 }
 
-func (self *VerticalFormLayout) EndSlice(slice *model.MetaData, form *Form, formFields Views) Views {
+func (self *VerticalFormLayout) EndSlice(slice *model.MetaData, validationErrs []*model.ValidationError, form *Form, formFields Views) Views {
 	return formFields
+}
+
+func (self *VerticalFormLayout) FieldNeedsLabel(field *model.MetaData, form *Form) bool {
+	switch field.Value.Addr().Interface().(type) {
+	case *model.Bool:
+		return false
+	}
+	return true
 }

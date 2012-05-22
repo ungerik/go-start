@@ -168,6 +168,13 @@ func (self *StandardFormFieldFactory) NewInput(metaData *model.MetaData, form *F
 	panic(fmt.Sprintf("Unsupported model.Value type %T", metaData.Value.Addr().Interface()))
 }
 
+func (self *StandardFormFieldFactory) NewHiddenInput(metaData *model.MetaData, form *Form) View {
+	return &HiddenInput{
+		Name:  metaData.Selector(),
+		Value: fmt.Sprintf("%v", metaData.Value.Interface()),
+	}
+}
+
 func (self *StandardFormFieldFactory) NewLabel(forView View, metaData *model.MetaData, form *Form) View {
 	// todo add extra label for date/time
 	// HTML("(Format: "+model.DateFormat+")<br/>")
