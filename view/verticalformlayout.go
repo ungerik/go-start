@@ -45,7 +45,9 @@ func (self *VerticalFormLayout) BeginFormContent(form *Form, formFields Views) V
 }
 
 func (self *VerticalFormLayout) EndFormContent(form *Form, formFields Views) Views {
-	return formFields
+	formId := &HiddenInput{Name: "form_id", Value: form.FormID}
+	submitButton := form.GetFieldFactory().NewSubmitButton(form.GetSubmitButtonText(), form)
+	return append(formFields, formId, submitButton)
 }
 
 func (self *VerticalFormLayout) BeginStruct(strct *model.MetaData, form *Form, formFields Views) Views {
@@ -53,6 +55,18 @@ func (self *VerticalFormLayout) BeginStruct(strct *model.MetaData, form *Form, f
 }
 
 func (self *VerticalFormLayout) StructField(field *model.MetaData, form *Form, formFields Views) Views {
+	if field.Kind == model.ValueKind {
+		views := make(Views, 0, 2)
+		fieldFactory := form.GetFieldFactory()
+		input := fieldFactory.NewInput(field, form)
+		label := fieldFactory.NewLabel(input, field, form)
+		views = append(views, label)
+		// for _, error := range errors {
+		// 	views = append(views)
+		// }
+		views = append(views, input)
+		formFields = append(formFields, P(views))
+	}
 	return formFields
 }
 
@@ -65,6 +79,9 @@ func (self *VerticalFormLayout) BeginArray(array *model.MetaData, form *Form, fo
 }
 
 func (self *VerticalFormLayout) ArrayField(field *model.MetaData, form *Form, formFields Views) Views {
+
+	return self.StructField(field, form, formFields) // todo replace
+
 	return formFields
 }
 
@@ -77,6 +94,9 @@ func (self *VerticalFormLayout) BeginSlice(slice *model.MetaData, form *Form, fo
 }
 
 func (self *VerticalFormLayout) SliceField(field *model.MetaData, form *Form, formFields Views) Views {
+
+	return self.StructField(field, form, formFields) // todo replace
+
 	return formFields
 }
 

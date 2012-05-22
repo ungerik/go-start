@@ -180,6 +180,15 @@ func (self *Form) GetRequiredMarker() View {
 	return self.RequiredMarker
 }
 
+// Returns self.SubmitButtonText if not empty,
+// else Config.Form.DefaultSubmitButtonText
+func (self *Form) GetSubmitButtonText() string {
+	if self.SubmitButtonText == "" {
+		return Config.Form.DefaultSubmitButtonText
+	}
+	return self.SubmitButtonText
+}
+
 func (self *Form) IterateChildren(callback IterateChildrenCallback) {
 	if self.StaticContent != nil {
 		callback(self, self.StaticContent)

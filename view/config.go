@@ -26,6 +26,7 @@ type FormConfiguration struct {
 	DefaultErrorMessageClass   string
 	DefaultSuccessMessageClass string
 	DefaultSubmitButtonClass   string
+	DefaultSubmitButtonText    string
 	DefaultRequiredMarker      View
 	NumFieldRepeatMessage      int
 }
@@ -68,6 +69,7 @@ var Config Configuration = Configuration{
 		DefaultLayout:              new(VerticalFormLayout),
 		DefaultFieldFactory:        new(StandardFormFieldFactory),
 		DefaultCSRFProtector:       nil,
+		DefaultSubmitButtonText:    "Save",
 		DefaultErrorMessageClass:   "error",
 		DefaultSuccessMessageClass: "success",
 		DefaultRequiredMarker:      HTML("<span class='required'>*</span>"),
