@@ -37,16 +37,19 @@ DIV classes for coloring:
 
 */
 type VerticalFormLayout struct {
-	form *Form
 }
 
 func (self *VerticalFormLayout) BeginFormContent(form *Form, formFields Views) Views {
 	return formFields
 }
 
-func (self *VerticalFormLayout) EndFormContent(form *Form, formFields Views) Views {
+func (self *VerticalFormLayout) EndFormContent(fieldValidationErrs, generalValidationErrs []*model.ValidationError, form *Form, formFields Views) Views {
+	fieldFactory := form.GetFieldFactory()
+	for _, err := range generalValidationErrs {
+		formFields = append(formFields, fieldFactory.NewGeneralErrorMessage(err.Error(), form))
+	}
 	formId := &HiddenInput{Name: "form_id", Value: form.FormID}
-	submitButton := form.GetFieldFactory().NewSubmitButton(form.GetSubmitButtonText(), form)
+	submitButton := fieldFactory.NewSubmitButton(form.GetSubmitButtonText(), form)
 	return append(formFields, formId, submitButton)
 }
 

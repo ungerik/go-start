@@ -23,7 +23,7 @@ It uses Form.GetFieldFactory() to create the field views.
 */
 type FormLayout interface {
 	BeginFormContent(form *Form, formFields Views) Views
-	EndFormContent(form *Form, formFields Views) Views
+	EndFormContent(fieldValidationErrs, generalValidationErrs []*model.ValidationError, form *Form, formFields Views) Views
 
 	BeginStruct(strct *model.MetaData, form *Form, formFields Views) Views
 	StructField(field *model.MetaData, validationErrs []*model.ValidationError, form *Form, formFields Views) Views
@@ -44,87 +44,13 @@ type FormFieldFactory interface {
 	NewInput(metaData *model.MetaData, form *Form) View
 	NewHiddenInput(metaData *model.MetaData, form *Form) View
 	NewLabel(forView View, metaData *model.MetaData, form *Form) View
+	NewFieldDescrtiption(description string, form *Form) View
 	NewFieldErrorMessage(message string, metaData *model.MetaData, form *Form) View
-	NewFormErrorMessage(message string, form *Form) View
+	NewGeneralErrorMessage(message string, form *Form) View
 	NewSuccessMessage(message string, form *Form) View
 	NewSubmitButton(text string, form *Form) View
 	NewAddSliceItemButton(form *Form) View
 	NewRemoveSliceItemButton(form *Form) View
-}
-
-type formLayoutWrappingStructVisitor struct {
-	form       *Form
-	formLayout FormLayout
-	context    *Context
-	formFields Views
-}
-
-func (self *formLayoutWrappingStructVisitor) setFieldValue(field *model.MetaData) []*model.ValidationError {
-	if field.Kind != model.ValueKind || self.context.Request.Method != "POST" {
-		return nil
-	}
-	postValue, _ := self.context.Params[field.Selector()]
-	switch s := field.Value.Addr().Interface().(type) {
-	case *model.Bool:
-		s.Set(postValue != "")
-		return nil
-	case model.Value:
-		err := s.SetString(postValue)
-		if err != nil {
-			return model.NewValidationErrors(err, field)
-		}
-		return s.Validate(field)
-	}
-	panic("Unknown form field type")
-}
-
-func (self *formLayoutWrappingStructVisitor) validate(data *model.MetaData) []*model.ValidationError {
-	if validator, ok := data.Value.Addr().Interface().(model.Validator); ok {
-		return validator.Validate(data)
-	}
-	return nil
-}
-
-func (self *formLayoutWrappingStructVisitor) BeginStruct(strct *model.MetaData) {
-	self.formFields = self.formLayout.BeginStruct(strct, self.form, self.formFields)
-}
-
-func (self *formLayoutWrappingStructVisitor) StructField(field *model.MetaData) {
-	validationErrs := self.setFieldValue(field)
-	self.formFields = self.formLayout.StructField(field, validationErrs, self.form, self.formFields)
-}
-
-func (self *formLayoutWrappingStructVisitor) EndStruct(strct *model.MetaData) {
-	validationErrs := self.validate(strct)
-	self.formFields = self.formLayout.EndStruct(strct, validationErrs, self.form, self.formFields)
-}
-
-func (self *formLayoutWrappingStructVisitor) BeginSlice(slice *model.MetaData) {
-	self.formFields = self.formLayout.BeginSlice(slice, self.form, self.formFields)
-}
-
-func (self *formLayoutWrappingStructVisitor) SliceField(field *model.MetaData) {
-	validationErrs := self.setFieldValue(field)
-	self.formFields = self.formLayout.SliceField(field, validationErrs, self.form, self.formFields)
-}
-
-func (self *formLayoutWrappingStructVisitor) EndSlice(slice *model.MetaData) {
-	validationErrs := self.validate(slice)
-	self.formFields = self.formLayout.EndSlice(slice, validationErrs, self.form, self.formFields)
-}
-
-func (self *formLayoutWrappingStructVisitor) BeginArray(array *model.MetaData) {
-	self.formFields = self.formLayout.BeginArray(array, self.form, self.formFields)
-}
-
-func (self *formLayoutWrappingStructVisitor) ArrayField(field *model.MetaData) {
-	validationErrs := self.setFieldValue(field)
-	self.formFields = self.formLayout.ArrayField(field, validationErrs, self.form, self.formFields)
-}
-
-func (self *formLayoutWrappingStructVisitor) EndArray(array *model.MetaData) {
-	validationErrs := self.validate(array)
-	self.formFields = self.formLayout.EndArray(array, validationErrs, self.form, self.formFields)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -144,20 +70,22 @@ type Form struct {
 	StaticContent View
 	GetModel      GetFormModelFunc
 	// If redirect result is non nil, it will be used instead of Form.Redirect
-	OnSubmit            func(form *Form, formModel interface{}, context *Context) (redirect URL, err error)
-	ModelMaxDepth       int      // if zero, no depth limit
-	ExcludedFields      []string // Use point notation for nested fields
-	HiddenFields        []string // Use point notation for nested fields
-	DisabledFields      []string // Use point notation for nested fields
-	RequiredFields      []string // Also available as static struct field tag. Use point notation for nested fields
-	ErrorMessageClass   string   // If empty, Config.Form.DefaultErrorMessageClass will be used
-	SuccessMessageClass string   // If empty, Config.Form.DefaultSuccessMessageClass will be used
-	RequiredMarker      View     // If nil, Config.Form.DefaultRequiredMarker will be used
-	SuccessMessage      string
-	SubmitButtonText    string
-	SubmitButtonClass   string
-	Redirect            URL // 302 redirect after successful Save()
-	ShowRefIDs          bool
+	OnSubmit              func(form *Form, formModel interface{}, context *Context) (redirect URL, err error)
+	ModelMaxDepth         int      // if zero, no depth limit
+	ExcludedFields        []string // Use point notation for nested fields
+	HiddenFields          []string // Use point notation for nested fields
+	DisabledFields        []string // Use point notation for nested fields
+	RequiredFields        []string // Also available as static struct field tag. Use point notation for nested fields
+	FieldDescriptions     map[string]string
+	ErrorMessageClass     string // If empty, Config.Form.DefaultErrorMessageClass will be used
+	SuccessMessageClass   string // If empty, Config.Form.DefaultSuccessMessageClass will be used
+	FieldDescriptionClass string
+	RequiredMarker        View // If nil, Config.Form.DefaultRequiredMarker will be used
+	SuccessMessage        string
+	SubmitButtonText      string
+	SubmitButtonClass     string
+	Redirect              URL // 302 redirect after successful Save()
+	ShowRefIDs            bool
 
 	UseNewFormMode bool
 }
@@ -208,6 +136,13 @@ func (self *Form) GetSubmitButtonClass() string {
 		return Config.Form.DefaultSubmitButtonClass
 	}
 	return self.SubmitButtonClass
+}
+
+func (self *Form) GetFieldDescriptionClass() string {
+	if self.FieldDescriptionClass == "" {
+		return Config.Form.DefaultFieldDescriptionClass
+	}
+	return self.FieldDescriptionClass
 }
 
 func (self *Form) GetRequiredMarker() View {
@@ -270,6 +205,21 @@ func (self *Form) IsFieldExcluded(metaData *model.MetaData) bool {
 	selector := metaData.Selector()
 	wildcardSelector := metaData.WildcardSelector()
 	return utils.StringIn(selector, self.ExcludedFields) || utils.StringIn(wildcardSelector, self.ExcludedFields)
+}
+
+func (self *Form) GetFieldDescription(metaData *model.MetaData) string {
+	selector := metaData.Selector()
+	if desc, ok := self.FieldDescriptions[selector]; ok {
+		return desc
+	}
+	wildcardSelector := metaData.WildcardSelector()
+	if desc, ok := self.FieldDescriptions[wildcardSelector]; ok {
+		return desc
+	}
+	if desc, ok := metaData.Attrib("description"); ok {
+		return desc
+	}
+	return ""
 }
 
 func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) {
@@ -563,4 +513,96 @@ func (self *Form) FieldLabel(metaData *model.MetaData) string {
 func (self *Form) FieldInputClass(metaData *model.MetaData) string {
 	class, _ := metaData.Attrib("class")
 	return class
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// formLayoutWrappingStructVisitor
+
+type formLayoutWrappingStructVisitor struct {
+	form       *Form
+	formLayout FormLayout
+	context    *Context
+
+	formFields              Views
+	fieldValidationErrors   []*model.ValidationError
+	generalValidationErrors []*model.ValidationError
+}
+
+func (self *formLayoutWrappingStructVisitor) setFieldValue(field *model.MetaData) (errs []*model.ValidationError) {
+	if field.Kind != model.ValueKind || self.context.Request.Method != "POST" {
+		return nil
+	}
+	postValue, _ := self.context.Params[field.Selector()]
+
+	switch s := field.Value.Addr().Interface().(type) {
+	case *model.Bool:
+		s.Set(postValue != "")
+		// model.Bool doesn't have validation
+	case model.Value:
+		err := s.SetString(postValue)
+		if err == nil {
+			errs = s.Validate(field)
+		} else {
+			errs = model.NewValidationErrors(err, field)
+		}
+	default:
+		panic("Unknown form field type")
+	}
+
+	if len(errs) > 0 {
+		self.generalValidationErrors = append(self.generalValidationErrors, errs...)
+	}
+	return errs
+}
+
+func (self *formLayoutWrappingStructVisitor) validate(data *model.MetaData) (errs []*model.ValidationError) {
+	if validator, ok := data.Value.Addr().Interface().(model.Validator); ok {
+		errs = validator.Validate(data)
+		if len(errs) > 0 {
+			self.generalValidationErrors = append(self.generalValidationErrors, errs...)
+		}
+	}
+	return errs
+}
+
+func (self *formLayoutWrappingStructVisitor) BeginStruct(strct *model.MetaData) {
+	self.formFields = self.formLayout.BeginStruct(strct, self.form, self.formFields)
+}
+
+func (self *formLayoutWrappingStructVisitor) StructField(field *model.MetaData) {
+	validationErrs := self.setFieldValue(field)
+	self.formFields = self.formLayout.StructField(field, validationErrs, self.form, self.formFields)
+}
+
+func (self *formLayoutWrappingStructVisitor) EndStruct(strct *model.MetaData) {
+	validationErrs := self.validate(strct)
+	self.formFields = self.formLayout.EndStruct(strct, validationErrs, self.form, self.formFields)
+}
+
+func (self *formLayoutWrappingStructVisitor) BeginSlice(slice *model.MetaData) {
+	self.formFields = self.formLayout.BeginSlice(slice, self.form, self.formFields)
+}
+
+func (self *formLayoutWrappingStructVisitor) SliceField(field *model.MetaData) {
+	validationErrs := self.setFieldValue(field)
+	self.formFields = self.formLayout.SliceField(field, validationErrs, self.form, self.formFields)
+}
+
+func (self *formLayoutWrappingStructVisitor) EndSlice(slice *model.MetaData) {
+	validationErrs := self.validate(slice)
+	self.formFields = self.formLayout.EndSlice(slice, validationErrs, self.form, self.formFields)
+}
+
+func (self *formLayoutWrappingStructVisitor) BeginArray(array *model.MetaData) {
+	self.formFields = self.formLayout.BeginArray(array, self.form, self.formFields)
+}
+
+func (self *formLayoutWrappingStructVisitor) ArrayField(field *model.MetaData) {
+	validationErrs := self.setFieldValue(field)
+	self.formFields = self.formLayout.ArrayField(field, validationErrs, self.form, self.formFields)
+}
+
+func (self *formLayoutWrappingStructVisitor) EndArray(array *model.MetaData) {
+	validationErrs := self.validate(array)
+	self.formFields = self.formLayout.EndArray(array, validationErrs, self.form, self.formFields)
 }

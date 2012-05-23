@@ -186,11 +186,15 @@ func (self *StandardFormFieldFactory) NewLabel(forView View, metaData *model.Met
 	return &Label{For: forView, Content: labelContent}
 }
 
+func (self *StandardFormFieldFactory) NewFieldDescrtiption(description string, form *Form) View {
+	return DIV(form.GetFieldDescriptionClass(), Escape(description))
+}
+
 func (self *StandardFormFieldFactory) NewFieldErrorMessage(message string, metaData *model.MetaData, form *Form) View {
 	return DIV(form.GetErrorMessageClass(), Escape(message))
 }
 
-func (self *StandardFormFieldFactory) NewFormErrorMessage(message string, form *Form) View {
+func (self *StandardFormFieldFactory) NewGeneralErrorMessage(message string, form *Form) View {
 	return DIV(form.GetErrorMessageClass(), Escape(message))
 }
 

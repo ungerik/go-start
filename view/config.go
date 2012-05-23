@@ -20,15 +20,16 @@ type PageConfiguration struct {
 }
 
 type FormConfiguration struct {
-	DefaultLayout              FormLayout
-	DefaultFieldFactory        FormFieldFactory
-	DefaultCSRFProtector       CSRFProtector
-	DefaultErrorMessageClass   string
-	DefaultSuccessMessageClass string
-	DefaultSubmitButtonClass   string
-	DefaultSubmitButtonText    string
-	DefaultRequiredMarker      View
-	NumFieldRepeatMessage      int
+	DefaultLayout                FormLayout
+	DefaultFieldFactory          FormFieldFactory
+	DefaultCSRFProtector         CSRFProtector
+	DefaultErrorMessageClass     string
+	DefaultSuccessMessageClass   string
+	DefaultSubmitButtonClass     string
+	DefaultFieldDescriptionClass string
+	DefaultSubmitButtonText      string
+	DefaultRequiredMarker        View
+	NumFieldRepeatMessage        int
 }
 
 type Configuration struct {
@@ -66,14 +67,15 @@ var Config Configuration = Configuration{
 		//DefaultWriteScripts: JQuery,
 	},
 	Form: FormConfiguration{
-		DefaultLayout:              new(VerticalFormLayout),
-		DefaultFieldFactory:        new(StandardFormFieldFactory),
-		DefaultCSRFProtector:       nil,
-		DefaultSubmitButtonText:    "Save",
-		DefaultErrorMessageClass:   "error",
-		DefaultSuccessMessageClass: "success",
-		DefaultRequiredMarker:      HTML("<span class='required'>*</span>"),
-		NumFieldRepeatMessage:      6,
+		DefaultLayout:                new(VerticalFormLayout),
+		DefaultFieldFactory:          new(StandardFormFieldFactory),
+		DefaultCSRFProtector:         nil,
+		DefaultSubmitButtonText:      "Save",
+		DefaultErrorMessageClass:     "error",
+		DefaultSuccessMessageClass:   "success",
+		DefaultFieldDescriptionClass: "description",
+		DefaultRequiredMarker:        HTML("<span class='required'>*</span>"),
+		//NumFieldRepeatMessage:        6,
 	},
 	BaseDirs:         []string{"."},
 	StaticDirs:       []string{"static"},    // every StaticDir will be appended to every BaseDir to search for static files
