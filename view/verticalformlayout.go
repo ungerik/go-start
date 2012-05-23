@@ -43,6 +43,14 @@ func (self *VerticalFormLayout) BeginFormContent(form *Form, formFields Views) V
 	return formFields
 }
 
+func (self *VerticalFormLayout) SubmitSuccess(message string, form *Form, formFields Views) Views {
+	return append(formFields, form.GetFieldFactory().NewSuccessMessage(message, form))
+}
+
+func (self *VerticalFormLayout) SubmitError(message string, form *Form, formFields Views) Views {
+	return append(formFields, form.GetFieldFactory().NewGeneralErrorMessage(message, form))
+}
+
 func (self *VerticalFormLayout) EndFormContent(fieldValidationErrs, generalValidationErrs []*model.ValidationError, form *Form, formFields Views) Views {
 	fieldFactory := form.GetFieldFactory()
 	for _, err := range generalValidationErrs {
@@ -67,7 +75,7 @@ func (self *VerticalFormLayout) StructField(field *model.MetaData, validationErr
 	}
 	views := make(Views, 0, 2)
 	input := fieldFactory.NewInput(field, form)
-	if self.FieldNeedsLabel(field, form) {
+	if self.fieldNeedsLabel(field) {
 		label := fieldFactory.NewLabel(input, field, form)
 		views = append(views, label)
 	}
@@ -112,7 +120,7 @@ func (self *VerticalFormLayout) EndSlice(slice *model.MetaData, validationErrs [
 	return formFields
 }
 
-func (self *VerticalFormLayout) FieldNeedsLabel(field *model.MetaData, form *Form) bool {
+func (self *VerticalFormLayout) fieldNeedsLabel(field *model.MetaData) bool {
 	switch field.Value.Addr().Interface().(type) {
 	case *model.Bool:
 		return false

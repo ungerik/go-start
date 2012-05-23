@@ -23,6 +23,14 @@ It uses Form.GetFieldFactory() to create the field views.
 */
 type FormLayout interface {
 	BeginFormContent(form *Form, formFields Views) Views
+	// SubmitSuccess will be called before EndFormContent if there were no
+	// validation errors of the posted form data and Form.OnSubmit has
+	// not returned an error.
+	SubmitSuccess(message string, form *Form, formFields Views) Views
+	// SubmitError will be called before EndFormContent if there were no
+	// validation errors of the posted form data and Form.OnSubmit has
+	// returned an error.
+	SubmitError(message string, form *Form, formFields Views) Views
 	EndFormContent(fieldValidationErrs, generalValidationErrs []*model.ValidationError, form *Form, formFields Views) Views
 
 	BeginStruct(strct *model.MetaData, form *Form, formFields Views) Views
@@ -36,8 +44,6 @@ type FormLayout interface {
 	BeginSlice(slice *model.MetaData, form *Form, formFields Views) Views
 	SliceField(field *model.MetaData, validationErrs []*model.ValidationError, form *Form, formFields Views) Views
 	EndSlice(slice *model.MetaData, validationErrs []*model.ValidationError, form *Form, formFields Views) Views
-
-	FieldNeedsLabel(field *model.MetaData, form *Form) bool
 }
 
 type FormFieldFactory interface {
@@ -65,12 +71,16 @@ type Form struct {
 	CSRFProtector CSRFProtector
 	Layout        FormLayout       // Config.DefaultFormLayout will be used if nil
 	FieldFactory  FormFieldFactory // Config.DefaultFormFieldFactory will be used if nil
-	// Static content rendered before the dynamic form fields
-	// that are generated via GetModel()
-	StaticContent View
 	GetModel      GetFormModelFunc
-	// If redirect result is non nil, it will be used instead of Form.Redirect
-	OnSubmit              func(form *Form, formModel interface{}, context *Context) (redirect URL, err error)
+
+	// OnSubmit is called after the form was submitted and did not produce any
+	// validation errors.
+	// If successMessage is non empty, it will be displayed instead of
+	// Form.SuccessMessage.
+	// If redirect result is not nil, it will be used instead of Form.Redirect.
+	// A success message will only be visible, if there is no redirect.
+	OnSubmit func(form *Form, formModel interface{}, context *Context) (successMessage string, redirect URL, err error)
+
 	ModelMaxDepth         int      // if zero, no depth limit
 	ExcludedFields        []string // Use point notation for nested fields
 	HiddenFields          []string // Use point notation for nested fields
@@ -86,8 +96,6 @@ type Form struct {
 	SubmitButtonClass     string
 	Redirect              URL // 302 redirect after successful Save()
 	ShowRefIDs            bool
-
-	UseNewFormMode bool
 }
 
 // GetLayout returns self.Layout if not nil,
@@ -161,12 +169,6 @@ func (self *Form) GetSubmitButtonText() string {
 	return self.SubmitButtonText
 }
 
-func (self *Form) IterateChildren(callback IterateChildrenCallback) {
-	if self.StaticContent != nil {
-		callback(self, self.StaticContent)
-	}
-}
-
 func (self *Form) IsFieldRequired(metaData *model.MetaData) bool {
 	if metaData.BoolAttrib("required") {
 		return true
@@ -232,75 +234,27 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		panic("view.Form.GetFieldFactory() returned nil")
 	}
 
-	var dynamicFields Views
+	var formFields Views
 
 	if self.OnSubmit != nil {
-		var formModel interface{}
-
 		if self.GetModel != nil {
-			formModel, err = self.GetModel(self, context)
+			formModel, err := self.GetModel(self, context)
 			if err != nil {
 				return err
 			}
 
+			layout := self.GetLayout()
+
 			visitor := &formLayoutWrappingStructVisitor{
 				form:       self,
-				formLayout: self.GetLayout(),
+				formLayout: layout,
+				formModel:  formModel,
 				context:    context,
 			}
 
 			model.Visit(formModel, visitor)
 
-			// hasErrors := numValueErrors > 0 || len(generalErrors) > 0
-
-			// if isPOST {
-			// 	var message string
-			// 	if hasErrors {
-			// 		message = "Form not saved because of invalid values! "
-			// 		for _, err := range generalErrors {
-			// 			message = message + err.WrappedError.Error() + ". "
-			// 		}
-			// 	} else {
-			// 		// Try to save the new form field values
-			// 		redirect, err := self.OnSubmit(self, formModel, context)
-			// 		if err == nil {
-			// 			message = self.SuccessMessage
-			// 			if redirect == nil {
-			// 				redirect = self.Redirect
-			// 			}
-			// 		} else {
-			// 			message = err.Error()
-			// 			hasErrors = true
-			// 		}
-
-			// 		// Redirect if saved without errors and redirect URL is set
-			// 		if !hasErrors && redirect != nil {
-			// 			return Redirect(redirect.URL(context))
-			// 		}
-			// 	}
-
-			// 	if hasErrors {
-			// 		dynamicFields[0] = DIV(self.GetErrorMessageClass(), Escape(message))
-			// 		if len(dynamicFields)-1 > Config.Form.NumFieldRepeatMessage {
-			// 			dynamicFields = append(dynamicFields, DIV(self.GetErrorMessageClass(), Escape(message)))
-			// 		}
-			// 	} else {
-			// 		dynamicFields[0] = DIV(self.GetSuccessMessageClass(), Escape(message))
-			// 		if len(dynamicFields)-1 > Config.Form.NumFieldRepeatMessage {
-			// 			dynamicFields = append(dynamicFields, DIV(self.GetSuccessMessageClass(), Escape(message)))
-			// 		}
-			// 	}
-
-			// }
-
-			// // Add submit button and form ID:
-			// buttonText := self.SubmitButtonText
-			// if buttonText == "" {
-			// 	buttonText = "Save"
-			// }
-			// formId := &HiddenInput{Name: "form_id", Value: self.FormID}
-			// submitButton := self.GetFieldFactory().NewSubmitButton(self, buttonText)
-			// dynamicFields = append(dynamicFields, formId, submitButton)
+			formFields = visitor.formFields
 		}
 	}
 
@@ -320,13 +274,9 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 	writer.OpenTag("form").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	writer.Attrib("method", method)
 	writer.Attrib("action", action)
-	err = RenderChildViewsHTML(self, context, writer)
-	if err != nil {
-		return err
-	}
-	if dynamicFields != nil {
-		dynamicFields.Init(dynamicFields)
-		err = dynamicFields.Render(context, writer)
+	if len(formFields) > 0 {
+		formFields.Init(formFields)
+		err = formFields.Render(context, writer)
 		if err != nil {
 			return err
 		}
@@ -334,168 +284,6 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 	writer.ExtraCloseTag() // form
 	return nil
 }
-
-// func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) {
-// 	if self.UseNewFormMode {
-// 		return self.newRender(context, writer)
-// 	}
-
-// 	var dynamicFields Views
-
-// 	if self.OnSubmit != nil {
-// 		// Determine if it's a POST request for this form:
-// 		isPOST := false
-// 		if context.Request.Method == "POST" {
-// 			// Every HTML form gets an ID to allow more than one form per page:
-// 			id, ok := context.Params["form_id"]
-// 			if ok && id == self.FormID {
-// 				isPOST = true
-// 			}
-// 		}
-
-// 		// Create views for form fields:
-
-// 		// Set a view before and after the form fields
-// 		// if there is an error or success message
-// 		// (won't be rendered if nil)
-// 		// Also add a hidden form field with the form id
-// 		// and a submit button
-// 		dynamicFields = make(Views, 1, 32)
-
-// 		numValueErrors := 0
-// 		generalErrors := []*model.ValidationError{}
-
-// 		var formModel interface{}
-
-// 		if self.GetModel != nil {
-// 			formModel, err = self.GetModel(self, context)
-// 			if err != nil {
-// 				return err
-// 			}
-// 			model.WalkStructure(formModel, self.ModelMaxDepth,
-// 				func(data *model.MetaData) {
-// 					if modelValue, ok := data.Value.Addr().Interface().(model.Value); ok {
-// 						selector := data.Selector()
-// 						arrayWildcardSelector := data.WildcardSelector()
-
-// 						if utils.StringIn(selector, self.HideFields) || utils.StringIn(arrayWildcardSelector, self.HideFields) {
-// 							return
-// 						}
-
-// 						var valueErrors []*model.ValidationError
-// 						if isPOST {
-// 							formValue, ok := context.Params[selector]
-// 							if b, isBool := modelValue.(*model.Bool); isBool {
-// 								b.Set(formValue != "")
-// 							} else if ok {
-// 								err = modelValue.SetString(formValue)
-// 								if err == nil {
-// 									valueErrors = modelValue.Validate(data)
-// 									if len(valueErrors) == 0 {
-// 										if modelValue.IsEmpty() && self.isFieldRequiredSelectors(data, selector, arrayWildcardSelector) {
-// 											valueErrors = []*model.ValidationError{model.NewRequiredValidationError(data)}
-// 										}
-// 									}
-// 								} else {
-// 									valueErrors = model.NewValidationErrors(err, data)
-// 								}
-// 								numValueErrors += len(valueErrors)
-// 							}
-// 						}
-
-// 						dynamicFields = append(dynamicFields, self.GetLayout().NewField_old(self, modelValue, data, valueErrors))
-
-// 					} else if validator, ok := data.Value.Interface().(model.Validator); ok {
-
-// 						generalErrors = append(generalErrors, validator.Validate(data)...)
-
-// 					}
-// 				},
-// 			)
-// 		}
-
-// 		hasErrors := numValueErrors > 0 || len(generalErrors) > 0
-
-// 		if isPOST {
-// 			var message string
-// 			if hasErrors {
-// 				message = "Form not saved because of invalid values! "
-// 				for _, err := range generalErrors {
-// 					message = message + err.WrappedError.Error() + ". "
-// 				}
-// 			} else {
-// 				// Try to save the new form field values
-// 				redirect, err := self.OnSubmit(self, formModel, context)
-// 				if err == nil {
-// 					message = self.SuccessMessage
-// 					if redirect == nil {
-// 						redirect = self.Redirect
-// 					}
-// 				} else {
-// 					message = err.Error()
-// 					hasErrors = true
-// 				}
-
-// 				// Redirect if saved without errors and redirect URL is set
-// 				if !hasErrors && redirect != nil {
-// 					return Redirect(redirect.URL(context))
-// 				}
-// 			}
-
-// 			if hasErrors {
-// 				dynamicFields[0] = DIV(self.GetErrorMessageClass(), Escape(message))
-// 				if len(dynamicFields)-1 > Config.Form.NumFieldRepeatMessage {
-// 					dynamicFields = append(dynamicFields, DIV(self.GetErrorMessageClass(), Escape(message)))
-// 				}
-// 			} else {
-// 				dynamicFields[0] = DIV(self.GetSuccessMessageClass(), Escape(message))
-// 				if len(dynamicFields)-1 > Config.Form.NumFieldRepeatMessage {
-// 					dynamicFields = append(dynamicFields, DIV(self.GetSuccessMessageClass(), Escape(message)))
-// 				}
-// 			}
-
-// 		}
-
-// 		// Add submit button and form ID:
-// 		buttonText := self.SubmitButtonText
-// 		if buttonText == "" {
-// 			buttonText = "Save"
-// 		}
-// 		formId := &HiddenInput{Name: "form_id", Value: self.FormID}
-// 		submitButton := self.GetFieldFactory().NewSubmitButton(self, buttonText)
-// 		dynamicFields = append(dynamicFields, formId, submitButton)
-// 	}
-
-// 	// Render HTML form element
-// 	method := self.Method
-// 	if method == "" {
-// 		method = "POST"
-// 	}
-// 	action := self.Action
-// 	if action == "" {
-// 		action = "."
-// 		if i := strings.Index(context.Request.RequestURI, "?"); i != -1 {
-// 			action += context.Request.RequestURI[i:]
-// 		}
-// 	}
-
-// 	writer.OpenTag("form").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
-// 	writer.Attrib("method", method)
-// 	writer.Attrib("action", action)
-// 	err = RenderChildViewsHTML(self, context, writer)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if dynamicFields != nil {
-// 		dynamicFields.Init(dynamicFields)
-// 		err = dynamicFields.Render(context, writer)
-// 		if err != nil {
-// 			return err
-// 		}
-// 	}
-// 	writer.ExtraCloseTag() // form
-// 	return nil
-// }
 
 func (self *Form) FieldLabel(metaData *model.MetaData) string {
 	names := make([]string, metaData.Depth)
@@ -519,10 +307,13 @@ func (self *Form) FieldInputClass(metaData *model.MetaData) string {
 // formLayoutWrappingStructVisitor
 
 type formLayoutWrappingStructVisitor struct {
+	// Input 
 	form       *Form
 	formLayout FormLayout
+	formModel  interface{}
 	context    *Context
 
+	// Output
 	formFields              Views
 	fieldValidationErrors   []*model.ValidationError
 	generalValidationErrors []*model.ValidationError
@@ -565,44 +356,82 @@ func (self *formLayoutWrappingStructVisitor) validate(data *model.MetaData) (err
 	return errs
 }
 
-func (self *formLayoutWrappingStructVisitor) BeginStruct(strct *model.MetaData) {
+func (self *formLayoutWrappingStructVisitor) BeginStruct(strct *model.MetaData) error {
+	if strct.Parent == nil {
+		self.formFields = self.formLayout.BeginFormContent(self.form, self.formFields)
+	}
 	self.formFields = self.formLayout.BeginStruct(strct, self.form, self.formFields)
+	return nil
 }
 
-func (self *formLayoutWrappingStructVisitor) StructField(field *model.MetaData) {
+func (self *formLayoutWrappingStructVisitor) StructField(field *model.MetaData) error {
 	validationErrs := self.setFieldValue(field)
 	self.formFields = self.formLayout.StructField(field, validationErrs, self.form, self.formFields)
+	return nil
 }
 
-func (self *formLayoutWrappingStructVisitor) EndStruct(strct *model.MetaData) {
+func (self *formLayoutWrappingStructVisitor) EndStruct(strct *model.MetaData) error {
 	validationErrs := self.validate(strct)
 	self.formFields = self.formLayout.EndStruct(strct, validationErrs, self.form, self.formFields)
+
+	if strct.Parent == nil {
+		if len(self.fieldValidationErrors) == 0 && len(self.generalValidationErrors) == 0 {
+			successMessage, redirect, err := self.form.OnSubmit(self.form, self.formModel, self.context)
+			if err == nil {
+				if redirect == nil {
+					redirect = self.form.Redirect
+				}
+				if redirect != nil {
+					return Redirect(redirect.URL(self.context))
+				}
+				if successMessage == "" {
+					successMessage = self.form.SuccessMessage
+				}
+				if successMessage != "" {
+					self.formFields = self.formLayout.SubmitSuccess(successMessage, self.form, self.formFields)
+				}
+			} else {
+				if Config.Debug.Mode {
+					return err
+				}
+				self.formFields = self.formLayout.SubmitError("An internal error occured", self.form, self.formFields)
+			}
+		}
+		self.formFields = self.formLayout.EndFormContent(self.fieldValidationErrors, self.generalValidationErrors, self.form, self.formFields)
+	}
+	return nil
 }
 
-func (self *formLayoutWrappingStructVisitor) BeginSlice(slice *model.MetaData) {
+func (self *formLayoutWrappingStructVisitor) BeginSlice(slice *model.MetaData) error {
 	self.formFields = self.formLayout.BeginSlice(slice, self.form, self.formFields)
+	return nil
 }
 
-func (self *formLayoutWrappingStructVisitor) SliceField(field *model.MetaData) {
+func (self *formLayoutWrappingStructVisitor) SliceField(field *model.MetaData) error {
 	validationErrs := self.setFieldValue(field)
 	self.formFields = self.formLayout.SliceField(field, validationErrs, self.form, self.formFields)
+	return nil
 }
 
-func (self *formLayoutWrappingStructVisitor) EndSlice(slice *model.MetaData) {
+func (self *formLayoutWrappingStructVisitor) EndSlice(slice *model.MetaData) error {
 	validationErrs := self.validate(slice)
 	self.formFields = self.formLayout.EndSlice(slice, validationErrs, self.form, self.formFields)
+	return nil
 }
 
-func (self *formLayoutWrappingStructVisitor) BeginArray(array *model.MetaData) {
+func (self *formLayoutWrappingStructVisitor) BeginArray(array *model.MetaData) error {
 	self.formFields = self.formLayout.BeginArray(array, self.form, self.formFields)
+	return nil
 }
 
-func (self *formLayoutWrappingStructVisitor) ArrayField(field *model.MetaData) {
+func (self *formLayoutWrappingStructVisitor) ArrayField(field *model.MetaData) error {
 	validationErrs := self.setFieldValue(field)
 	self.formFields = self.formLayout.ArrayField(field, validationErrs, self.form, self.formFields)
+	return nil
 }
 
-func (self *formLayoutWrappingStructVisitor) EndArray(array *model.MetaData) {
+func (self *formLayoutWrappingStructVisitor) EndArray(array *model.MetaData) error {
 	validationErrs := self.validate(array)
 	self.formFields = self.formLayout.EndArray(array, validationErrs, self.form, self.formFields)
+	return nil
 }

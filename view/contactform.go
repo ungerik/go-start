@@ -25,10 +25,11 @@ func NewContactForm(recipientEmail, subjectPrefix, formClass, buttonClass, formI
 		GetModel: func(form *Form, context *Context) (interface{}, error) {
 			return &ContactFormModel{}, nil
 		},
-		OnSubmit: func(form *Form, formModel interface{}, context *Context) (URL, error) {
+		OnSubmit: func(form *Form, formModel interface{}, context *Context) (string, URL, error) {
 			model := formModel.(*ContactFormModel)
 			subject := fmt.Sprintf("%sFrom %s <%s>: %s", subjectPrefix, model.Name, model.Email, model.Subject)
-			return nil, email.NewBriefMessage(subject, model.Message.Get(), recipientEmail).Send()
+			err := email.NewBriefMessage(subject, model.Message.Get(), recipientEmail).Send()
+			return "", nil, err
 		},
 	}
 }

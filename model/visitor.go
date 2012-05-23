@@ -7,25 +7,25 @@ import (
 )
 
 type Visitor interface {
-	BeginStruct(strct *MetaData)
-	StructField(field *MetaData)
-	EndStruct(strct *MetaData)
+	BeginStruct(strct *MetaData) error
+	StructField(field *MetaData) error
+	EndStruct(strct *MetaData) error
 
-	BeginSlice(slice *MetaData)
-	SliceField(field *MetaData)
-	EndSlice(slice *MetaData)
+	BeginSlice(slice *MetaData) error
+	SliceField(field *MetaData) error
+	EndSlice(slice *MetaData) error
 
-	BeginArray(array *MetaData)
-	ArrayField(field *MetaData)
-	EndArray(array *MetaData)
+	BeginArray(array *MetaData) error
+	ArrayField(field *MetaData) error
+	EndArray(array *MetaData) error
 }
 
-func Visit(model interface{}, visitor Visitor) {
-	utils.VisitStruct(model, &structVisitorWrapper{visitor: visitor})
+func Visit(model interface{}, visitor Visitor) error {
+	return utils.VisitStruct(model, &structVisitorWrapper{visitor: visitor})
 }
 
-func VisitMaxDepth(model interface{}, visitor Visitor, maxDepth int) {
-	utils.VisitStructDepth(model, &structVisitorWrapper{visitor: visitor}, maxDepth)
+func VisitMaxDepth(model interface{}, visitor Visitor, maxDepth int) error {
+	return utils.VisitStructDepth(model, &structVisitorWrapper{visitor: visitor}, maxDepth)
 }
 
 type structVisitorWrapper struct {
@@ -86,12 +86,12 @@ func (self *structVisitorWrapper) onArrayOrSliceField(depth int, v reflect.Value
 	}
 }
 
-func (self *structVisitorWrapper) BeginStruct(depth int, v reflect.Value) {
+func (self *structVisitorWrapper) BeginStruct(depth int, v reflect.Value) error {
 	self.onBegin(depth, v, StructKind)
-	self.visitor.BeginStruct(self.metaData)
+	return self.visitor.BeginStruct(self.metaData)
 }
 
-func (self *structVisitorWrapper) StructField(depth int, v reflect.Value, f reflect.StructField, index int) {
+func (self *structVisitorWrapper) StructField(depth int, v reflect.Value, f reflect.StructField, index int) error {
 	if index == 0 {
 		// first field of struct
 		if depth != self.metaData.Depth+1 {
@@ -121,40 +121,40 @@ func (self *structVisitorWrapper) StructField(depth int, v reflect.Value, f refl
 	if self.metaData.Parent.Kind != StructKind {
 		panic(fmt.Sprintf("StructField called for %s parent", self.metaData.Parent.Kind))
 	}
-	self.visitor.StructField(self.metaData)
+	return self.visitor.StructField(self.metaData)
 }
 
-func (self *structVisitorWrapper) EndStruct(depth int, v reflect.Value) {
+func (self *structVisitorWrapper) EndStruct(depth int, v reflect.Value) error {
 	self.onEnd(depth, StructKind)
-	self.visitor.EndStruct(self.metaData)
+	return self.visitor.EndStruct(self.metaData)
 }
 
-func (self *structVisitorWrapper) BeginSlice(depth int, v reflect.Value) {
+func (self *structVisitorWrapper) BeginSlice(depth int, v reflect.Value) error {
 	self.onBegin(depth, v, SliceKind)
-	self.visitor.BeginSlice(self.metaData)
+	return self.visitor.BeginSlice(self.metaData)
 }
 
-func (self *structVisitorWrapper) SliceField(depth int, v reflect.Value, index int) {
+func (self *structVisitorWrapper) SliceField(depth int, v reflect.Value, index int) error {
 	self.onArrayOrSliceField(depth, v, index, SliceKind)
-	self.visitor.SliceField(self.metaData)
+	return self.visitor.SliceField(self.metaData)
 }
 
-func (self *structVisitorWrapper) EndSlice(depth int, v reflect.Value) {
+func (self *structVisitorWrapper) EndSlice(depth int, v reflect.Value) error {
 	self.onEnd(depth, SliceKind)
-	self.visitor.EndSlice(self.metaData)
+	return self.visitor.EndSlice(self.metaData)
 }
 
-func (self *structVisitorWrapper) BeginArray(depth int, v reflect.Value) {
+func (self *structVisitorWrapper) BeginArray(depth int, v reflect.Value) error {
 	self.onBegin(depth, v, ArrayKind)
-	self.visitor.BeginArray(self.metaData)
+	return self.visitor.BeginArray(self.metaData)
 }
 
-func (self *structVisitorWrapper) ArrayField(depth int, v reflect.Value, index int) {
+func (self *structVisitorWrapper) ArrayField(depth int, v reflect.Value, index int) error {
 	self.onArrayOrSliceField(depth, v, index, ArrayKind)
-	self.visitor.ArrayField(self.metaData)
+	return self.visitor.ArrayField(self.metaData)
 }
 
-func (self *structVisitorWrapper) EndArray(depth int, v reflect.Value) {
+func (self *structVisitorWrapper) EndArray(depth int, v reflect.Value) error {
 	self.onEnd(depth, ArrayKind)
-	self.visitor.EndArray(self.metaData)
+	return self.visitor.EndArray(self.metaData)
 }
