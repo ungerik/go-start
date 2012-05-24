@@ -3,9 +3,8 @@ package view
 import (
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/utils"
-	// "reflect"
+	// "github.com/ungerik/go-start/debug"
 	"strings"
-	//	"github.com/ungerik/go-start/debug"
 )
 
 type GetFormModelFunc func(form *Form, context *Context) (model interface{}, err error)
@@ -343,12 +342,15 @@ func (self *formLayoutWrappingStructVisitor) setFieldValue(field *model.MetaData
 	}
 
 	if len(errs) > 0 {
-		self.generalValidationErrors = append(self.generalValidationErrors, errs...)
+		self.fieldValidationErrors = append(self.fieldValidationErrors, errs...)
 	}
 	return errs
 }
 
 func (self *formLayoutWrappingStructVisitor) validate(data *model.MetaData) (errs []*model.ValidationError) {
+	if self.context.Request.Method != "POST" {
+		return nil
+	}
 	if validator, ok := data.Value.Addr().Interface().(model.Validator); ok {
 		errs = validator.Validate(data)
 		if len(errs) > 0 {
