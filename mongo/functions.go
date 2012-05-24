@@ -153,21 +153,17 @@ func SortRefs(refs []Ref, lessFunc func(a, b *Ref) bool) {
 //}
 
 func InitRefs(document interface{}) {
-	// todo
-	// model.WalkStructure(document, 0,
-	// 	func(data *model.MetaData) {
-	// 		if ref, ok := data.Value.Addr().Interface().(*Ref); ok && ref.CollectionName == "" {
-	// 			m := data
-	// 			if m.IsIndex() {
-	// 				m = m.Parent
-	// 			}
-	// 			ref.CollectionName, ok = m.Attrib("to")
-	// 			if !ok {
-	// 				panic(data.Selector() + " is missing the 'to' meta-data tag")
-	// 			}
-	// 		}
-	// 	},
-	// )
+	model.Visit(document, model.FieldOnlyVisitor(
+		func(data *model.MetaData) error {
+			if ref, ok := data.Value.Addr().Interface().(*Ref); ok && ref.CollectionName == "" {
+				ref.CollectionName, ok = data.Attrib("to")
+				if !ok {
+					panic(data.Selector() + " is missing the 'to' meta-data tag")
+				}
+			}
+			return nil
+		},
+	))
 }
 
 // Returns an iterator of dereferenced refs, or an error iterator if there was an error

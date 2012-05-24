@@ -2,9 +2,9 @@ package model
 
 import (
 	"github.com/ungerik/go-start/debug"
-	"reflect"
-	"strconv"
-	"unicode"
+	// "reflect"
+	// "strconv"
+	// "unicode"
 )
 
 func init() {
@@ -13,15 +13,20 @@ func init() {
 
 func Validate(data interface{}, maxDepth int) []*ValidationError {
 	errors := []*ValidationError{}
-	WalkStructure(data, maxDepth,
-		func(data *MetaData) {
+	VisitMaxDepth(data, maxDepth, VisitorFunc(
+		func(data *MetaData) error {
 			if validator, ok := data.Value.Addr().Interface().(Validator); ok {
 				errors = append(errors, validator.Validate(data)...)
 			}
+			return nil
 		},
-	)
+	))
 	return errors
 }
+
+/* 
+
+todo remove
 
 // WalkStructure walks recursively over all fields of data and
 // reports them depth first via callback.
@@ -96,3 +101,5 @@ func walkStructure(data *MetaData, maxDepth int, callback func(data *MetaData)) 
 
 	callback(data)
 }
+
+*/

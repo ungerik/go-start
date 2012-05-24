@@ -121,7 +121,7 @@ func IsDefaultValue(value interface{}) bool {
 		return v.Bool() == false
 
 	case reflect.Struct:
-		// todo when struct comparison works
+		return reflect.DeepEqual(value, reflect.Zero(v.Type()).Interface())
 
 	case reflect.Slice, reflect.Map, reflect.Chan, reflect.Func, reflect.Interface:
 		return v.IsNil()

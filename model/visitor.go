@@ -24,7 +24,7 @@ func Visit(model interface{}, visitor Visitor) error {
 	return utils.VisitStruct(model, &structVisitorWrapper{visitor: visitor})
 }
 
-func VisitMaxDepth(model interface{}, visitor Visitor, maxDepth int) error {
+func VisitMaxDepth(model interface{}, maxDepth int, visitor Visitor) error {
 	return utils.VisitStructDepth(model, &structVisitorWrapper{visitor: visitor}, maxDepth)
 }
 
@@ -49,8 +49,8 @@ func (self *structVisitorWrapper) onBegin(depth int, v reflect.Value, kind MetaD
 
 func (self *structVisitorWrapper) onEnd(depth int, kind MetaDataKind) {
 	if depth != self.metaData.Depth {
-		if depth != self.metaData.Depth+1 {
-			panic(fmt.Sprintf("End%s: self.metaData.Depth(%d) can only be depth(%d) or depth + 1(%d)", kind, self.metaData.Depth, depth, depth+1))
+		if depth+1 != self.metaData.Depth {
+			panic(fmt.Sprintf("End%s: self.metaData.Depth (%d) must be depth or depth+1 (%d or %d)", kind, self.metaData.Depth, depth, depth+1))
 		}
 		self.metaData = self.metaData.Parent
 	}
@@ -81,7 +81,7 @@ func (self *structVisitorWrapper) onArrayOrSliceField(depth int, v reflect.Value
 		self.metaData.Value = v
 		self.metaData.Index = index
 	}
-	if self.metaData.Parent.Kind != StructKind {
+	if self.metaData.Parent.Kind != parentKind {
 		panic(fmt.Sprintf("%sField called for %s parent", parentKind, self.metaData.Parent.Kind))
 	}
 }
@@ -157,4 +157,83 @@ func (self *structVisitorWrapper) ArrayField(depth int, v reflect.Value, index i
 func (self *structVisitorWrapper) EndArray(depth int, v reflect.Value) error {
 	self.onEnd(depth, ArrayKind)
 	return self.visitor.EndArray(self.metaData)
+}
+
+// FieldOnlyVisitor calls its function for every struct, array and slice field.
+type FieldOnlyVisitor func(field *MetaData) error
+
+func (self FieldOnlyVisitor) BeginStruct(strct *MetaData) error {
+	return nil
+}
+
+func (self FieldOnlyVisitor) StructField(field *MetaData) error {
+	return self(field)
+}
+
+func (self FieldOnlyVisitor) EndStruct(strct *MetaData) error {
+	return nil
+}
+
+func (self FieldOnlyVisitor) BeginSlice(slice *MetaData) error {
+	return nil
+}
+
+func (self FieldOnlyVisitor) SliceField(field *MetaData) error {
+	return self(field)
+}
+
+func (self FieldOnlyVisitor) EndSlice(slice *MetaData) error {
+	return nil
+}
+
+func (self FieldOnlyVisitor) BeginArray(array *MetaData) error {
+	return nil
+}
+
+func (self FieldOnlyVisitor) ArrayField(field *MetaData) error {
+	return self(field)
+}
+
+func (self FieldOnlyVisitor) EndArray(array *MetaData) error {
+	return nil
+}
+
+// VisitorFunc calls its function for every Visitor method call,
+// thus mapping all Visitor methods on a single function.
+type VisitorFunc func(data *MetaData) error
+
+func (self VisitorFunc) BeginStruct(strct *MetaData) error {
+	return self(strct)
+}
+
+func (self VisitorFunc) StructField(field *MetaData) error {
+	return self(field)
+}
+
+func (self VisitorFunc) EndStruct(strct *MetaData) error {
+	return self(strct)
+}
+
+func (self VisitorFunc) BeginSlice(slice *MetaData) error {
+	return self(slice)
+}
+
+func (self VisitorFunc) SliceField(field *MetaData) error {
+	return self(field)
+}
+
+func (self VisitorFunc) EndSlice(slice *MetaData) error {
+	return self(slice)
+}
+
+func (self VisitorFunc) BeginArray(array *MetaData) error {
+	return self(array)
+}
+
+func (self VisitorFunc) ArrayField(field *MetaData) error {
+	return self(field)
+}
+
+func (self VisitorFunc) EndArray(array *MetaData) error {
+	return self(array)
 }

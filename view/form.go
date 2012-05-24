@@ -227,6 +227,12 @@ func (self *Form) GetFieldDescription(metaData *model.MetaData) string {
 }
 
 func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) {
+	if self.GetModel == nil {
+		panic("view.Form.GetModel must not be nil")
+	}
+	if self.OnSubmit == nil {
+		panic("view.Form.OnSubmit must not be nil")
+	}
 	layout := self.GetLayout()
 	if layout == nil {
 		panic("view.Form.GetLayout() returned nil")
@@ -238,27 +244,21 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 
 	var formFields Views
 
-	if self.OnSubmit != nil {
-		if self.GetModel != nil {
-			formModel, err := self.GetModel(self, context)
-			if err != nil {
-				return err
-			}
-
-			layout := self.GetLayout()
-
-			visitor := &formLayoutWrappingStructVisitor{
-				form:       self,
-				formLayout: layout,
-				formModel:  formModel,
-				context:    context,
-			}
-
-			model.Visit(formModel, visitor)
-
-			formFields = visitor.formFields
-		}
+	formModel, err := self.GetModel(self, context)
+	if err != nil {
+		return err
 	}
+
+	visitor := &formLayoutWrappingStructVisitor{
+		form:       self,
+		formLayout: layout,
+		formModel:  formModel,
+		context:    context,
+	}
+
+	model.Visit(formModel, visitor)
+
+	formFields = visitor.formFields
 
 	// Render HTML form element
 	method := self.Method

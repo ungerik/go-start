@@ -1,6 +1,7 @@
 package model
 
 import (
+	// "github.com/ungerik/go-start/debug"
 	"reflect"
 	"strconv"
 	"strings"
@@ -23,7 +24,7 @@ func (self MetaDataKind) String() string {
 	case ValueKind:
 		return "Value"
 	}
-	return "[Error: Unknown MetaDataKind!]"
+	panic("Unknown MetaDataKind!")
 }
 
 const (
@@ -67,6 +68,14 @@ func (self *MetaData) ParentKind() MetaDataKind {
 	return self.Parent.Kind
 }
 
+func (self *MetaData) IsArrayOrSliceField() bool {
+	return self.Kind == ValueKind && self.Name == ""
+}
+
+func (self *MetaData) IsStructField() bool {
+	return self.Name != ""
+}
+
 // // GetDepth returns self.Depth or -1 if self is nil.
 // func (self *MetaData) GetDepth() int {
 // 	if self == nil {
@@ -92,10 +101,17 @@ Example:
 	}
 */
 func (self *MetaData) Attrib(name string) (value string, ok bool) {
-	if self.attribs == nil {
-		self.attribs = ParseTagAttribs(self.tag)
+	m := self
+	for !m.IsStructField() {
+		m = m.Parent
+		if m == nil {
+			return "", false
+		}
 	}
-	value, ok = self.attribs[name]
+	if m.attribs == nil {
+		m.attribs = ParseTagAttribs(m.tag)
+	}
+	value, ok = m.attribs[name]
 	return value, ok
 }
 
@@ -111,7 +127,7 @@ func (self *MetaData) BoolAttrib(name string) bool {
 func (self *MetaData) Selector() string {
 	names := make([]string, self.Depth-1)
 	for i, m := self.Depth-2, self; i >= 0; i-- {
-		if m.Name != "" {
+		if m.IsStructField() {
 			names[i] = m.Name
 		} else {
 			names[i] = strconv.Itoa(m.Index)
@@ -127,7 +143,7 @@ func (self *MetaData) Selector() string {
 func (self *MetaData) WildcardSelector() string {
 	names := make([]string, self.Depth-1)
 	for i, m := self.Depth-2, self; i >= 0; i-- {
-		if m.Name != "" {
+		if m.IsStructField() {
 			names[i] = m.Name
 		} else {
 			names[i] = "$"
