@@ -75,11 +75,13 @@ type Form struct {
 
 	// OnSubmit is called after the form was submitted and did not produce any
 	// validation errors.
-	// If successMessage is non empty, it will be displayed instead of
-	// Form.SuccessMessage.
+	// If message is non empty, it will be displayed instead of
+	// Form.SuccessMessage or err.
+	// If err is not nil, err.Error() will be displayed and not processed
+	// any further (good idea?)
 	// If redirect result is not nil, it will be used instead of Form.Redirect.
-	// A success message will only be visible, if there is no redirect.
-	OnSubmit func(form *Form, formModel interface{}, context *Context) (successMessage string, redirect URL, err error)
+	// message or err will only be visible, if there is no redirect.
+	OnSubmit func(form *Form, formModel interface{}, context *Context) (message string, redirect URL, err error)
 
 	ModelMaxDepth         int      // if zero, no depth limit
 	ExcludedFields        []string // Use point notation for nested fields
@@ -370,39 +372,46 @@ func (self *formLayoutWrappingStructVisitor) StructField(field *model.MetaData) 
 	return nil
 }
 
+func (self *formLayoutWrappingStructVisitor) endForm(data *model.MetaData) error {
+	if len(self.fieldValidationErrors) == 0 && len(self.generalValidationErrors) == 0 {
+		message, redirect, err := self.form.OnSubmit(self.form, self.formModel, self.context)
+		if err == nil {
+			if redirect == nil {
+				redirect = self.form.Redirect
+			}
+			if redirect != nil {
+				return Redirect(redirect.URL(self.context))
+			}
+			if message == "" {
+				message = self.form.SuccessMessage
+			}
+			if message != "" {
+				self.formFields = self.formLayout.SubmitSuccess(message, self.form, self.formFields)
+			}
+		} else {
+			if message == "" {
+				message = err.Error()
+			}
+			self.formFields = self.formLayout.SubmitError(message, self.form, self.formFields)
+		}
+	}
+	self.formFields = self.formLayout.EndFormContent(self.fieldValidationErrors, self.generalValidationErrors, self.form, self.formFields)
+	return nil
+}
+
 func (self *formLayoutWrappingStructVisitor) EndStruct(strct *model.MetaData) error {
 	validationErrs := self.validate(strct)
 	self.formFields = self.formLayout.EndStruct(strct, validationErrs, self.form, self.formFields)
-
 	if strct.Parent == nil {
-		if len(self.fieldValidationErrors) == 0 && len(self.generalValidationErrors) == 0 {
-			successMessage, redirect, err := self.form.OnSubmit(self.form, self.formModel, self.context)
-			if err == nil {
-				if redirect == nil {
-					redirect = self.form.Redirect
-				}
-				if redirect != nil {
-					return Redirect(redirect.URL(self.context))
-				}
-				if successMessage == "" {
-					successMessage = self.form.SuccessMessage
-				}
-				if successMessage != "" {
-					self.formFields = self.formLayout.SubmitSuccess(successMessage, self.form, self.formFields)
-				}
-			} else {
-				if Config.Debug.Mode {
-					return err
-				}
-				self.formFields = self.formLayout.SubmitError("An internal error occured", self.form, self.formFields)
-			}
-		}
-		self.formFields = self.formLayout.EndFormContent(self.fieldValidationErrors, self.generalValidationErrors, self.form, self.formFields)
+		return self.endForm(strct)
 	}
 	return nil
 }
 
 func (self *formLayoutWrappingStructVisitor) BeginSlice(slice *model.MetaData) error {
+	if slice.Parent == nil {
+		self.formFields = self.formLayout.BeginFormContent(self.form, self.formFields)
+	}
 	self.formFields = self.formLayout.BeginSlice(slice, self.form, self.formFields)
 	return nil
 }
@@ -416,10 +425,16 @@ func (self *formLayoutWrappingStructVisitor) SliceField(field *model.MetaData) e
 func (self *formLayoutWrappingStructVisitor) EndSlice(slice *model.MetaData) error {
 	validationErrs := self.validate(slice)
 	self.formFields = self.formLayout.EndSlice(slice, validationErrs, self.form, self.formFields)
+	if slice.Parent == nil {
+		return self.endForm(slice)
+	}
 	return nil
 }
 
 func (self *formLayoutWrappingStructVisitor) BeginArray(array *model.MetaData) error {
+	if array.Parent == nil {
+		self.formFields = self.formLayout.BeginFormContent(self.form, self.formFields)
+	}
 	self.formFields = self.formLayout.BeginArray(array, self.form, self.formFields)
 	return nil
 }
@@ -433,5 +448,8 @@ func (self *formLayoutWrappingStructVisitor) ArrayField(field *model.MetaData) e
 func (self *formLayoutWrappingStructVisitor) EndArray(array *model.MetaData) error {
 	validationErrs := self.validate(array)
 	self.formFields = self.formLayout.EndArray(array, validationErrs, self.form, self.formFields)
+	if array.Parent == nil {
+		return self.endForm(array)
+	}
 	return nil
 }
