@@ -3,11 +3,11 @@ package templatesystem
 import (
 	"fmt"
 	"github.com/ungerik/go-start/errs"
-	"github.com/ungerik/go-start/utils"
 	"io"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
+	"strings"
 )
 
 type PrintfTemplate struct {
@@ -22,7 +22,7 @@ func (self *PrintfTemplate) Render(out io.Writer, context interface{}) (err erro
 	default:
 		str = fmt.Sprintf(self.text, context)
 	}
-	if utils.StringStartsWith(str, "%!") {
+	if strings.HasPrefix(str, "%!") {
 		return errs.Format(str)
 	}
 	_, err = out.Write([]byte(str))

@@ -1,7 +1,6 @@
 package model
 
 import (
-	"github.com/ungerik/go-start/utils"
 	"strings"
 )
 
@@ -46,10 +45,10 @@ func NormalizePhoneNumber(number string) string {
 	number = strings.Replace(number, "(0)", "", -1)
 	number = strings.Replace(number, ")", "", -1)
 	number = strings.Replace(number, "(", "", -1)
-	if utils.StringStartsWith(number, "++") {
+	if strings.HasPrefix(number, "++") {
 		return "00" + number[2:]
 	}
-	if utils.StringStartsWith(number, "+") {
+	if strings.HasPrefix(number, "+") {
 		return "00" + number[1:]
 	}
 	return number

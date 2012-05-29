@@ -13,14 +13,6 @@ import (
 //	"github.com/ungerik/go-start/debug"
 )
 
-func StringStartsWith(s string, start string) bool {
-	return len(s) >= len(start) && s[:len(start)] == start
-}
-
-func StringEndsWith(s string, start string) bool {
-	return len(s) >= len(start) && s[-len(start):] == start
-}
-
 //func FormatName(name string) string {
 //	result := make([]byte, len(name))
 //	first := true
@@ -110,7 +102,7 @@ func HasImageFileExt(filename string) bool {
 }
 
 func IsImageURL(url string) bool {
-	return HasImageFileExt(url) || StringStartsWith(url, "data:image/")
+	return HasImageFileExt(url) || strings.HasPrefix(url, "data:image/")
 }
 
 func JoinNonEmptyStrings(sep string, strings ...string) string {
