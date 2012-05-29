@@ -56,7 +56,7 @@ func (self *VerticalFormLayout) EndFormContent(fieldValidationErrs, generalValid
 	for _, err := range generalValidationErrs {
 		formFields = append(formFields, fieldFactory.NewGeneralErrorMessage(err.Error(), form))
 	}
-	formId := &HiddenInput{Name: "form_id", Value: form.FormID}
+	formId := &HiddenInput{Name: FormIDName, Value: form.FormID}
 	submitButton := fieldFactory.NewSubmitButton(form.GetSubmitButtonText(), form)
 	return append(formFields, formId, submitButton)
 }

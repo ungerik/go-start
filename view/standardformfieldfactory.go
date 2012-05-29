@@ -2,6 +2,7 @@ package view
 
 import (
 	"fmt"
+	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 )
 
@@ -98,6 +99,7 @@ func (self *StandardFormFieldFactory) NewInput(metaData *model.MetaData, form *F
 		return HTML(value)
 
 	case *model.Password:
+		debug.Dump(metaData)
 		return &TextField{
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),

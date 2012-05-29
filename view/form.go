@@ -3,9 +3,10 @@ package view
 import (
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/utils"
-	// "github.com/ungerik/go-start/debug"
 	"strings"
 )
+
+const FormIDName = "form_id"
 
 type GetFormModelFunc func(form *Form, context *Context) (model interface{}, err error)
 
@@ -63,9 +64,13 @@ type FormFieldFactory interface {
 
 type Form struct {
 	ViewBaseWithId
-	Class         string
-	Action        string // Default is "." plus any URL params
-	Method        string
+	Class  string
+	Action string // Default is "." plus any URL params
+	Method string
+	// FormID must be unique on a page to identify the form for the case
+	// that there are multiple forms on a single page.
+	// Can be empty if there is only one form on a page, but it is good
+	// practice to always use form ids.
 	FormID        string
 	CSRFProtector CSRFProtector
 	Layout        FormLayout       // Config.DefaultFormLayout will be used if nil
@@ -210,6 +215,14 @@ func (self *Form) IsFieldExcluded(metaData *model.MetaData) bool {
 	return utils.StringIn(selector, self.ExcludedFields) || utils.StringIn(wildcardSelector, self.ExcludedFields)
 }
 
+func (self *Form) IsPost(context *Context) bool {
+	if context.Request.Method != "POST" {
+		return false
+	}
+	formID, ok := context.Params[FormIDName]
+	return ok && formID == self.FormID
+}
+
 func (self *Form) GetFieldDescription(metaData *model.MetaData) string {
 	selector := metaData.Selector()
 	if desc, ok := self.FieldDescriptions[selector]; ok {
@@ -253,6 +266,7 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		formLayout: layout,
 		formModel:  formModel,
 		context:    context,
+		isPost:     self.IsPost(context),
 	}
 
 	model.Visit(formModel, visitor)
@@ -313,6 +327,7 @@ type formLayoutWrappingStructVisitor struct {
 	formLayout FormLayout
 	formModel  interface{}
 	context    *Context
+	isPost     bool
 
 	// Output
 	formFields              Views
@@ -321,10 +336,12 @@ type formLayoutWrappingStructVisitor struct {
 }
 
 func (self *formLayoutWrappingStructVisitor) setFieldValue(field *model.MetaData) (errs []*model.ValidationError) {
-	if field.Kind != model.ValueKind || self.context.Request.Method != "POST" {
+	if !self.isPost || field.Kind != model.ValueKind {
 		return nil
 	}
 	postValue, _ := self.context.Params[field.Selector()]
+
+	//debug.Dump(self.context.Params)
 
 	switch s := field.Value.Addr().Interface().(type) {
 	case *model.Bool:
@@ -348,7 +365,7 @@ func (self *formLayoutWrappingStructVisitor) setFieldValue(field *model.MetaData
 }
 
 func (self *formLayoutWrappingStructVisitor) validate(data *model.MetaData) (errs []*model.ValidationError) {
-	if self.context.Request.Method != "POST" {
+	if !self.isPost {
 		return nil
 	}
 	if validator, ok := data.Value.Addr().Interface().(model.Validator); ok {
@@ -375,7 +392,7 @@ func (self *formLayoutWrappingStructVisitor) StructField(field *model.MetaData) 
 }
 
 func (self *formLayoutWrappingStructVisitor) endForm(data *model.MetaData) error {
-	if len(self.fieldValidationErrors) == 0 && len(self.generalValidationErrors) == 0 {
+	if len(self.fieldValidationErrors) == 0 && len(self.generalValidationErrors) == 0 && self.isPost {
 		message, redirect, err := self.form.OnSubmit(self.form, self.formModel, self.context)
 		if err == nil {
 			if redirect == nil {

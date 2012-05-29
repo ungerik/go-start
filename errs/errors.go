@@ -2,6 +2,7 @@
 package errs
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/ungerik/go-start/debug"
 )
@@ -49,4 +50,25 @@ func PanicIfIndexOutOfBounds(what string, index int, length int) {
 		}
 		panic(&IndexOutOfBounds{what, index, length})
 	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// MultipleErrors
+
+// MultipleErrors implements error for a slice of errors.
+// Error() returns the Error() results for every slice field
+// concaternated by '\n'. nil errors are ignored.
+type MultipleErrors []error
+
+func (self MultipleErrors) Error() string {
+	var buf bytes.Buffer
+	for _, err := range self {
+		if err != nil {
+			if buf.Len() > 0 {
+				buf.WriteByte('\n')
+			}
+			buf.WriteString(err.Error())
+		}
+	}
+	return buf.String()
 }

@@ -125,8 +125,8 @@ func (self *MetaData) BoolAttrib(name string) bool {
 // Selector returns the field names or indices for array/slice fields
 // from the root parent up the the current data item concatenated with with '.'.
 func (self *MetaData) Selector() string {
-	names := make([]string, self.Depth-1)
-	for i, m := self.Depth-2, self; i >= 0; i-- {
+	names := make([]string, self.Depth)
+	for i, m := self.Depth-1, self; i >= 0; i-- {
 		if m.IsStructField() {
 			names[i] = m.Name
 		} else {
@@ -141,8 +141,8 @@ func (self *MetaData) Selector() string {
 // fields from the root parent up the the current data item
 // concatenated with with '.'.
 func (self *MetaData) WildcardSelector() string {
-	names := make([]string, self.Depth-1)
-	for i, m := self.Depth-2, self; i >= 0; i-- {
+	names := make([]string, self.Depth)
+	for i, m := self.Depth-1, self; i >= 0; i-- {
 		if m.IsStructField() {
 			names[i] = m.Name
 		} else {
