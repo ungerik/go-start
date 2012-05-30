@@ -3,6 +3,7 @@ package view
 import (
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/utils"
+	"strings"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -22,11 +23,11 @@ func (self *Video) Render(context *Context, writer *utils.XMLWriter) (err error)
 	youtubeId := ""
 
 	switch {
-	case utils.StringStartsWith(self.URL, "http://youtu.be/"):
+	case strings.HasPrefix(self.URL, "http://youtu.be/"):
 		i := len("http://youtu.be/")
 		youtubeId = self.URL[i : i+11]
 
-	case utils.StringStartsWith(self.URL, "http://www.youtube.com/watch?v="):
+	case strings.HasPrefix(self.URL, "http://www.youtube.com/watch?v="):
 		i := len("http://www.youtube.com/watch?v=")
 		youtubeId = self.URL[i : i+11]
 	}

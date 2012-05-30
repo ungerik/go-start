@@ -55,7 +55,7 @@ type Context struct {
 // RequestURL returns the complete URL of the request including protocol and host.
 func (self *Context) RequestURL() string {
 	url := self.Request.RequestURI
-	if !utils.StringStartsWith(url, "http") {
+	if !strings.HasPrefix(url, "http") {
 		url = "http://" + self.Request.Host + url
 	}
 	return url

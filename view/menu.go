@@ -1,6 +1,9 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
+import (
+	"github.com/ungerik/go-start/utils"
+	"strings"
+)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Menu
@@ -37,7 +40,7 @@ func (self *Menu) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		if activeIndex == -1 {
 			for i := range self.Items {
 				url := self.Items[i].URL(context)
-				if utils.StringStartsWith(requestURL, url) {
+				if strings.HasPrefix(requestURL, url) {
 					activeIndex = i
 					// todo
 					// not perfect, what if homepage matches first, but other matches better?
