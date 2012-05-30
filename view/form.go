@@ -1,6 +1,8 @@
 package view
 
 import (
+	"bytes"
+	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/utils"
 	"strings"
@@ -269,7 +271,10 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		isPost:     self.IsPost(context),
 	}
 
-	model.Visit(formModel, visitor)
+	err = model.Visit(formModel, visitor)
+	if err != nil {
+		return err
+	}
 
 	formFields = visitor.formFields
 
@@ -301,16 +306,29 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 }
 
 func (self *Form) FieldLabel(metaData *model.MetaData) string {
-	names := make([]string, metaData.Depth)
-	for i, m := metaData.Depth-1, metaData; i >= 0; i-- {
+	var buf bytes.Buffer
+	for _, m := range metaData.Path() {
+		if buf.Len() > 0 {
+			buf.WriteByte(' ')
+		}
 		label, ok := m.Attrib("label")
 		if !ok {
 			label = strings.Replace(m.Name, "_", " ", -1)
 		}
-		names[i] = label
-		m = m.Parent
+		buf.WriteString(label)
 	}
-	return strings.Join(names, " ")
+	return buf.String()
+
+	// names := make([]string, metaData.Depth)
+	// for i, m := metaData.Depth-1, metaData; i >= 0; i-- {
+	// 	label, ok := m.Attrib("label")
+	// 	if !ok {
+	// 		label = strings.Replace(m.Name, "_", " ", -1)
+	// 	}
+	// 	names[i] = label
+	// 	m = m.Parent
+	// }
+	// return strings.Join(names, " ")
 }
 
 func (self *Form) FieldInputClass(metaData *model.MetaData) string {
@@ -377,20 +395,6 @@ func (self *formLayoutWrappingStructVisitor) validate(data *model.MetaData) (err
 	return errs
 }
 
-func (self *formLayoutWrappingStructVisitor) BeginStruct(strct *model.MetaData) error {
-	if strct.Parent == nil {
-		self.formFields = self.formLayout.BeginFormContent(self.form, self.formFields)
-	}
-	self.formFields = self.formLayout.BeginStruct(strct, self.form, self.formFields)
-	return nil
-}
-
-func (self *formLayoutWrappingStructVisitor) StructField(field *model.MetaData) error {
-	validationErrs := self.setFieldValue(field)
-	self.formFields = self.formLayout.StructField(field, validationErrs, self.form, self.formFields)
-	return nil
-}
-
 func (self *formLayoutWrappingStructVisitor) endForm(data *model.MetaData) error {
 	if len(self.fieldValidationErrors) == 0 && len(self.generalValidationErrors) == 0 && self.isPost {
 		message, redirect, err := self.form.OnSubmit(self.form, self.formModel, self.context)
@@ -415,6 +419,21 @@ func (self *formLayoutWrappingStructVisitor) endForm(data *model.MetaData) error
 		}
 	}
 	self.formFields = self.formLayout.EndFormContent(self.fieldValidationErrors, self.generalValidationErrors, self.form, self.formFields)
+	return nil
+}
+
+func (self *formLayoutWrappingStructVisitor) BeginStruct(strct *model.MetaData) error {
+	if strct.Parent == nil {
+		self.formFields = self.formLayout.BeginFormContent(self.form, self.formFields)
+	}
+	self.formFields = self.formLayout.BeginStruct(strct, self.form, self.formFields)
+	return nil
+}
+
+func (self *formLayoutWrappingStructVisitor) StructField(field *model.MetaData) error {
+	validationErrs := self.setFieldValue(field)
+	self.formFields = self.formLayout.StructField(field, validationErrs, self.form, self.formFields)
+	debug.Dump(field)
 	return nil
 }
 

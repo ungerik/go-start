@@ -60,29 +60,30 @@ func (self *structVisitorWrapper) onEnd(depth int, kind MetaDataKind) {
 }
 
 func (self *structVisitorWrapper) onArrayOrSliceField(depth int, v reflect.Value, index int, parentKind MetaDataKind) {
+	var parent *MetaData
 	if index == 0 {
 		// first field of array or struct
 		if depth != self.metaData.Depth+1 {
 			panic(fmt.Sprintf("Depth of first field of a %s must be its parent %s's depth plus one", parentKind, parentKind))
 		}
-		// create MetaData for this depth
-		self.metaData = &MetaData{
-			Value:  v,
-			Kind:   GetMetaDataKind(v),
-			Parent: self.metaData,
-			Depth:  depth,
-			Index:  index,
-		}
+		// no previous sibling available, parent ist current self.metaData
+		parent = self.metaData
 	} else {
 		if depth != self.metaData.Depth {
 			panic(fmt.Sprintf("If not the first field of a %s, there must already be MetaData of the same depth from the previous sibling", parentKind))
 		}
-		// only have to change what's different for this field
-		self.metaData.Value = v
-		self.metaData.Index = index
+		// parent is the same of previous sibling which is current self.metaData
+		parent = self.metaData.Parent
 	}
-	if self.metaData.Parent.Kind != parentKind {
-		panic(fmt.Sprintf("%sField called for %s parent", parentKind, self.metaData.Parent.Kind))
+	if parent.Kind != parentKind {
+		panic(fmt.Sprintf("%sField called for %s parent", parentKind, parent.Kind))
+	}
+	self.metaData = &MetaData{
+		Value:  v,
+		Kind:   GetMetaDataKind(v),
+		Parent: parent,
+		Depth:  depth,
+		Index:  index,
 	}
 }
 
@@ -92,34 +93,32 @@ func (self *structVisitorWrapper) BeginStruct(depth int, v reflect.Value) error 
 }
 
 func (self *structVisitorWrapper) StructField(depth int, v reflect.Value, f reflect.StructField, index int) error {
+	var parent *MetaData
 	if index == 0 {
 		// first field of struct
 		if depth != self.metaData.Depth+1 {
 			panic("Depth of first field of a struct must be its parent struct's depth plus one")
 		}
-		// create MetaData for this depth
-		self.metaData = &MetaData{
-			Value:  v,
-			Kind:   GetMetaDataKind(v),
-			Parent: self.metaData,
-			Depth:  depth,
-			Name:   f.Name,
-			Index:  index,
-			tag:    f.Tag.Get("gostart"),
-		}
+		// no previous sibling available, parent ist current self.metaData
+		parent = self.metaData
 	} else {
 		if depth != self.metaData.Depth {
 			panic("If not the first field of a struct, there must already be MetaData of the same depth from the previous sibling")
 		}
-		// only have to change what's different for this field
-		self.metaData.Value = v
-		self.metaData.Kind = GetMetaDataKind(v)
-		self.metaData.Name = f.Name
-		self.metaData.Index = index
-		self.metaData.tag = f.Tag.Get("gostart")
+		// parent is the same of previous sibling which is current self.metaData
+		parent = self.metaData.Parent
 	}
-	if self.metaData.Parent.Kind != StructKind {
-		panic(fmt.Sprintf("StructField called for %s parent", self.metaData.Parent.Kind))
+	if parent.Kind != StructKind {
+		panic(fmt.Sprintf("StructField called for %s parent", parent.Kind))
+	}
+	self.metaData = &MetaData{
+		Value:  v,
+		Kind:   GetMetaDataKind(v),
+		Parent: parent,
+		Depth:  depth,
+		Name:   f.Name,
+		Index:  index,
+		tag:    f.Tag.Get("gostart"),
 	}
 	return self.visitor.StructField(self.metaData)
 }

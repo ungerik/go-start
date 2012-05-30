@@ -2,6 +2,7 @@ package model
 
 import (
 	// "github.com/ungerik/go-start/debug"
+	"bytes"
 	"reflect"
 	"strconv"
 	"strings"
@@ -56,6 +57,7 @@ type MetaData struct {
 	Index   int    // will also be set for struct fields
 	tag     string
 	attribs map[string]string // cached tag attributes
+	path    []*MetaData
 }
 
 // ParentKind returns the parent's MetaDataKind.
@@ -76,13 +78,18 @@ func (self *MetaData) IsStructField() bool {
 	return self.Name != ""
 }
 
-// // GetDepth returns self.Depth or -1 if self is nil.
-// func (self *MetaData) GetDepth() int {
-// 	if self == nil {
-// 		return -1
-// 	}
-// 	return self.Depth
-// }
+// Path returns a slice of *MetaData that holds all parents from
+// the root parent up to (and including) self.
+func (self *MetaData) Path() []*MetaData {
+	if self.path == nil {
+		self.path = make([]*MetaData, self.Depth+1)
+		for i, m := self.Depth, self; i >= 0; i-- {
+			self.path[i] = m
+			m = m.Parent
+		}
+	}
+	return self.path
+}
 
 /*
 Attrib returns the value of a tag attribute if available.
@@ -101,17 +108,17 @@ Example:
 	}
 */
 func (self *MetaData) Attrib(name string) (value string, ok bool) {
-	m := self
-	for !m.IsStructField() {
-		m = m.Parent
-		if m == nil {
-			return "", false
+	if self.attribs == nil {
+		structField := self
+		for !structField.IsStructField() {
+			structField = structField.Parent
+			if structField == nil {
+				return "", false
+			}
 		}
+		self.attribs = ParseTagAttribs(structField.tag)
 	}
-	if m.attribs == nil {
-		m.attribs = ParseTagAttribs(m.tag)
-	}
-	value, ok = m.attribs[name]
+	value, ok = self.attribs[name]
 	return value, ok
 }
 
@@ -125,32 +132,36 @@ func (self *MetaData) BoolAttrib(name string) bool {
 // Selector returns the field names or indices for array/slice fields
 // from the root parent up the the current data item concatenated with with '.'.
 func (self *MetaData) Selector() string {
-	names := make([]string, self.Depth)
-	for i, m := self.Depth-1, self; i >= 0; i-- {
-		if m.IsStructField() {
-			names[i] = m.Name
-		} else {
-			names[i] = strconv.Itoa(m.Index)
+	var buf bytes.Buffer
+	for _, m := range self.Path() {
+		if buf.Len() > 0 {
+			buf.WriteByte('.')
 		}
-		m = m.Parent
+		if m.IsStructField() {
+			buf.WriteString(m.Name)
+		} else {
+			buf.WriteString(strconv.Itoa(m.Index))
+		}
 	}
-	return strings.Join(names, ".")
+	return buf.String()
 }
 
 // WildcardSelector returns the field names or the wildcard '$' for array/slice
 // fields from the root parent up the the current data item
 // concatenated with with '.'.
 func (self *MetaData) WildcardSelector() string {
-	names := make([]string, self.Depth)
-	for i, m := self.Depth-1, self; i >= 0; i-- {
-		if m.IsStructField() {
-			names[i] = m.Name
-		} else {
-			names[i] = "$"
+	var buf bytes.Buffer
+	for _, m := range self.Path() {
+		if buf.Len() > 0 {
+			buf.WriteByte('.')
 		}
-		m = m.Parent
+		if m.IsStructField() {
+			buf.WriteString(m.Name)
+		} else {
+			buf.WriteByte('$')
+		}
 	}
-	return strings.Join(names, ".")
+	return buf.String()
 }
 
 func ParseTagAttribs(tag string) map[string]string {

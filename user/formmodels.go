@@ -23,9 +23,6 @@ type EmailPasswordFormModel struct {
 }
 
 type LoginFormModel struct {
-	Email    model.Email `gostart:"required"`
+	Email    model.Email    `gostart:"required"`
 	Password model.Password `gostart:"required"`
 }
-
-
-
