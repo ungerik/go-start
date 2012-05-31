@@ -188,19 +188,19 @@ func (self *StandardFormFieldFactory) NewLabel(forView View, metaData *model.Met
 }
 
 func (self *StandardFormFieldFactory) NewFieldDescrtiption(description string, form *Form) View {
-	return DIV(form.GetFieldDescriptionClass(), Escape(description))
+	return SPAN(form.GetFieldDescriptionClass(), Escape(description))
 }
 
 func (self *StandardFormFieldFactory) NewFieldErrorMessage(message string, metaData *model.MetaData, form *Form) View {
-	return DIV(form.GetErrorMessageClass(), Escape(message))
+	return SPAN(form.GetErrorMessageClass(), Escape(message))
 }
 
 func (self *StandardFormFieldFactory) NewGeneralErrorMessage(message string, form *Form) View {
-	return DIV(form.GetErrorMessageClass(), Escape(message))
+	return SPAN(form.GetErrorMessageClass(), Escape(message))
 }
 
 func (self *StandardFormFieldFactory) NewSuccessMessage(message string, form *Form) View {
-	return DIV(form.GetSuccessMessageClass(), Escape(message))
+	return SPAN(form.GetSuccessMessageClass(), Escape(message))
 }
 
 func (self *StandardFormFieldFactory) NewSubmitButton(text string, form *Form) View {

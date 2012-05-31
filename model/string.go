@@ -47,7 +47,7 @@ func (self *String) Validate(metaData *MetaData) error {
 
 	pos := strings.IndexAny(value, "\n\r")
 	if pos != -1 {
-		return errors.New("model.String contains line breaks")
+		return errors.New("Line breaks not allowed")
 	}
 
 	minlen, ok, err := self.Minlen(metaData)
@@ -97,7 +97,7 @@ type StringTooShort struct {
 }
 
 func (self *StringTooShort) Error() string {
-	return fmt.Sprintf("String shorter than minimum of %d characters ('%s')", self.Minlen, self.Str)
+	return fmt.Sprintf("String shorter than minimum of %d characters", self.Minlen)
 }
 
 type StringTooLong struct {
@@ -106,5 +106,5 @@ type StringTooLong struct {
 }
 
 func (self *StringTooLong) Error() string {
-	return fmt.Sprintf("String longer than maximum of %d characters ('%s')", self.Maxlen, self.Str)
+	return fmt.Sprintf("String longer than maximum of %d characters", self.Maxlen)
 }

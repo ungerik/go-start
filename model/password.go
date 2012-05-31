@@ -3,6 +3,9 @@ package model
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
+	"strconv"
+	"strings"
 )
 
 type Password string
@@ -40,7 +43,31 @@ func (self *Password) FixValue(metaData *MetaData) {
 }
 
 func (self *Password) Validate(metaData *MetaData) error {
+	value := string(*self)
+
+	pos := strings.IndexAny(value, "\n\r")
+	if pos != -1 {
+		return errors.New("Line breaks not allowed")
+	}
+
+	minlen, ok, err := self.Minlen(metaData)
+	if ok && len(value) < minlen {
+		err = &StringTooShort{value, minlen}
+	}
+	if err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func (self *Password) Minlen(metaData *MetaData) (minlen int, ok bool, err error) {
+	var str string
+	if str, ok = metaData.Attrib("minlen"); ok {
+		minlen, err = strconv.Atoi(str)
+		ok = err == nil
+	}
+	return minlen, ok, err
 }
 
 func PasswordHash(password string) (hash string) {

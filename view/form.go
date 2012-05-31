@@ -430,8 +430,8 @@ func (self *formLayoutWrappingStructVisitor) BeginStruct(strct *model.MetaData) 
 }
 
 func (self *formLayoutWrappingStructVisitor) StructField(field *model.MetaData) error {
-	validationErrs := self.setFieldValue(field)
-	self.formFields = self.formLayout.StructField(field, validationErrs, self.form, self.formFields)
+	validationErr := self.setFieldValue(field)
+	self.formFields = self.formLayout.StructField(field, validationErr, self.form, self.formFields)
 	return nil
 }
 
