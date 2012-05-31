@@ -32,14 +32,11 @@ func (self *Choice) IsEmpty() bool {
 	return *self == ""
 }
 
-func (self *Choice) Validate(metaData *MetaData) []*ValidationError {
+func (self *Choice) Validate(metaData *MetaData) error {
 	str := string(*self)
 	options := self.Options(metaData)
-	if options == nil {
-		return NewValidationErrors(errs.Format("model.Choice needs options"), metaData)
-	}
 	if len(options) == 0 {
-		return NewValidationErrors(errs.Format("model.Choice needs options"), metaData)
+		return errs.Format("model.Choice needs options")
 	}
 	found := false
 	for _, option := range options {
@@ -49,9 +46,9 @@ func (self *Choice) Validate(metaData *MetaData) []*ValidationError {
 		}
 	}
 	if !found {
-		return NewValidationErrors(&InvalidChoice{str, options}, metaData)
+		return &InvalidChoice{str, options}
 	}
-	return NoValidationErrors
+	return nil
 }
 
 func (self *Choice) Options(metaData *MetaData) []string {

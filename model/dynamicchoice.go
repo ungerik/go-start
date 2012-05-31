@@ -67,12 +67,8 @@ func (self *DynamicChoice) IsEmpty() bool {
 	return self.CheckIndex(self.index) != nil
 }
 
-func (self *DynamicChoice) Validate(metaData *MetaData) []*ValidationError {
-	err := self.CheckIndex(self.index)
-	if err != nil {
-		return NewValidationErrors(err, metaData)
-	}
-	return NoValidationErrors
+func (self *DynamicChoice) Validate(metaData *MetaData) error {
+	return self.CheckIndex(self.index)
 }
 
 func (self *DynamicChoice) CheckIndex(index int) error {

@@ -42,13 +42,12 @@ func (self *String) SetString(str string) error {
 func (self *String) FixValue(metaData *MetaData) {
 }
 
-func (self *String) Validate(metaData *MetaData) []*ValidationError {
+func (self *String) Validate(metaData *MetaData) error {
 	value := string(*self)
-	e := NoValidationErrors
 
 	pos := strings.IndexAny(value, "\n\r")
 	if pos != -1 {
-		e = append(e, &ValidationError{errors.New("model.String contains line breaks"), metaData})
+		return errors.New("model.String contains line breaks")
 	}
 
 	minlen, ok, err := self.Minlen(metaData)
@@ -56,7 +55,7 @@ func (self *String) Validate(metaData *MetaData) []*ValidationError {
 		err = &StringTooShort{value, minlen}
 	}
 	if err != nil {
-		e = append(e, &ValidationError{err, metaData})
+		return err
 	}
 
 	maxlen, ok, err := self.Maxlen(metaData)
@@ -64,10 +63,10 @@ func (self *String) Validate(metaData *MetaData) []*ValidationError {
 		err = &StringTooLong{value, maxlen}
 	}
 	if err != nil {
-		e = append(e, &ValidationError{err, metaData})
+		return err
 	}
 
-	return e
+	return nil
 }
 
 func (self *String) Minlen(metaData *MetaData) (minlen int, ok bool, err error) {

@@ -30,6 +30,6 @@ func (self *Bool) IsEmpty() bool {
 	return *self == false
 }
 
-func (self *Bool) Validate(metaData *MetaData) []*ValidationError {
-	return NoValidationErrors
+func (self *Bool) Validate(metaData *MetaData) error {
+	return nil
 }

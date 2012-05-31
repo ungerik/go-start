@@ -30,8 +30,8 @@ func (self *Phone) SetString(str string) error {
 func (self *Phone) FixValue(metaData *MetaData) {
 }
 
-func (self *Phone) Validate(metaData *MetaData) []*ValidationError {
-	return NoValidationErrors
+func (self *Phone) Validate(metaData *MetaData) error {
+	return nil
 }
 
 func NormalizePhoneNumber(number string) string {

@@ -40,18 +40,17 @@ func (self *Country) EnglishName() string {
 func (self *Country) FixValue(metaData *MetaData) {
 }
 
-func (self *Country) Validate(metaData *MetaData) []*ValidationError {
+func (self *Country) Validate(metaData *MetaData) error {
 	str := self.Get()
-	errors := NoValidationErrors
 	if self.Required(metaData) || str != "" {
 		//		if _, ok := i18n.Countries()[value]; !ok {
 		//			return NewValidationErrors(&InvalidCountryCode{str}, metaData)
 		//		}
 	}
 	if self.Required(metaData) && self.IsEmpty() {
-		errors = append(errors, NewRequiredValidationError(metaData))
+		return NewRequiredError(metaData)
 	}
-	return errors
+	return nil
 }
 
 func (self *Country) Required(metaData *MetaData) bool {

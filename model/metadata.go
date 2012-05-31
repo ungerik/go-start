@@ -133,7 +133,7 @@ func (self *MetaData) BoolAttrib(name string) bool {
 // from the root parent up the the current data item concatenated with with '.'.
 func (self *MetaData) Selector() string {
 	var buf bytes.Buffer
-	for _, m := range self.Path() {
+	for _, m := range self.Path()[1:] {
 		if buf.Len() > 0 {
 			buf.WriteByte('.')
 		}
@@ -151,7 +151,7 @@ func (self *MetaData) Selector() string {
 // concatenated with with '.'.
 func (self *MetaData) WildcardSelector() string {
 	var buf bytes.Buffer
-	for _, m := range self.Path() {
+	for _, m := range self.Path()[1:] {
 		if buf.Len() > 0 {
 			buf.WriteByte('.')
 		}

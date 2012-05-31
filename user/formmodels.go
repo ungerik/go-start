@@ -6,15 +6,15 @@ import (
 )
 
 type PasswordFormModel struct {
-	Password1 model.Password `gostart:"required|label=Password|minlen=6"`
-	Password2 model.Password `gostart:"required|label=Repeat password"`
+	Password1 model.Password `gostart:"label=Password|minlen=6"`
+	Password2 model.Password `gostart:"label=Repeat password"`
 }
 
-func (self *PasswordFormModel) Validate(metaData *model.MetaData) []*model.ValidationError {
+func (self *PasswordFormModel) Validate(metaData *model.MetaData) error {
 	if self.Password1 != self.Password2 {
-		return model.NewValidationErrors(errors.New("Passwords don't match"), metaData)
+		return errors.New("Passwords don't match")
 	}
-	return model.NoValidationErrors
+	return nil
 }
 
 type EmailPasswordFormModel struct {

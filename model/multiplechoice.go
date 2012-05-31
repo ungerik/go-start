@@ -17,7 +17,7 @@ func (self *MultipleChoice) IsEmpty() bool {
 	return false
 }
 
-func (self *MultipleChoice) Validate(metaData *MetaData) []*ValidationError {
+func (self *MultipleChoice) Validate(metaData *MetaData) error {
 	// todo
-	return NoValidationErrors
+	return nil
 }

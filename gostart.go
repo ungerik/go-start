@@ -169,6 +169,7 @@ struct type:
 		if self.Password1 != self.Password2 {
 			return model.NewValidationErrors(os.NewError("Passwords don't match"), metaData)
 		}
+	errors := NoValidationErrors
 		return model.NoValidationErrors
 	}
 

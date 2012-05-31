@@ -35,22 +35,21 @@ func (self *Int) IsEmpty() bool {
 	return false
 }
 
-func (self *Int) Validate(metaData *MetaData) []*ValidationError {
+func (self *Int) Validate(metaData *MetaData) error {
 	value := int64(*self)
-	errors := NoValidationErrors
 	min, ok, err := self.Min(metaData)
 	if err != nil {
-		errors = append(errors, &ValidationError{err, metaData})
+		return err
 	} else if ok && value < min {
-		errors = append(errors, &ValidationError{&IntBelowMin{value, min}, metaData})
+		return &IntBelowMin{value, min}
 	}
 	max, ok, err := self.Max(metaData)
 	if err != nil {
-		errors = append(errors, &ValidationError{err, metaData})
+		return err
 	} else if ok && value > max {
-		errors = append(errors, &ValidationError{&IntAboveMax{value, max}, metaData})
+		return &IntAboveMax{value, max}
 	}
-	return errors
+	return nil
 }
 
 func (self *Int) Min(metaData *MetaData) (min int64, ok bool, err error) {

@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/ungerik/go-start/debug"
+	"github.com/ungerik/go-start/errs"
 	// "reflect"
 	// "strconv"
 	// "unicode"
@@ -11,17 +12,17 @@ func init() {
 	debug.Nop()
 }
 
-func Validate(data interface{}, maxDepth int) []*ValidationError {
-	errors := []*ValidationError{}
+func Validate(data interface{}, maxDepth int) error {
+	var errors []error
 	VisitMaxDepth(data, maxDepth, VisitorFunc(
 		func(data *MetaData) error {
 			if validator, ok := data.Value.Addr().Interface().(Validator); ok {
-				errors = append(errors, validator.Validate(data)...)
+				errors = append(errors, validator.Validate(data))
 			}
 			return nil
 		},
 	))
-	return errors
+	return errs.Errors(errors...)
 }
 
 /* 

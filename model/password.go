@@ -39,8 +39,8 @@ func (self *Password) SetString(str string) error {
 func (self *Password) FixValue(metaData *MetaData) {
 }
 
-func (self *Password) Validate(metaData *MetaData) []*ValidationError {
-	return NoValidationErrors
+func (self *Password) Validate(metaData *MetaData) error {
+	return nil
 }
 
 func PasswordHash(password string) (hash string) {

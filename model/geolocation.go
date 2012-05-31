@@ -21,6 +21,6 @@ func (self *GeoLocation) IsEmpty() bool {
 	return false
 }
 
-func (self *GeoLocation) Validate(metaData *MetaData) []*ValidationError {
-	return NoValidationErrors
+func (self *GeoLocation) Validate(metaData *MetaData) error {
+	return nil
 }

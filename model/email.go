@@ -33,14 +33,14 @@ func (self *Email) SetString(str string) (err error) {
 func (self *Email) FixValue(metaData *MetaData) {
 }
 
-func (self *Email) Validate(metaData *MetaData) []*ValidationError {
+func (self *Email) Validate(metaData *MetaData) error {
 	str := self.Get()
 	if self.Required(metaData) || str != "" {
 		if _, err := email.ValidateAddress(str); err != nil {
-			return NewValidationErrors(err, metaData)
+			return err
 		}
 	}
-	return NoValidationErrors
+	return nil
 }
 
 func (self *Email) Required(metaData *MetaData) bool {
