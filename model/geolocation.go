@@ -5,7 +5,8 @@ import "fmt"
 // todo change data type
 
 type GeoLocation struct {
-	Longitude, Latitude float64
+	Longitude Float
+	Latitude  Float
 }
 
 func (self *GeoLocation) String() string {

@@ -10,9 +10,9 @@ import (
 // DocumentBase
 
 type DocumentBase struct {
-	ID              bson.ObjectId `bson:"_id,omitempty"`
-	collection      *Collection
-	embeddingStruct interface{}
+	ID              bson.ObjectId `bson:"_id,omitempty"gostart:"-"`
+	collection      *Collection   `gostart:"-"`
+	embeddingStruct interface{}   `gostart:"-"`
 }
 
 func (self *DocumentBase) Init(collection *Collection, embeddingStruct interface{}) {

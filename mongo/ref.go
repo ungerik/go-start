@@ -13,8 +13,8 @@ Only the ID will be saved in MongoDB, the collection name is for validation
 and convenience functions only.
 */
 type Ref struct {
-	ID             bson.ObjectId
-	CollectionName string
+	ID             bson.ObjectId `gostart:"-"`
+	CollectionName string        `gostart:"-"`
 }
 
 func (self *Ref) String() string {

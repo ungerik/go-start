@@ -1,7 +1,7 @@
 package view
 
 import (
-	"github.com/ungerik/go-start/debug"
+	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 )
 
@@ -53,8 +53,8 @@ func (self *VerticalFormLayout) SubmitError(message string, form *Form, formFiel
 func (self *VerticalFormLayout) EndFormContent(fieldValidationErrs, generalValidationErrs []error, form *Form, formFields Views) Views {
 	fieldFactory := form.GetFieldFactory()
 	for _, err := range generalValidationErrs {
-		debug.Dump(err)
 		formFields = append(formFields, fieldFactory.NewGeneralErrorMessage(err.Error(), form))
+		formFields = append(Views{fieldFactory.NewGeneralErrorMessage(err.Error(), form)}, formFields...)
 	}
 	formId := &HiddenInput{Name: FormIDName, Value: form.FormID}
 	submitButton := fieldFactory.NewSubmitButton(form.GetSubmitButtonText(), form)

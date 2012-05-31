@@ -241,71 +241,6 @@ func (self *Form) GetFieldDescription(metaData *model.MetaData) string {
 	return ""
 }
 
-func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) {
-	if self.GetModel == nil {
-		panic("view.Form.GetModel must not be nil")
-	}
-	if self.OnSubmit == nil {
-		panic("view.Form.OnSubmit must not be nil")
-	}
-	layout := self.GetLayout()
-	if layout == nil {
-		panic("view.Form.GetLayout() returned nil")
-	}
-	fieldFactory := self.GetFieldFactory()
-	if fieldFactory == nil {
-		panic("view.Form.GetFieldFactory() returned nil")
-	}
-
-	var formFields Views
-
-	formModel, err := self.GetModel(self, context)
-	if err != nil {
-		return err
-	}
-
-	visitor := &formLayoutWrappingStructVisitor{
-		form:       self,
-		formLayout: layout,
-		formModel:  formModel,
-		context:    context,
-		isPost:     self.IsPost(context),
-	}
-
-	err = model.Visit(formModel, visitor)
-	if err != nil {
-		return err
-	}
-
-	formFields = visitor.formFields
-
-	// Render HTML form element
-	method := self.Method
-	if method == "" {
-		method = "POST"
-	}
-	action := self.Action
-	if action == "" {
-		action = "."
-		if i := strings.Index(context.Request.RequestURI, "?"); i != -1 {
-			action += context.Request.RequestURI[i:]
-		}
-	}
-
-	writer.OpenTag("form").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
-	writer.Attrib("method", method)
-	writer.Attrib("action", action)
-	if len(formFields) > 0 {
-		formFields.Init(formFields)
-		err = formFields.Render(context, writer)
-		if err != nil {
-			return err
-		}
-	}
-	writer.ExtraCloseTag() // form
-	return nil
-}
-
 func (self *Form) FieldLabel(metaData *model.MetaData) string {
 	var buf bytes.Buffer
 	for _, m := range metaData.Path() {
@@ -335,6 +270,103 @@ func (self *Form) FieldLabel(metaData *model.MetaData) string {
 func (self *Form) FieldInputClass(metaData *model.MetaData) string {
 	class, _ := metaData.Attrib("class")
 	return class
+}
+
+func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) {
+	if self.OnSubmit == nil {
+		panic("view.Form.OnSubmit must not be nil")
+	}
+	layout := self.GetLayout()
+	if layout == nil {
+		panic("view.Form.GetLayout() returned nil")
+	}
+	fieldFactory := self.GetFieldFactory()
+	if fieldFactory == nil {
+		panic("view.Form.GetFieldFactory() returned nil")
+	}
+
+	isPost := self.IsPost(context)
+	var formFields Views
+	var formModel interface{}
+
+	if self.GetModel == nil {
+		formId := &HiddenInput{Name: FormIDName, Value: self.FormID}
+		submitButton := self.GetFieldFactory().NewSubmitButton(self.GetSubmitButtonText(), self)
+		formFields = Views{formId, submitButton}
+		if isPost {
+			formFields, err = self.submit(nil, context, formFields)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		formModel, err = self.GetModel(self, context)
+		if err != nil {
+			return err
+		}
+		visitor := &formLayoutWrappingStructVisitor{
+			form:       self,
+			formLayout: layout,
+			formModel:  formModel,
+			context:    context,
+			isPost:     isPost,
+		}
+		err = model.Visit(formModel, visitor)
+		if err != nil {
+			return err
+		}
+		formFields = visitor.formFields
+	}
+
+	// Render HTML form element
+	method := self.Method
+	if method == "" {
+		method = "POST"
+	}
+	action := self.Action
+	if action == "" {
+		action = "."
+		if i := strings.Index(context.Request.RequestURI, "?"); i != -1 {
+			action += context.Request.RequestURI[i:]
+		}
+	}
+
+	writer.OpenTag("form").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	writer.Attrib("method", method)
+	writer.Attrib("action", action)
+	if len(formFields) > 0 {
+		formFields.Init(formFields)
+		err = formFields.Render(context, writer)
+		if err != nil {
+			return err
+		}
+	}
+	writer.ExtraCloseTag() // form
+	return nil
+}
+
+func (self *Form) submit(formModel interface{}, context *Context, formFields Views) (Views, error) {
+	message, redirect, err := self.OnSubmit(self, formModel, context)
+	if err == nil {
+		if redirect == nil {
+			redirect = self.Redirect
+		}
+		if redirect != nil {
+			return nil, Redirect(redirect.URL(context))
+		}
+		if message == "" {
+			message = self.SuccessMessage
+		}
+		if message != "" {
+			formFields = self.GetLayout().SubmitSuccess(message, self, formFields)
+		}
+	} else {
+		if message == "" {
+			message = err.Error()
+		}
+		formFields = self.GetLayout().SubmitError(message, self, formFields)
+	}
+	return formFields, nil
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -394,27 +426,11 @@ func (self *formLayoutWrappingStructVisitor) validate(data *model.MetaData) (err
 	return err
 }
 
-func (self *formLayoutWrappingStructVisitor) endForm(data *model.MetaData) error {
+func (self *formLayoutWrappingStructVisitor) endForm(data *model.MetaData) (err error) {
 	if len(self.fieldValidationErrors) == 0 && len(self.generalValidationErrors) == 0 && self.isPost {
-		message, redirect, err := self.form.OnSubmit(self.form, self.formModel, self.context)
-		if err == nil {
-			if redirect == nil {
-				redirect = self.form.Redirect
-			}
-			if redirect != nil {
-				return Redirect(redirect.URL(self.context))
-			}
-			if message == "" {
-				message = self.form.SuccessMessage
-			}
-			if message != "" {
-				self.formFields = self.formLayout.SubmitSuccess(message, self.form, self.formFields)
-			}
-		} else {
-			if message == "" {
-				message = err.Error()
-			}
-			self.formFields = self.formLayout.SubmitError(message, self.form, self.formFields)
+		self.formFields, err = self.form.submit(self.formModel, self.context, self.formFields)
+		if err != nil {
+			return err
 		}
 	}
 	self.formFields = self.formLayout.EndFormContent(self.fieldValidationErrors, self.generalValidationErrors, self.form, self.formFields)
