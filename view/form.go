@@ -244,13 +244,13 @@ func (self *Form) GetFieldDescription(metaData *model.MetaData) string {
 
 func (self *Form) FieldLabel(metaData *model.MetaData) string {
 	var buf bytes.Buffer
-	for _, m := range metaData.Path() {
+	for _, m := range metaData.Path()[1:] {
 		if buf.Len() > 0 {
 			buf.WriteByte(' ')
 		}
 		label, ok := m.Attrib("label")
 		if !ok {
-			label = strings.Replace(m.Name, "_", " ", -1)
+			label = strings.Replace(m.NameOrIndex(), "_", " ", -1)
 		}
 		buf.WriteString(label)
 	}
@@ -389,7 +389,6 @@ type formLayoutWrappingStructVisitor struct {
 
 func (self *formLayoutWrappingStructVisitor) setFieldValue(field *model.MetaData) (err error) {
 	postValue, _ := self.context.Params[field.Selector()]
-
 	switch s := field.Value.Addr().Interface().(type) {
 	case *model.Bool:
 		s.Set(postValue != "")
@@ -405,7 +404,6 @@ func (self *formLayoutWrappingStructVisitor) setFieldValue(field *model.MetaData
 			self.fieldValidationErrors = append(self.fieldValidationErrors, err)
 		}
 	}
-
 	return err
 }
 

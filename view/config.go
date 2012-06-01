@@ -27,6 +27,7 @@ type FormConfiguration struct {
 	DefaultSuccessMessageClass   string
 	DefaultSubmitButtonClass     string
 	DefaultFieldDescriptionClass string
+	VerticalFormLayoutDivClass   string
 	DefaultSubmitButtonText      string
 	DefaultRequiredMarker        View
 	NumFieldRepeatMessage        int

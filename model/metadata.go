@@ -78,6 +78,22 @@ func (self *MetaData) IsStructField() bool {
 	return self.Name != ""
 }
 
+// NameOrIndex returns self.Name if not empty or else self.Index.
+func (self *MetaData) NameOrIndex() string {
+	if self.Name != "" {
+		return self.Name
+	}
+	return strconv.Itoa(self.Index)
+}
+
+// NameOrWildcard returns self.Name if not empty or else the wildcard "$".
+func (self *MetaData) NameOrWildcard() string {
+	if self.Name != "" {
+		return self.Name
+	}
+	return strconv.Itoa(self.Index)
+}
+
 // Path returns a slice of *MetaData that holds all parents from
 // the root parent up to (and including) self.
 func (self *MetaData) Path() []*MetaData {
@@ -137,11 +153,7 @@ func (self *MetaData) Selector() string {
 		if buf.Len() > 0 {
 			buf.WriteByte('.')
 		}
-		if m.IsStructField() {
-			buf.WriteString(m.Name)
-		} else {
-			buf.WriteString(strconv.Itoa(m.Index))
-		}
+		buf.WriteString(m.NameOrIndex())
 	}
 	return buf.String()
 }
@@ -155,11 +167,7 @@ func (self *MetaData) WildcardSelector() string {
 		if buf.Len() > 0 {
 			buf.WriteByte('.')
 		}
-		if m.IsStructField() {
-			buf.WriteString(m.Name)
-		} else {
-			buf.WriteByte('$')
-		}
+		buf.WriteString(m.NameOrWildcard())
 	}
 	return buf.String()
 }

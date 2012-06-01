@@ -1,7 +1,7 @@
 package view
 
 import (
-	// "github.com/ungerik/go-start/debug"
+	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 )
 
@@ -62,6 +62,9 @@ func (self *VerticalFormLayout) EndFormContent(fieldValidationErrs, generalValid
 }
 
 func (self *VerticalFormLayout) BeginStruct(strct *model.MetaData, form *Form, formFields Views) Views {
+	// if strct.Parent != nil && strct.Parent.Kind == model.ArrayKind {
+	// 	formFields = append(formFields, &Table{HeaderRow: true, Model: new(ViewsTableModel)})
+	// }
 	return formFields
 }
 
@@ -83,7 +86,7 @@ func (self *VerticalFormLayout) StructField(field *model.MetaData, validationErr
 		views = append(views, fieldFactory.NewFieldErrorMessage(validationErr.Error(), field, form))
 	}
 	views = append(views, input)
-	return append(formFields, P(views))
+	return append(formFields, DIV(Config.Form.VerticalFormLayoutDivClass, views))
 }
 
 func (self *VerticalFormLayout) EndStruct(strct *model.MetaData, validationErr error, form *Form, formFields Views) Views {
@@ -91,6 +94,8 @@ func (self *VerticalFormLayout) EndStruct(strct *model.MetaData, validationErr e
 }
 
 func (self *VerticalFormLayout) BeginArray(array *model.MetaData, form *Form, formFields Views) Views {
+	debug.Nop(array)
+
 	return formFields
 }
 
