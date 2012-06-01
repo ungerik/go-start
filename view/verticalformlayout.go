@@ -66,10 +66,10 @@ func (self *VerticalFormLayout) BeginStruct(strct *model.MetaData, form *Form, f
 }
 
 func (self *VerticalFormLayout) StructField(field *model.MetaData, validationErr error, form *Form, formFields Views) Views {
-	if field.Kind != model.ValueKind || form.IsFieldExcluded(field) {
+	fieldFactory := form.GetFieldFactory()
+	if !fieldFactory.CanCreateInput(field, form) || form.IsFieldExcluded(field) {
 		return formFields
 	}
-	fieldFactory := form.GetFieldFactory()
 	if form.IsFieldHidden(field) {
 		return append(formFields, fieldFactory.NewHiddenInput(field, form))
 	}
