@@ -87,7 +87,7 @@ func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr
 		tableModel := table.Model.(ViewsTableModel)
 		if field.Parent.Index == 0 {
 			// If first array field, add label to table header
-			tableModel[0] = append(tableModel[0], Escape(form.FieldLabel(field)))
+			tableModel[0] = append(tableModel[0], Escape(form.DirectFieldLabel(field)))
 		}
 		if tableModel.Rows()-1 == field.Parent.Index {
 			// Create row in table model for this array field

@@ -242,30 +242,29 @@ func (self *Form) GetFieldDescription(metaData *model.MetaData) string {
 	return ""
 }
 
+// DirectFieldLabel returns a label for a form field generated from metaData.
+// It creates the label only from the name or label tag of metaData,
+// not including its parents.
+func (self *Form) DirectFieldLabel(metaData *model.MetaData) string {
+	if label, ok := metaData.Attrib("label"); ok {
+		return label
+	}
+	return strings.Replace(metaData.NameOrIndex(), "_", " ", -1)
+}
+
+// FieldLabel returns a label for a form field generated from metaData.
+// It creates the label from the names or label tags of metaData and
+// all its parents, starting with the root parent, concanated with a space
+// character.
 func (self *Form) FieldLabel(metaData *model.MetaData) string {
 	var buf bytes.Buffer
 	for _, m := range metaData.Path()[1:] {
 		if buf.Len() > 0 {
 			buf.WriteByte(' ')
 		}
-		label, ok := m.Attrib("label")
-		if !ok {
-			label = strings.Replace(m.NameOrIndex(), "_", " ", -1)
-		}
-		buf.WriteString(label)
+		buf.WriteString(self.DirectFieldLabel(m))
 	}
 	return buf.String()
-
-	// names := make([]string, metaData.Depth)
-	// for i, m := metaData.Depth-1, metaData; i >= 0; i-- {
-	// 	label, ok := m.Attrib("label")
-	// 	if !ok {
-	// 		label = strings.Replace(m.Name, "_", " ", -1)
-	// 	}
-	// 	names[i] = label
-	// 	m = m.Parent
-	// }
-	// return strings.Join(names, " ")
 }
 
 func (self *Form) FieldInputClass(metaData *model.MetaData) string {

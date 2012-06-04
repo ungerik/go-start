@@ -28,7 +28,9 @@ func (self *Checkbox) Render(context *Context, writer *utils.XMLWriter) (err err
 	}
 	writer.CloseTag()
 
-	writer.OpenTag("label").Attrib("for", self.id).Content(self.Label).CloseTag()
+	if self.Label != "" {
+		writer.OpenTag("label").Attrib("for", self.id).Content(self.Label).CloseTag()
+	}
 	return nil
 }
 
