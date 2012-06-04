@@ -281,21 +281,24 @@ func (self *Page) Render(context *Context, writer *utils.XMLWriter) (err error) 
 	}
 
 	var templateContext struct {
-		Title             string
-		MetaDescription   string
-		MetaViewport      string
-		Head              string
-		PreCSS            string
-		CSS               string
-		PostCSS           string
-		HeadScripts       string
-		Scripts           string
-		Favicon16x16URL   string
-		Favicon57x57URL   string
-		Favicon72x72URL   string
-		Favicon114x114URL string
-		Favicon129x129URL string
-		Content           string
+		Title              string
+		MetaDescription    string
+		MetaViewport       string
+		Head               string
+		PreCSS             string
+		CSS                string
+		PostCSS            string
+		DynamicStyle       string
+		HeadScripts        string
+		DynamicHeadScripts string
+		Scripts            string
+		DynamicScripts     string
+		Favicon16x16URL    string
+		Favicon57x57URL    string
+		Favicon72x72URL    string
+		Favicon114x114URL  string
+		Favicon129x129URL  string
+		Content            string
 	}
 
 	if self.WriteTitle != nil {
@@ -398,6 +401,12 @@ func (self *Page) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		}
 	}
 	templateContext.Content = contentHtml.String()
+
+	// Get dynamic style and scripts after self.Content.Render()
+	// because they are added in Render()
+	templateContext.DynamicStyle = context.dynamicStyle.String()
+	templateContext.DynamicHeadScripts = context.dynamicHeadScripts.String()
+	templateContext.DynamicScripts = context.dynamicScripts.String()
 
 	self.Template.GetContext = TemplateContext(templateContext)
 	return self.Template.Render(context, writer)

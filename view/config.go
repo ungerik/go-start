@@ -27,7 +27,7 @@ type FormConfiguration struct {
 	DefaultSuccessMessageClass   string
 	DefaultSubmitButtonClass     string
 	DefaultFieldDescriptionClass string
-	VerticalFormLayoutDivClass   string
+	StandardFormLayoutDivClass   string
 	DefaultSubmitButtonText      string
 	DefaultRequiredMarker        View
 	NumFieldRepeatMessage        int
@@ -68,7 +68,7 @@ var Config Configuration = Configuration{
 		//DefaultWriteScripts: JQuery,
 	},
 	Form: FormConfiguration{
-		DefaultLayout:                new(VerticalFormLayout),
+		DefaultLayout:                new(StandardFormLayout),
 		DefaultFieldFactory:          new(StandardFormFieldFactory),
 		DefaultCSRFProtector:         nil,
 		DefaultSubmitButtonText:      "Save",

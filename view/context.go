@@ -1,6 +1,8 @@
 package view
 
 import (
+	"bytes"
+	"container/heap"
 	"encoding/base64"
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/utils"
@@ -50,6 +52,10 @@ type Context struct {
 
 	cachedSessionID string
 	//	cache           map[string]interface{}
+
+	dynamicStyle         dependencyHeap
+	dynamicHeadScripts dependencyHeap
+	dynamicScripts       dependencyHeap
 }
 
 // RequestURL returns the complete URL of the request including protocol and host.
@@ -189,4 +195,104 @@ func (self *Context) DeleteSessionData() (err error) {
 		return errs.Format("Can't delete session data without gostart/views.Config.SessionDataStore")
 	}
 	return Config.SessionDataStore.Delete(self)
+}
+
+func (self *Context) AddStyle(css string, priority int) {
+	if self.dynamicStyle == nil {
+		self.dynamicStyle = make(dependencyHeap, 0, 1)
+		self.dynamicStyle.Init()
+	}
+	self.dynamicStyle.Add("<style>"+css+"</style>", priority)
+}
+
+func (self *Context) AddStyleURL(url string, priority int) {
+	if self.dynamicStyle == nil {
+		self.dynamicStyle = make(dependencyHeap, 0, 1)
+		self.dynamicStyle.Init()
+	}
+	self.dynamicStyle.Add("<link rel='stylesheet' href='"+url+"'>", priority)
+}
+
+func (self *Context) AddHeaderScript(script string, priority int) {
+	if self.dynamicHeadScripts == nil {
+		self.dynamicHeadScripts = make(dependencyHeap, 0, 1)
+		self.dynamicHeadScripts.Init()
+	}
+	self.dynamicHeadScripts.Add("<script>"+script+"</script>", priority)
+}
+
+func (self *Context) AddHeaderScriptURL(url string, priority int) {
+	if self.dynamicHeadScripts == nil {
+		self.dynamicHeadScripts = make(dependencyHeap, 0, 1)
+		self.dynamicHeadScripts.Init()
+	}
+	self.dynamicHeadScripts.Add("<script src='"+url+"'></script>", priority)
+}
+
+func (self *Context) AddScript(script string, priority int) {
+	if self.dynamicScripts == nil {
+		self.dynamicScripts = make(dependencyHeap, 0, 1)
+		self.dynamicScripts.Init()
+	}
+	self.dynamicScripts.Add("<script>"+script+"</script>", priority)
+}
+
+func (self *Context) AddScriptURL(url string, priority int) {
+	if self.dynamicScripts == nil {
+		self.dynamicScripts = make(dependencyHeap, 0, 1)
+		self.dynamicScripts.Init()
+	}
+	self.dynamicScripts.Add("<script src='"+url+"'></script>", priority)
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// dependencyHeap
+
+type dependencyHeapItem struct {
+	text     string
+	priority int
+}
+
+type dependencyHeap []dependencyHeapItem
+
+func (self *dependencyHeap) Len() int {
+	return len(*self)
+}
+
+func (self *dependencyHeap) Less(i, j int) bool {
+	return (*self)[i].priority < (*self)[j].priority
+}
+
+func (self *dependencyHeap) Swap(i, j int) {
+	(*self)[i], (*self)[j] = (*self)[j], (*self)[i]
+}
+
+func (self *dependencyHeap) Push(item interface{}) {
+	*self = append(*self, item.(dependencyHeapItem))
+}
+
+func (self *dependencyHeap) Pop() interface{} {
+	end := len(*self) - 1
+	item := (*self)[end]
+	*self = (*self)[:end]
+	return item
+}
+
+func (self *dependencyHeap) Init() {
+	heap.Init(self)
+}
+
+func (self *dependencyHeap) Add(text string, priority int) {
+	heap.Push(self, dependencyHeapItem{text, priority})
+}
+
+func (self *dependencyHeap) String() string {
+	if self == nil {
+		return ""
+	}
+	var buf bytes.Buffer
+	for i := range *self {
+		buf.WriteString((*self)[i].text)
+	}
+	return buf.String()
 }
