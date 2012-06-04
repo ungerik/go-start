@@ -49,12 +49,12 @@ func GetMetaDataKind(v reflect.Value) MetaDataKind {
 
 // MetaData holds meta data about an model data item.
 type MetaData struct {
-	Value   reflect.Value
 	Kind    MetaDataKind
-	Parent  *MetaData
+	Value   reflect.Value
 	Depth   int    // number of steps up to the root parent
 	Name    string // empty for array and slice fields
 	Index   int    // will also be set for struct fields
+	Parent  *MetaData
 	tag     string
 	attribs map[string]string // cached tag attributes
 	path    []*MetaData

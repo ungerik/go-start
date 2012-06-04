@@ -92,8 +92,8 @@ type Form struct {
 	OnSubmit func(form *Form, formModel interface{}, context *Context) (message string, redirect URL, err error)
 
 	ModelMaxDepth         int      // if zero, no depth limit
-	ExcludedFields        []string // Use point notation for nested fields
-	HiddenFields          []string // Use point notation for nested fields
+	ExcludedFields        []string // Use point notation for nested fields. In case of arrays/slices use wildcards
+	HiddenFields          []string // Use point notation for nested fields. In case of arrays/slices use wildcards
 	DisabledFields        []string // Use point notation for nested fields
 	RequiredFields        []string // Also available as static struct field tag. Use point notation for nested fields
 	FieldDescriptions     map[string]string

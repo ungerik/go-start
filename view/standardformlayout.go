@@ -62,9 +62,6 @@ func (self *StandardFormLayout) EndFormContent(fieldValidationErrs, generalValid
 }
 
 func (self *StandardFormLayout) BeginStruct(strct *model.MetaData, form *Form, formFields Views) Views {
-	if strct.Parent != nil && strct.Parent.Kind == model.ArrayKind {
-		formFields = append(formFields, &Table{HeaderRow: true, Model: new(ViewsTableModel)})
-	}
 	return formFields
 }
 
@@ -73,6 +70,37 @@ func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr
 	if !fieldFactory.CanCreateInput(field, form) || form.IsFieldExcluded(field) {
 		return formFields
 	}
+
+	if field.Parent.ParentKind() == model.ArrayKind {
+		// We expect a Table as last form field.
+		// If it doesn't exist yet because this is the first visible
+		// struct field in the first array field, then create it
+		var table *Table
+		if len(formFields) > 0 {
+			table, _ = formFields[len(formFields)-1].(*Table)
+		}
+		if table == nil {
+			// First struct field of first array field, create table and table model
+			table = &Table{HeaderRow: true, Model: ViewsTableModel{Views{}}}
+			formFields = append(formFields, table)
+		}
+		tableModel := table.Model.(ViewsTableModel)
+		if field.Parent.Index == 0 {
+			// If first array field, add label to table header
+			tableModel[0] = append(tableModel[0], Escape(form.FieldLabel(field)))
+		}
+		if tableModel.Rows()-1 == field.Parent.Index {
+			// Create row in table model for this array field
+			tableModel = append(tableModel, Views{})
+			table.Model = tableModel
+		}
+		// Append form field in last row for this struct field
+		row := &tableModel[tableModel.Rows()-1]
+		*row = append(*row, fieldFactory.NewInput(field, form))
+
+		return formFields
+	}
+
 	if form.IsFieldHidden(field) {
 		return append(formFields, fieldFactory.NewHiddenInput(field, form))
 	}
