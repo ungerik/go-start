@@ -71,7 +71,8 @@ func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr
 		return formFields
 	}
 
-	if field.Parent.ParentKind() == model.ArrayKind {
+	grandParent := field.Parent.Parent
+	if grandParent != nil && (grandParent.Kind == model.ArrayKind || grandParent.Kind == model.SliceKind) {
 		// We expect a Table as last form field.
 		// If it doesn't exist yet because this is the first visible
 		// struct field in the first array field, then create it
@@ -81,7 +82,11 @@ func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr
 		}
 		if table == nil {
 			// First struct field of first array field, create table and table model
-			table = &Table{HeaderRow: true, Model: ViewsTableModel{Views{}}}
+			table = &Table{
+				Caption:   form.FieldLabel(grandParent),
+				HeaderRow: true,
+				Model:     ViewsTableModel{Views{}},
+			}
 			formFields = append(formFields, table)
 		}
 		tableModel := table.Model.(ViewsTableModel)
@@ -96,7 +101,7 @@ func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr
 		}
 		// Append form field in last row for this struct field
 		row := &tableModel[tableModel.Rows()-1]
-		*row = append(*row, fieldFactory.NewInput(field, form))
+		*row = append(*row, fieldFactory.NewInput(false, field, form))
 
 		return formFields
 	}
@@ -104,17 +109,11 @@ func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr
 	if form.IsFieldHidden(field) {
 		return append(formFields, fieldFactory.NewHiddenInput(field, form))
 	}
-	views := make(Views, 0, 2)
-	input := fieldFactory.NewInput(field, form)
-	if self.fieldNeedsLabel(field) {
-		label := fieldFactory.NewLabel(input, field, form)
-		views = append(views, label)
-	}
+	var formField View = fieldFactory.NewInput(true, field, form)
 	if validationErr != nil {
-		views = append(views, fieldFactory.NewFieldErrorMessage(validationErr.Error(), field, form))
+		formField = Views{formField, fieldFactory.NewFieldErrorMessage(validationErr.Error(), field, form)}
 	}
-	views = append(views, input)
-	return append(formFields, DIV(Config.Form.StandardFormLayoutDivClass, views))
+	return append(formFields, DIV(Config.Form.StandardFormLayoutDivClass, formField))
 }
 
 func (self *StandardFormLayout) EndStruct(strct *model.MetaData, validationErr error, form *Form, formFields Views) Views {

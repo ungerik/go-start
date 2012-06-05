@@ -17,7 +17,7 @@ func (self *Table) Render(context *Context, writer *utils.XMLWriter) (err error)
 	writer.OpenTag("table").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 
 	if self.Caption != "" {
-		writer.OpenTag("caption").Content(self.Caption).CloseTag()
+		writer.OpenTag("caption").EscapeContent(self.Caption).CloseTag()
 	}
 
 	if self.Model != nil {

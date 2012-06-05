@@ -19,19 +19,22 @@ func (self *StandardFormFieldFactory) CanCreateInput(metaData *model.MetaData, f
 	return false
 }
 
-func (self *StandardFormFieldFactory) NewInput(metaData *model.MetaData, form *Form) View {
+func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.MetaData, form *Form) (input View) {
 	switch s := metaData.Value.Addr().Interface().(type) {
 	case *model.Bool:
-		return &Checkbox{
+		checkbox := &Checkbox{
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
-			Label:    form.FieldLabel(metaData),
 			Disabled: form.IsFieldDisabled(metaData),
 			Checked:  s.Get(),
 		}
+		if withLabel {
+			checkbox.Label = form.FieldLabel(metaData)
+		}
+		return checkbox
 
 	case *model.Choice:
-		return &Select{
+		input = &Select{
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Model:    &StringsSelectModel{s.Options(metaData), s.Get()},
@@ -40,7 +43,7 @@ func (self *StandardFormFieldFactory) NewInput(metaData *model.MetaData, form *F
 		}
 
 	case *model.DynamicChoice:
-		return &Select{
+		input = &Select{
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Model:    &IndexedStringsSelectModel{s.Options(), s.Index()},
@@ -54,10 +57,10 @@ func (self *StandardFormFieldFactory) NewInput(metaData *model.MetaData, form *F
 		if value == "" {
 			value = "[empty]"
 		}
-		return Escape(value)
+		input = Escape(value)
 
 	case *model.Date:
-		return &TextField{
+		input = &TextField{
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     s.Get(),
@@ -66,7 +69,7 @@ func (self *StandardFormFieldFactory) NewInput(metaData *model.MetaData, form *F
 		}
 
 	case *model.DateTime:
-		return &TextField{
+		input = &TextField{
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     s.Get(),
@@ -75,7 +78,7 @@ func (self *StandardFormFieldFactory) NewInput(metaData *model.MetaData, form *F
 		}
 
 	case *model.Email:
-		return &TextField{
+		input = &TextField{
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Type:     EmailTextField,
@@ -85,7 +88,7 @@ func (self *StandardFormFieldFactory) NewInput(metaData *model.MetaData, form *F
 		}
 
 	case *model.Float:
-		return &TextField{
+		input = &TextField{
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     s.String(),
@@ -93,7 +96,7 @@ func (self *StandardFormFieldFactory) NewInput(metaData *model.MetaData, form *F
 		}
 
 	case *model.Int:
-		return &TextField{
+		input = &TextField{
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     s.String(),
@@ -106,10 +109,10 @@ func (self *StandardFormFieldFactory) NewInput(metaData *model.MetaData, form *F
 		if value == "" {
 			value = "[empty]"
 		}
-		return HTML(value)
+		input = HTML(value)
 
 	case *model.Password:
-		return &TextField{
+		input = &TextField{
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Type:     PasswordTextField,
@@ -119,7 +122,7 @@ func (self *StandardFormFieldFactory) NewInput(metaData *model.MetaData, form *F
 		}
 
 	case *model.Phone:
-		return &TextField{
+		input = &TextField{
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     s.Get(),
@@ -135,7 +138,7 @@ func (self *StandardFormFieldFactory) NewInput(metaData *model.MetaData, form *F
 		if value == "" {
 			value = "[empty]"
 		}
-		return HTML(value)
+		input = HTML(value)
 
 	case *model.String:
 		textField := &TextField{
@@ -149,12 +152,12 @@ func (self *StandardFormFieldFactory) NewInput(metaData *model.MetaData, form *F
 			textField.Size = maxlen
 			textField.MaxLength = maxlen
 		}
-		return textField
+		input = textField
 
 	case *model.Text:
 		cols, _, _ := s.Cols(metaData) // will be zero if not available, which is OK
 		rows, _, _ := s.Rows(metaData) // will be zero if not available, which is OK
-		return &TextArea{
+		input = &TextArea{
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     s.Get(),
@@ -164,7 +167,7 @@ func (self *StandardFormFieldFactory) NewInput(metaData *model.MetaData, form *F
 		}
 
 	case *model.Url:
-		return &TextField{
+		input = &TextField{
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     s.Get(),
@@ -173,10 +176,16 @@ func (self *StandardFormFieldFactory) NewInput(metaData *model.MetaData, form *F
 		}
 
 	case *model.GeoLocation:
-		return HTML(s.String())
+		input = HTML(s.String())
+
+	default:
+		panic(fmt.Sprintf("Unsupported model.Value type %T", metaData.Value.Addr().Interface()))
 	}
 
-	panic(fmt.Sprintf("Unsupported model.Value type %T", metaData.Value.Addr().Interface()))
+	if withLabel {
+		return Views{self.NewLabel(input, metaData, form), input}
+	}
+	return input
 }
 
 func (self *StandardFormFieldFactory) NewHiddenInput(metaData *model.MetaData, form *Form) View {

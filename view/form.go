@@ -51,7 +51,7 @@ type FormLayout interface {
 
 type FormFieldFactory interface {
 	CanCreateInput(metaData *model.MetaData, form *Form) bool
-	NewInput(metaData *model.MetaData, form *Form) View
+	NewInput(withLabel bool, metaData *model.MetaData, form *Form) View
 	NewHiddenInput(metaData *model.MetaData, form *Form) View
 	NewLabel(forView View, metaData *model.MetaData, form *Form) View
 	NewFieldDescrtiption(description string, form *Form) View
