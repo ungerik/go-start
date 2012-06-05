@@ -12,16 +12,14 @@ import (
 //	"github.com/ungerik/go-start/debug"
 )
 
-// todo DropDatabase()
-
-func AddCollection(collection *Collection) (err error) {
-	if _, ok := collections[collection.Name]; ok {
-		return errs.Format("Collection %s already added", collection.Name)
-	}
-	collection.Init()
-	collections[collection.Name] = collection
-	return nil
-}
+// func AddCollection(collection *Collection) (err error) {
+// 	if _, ok := collections[collection.Name]; ok {
+// 		return errs.Format("Collection %s already added", collection.Name)
+// 	}
+// 	collection.Init()
+// 	collections[collection.Name] = collection
+// 	return nil
+// }
 
 func CollectionByName(name string) (collection *Collection, ok bool) {
 	collection, ok = collections[name]

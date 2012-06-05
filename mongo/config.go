@@ -53,6 +53,10 @@ func Init() (err error) {
 
 	database = session.DB(Config.Database)
 
+	for _, collection := range collections {
+		collection.collection = database.C(collection.Name)
+	}
+
 	return nil
 }
 
