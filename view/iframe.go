@@ -32,6 +32,6 @@ func (self *Iframe) Render(context *Context, writer *utils.XMLWriter) (err error
 		writer.Attrib("seamless", "seamless")
 	}
 	writer.Attrib("src", self.URL)
-	writer.ExtraCloseTag()
+	writer.ForceCloseTag()
 	return nil
 }

@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/errs"
 	"strings"
 )
@@ -16,6 +17,7 @@ func (self *Choice) Get() string {
 }
 
 func (self *Choice) Set(value string) {
+	debug.Dump(value)
 	*self = Choice(value)
 }
 
@@ -30,6 +32,11 @@ func (self *Choice) SetString(str string) error {
 
 func (self *Choice) IsEmpty() bool {
 	return *self == ""
+}
+
+func (self *Choice) Required(metaData *MetaData) bool {
+	options := self.Options(metaData)
+	return len(options) > 0 && options[0] != ""
 }
 
 func (self *Choice) Validate(metaData *MetaData) error {

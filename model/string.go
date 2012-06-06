@@ -42,6 +42,15 @@ func (self *String) SetString(str string) error {
 func (self *String) FixValue(metaData *MetaData) {
 }
 
+func (self *String) Required(metaData *MetaData) bool {
+	if minlen, ok, _ := self.Minlen(metaData); ok {
+		if minlen > 0 {
+			return true
+		}
+	}
+	return metaData.BoolAttrib("required")
+}
+
 func (self *String) Validate(metaData *MetaData) error {
 	value := string(*self)
 

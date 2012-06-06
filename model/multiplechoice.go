@@ -17,6 +17,10 @@ func (self *MultipleChoice) IsEmpty() bool {
 	return false
 }
 
+func (self *MultipleChoice) Required(metaData *MetaData) bool {
+	return metaData.BoolAttrib("required")
+}
+
 func (self *MultipleChoice) Validate(metaData *MetaData) error {
 	// todo
 	return nil

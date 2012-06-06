@@ -128,9 +128,9 @@ func (self *structVisitorWrapper) EndStruct(depth int, v reflect.Value) error {
 	return self.visitor.EndStruct(self.metaData)
 }
 
-func (self *structVisitorWrapper) BeginSlice(depth int, v reflect.Value) error {
+func (self *structVisitorWrapper) BeginSlice(depth int, v reflect.Value) (reflect.Value, error) {
 	self.onBegin(depth, v, SliceKind)
-	return self.visitor.BeginSlice(self.metaData)
+	return v, self.visitor.BeginSlice(self.metaData)
 }
 
 func (self *structVisitorWrapper) SliceField(depth int, v reflect.Value, index int) error {

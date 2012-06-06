@@ -23,6 +23,6 @@ func (self *Div) Render(context *Context, writer *utils.XMLWriter) (err error) {
 	if self.Content != nil {
 		err = self.Content.Render(context, writer)
 	}
-	writer.ExtraCloseTag()
+	writer.ForceCloseTag()
 	return err
 }

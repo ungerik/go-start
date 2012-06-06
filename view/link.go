@@ -40,6 +40,6 @@ func (self *Link) Render(context *Context, writer *utils.XMLWriter) (err error) 
 			err = content.Render(context, writer)
 		}
 	}
-	writer.ExtraCloseTag() // a
+	writer.ForceCloseTag() // a
 	return err
 }

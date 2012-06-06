@@ -45,7 +45,7 @@ func (self *TextPreview) Render(context *Context, writer *utils.XMLWriter) (err 
 			if content != nil {
 				err = content.Render(context, writer)
 			}
-			writer.ExtraCloseTag() // a
+			writer.ForceCloseTag() // a
 		}
 	}
 	return err

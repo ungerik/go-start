@@ -22,6 +22,10 @@ func (self *GeoLocation) IsEmpty() bool {
 	return false
 }
 
+func (self *GeoLocation) Required(metaData *MetaData) bool {
+	return metaData.BoolAttrib("required")
+}
+
 func (self *GeoLocation) Validate(metaData *MetaData) error {
 	return nil
 }

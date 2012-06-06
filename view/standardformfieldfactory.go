@@ -34,19 +34,27 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 		return checkbox
 
 	case *model.Choice:
+		options := s.Options(metaData)
+		if len(options) == 0 || options[0] != "" {
+			options = append([]string{""}, options...)
+		}
 		input = &Select{
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
-			Model:    &StringsSelectModel{s.Options(metaData), s.Get()},
+			Model:    &StringsSelectModel{options, s.Get()},
 			Disabled: form.IsFieldDisabled(metaData),
 			Size:     1,
 		}
 
 	case *model.DynamicChoice:
+		options := s.Options()
+		if len(options) == 0 || options[0] != "" {
+			options = append([]string{""}, options...)
+		}
 		input = &Select{
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
-			Model:    &IndexedStringsSelectModel{s.Options(), s.Index()},
+			Model:    &IndexedStringsSelectModel{options, s.Index()},
 			Disabled: form.IsFieldDisabled(metaData),
 			Size:     1,
 		}

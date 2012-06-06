@@ -34,11 +34,11 @@ func (self *List) Render(context *Context, writer *utils.XMLWriter) (err error) 
 			if err != nil {
 				return err
 			}
-			writer.ExtraCloseTag() // li
+			writer.ForceCloseTag() // li
 		}
 	}
 
-	writer.ExtraCloseTag() // ol/ul
+	writer.ForceCloseTag() // ol/ul
 	return nil
 }
 

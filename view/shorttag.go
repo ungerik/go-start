@@ -28,6 +28,6 @@ func (self *ShortTag) Render(context *Context, writer *utils.XMLWriter) (err err
 	if self.Content != nil {
 		err = self.Content.Render(context, writer)
 	}
-	writer.ExtraCloseTag()
+	writer.ForceCloseTag()
 	return err
 }

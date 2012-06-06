@@ -39,7 +39,11 @@ func (self *Float) SetString(str string) error {
 }
 
 func (self *Float) IsEmpty() bool {
-	return !self.IsValid()
+	return *self == 0
+}
+
+func (self *Float) Required(metaData *MetaData) bool {
+	return metaData.BoolAttrib("required")
 }
 
 func (self *Float) Validate(metaData *MetaData) error {

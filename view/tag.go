@@ -30,7 +30,7 @@ func (self *Tag) Render(context *Context, writer *utils.XMLWriter) (err error) {
 		err = self.Content.Render(context, writer)
 	}
 	if self.ExtraClose {
-		writer.ExtraCloseTag()
+		writer.ForceCloseTag()
 	} else {
 		writer.CloseTag()
 	}

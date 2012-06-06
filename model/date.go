@@ -73,13 +73,13 @@ func (self *Date) FixValue(metaData *MetaData) {
 // todo min max
 func (self *Date) Validate(metaData *MetaData) error {
 	value := self.Get()
+	if self.Required(metaData) && self.IsEmpty() {
+		return NewRequiredError(metaData)
+	}
 	if self.Required(metaData) || value != "" {
 		if _, err := time.Parse(DateFormat, value); err != nil {
 			return err
 		}
-	}
-	if self.Required(metaData) && self.IsEmpty() {
-		return NewRequiredError(metaData)
 	}
 	return nil
 }

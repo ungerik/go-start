@@ -12,6 +12,6 @@ type Canvas struct {
 func (self *Canvas) Render(context *Context, writer *utils.XMLWriter) (err error) {
 	writer.OpenTag("label").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	writer.Attrib("width", self.Width).Attrib("height", self.Height)
-	writer.ExtraCloseTag()
+	writer.ForceCloseTag()
 	return err
 }

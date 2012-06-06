@@ -32,7 +32,11 @@ func (self *Int) SetString(str string) error {
 }
 
 func (self *Int) IsEmpty() bool {
-	return false
+	return *self == 0
+}
+
+func (self *Int) Required(metaData *MetaData) bool {
+	return metaData.BoolAttrib("required")
 }
 
 func (self *Int) Validate(metaData *MetaData) error {

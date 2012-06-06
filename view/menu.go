@@ -80,11 +80,11 @@ func (self *Menu) Render(context *Context, writer *utils.XMLWriter) (err error) 
 				return err
 			}
 		}
-		writer.ExtraCloseTag() // a
+		writer.ForceCloseTag() // a
 
-		writer.ExtraCloseTag() // li
+		writer.ForceCloseTag() // li
 	}
 
-	writer.ExtraCloseTag() // ul
+	writer.ForceCloseTag() // ul
 	return nil
 }

@@ -1,10 +1,7 @@
 package utils
 
 import (
-	"log"
-	"os"
 	"reflect"
-	"strings"
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -15,7 +12,10 @@ type StructVisitor interface {
 	StructField(depth int, v reflect.Value, f reflect.StructField, index int) error
 	EndStruct(depth int, v reflect.Value) error
 
-	BeginSlice(depth int, v reflect.Value) error
+	// BeginSlice is special: it can change the slice length and returns
+	// the altered or unaltered slice as reflect.Value.
+	// SliceField() and EndSlice() will be called on the altered slice.
+	BeginSlice(depth int, v reflect.Value) (reflect.Value, error)
 	SliceField(depth int, v reflect.Value, index int) error
 	EndSlice(depth int, v reflect.Value) error
 
@@ -122,14 +122,14 @@ func visitStructRecursive(v reflect.Value, visitor StructVisitor, maxDepth, dept
 		return visitor.EndStruct(depth, v)
 
 	case reflect.Slice:
-		err = visitor.BeginSlice(depth, v)
+		newV, err := visitor.BeginSlice(depth, v)
 		if err != nil {
 			return err
 		}
+		v.Set(newV)
 		depth1 := depth + 1
 		if maxDepth == -1 || depth1 <= maxDepth {
-			n := v.Len()
-			for i := 0; i < n; i++ {
+			for i := 0; i < v.Len(); i++ {
 				if vi, ok := DereferenceValue(v.Index(i)); ok {
 					err = visitor.SliceField(depth1, vi, i)
 					if err != nil {
@@ -151,8 +151,7 @@ func visitStructRecursive(v reflect.Value, visitor StructVisitor, maxDepth, dept
 		}
 		depth1 := depth + 1
 		if maxDepth == -1 || depth1 <= maxDepth {
-			n := v.Len()
-			for i := 0; i < n; i++ {
+			for i := 0; i < v.Len(); i++ {
 				if vi, ok := DereferenceValue(v.Index(i)); ok {
 					err = visitor.ArrayField(depth1, vi, i)
 					if err != nil {
@@ -172,82 +171,45 @@ func visitStructRecursive(v reflect.Value, visitor StructVisitor, maxDepth, dept
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// LogStructVisitor
+// ModifySliceStructVisitor
 
-func NewStdLogStructVisitor() *LogStructVisitor {
-	return &LogStructVisitor{Logger: log.New(os.Stdout, "", 0)}
-}
+// ModifySliceStructVisitor is a StructVisitor that calls its self function
+// value in BeginSlice() and ignores all other StructVisitor methos.
+// It can be used to modify the length of slices in complex structs.
+type ModifySliceStructVisitor func(depth int, v reflect.Value) (reflect.Value, error)
 
-// LogStructVisitor can be used for testing and debugging VisitStruct()
-type LogStructVisitor struct {
-	Logger *log.Logger
-}
-
-func (self *LogStructVisitor) BeginStruct(depth int, v reflect.Value) error {
-	indent := strings.Repeat("  ", depth)
-	self.Logger.Printf("%sBeginStruct(%T)", indent, v.Interface())
+func (self ModifySliceStructVisitor) BeginStruct(depth int, v reflect.Value) error {
 	return nil
 }
 
-func (self *LogStructVisitor) StructField(depth int, v reflect.Value, f reflect.StructField, index int) error {
-	indent := strings.Repeat("  ", depth)
-	switch v.Kind() {
-	case reflect.Struct, reflect.Slice, reflect.Array:
-		self.Logger.Printf("%sStructField(%d, %s %s)", indent, index, f.Name, v.Type())
-	default:
-		self.Logger.Printf("%sStructField(%d, %s %s = %#v)", indent, index, f.Name, v.Type(), v.Interface())
-	}
+func (self ModifySliceStructVisitor) StructField(depth int, v reflect.Value, f reflect.StructField, index int) error {
 	return nil
 }
 
-func (self *LogStructVisitor) EndStruct(depth int, v reflect.Value) error {
-	indent := strings.Repeat("  ", depth)
-	self.Logger.Printf("%sEndStruct(%T)", indent, v.Interface())
+func (self ModifySliceStructVisitor) EndStruct(depth int, v reflect.Value) error {
 	return nil
 }
 
-func (self *LogStructVisitor) BeginSlice(depth int, v reflect.Value) error {
-	indent := strings.Repeat("  ", depth)
-	self.Logger.Printf("%sBeginSlice(%T)", indent, v.Interface())
+func (self ModifySliceStructVisitor) BeginSlice(depth int, v reflect.Value) (reflect.Value, error) {
+	return self(depth, v)
+}
+
+func (self ModifySliceStructVisitor) SliceField(depth int, v reflect.Value, index int) error {
 	return nil
 }
 
-func (self *LogStructVisitor) SliceField(depth int, v reflect.Value, index int) error {
-	indent := strings.Repeat("  ", depth)
-	switch v.Kind() {
-	case reflect.Struct, reflect.Slice, reflect.Array:
-		self.Logger.Printf("%sSliceField(%d, %s)", indent, index, v.Type())
-	default:
-		self.Logger.Printf("%sSliceField(%d, %s = %#v)", indent, index, v.Type(), v.Interface())
-	}
+func (self ModifySliceStructVisitor) EndSlice(depth int, v reflect.Value) error {
 	return nil
 }
 
-func (self *LogStructVisitor) EndSlice(depth int, v reflect.Value) error {
-	indent := strings.Repeat("  ", depth)
-	self.Logger.Printf("%sEndSlice(%T)", indent, v.Interface())
+func (self ModifySliceStructVisitor) BeginArray(depth int, v reflect.Value) error {
 	return nil
 }
 
-func (self *LogStructVisitor) BeginArray(depth int, v reflect.Value) error {
-	indent := strings.Repeat("  ", depth)
-	self.Logger.Printf("%sBeginArray(%T)", indent, v.Interface())
+func (self ModifySliceStructVisitor) ArrayField(depth int, v reflect.Value, index int) error {
 	return nil
 }
 
-func (self *LogStructVisitor) ArrayField(depth int, v reflect.Value, index int) error {
-	indent := strings.Repeat("  ", depth)
-	switch v.Kind() {
-	case reflect.Struct, reflect.Slice, reflect.Array:
-		self.Logger.Printf("%sArrayField(%d, %s)", indent, index, v.Type())
-	default:
-		self.Logger.Printf("%sArrayField(%d, %s = %#v)", indent, index, v.Type(), v.Interface())
-	}
-	return nil
-}
-
-func (self *LogStructVisitor) EndArray(depth int, v reflect.Value) error {
-	indent := strings.Repeat("  ", depth)
-	self.Logger.Printf("%sEndArray(%T)", indent, v.Interface())
+func (self ModifySliceStructVisitor) EndArray(depth int, v reflect.Value) error {
 	return nil
 }

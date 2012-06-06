@@ -14,22 +14,43 @@ type Button struct {
 	Class    string
 	Disabled bool
 	TabIndex int
+	Onclick  string
+	Content  View // Only used when Submit is false
+}
+
+func (self *Button) IterateChildren(callback IterateChildrenCallback) {
+	if self.Content != nil {
+		callback(self, self.Content)
+	}
 }
 
 func (self *Button) Render(context *Context, writer *utils.XMLWriter) (err error) {
-	writer.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	if self.Submit {
+		writer.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 		writer.Attrib("type", "submit")
+		writer.Attrib("name", self.Name)
+		writer.Attrib("value", self.Value)
+		if self.Disabled {
+			writer.Attrib("disabled", "disabled")
+		}
+		writer.AttribIfNotDefault("tabindex", self.TabIndex)
+		writer.AttribIfNotDefault("onclick", self.Onclick)
+		writer.CloseTag()
 	} else {
+		writer.OpenTag("button").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 		writer.Attrib("type", "button")
+		writer.Attrib("name", self.Name)
+		writer.Attrib("value", self.Value)
+		if self.Disabled {
+			writer.Attrib("disabled", "disabled")
+		}
+		writer.AttribIfNotDefault("tabindex", self.TabIndex)
+		writer.AttribIfNotDefault("onclick", self.Onclick)
+		if self.Content != nil {
+			err = self.Content.Render(context, writer)
+		}
+		writer.ForceCloseTag()
 	}
-	writer.Attrib("name", self.Name)
-	writer.Attrib("value", self.Value)
-	if self.Disabled {
-		writer.Attrib("disabled", "disabled")
-	}
-	writer.AttribIfNotDefault("tabindex", self.TabIndex)
-	writer.CloseTag()
 	return nil
 }
 

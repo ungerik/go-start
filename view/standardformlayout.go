@@ -146,6 +146,15 @@ func (self *StandardFormLayout) SliceField(field *model.MetaData, validationErr 
 }
 
 func (self *StandardFormLayout) EndSlice(slice *model.MetaData, validationErr error, form *Form, formFields Views) Views {
+	if len(formFields) > 0 {
+		if table, ok := formFields[len(formFields)-1].(*Table); ok {
+			tableModel := table.Model.(ViewsTableModel)
+			tableModel[0] = append(tableModel[0], HTML("Action"))
+			for i := 1; i < tableModel.Rows(); i++ {
+				tableModel[i] = append(tableModel[i], &Button{Content: HTML("-")})
+			}
+		}
+	}
 	return formFields
 }
 

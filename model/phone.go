@@ -30,6 +30,10 @@ func (self *Phone) SetString(str string) error {
 func (self *Phone) FixValue(metaData *MetaData) {
 }
 
+func (self *Phone) Required(metaData *MetaData) bool {
+	return metaData.BoolAttrib("required")
+}
+
 func (self *Phone) Validate(metaData *MetaData) error {
 	return nil
 }

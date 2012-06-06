@@ -96,6 +96,7 @@ type Form struct {
 	HiddenFields          []string // Use point notation for nested fields. In case of arrays/slices use wildcards
 	DisabledFields        []string // Use point notation for nested fields
 	RequiredFields        []string // Also available as static struct field tag. Use point notation for nested fields
+	Labels                map[string]string
 	FieldDescriptions     map[string]string
 	ErrorMessageClass     string // If empty, Config.Form.DefaultErrorMessageClass will be used
 	SuccessMessageClass   string // If empty, Config.Form.DefaultSuccessMessageClass will be used
@@ -180,7 +181,7 @@ func (self *Form) GetSubmitButtonText() string {
 }
 
 func (self *Form) IsFieldRequired(metaData *model.MetaData) bool {
-	if metaData.BoolAttrib("required") {
+	if val, ok := metaData.ModelValue(); ok && val.Required(metaData) {
 		return true
 	}
 	selector := metaData.Selector()
@@ -257,6 +258,14 @@ func (self *Form) DirectFieldLabel(metaData *model.MetaData) string {
 // all its parents, starting with the root parent, concanated with a space
 // character.
 func (self *Form) FieldLabel(metaData *model.MetaData) string {
+	selector := metaData.Selector()
+	if label, ok := self.Labels[selector]; ok {
+		return label
+	}
+	wildcardSelector := metaData.WildcardSelector()
+	if label, ok := self.Labels[wildcardSelector]; ok {
+		return label
+	}
 	var buf bytes.Buffer
 	for _, m := range metaData.Path()[1:] {
 		if buf.Len() > 0 {
@@ -304,6 +313,7 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		if err != nil {
 			return err
 		}
+		model.AppendEmptySliceEnds(formModel)
 		visitor := &formLayoutWrappingStructVisitor{
 			form:       self,
 			formLayout: layout,
@@ -341,11 +351,12 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 			return err
 		}
 	}
-	writer.ExtraCloseTag() // form
+	writer.ForceCloseTag() // form
 	return nil
 }
 
 func (self *Form) submit(formModel interface{}, context *Context, formFields Views) (Views, error) {
+	model.RemoveEmptySliceEnds(formModel)
 	message, redirect, err := self.OnSubmit(self, formModel, context)
 	if err == nil {
 		if redirect == nil {
@@ -407,7 +418,7 @@ func (self *formLayoutWrappingStructVisitor) setFieldValue(field *model.MetaData
 }
 
 func (self *formLayoutWrappingStructVisitor) validate(data *model.MetaData) (err error) {
-	if validator, ok := data.Value.Addr().Interface().(model.Validator); ok {
+	if validator, ok := data.ModelValidator(); ok {
 		err = validator.Validate(data)
 		if err != nil {
 			self.generalValidationErrors = append(self.generalValidationErrors, err)
@@ -513,3 +524,6 @@ func (self *formLayoutWrappingStructVisitor) EndArray(array *model.MetaData) err
 	}
 	return nil
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// formLayoutWrappingStructVisitor

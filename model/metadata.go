@@ -60,6 +60,19 @@ type MetaData struct {
 	path    []*MetaData
 }
 
+func (self *MetaData) ModelValue() (val Value, ok bool) {
+	val, ok = self.Value.Addr().Interface().(Value)
+	return val, ok
+}
+
+func (self *MetaData) ModelValidator() (val Validator, ok bool) {
+	val, ok = self.Value.Interface().(Validator)
+	if !ok {
+		val, ok = self.Value.Addr().Interface().(Validator)
+	}
+	return val, ok
+}
+
 // ParentKind returns the parent's MetaDataKind.
 // It returns StructKind if Parent is nil because the root parent will
 // always be a struct.
