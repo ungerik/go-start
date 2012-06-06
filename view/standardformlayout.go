@@ -145,13 +145,32 @@ func (self *StandardFormLayout) SliceField(field *model.MetaData, validationErr 
 	return formFields
 }
 
+const RemoveRowScript = `
+
+`
+
 func (self *StandardFormLayout) EndSlice(slice *model.MetaData, validationErr error, form *Form, formFields Views) Views {
 	if len(formFields) > 0 {
 		if table, ok := formFields[len(formFields)-1].(*Table); ok {
 			tableModel := table.Model.(ViewsTableModel)
-			tableModel[0] = append(tableModel[0], HTML("Action"))
-			for i := 1; i < tableModel.Rows(); i++ {
-				tableModel[i] = append(tableModel[i], &Button{Content: HTML("-")})
+			tableModel[0] = append(tableModel[0], HTML("Actions"))
+			rows := tableModel.Rows()
+			for i := 1; i < rows; i++ {
+				firstRow := i == 1
+				lastRow := i == rows-1
+				tableModel[i] = append(
+					tableModel[i],
+					Views{
+						HTML("&nbsp;&nbsp;"),
+						&Button{Content: HTML("&uarr;"), Disabled: firstRow, Onclick: RemoveRowScript},
+						&Button{Content: HTML("&darr;"), Disabled: lastRow, Onclick: RemoveRowScript},
+						&If{
+							Condition:   lastRow,
+							Content:     &Button{Content: HTML("+"), Onclick: RemoveRowScript},
+							ElseContent: &Button{Content: HTML("X"), Onclick: RemoveRowScript},
+						},
+					},
+				)
 			}
 		}
 	}
