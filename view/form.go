@@ -4,6 +4,7 @@ import (
 	"bytes"
 	// "github.com/ungerik/go-start/debug"
 	// "github.com/ungerik/go-start/errs"
+	"github.com/ungerik/go-start/mongo"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/utils"
 	"strings"
@@ -313,7 +314,10 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		if err != nil {
 			return err
 		}
-		model.AppendEmptySliceEnds(formModel)
+		if !isPost {
+			model.AppendEmptySliceEnds(formModel)
+			mongo.InitRefs(formModel)
+		}
 		visitor := &formLayoutWrappingStructVisitor{
 			form:       self,
 			formLayout: layout,
@@ -356,7 +360,6 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 }
 
 func (self *Form) submit(formModel interface{}, context *Context, formFields Views) (Views, error) {
-	model.RemoveEmptySliceEnds(formModel)
 	message, redirect, err := self.OnSubmit(self, formModel, context)
 	if err == nil {
 		if redirect == nil {
@@ -428,7 +431,7 @@ func (self *formLayoutWrappingStructVisitor) validate(data *model.MetaData) (err
 }
 
 func (self *formLayoutWrappingStructVisitor) endForm(data *model.MetaData) (err error) {
-	if len(self.fieldValidationErrors) == 0 && len(self.generalValidationErrors) == 0 && self.isPost {
+	if self.isPost && len(self.fieldValidationErrors) == 0 && len(self.generalValidationErrors) == 0 {
 		self.formFields, err = self.form.submit(self.formModel, self.context, self.formFields)
 		if err != nil {
 			return err
@@ -524,6 +527,3 @@ func (self *formLayoutWrappingStructVisitor) EndArray(array *model.MetaData) err
 	}
 	return nil
 }
-
-///////////////////////////////////////////////////////////////////////////////
-// formLayoutWrappingStructVisitor

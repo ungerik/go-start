@@ -73,6 +73,10 @@ func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr
 
 	grandParent := field.Parent.Parent
 	if grandParent != nil && (grandParent.Kind == model.ArrayKind || grandParent.Kind == model.SliceKind) {
+		if form.IsFieldExcluded(grandParent) {
+			return formFields
+		}
+
 		// We expect a Table as last form field.
 		// If it doesn't exist yet because this is the first visible
 		// struct field in the first array field, then create it

@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/errs"
 	"strings"
 )
@@ -17,7 +16,6 @@ func (self *Choice) Get() string {
 }
 
 func (self *Choice) Set(value string) {
-	debug.Dump(value)
 	*self = Choice(value)
 }
 
