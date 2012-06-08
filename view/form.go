@@ -26,28 +26,28 @@ of the form including the submit button.
 It uses Form.GetFieldFactory() to create the field views.
 */
 type FormLayout interface {
-	BeginFormContent(form *Form, formFields Views) Views
+	BeginFormContent(form *Form, context *Context, formFields Views) Views
 	// SubmitSuccess will be called before EndFormContent if there were no
 	// validation errors of the posted form data and Form.OnSubmit has
 	// not returned an error.
-	SubmitSuccess(message string, form *Form, formFields Views) Views
+	SubmitSuccess(message string, form *Form, context *Context, formFields Views) Views
 	// SubmitError will be called before EndFormContent if there were no
 	// validation errors of the posted form data and Form.OnSubmit has
 	// returned an error.
-	SubmitError(message string, form *Form, formFields Views) Views
-	EndFormContent(fieldValidationErrs, generalValidationErrs []error, form *Form, formFields Views) Views
+	SubmitError(message string, form *Form, context *Context, formFields Views) Views
+	EndFormContent(fieldValidationErrs, generalValidationErrs []error, form *Form, context *Context, formFields Views) Views
 
-	BeginStruct(strct *model.MetaData, form *Form, formFields Views) Views
-	StructField(field *model.MetaData, validationErr error, form *Form, formFields Views) Views
-	EndStruct(strct *model.MetaData, validationErr error, form *Form, formFields Views) Views
+	BeginStruct(strct *model.MetaData, form *Form, context *Context, formFields Views) Views
+	StructField(field *model.MetaData, validationErr error, form *Form, context *Context, formFields Views) Views
+	EndStruct(strct *model.MetaData, validationErr error, form *Form, context *Context, formFields Views) Views
 
-	BeginArray(array *model.MetaData, form *Form, formFields Views) Views
-	ArrayField(field *model.MetaData, validationErr error, form *Form, formFields Views) Views
-	EndArray(array *model.MetaData, validationErr error, form *Form, formFields Views) Views
+	BeginArray(array *model.MetaData, form *Form, context *Context, formFields Views) Views
+	ArrayField(field *model.MetaData, validationErr error, form *Form, context *Context, formFields Views) Views
+	EndArray(array *model.MetaData, validationErr error, form *Form, context *Context, formFields Views) Views
 
-	BeginSlice(slice *model.MetaData, form *Form, formFields Views) Views
-	SliceField(field *model.MetaData, validationErr error, form *Form, formFields Views) Views
-	EndSlice(slice *model.MetaData, validationErr error, form *Form, formFields Views) Views
+	BeginSlice(slice *model.MetaData, form *Form, context *Context, formFields Views) Views
+	SliceField(field *model.MetaData, validationErr error, form *Form, context *Context, formFields Views) Views
+	EndSlice(slice *model.MetaData, validationErr error, form *Form, context *Context, formFields Views) Views
 }
 
 type FormFieldFactory interface {
@@ -59,7 +59,7 @@ type FormFieldFactory interface {
 	NewFieldErrorMessage(message string, metaData *model.MetaData, form *Form) View
 	NewGeneralErrorMessage(message string, form *Form) View
 	NewSuccessMessage(message string, form *Form) View
-	NewSubmitButton(text string, form *Form) View
+	NewSubmitButton(text, confirmationMessage string, form *Form) View
 	NewAddSliceItemButton(form *Form) View
 	NewRemoveSliceItemButton(form *Form) View
 }
@@ -106,7 +106,8 @@ type Form struct {
 	SuccessMessage        string
 	SubmitButtonText      string
 	SubmitButtonClass     string
-	Redirect              URL // 302 redirect after successful Save()
+	SubmitButtonConfirm   string // Will add a confirmation dialog for onclick
+	Redirect              URL    // 302 redirect after successful Save()
 	ShowRefIDs            bool
 }
 
@@ -301,7 +302,7 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 
 	if self.GetModel == nil {
 		formId := &HiddenInput{Name: FormIDName, Value: self.FormID}
-		submitButton := self.GetFieldFactory().NewSubmitButton(self.GetSubmitButtonText(), self)
+		submitButton := self.GetFieldFactory().NewSubmitButton(self.GetSubmitButtonText(), self.SubmitButtonConfirm, self)
 		formFields = Views{formId, submitButton}
 		if isPost {
 			formFields, err = self.submit(nil, context, formFields)
@@ -314,7 +315,9 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		if err != nil {
 			return err
 		}
-		if !isPost {
+		if isPost {
+			model.RemoveEmptySliceEnds(formModel)
+		} else {
 			model.AppendEmptySliceEnds(formModel)
 			mongo.InitRefs(formModel)
 		}
@@ -372,13 +375,13 @@ func (self *Form) submit(formModel interface{}, context *Context, formFields Vie
 			message = self.SuccessMessage
 		}
 		if message != "" {
-			formFields = self.GetLayout().SubmitSuccess(message, self, formFields)
+			formFields = self.GetLayout().SubmitSuccess(message, self, context, formFields)
 		}
 	} else {
 		if message == "" {
 			message = err.Error()
 		}
-		formFields = self.GetLayout().SubmitError(message, self, formFields)
+		formFields = self.GetLayout().SubmitError(message, self, context, formFields)
 	}
 	return formFields, nil
 }
@@ -437,15 +440,15 @@ func (self *formLayoutWrappingStructVisitor) endForm(data *model.MetaData) (err 
 			return err
 		}
 	}
-	self.formFields = self.formLayout.EndFormContent(self.fieldValidationErrors, self.generalValidationErrors, self.form, self.formFields)
+	self.formFields = self.formLayout.EndFormContent(self.fieldValidationErrors, self.generalValidationErrors, self.form, self.context, self.formFields)
 	return nil
 }
 
 func (self *formLayoutWrappingStructVisitor) BeginStruct(strct *model.MetaData) error {
 	if strct.Parent == nil {
-		self.formFields = self.formLayout.BeginFormContent(self.form, self.formFields)
+		self.formFields = self.formLayout.BeginFormContent(self.form, self.context, self.formFields)
 	}
-	self.formFields = self.formLayout.BeginStruct(strct, self.form, self.formFields)
+	self.formFields = self.formLayout.BeginStruct(strct, self.form, self.context, self.formFields)
 	return nil
 }
 
@@ -454,7 +457,7 @@ func (self *formLayoutWrappingStructVisitor) StructField(field *model.MetaData) 
 	if self.isPost {
 		validationErr = self.setFieldValue(field)
 	}
-	self.formFields = self.formLayout.StructField(field, validationErr, self.form, self.formFields)
+	self.formFields = self.formLayout.StructField(field, validationErr, self.form, self.context, self.formFields)
 	return nil
 }
 
@@ -463,7 +466,7 @@ func (self *formLayoutWrappingStructVisitor) EndStruct(strct *model.MetaData) er
 	if self.isPost {
 		validationErr = self.validate(strct)
 	}
-	self.formFields = self.formLayout.EndStruct(strct, validationErr, self.form, self.formFields)
+	self.formFields = self.formLayout.EndStruct(strct, validationErr, self.form, self.context, self.formFields)
 	if strct.Parent == nil {
 		return self.endForm(strct)
 	}
@@ -472,9 +475,9 @@ func (self *formLayoutWrappingStructVisitor) EndStruct(strct *model.MetaData) er
 
 func (self *formLayoutWrappingStructVisitor) BeginSlice(slice *model.MetaData) error {
 	if slice.Parent == nil {
-		self.formFields = self.formLayout.BeginFormContent(self.form, self.formFields)
+		self.formFields = self.formLayout.BeginFormContent(self.form, self.context, self.formFields)
 	}
-	self.formFields = self.formLayout.BeginSlice(slice, self.form, self.formFields)
+	self.formFields = self.formLayout.BeginSlice(slice, self.form, self.context, self.formFields)
 	return nil
 }
 
@@ -483,7 +486,7 @@ func (self *formLayoutWrappingStructVisitor) SliceField(field *model.MetaData) e
 	if self.isPost {
 		validationErr = self.setFieldValue(field)
 	}
-	self.formFields = self.formLayout.SliceField(field, validationErr, self.form, self.formFields)
+	self.formFields = self.formLayout.SliceField(field, validationErr, self.form, self.context, self.formFields)
 	return nil
 }
 
@@ -492,7 +495,7 @@ func (self *formLayoutWrappingStructVisitor) EndSlice(slice *model.MetaData) err
 	if self.isPost {
 		validationErr = self.validate(slice)
 	}
-	self.formFields = self.formLayout.EndSlice(slice, validationErr, self.form, self.formFields)
+	self.formFields = self.formLayout.EndSlice(slice, validationErr, self.form, self.context, self.formFields)
 	if slice.Parent == nil {
 		return self.endForm(slice)
 	}
@@ -501,9 +504,9 @@ func (self *formLayoutWrappingStructVisitor) EndSlice(slice *model.MetaData) err
 
 func (self *formLayoutWrappingStructVisitor) BeginArray(array *model.MetaData) error {
 	if array.Parent == nil {
-		self.formFields = self.formLayout.BeginFormContent(self.form, self.formFields)
+		self.formFields = self.formLayout.BeginFormContent(self.form, self.context, self.formFields)
 	}
-	self.formFields = self.formLayout.BeginArray(array, self.form, self.formFields)
+	self.formFields = self.formLayout.BeginArray(array, self.form, self.context, self.formFields)
 	return nil
 }
 
@@ -512,7 +515,7 @@ func (self *formLayoutWrappingStructVisitor) ArrayField(field *model.MetaData) e
 	if self.isPost {
 		validationErr = self.setFieldValue(field)
 	}
-	self.formFields = self.formLayout.ArrayField(field, validationErr, self.form, self.formFields)
+	self.formFields = self.formLayout.ArrayField(field, validationErr, self.form, self.context, self.formFields)
 	return nil
 }
 
@@ -521,7 +524,7 @@ func (self *formLayoutWrappingStructVisitor) EndArray(array *model.MetaData) err
 	if self.isPost {
 		validationErr = self.validate(array)
 	}
-	self.formFields = self.formLayout.EndArray(array, validationErr, self.form, self.formFields)
+	self.formFields = self.formLayout.EndArray(array, validationErr, self.form, self.context, self.formFields)
 	if array.Parent == nil {
 		return self.endForm(array)
 	}

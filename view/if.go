@@ -13,6 +13,9 @@ type If struct {
 }
 
 func (self *If) Init(thisView View) {
+	if thisView == self.thisView {
+		return // already initialized
+	}
 	self.ViewBaseWithId.Init(thisView)
 
 	// ViewBaseWithId.Init() initializes the child reported by IterateChildren(),

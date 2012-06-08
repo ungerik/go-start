@@ -1,6 +1,7 @@
 package view
 
 import (
+	"hash/crc32"
 	"bytes"
 	"container/heap"
 	"encoding/base64"
@@ -53,9 +54,9 @@ type Context struct {
 	cachedSessionID string
 	//	cache           map[string]interface{}
 
-	dynamicStyle         dependencyHeap
+	dynamicStyle       dependencyHeap
 	dynamicHeadScripts dependencyHeap
-	dynamicScripts       dependencyHeap
+	dynamicScripts     dependencyHeap
 }
 
 // RequestURL returns the complete URL of the request including protocol and host.
@@ -202,7 +203,7 @@ func (self *Context) AddStyle(css string, priority int) {
 		self.dynamicStyle = make(dependencyHeap, 0, 1)
 		self.dynamicStyle.Init()
 	}
-	self.dynamicStyle.Add("<style>"+css+"</style>", priority)
+	self.dynamicStyle.AddIfNew("<style>"+css+"</style>", priority)
 }
 
 func (self *Context) AddStyleURL(url string, priority int) {
@@ -210,7 +211,7 @@ func (self *Context) AddStyleURL(url string, priority int) {
 		self.dynamicStyle = make(dependencyHeap, 0, 1)
 		self.dynamicStyle.Init()
 	}
-	self.dynamicStyle.Add("<link rel='stylesheet' href='"+url+"'>", priority)
+	self.dynamicStyle.AddIfNew("<link rel='stylesheet' href='"+url+"'>", priority)
 }
 
 func (self *Context) AddHeaderScript(script string, priority int) {
@@ -218,7 +219,7 @@ func (self *Context) AddHeaderScript(script string, priority int) {
 		self.dynamicHeadScripts = make(dependencyHeap, 0, 1)
 		self.dynamicHeadScripts.Init()
 	}
-	self.dynamicHeadScripts.Add("<script>"+script+"</script>", priority)
+	self.dynamicHeadScripts.AddIfNew("<script>"+script+"</script>", priority)
 }
 
 func (self *Context) AddHeaderScriptURL(url string, priority int) {
@@ -226,7 +227,7 @@ func (self *Context) AddHeaderScriptURL(url string, priority int) {
 		self.dynamicHeadScripts = make(dependencyHeap, 0, 1)
 		self.dynamicHeadScripts.Init()
 	}
-	self.dynamicHeadScripts.Add("<script src='"+url+"'></script>", priority)
+	self.dynamicHeadScripts.AddIfNew("<script src='"+url+"'></script>", priority)
 }
 
 func (self *Context) AddScript(script string, priority int) {
@@ -234,7 +235,7 @@ func (self *Context) AddScript(script string, priority int) {
 		self.dynamicScripts = make(dependencyHeap, 0, 1)
 		self.dynamicScripts.Init()
 	}
-	self.dynamicScripts.Add("<script>"+script+"</script>", priority)
+	self.dynamicScripts.AddIfNew("<script>"+script+"</script>", priority)
 }
 
 func (self *Context) AddScriptURL(url string, priority int) {
@@ -242,7 +243,7 @@ func (self *Context) AddScriptURL(url string, priority int) {
 		self.dynamicScripts = make(dependencyHeap, 0, 1)
 		self.dynamicScripts.Init()
 	}
-	self.dynamicScripts.Add("<script src='"+url+"'></script>", priority)
+	self.dynamicScripts.AddIfNew("<script src='"+url+"'></script>", priority)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -250,6 +251,7 @@ func (self *Context) AddScriptURL(url string, priority int) {
 
 type dependencyHeapItem struct {
 	text     string
+	hash     uint32
 	priority int
 }
 
@@ -282,8 +284,15 @@ func (self *dependencyHeap) Init() {
 	heap.Init(self)
 }
 
-func (self *dependencyHeap) Add(text string, priority int) {
-	heap.Push(self, dependencyHeapItem{text, priority})
+func (self *dependencyHeap) AddIfNew(text string, priority int) {
+	hash := crc32.ChecksumIEEE([]byte(text))
+	for i := range *self {
+		if (*self)[i].hash == hash {
+			// text is not new
+			return
+		}
+	}
+	heap.Push(self, dependencyHeapItem{text, hash, priority})
 }
 
 func (self *dependencyHeap) String() string {

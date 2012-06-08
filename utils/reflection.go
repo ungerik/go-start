@@ -97,6 +97,9 @@ func CallMethod1(object interface{}, method string, args ...interface{}) (result
 }
 
 func IsDefaultValue(value interface{}) bool {
+	if value == nil {
+		return true
+	}
 	v := reflect.ValueOf(value)
 	switch v.Kind() {
 	case reflect.Ptr:

@@ -230,8 +230,13 @@ func (self *StandardFormFieldFactory) NewSuccessMessage(message string, form *Fo
 	return SPAN(form.GetSuccessMessageClass(), Escape(message))
 }
 
-func (self *StandardFormFieldFactory) NewSubmitButton(text string, form *Form) View {
-	return &Button{Class: form.GetSubmitButtonClass(), Submit: true, Value: text}
+func (self *StandardFormFieldFactory) NewSubmitButton(text, confirmationMessage string, form *Form) View {
+	return &Button{
+		Class:          form.GetSubmitButtonClass(),
+		Submit:         true,
+		Value:          text,
+		OnClickConfirm: confirmationMessage,
+	}
 }
 
 func (self *StandardFormFieldFactory) NewAddSliceItemButton(form *Form) View {

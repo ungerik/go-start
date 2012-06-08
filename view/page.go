@@ -223,6 +223,9 @@ func (self *Page) Init(thisView View) {
 	if self == nil {
 		panic("Page is nil")
 	}
+	if thisView == self.thisView {
+		return // already initialized
+	}
 
 	// Uses alwaysMustache template rendering
 	self.TemplateSystem = &templatesystem.Mustache{}
