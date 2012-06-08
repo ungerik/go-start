@@ -18,6 +18,7 @@ func (self *Password) Set(value string) {
 	*self = Password(value)
 }
 
+// todo salt
 func (self *Password) SetHashed(value string) {
 	self.Set(PasswordHash(value))
 }
