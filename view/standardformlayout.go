@@ -3,40 +3,51 @@ package view
 import (
 	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
-	"fmt"
 )
 
 const EditFormSliceTableScript = `
-function swapAttr(a, b, attr) {
+function swapAttribs(a, b, attr) {
 	var x = a.attr(attr);
 	var y = b.attr(attr);
 	a.attr(attr, y);
 	b.attr(attr, x);
 }
-function swapInnerHTML(a, b) {
-	var x = a.html();
-	var y = b.html();
-	a.html(y);
-	b.html(x);
+
+function swapNames(tr0, tr1) {
+	// Swap tr classes
+	swapAttribs(tr0, tr1, "class");
+
+	// http://stackoverflow.com/questions/5897084/jquery-add-form-input-and-change-input-name
+	var inputs0 = tr0.find("td > *");
+	var inputs1 = tr1.find("td > *");
+	// for (i=0; i < inputs0.length-3; i++) {
+	// 	swapAttribs(inputs0[i], inputs1[i], "name");
+	// }
 }
-function removeRow(tableID, row) {
-	if (confirm("Are you sure you want to delete this row?")) { 
-		jQuery("#"+tableID+" .row"+row).remove();
+
+function removeRow(button) {
+	if (confirm("Are you sure you want to delete this row?")) {
+		var tr = jQuery(button).parents("tr");
+		var table = tr.parents("table");
+		tr.remove();
 	}
 }
-function addRow(tableID) {
-}
-function moveRowUp(tableID, row) {
-	var sel = "#"+tableID+" .row"+row;
-	//jQuery(sel).prev().before(jQuery(sel));
 
-	swapInnerHTML(jQuery(sel).prev(), jQuery(sel));
+function addRow(button) {
 }
-function moveRowDown(tableID, row) {
-	var sel = "#"+tableID+" .row"+row;
-	//jQuery(sel).next().after(jQuery(sel));
 
-	swapInnerHTML(jQuery(sel).next(), jQuery(sel));
+function moveRowUp(button) {
+	var tr1 = jQuery(button).parents("tr");
+	var tr0 = tr1.prev();
+	swapNames(tr0, tr1);
+	tr1.after(tr0);
+}
+
+function moveRowDown(button) {
+	var tr0 = jQuery(button).parents("tr");
+	var tr1 = tr0.next();
+	swapNames(tr0, tr1);
+	tr1.after(tr0);
 }
 `
 
@@ -200,22 +211,22 @@ func (self *StandardFormLayout) EndSlice(slice *model.MetaData, validationErr er
 						&Button{
 							Content: HTML("&uarr;"),
 							// Disabled: firstRow,
-							OnClick: fmt.Sprintf("moveRowUp('%s', %d);", table.ID(), i),
+							OnClick: "moveRowUp(this);",
 						},
 						&Button{
 							Content: HTML("&darr;"),
 							// Disabled: lastRow,
-							OnClick: fmt.Sprintf("moveRowDown('%s', %d);", table.ID(), i),
+							OnClick: "moveRowDown(this);",
 						},
 						&If{
 							Condition: lastRow,
 							Content: &Button{
 								Content: HTML("+"),
-								OnClick: fmt.Sprintf("addRow('%s');", table.ID()),
+								OnClick: "addRow(this);",
 							},
 							ElseContent: &Button{
 								Content: HTML("X"),
-								OnClick: fmt.Sprintf("removeRow('%s', %d);", table.ID(), i),
+								OnClick: "removeRow(this)",
 							},
 						},
 					},
