@@ -1,11 +1,24 @@
 package view
 
-import
+import (
+	"github.com/ungerik/go-start/utils"
+)
 
-//	"github.com/ungerik/go-start/model"
-"github.com/ungerik/go-start/utils"
+func TableHeaderRow(views ...View) func(context *Context) (Views, error) {
+	return func(context *Context) (Views, error) {
+		return Views(views), nil
+	}
+}
 
-//	"github.com/ungerik/go-start/debug"
+func TableHeaderRowEscape(s ...string) func(context *Context) (Views, error) {
+	views := make(Views, len(s))
+	for i := range s {
+		views[i] = Escape(s[i])
+	}
+	return func(context *Context) (Views, error) {
+		return views, nil
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // TableModelView
@@ -15,8 +28,8 @@ type TableModelView struct {
 	Class             string
 	Caption           string
 	GetModelIterator  GetModelIteratorFunc
-	GetHeaderRowViews func(context *Context) (views Views, err error)
-	GetRowViews       func(row int, rowModel interface{}, context *Context) (views Views, err error)
+	GetHeaderRow      func(context *Context) (views Views, err error)
+	GetRow            func(row int, rowModel interface{}, context *Context) (views Views, err error)
 	table             Table
 }
 
@@ -31,8 +44,8 @@ func (self *TableModelView) Render(context *Context, writer *utils.XMLWriter) (e
 	tableModel := ViewsTableModel{}
 
 	self.table.HeaderRow = false
-	if self.GetHeaderRowViews != nil {
-		views, err := self.GetHeaderRowViews(context)
+	if self.GetHeaderRow != nil {
+		views, err := self.GetHeaderRow(context)
 		if err != nil {
 			return err
 		}
@@ -45,7 +58,7 @@ func (self *TableModelView) Render(context *Context, writer *utils.XMLWriter) (e
 	rowNr := 0
 	iter := self.GetModelIterator(context)
 	for rowModel := iter.Next(); rowModel != nil; rowModel = iter.Next() {
-		views, err := self.GetRowViews(rowNr, rowModel, context)
+		views, err := self.GetRow(rowNr, rowModel, context)
 		if err != nil {
 			return err
 		}
