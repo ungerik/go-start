@@ -13,6 +13,21 @@ function swapAttribs(a, b, attr) {
 	b.attr(attr, x);
 }
 
+function swapValues(a, b) {
+	var x = a.val();
+	var y = b.val();
+	a.val(y);
+	b.val(x);
+}
+
+function swapRowValues(tr0, tr1) {
+	var inputs0 = tr0.find("td > :input");
+	var inputs1 = tr1.find("td > :input");
+	for (i=0; i < inputs0.length-3; i++) {
+		swapValues(inputs0[i], inputs1[i]);
+	}	
+}
+
 function swapNames(tr0, tr1) {
 	// Swap tr classes
 	swapAttribs(tr0, tr1, "class");
@@ -34,20 +49,39 @@ function removeRow(button) {
 }
 
 function addRow(button) {
+	var tr0 = jQuery(button).parents("tr");
+	var tr1 = tr0.clone();
+
+	// Change the last button to removeRow()
+	tr0.find("td:last > button:last").attr("onclick", "removeRow(this);").text("X");
+
+	// Set correct class for new row
+	var numRows = tr0.prevAll().length + 1;
+	var evenOdd = (numRows % 2 == 0) ? " even" : " odd";
+	tr1.attr("class", "row"+numRows+evenOdd);
+
+	// Correct name attributes of the new row's input elements
+	var oldIndex = "."+(numRows-2)+".";
+	var newIndex = "."+(numRows-1)+".";
+	tr1.find("td > :input").not(":button").each(function(index) {
+		var i = this.name.lastIndexOf(oldIndex);
+		this.name = this.name.slice(0,i)+newIndex+this.name.slice(i+oldIndex.length);
+	});
+
+	tr1.insertAfter(tr0);
+
 }
 
 function moveRowUp(button) {
 	var tr1 = jQuery(button).parents("tr");
 	var tr0 = tr1.prev();
-	swapNames(tr0, tr1);
-	tr1.after(tr0);
+	swapRowValues(tr0, tr1);
 }
 
 function moveRowDown(button) {
 	var tr0 = jQuery(button).parents("tr");
 	var tr1 = tr0.next();
-	swapNames(tr0, tr1);
-	tr1.after(tr0);
+	swapRowValues(tr0, tr1);
 }
 `
 
@@ -202,20 +236,20 @@ func (self *StandardFormLayout) EndSlice(slice *model.MetaData, validationErr er
 			tableModel[0] = append(tableModel[0], HTML("Actions"))
 			rows := tableModel.Rows()
 			for i := 1; i < rows; i++ {
-				//firstRow := i == 1
-				lastRow := false //i == rows-1
+				firstRow := (i == 1)
+				lastRow := (i == rows-1)
 				tableModel[i] = append(
 					tableModel[i],
 					Views{
 						HTML("&nbsp;&nbsp;"),
 						&Button{
 							Content: HTML("&uarr;"),
-							// Disabled: firstRow,
+							Disabled: firstRow,
 							OnClick: "moveRowUp(this);",
 						},
 						&Button{
 							Content: HTML("&darr;"),
-							// Disabled: lastRow,
+							Disabled: lastRow,
 							OnClick: "moveRowDown(this);",
 						},
 						&If{
