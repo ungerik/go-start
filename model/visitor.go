@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"github.com/ungerik/go-start/utils"
+	"github.com/ungerik/go-start/debug"
 	"reflect"
 )
 
@@ -11,6 +12,9 @@ type Visitor interface {
 	StructField(field *MetaData) error
 	EndStruct(strct *MetaData) error
 
+	// ModifySlice will be called before BeginSlice and can modify slice.Value
+	// before it is used in further calls.
+	ModifySlice(slice *MetaData) error
 	BeginSlice(slice *MetaData) error
 	SliceField(field *MetaData) error
 	EndSlice(slice *MetaData) error
@@ -128,9 +132,18 @@ func (self *structVisitorWrapper) EndStruct(depth int, v reflect.Value) error {
 	return self.visitor.EndStruct(self.metaData)
 }
 
-func (self *structVisitorWrapper) BeginSlice(depth int, v reflect.Value) (reflect.Value, error) {
+func (self *structVisitorWrapper) ModifySlice(depth int, v reflect.Value) (reflect.Value, error) {
+	debug.Nop()
+	if depth == 0 {
+		panic("ModifySlice() called for root slice")
+	}
+	err := self.visitor.ModifySlice(self.metaData)
+	return self.metaData.Value, err
+}
+
+func (self *structVisitorWrapper) BeginSlice(depth int, v reflect.Value) error {
 	self.onBegin(depth, v, SliceKind)
-	return v, self.visitor.BeginSlice(self.metaData)
+	return self.visitor.BeginSlice(self.metaData)
 }
 
 func (self *structVisitorWrapper) SliceField(depth int, v reflect.Value, index int) error {
@@ -173,6 +186,10 @@ func (self FieldOnlyVisitor) EndStruct(strct *MetaData) error {
 	return nil
 }
 
+func (self FieldOnlyVisitor) ModifySlice(slice *MetaData) error {
+	return nil
+}
+
 func (self FieldOnlyVisitor) BeginSlice(slice *MetaData) error {
 	return nil
 }
@@ -211,6 +228,10 @@ func (self VisitorFunc) StructField(field *MetaData) error {
 
 func (self VisitorFunc) EndStruct(strct *MetaData) error {
 	return self(strct)
+}
+
+func (self VisitorFunc) ModifySlice(slice *MetaData) error {
+	return nil
 }
 
 func (self VisitorFunc) BeginSlice(slice *MetaData) error {

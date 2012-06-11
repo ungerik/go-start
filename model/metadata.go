@@ -73,6 +73,14 @@ func (self *MetaData) ModelValidator() (val Validator, ok bool) {
 	return val, ok
 }
 
+func (self *MetaData) RootParent() *MetaData {
+	root := self
+	for root.Parent != nil {
+		root = root.Parent
+	}
+	return root
+}
+
 // ParentKind returns the parent's MetaDataKind.
 // It returns StructKind if Parent is nil because the root parent will
 // always be a struct.

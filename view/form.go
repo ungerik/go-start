@@ -2,12 +2,13 @@ package view
 
 import (
 	"bytes"
-	// "github.com/ungerik/go-start/debug"
+	"github.com/ungerik/go-start/debug"
 	// "github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/mongo"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/utils"
 	"strings"
+	"strconv"
 )
 
 const FormIDName = "form_id"
@@ -315,12 +316,6 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		if err != nil {
 			return err
 		}
-		if isPost {
-			model.RemoveEmptySliceEnds(formModel)
-		} else {
-			model.AppendEmptySliceEnds(formModel)
-			mongo.InitRefs(formModel)
-		}
 		visitor := &formLayoutWrappingStructVisitor{
 			form:       self,
 			formLayout: layout,
@@ -403,16 +398,20 @@ type formLayoutWrappingStructVisitor struct {
 	generalValidationErrors []error
 }
 
+func (self *formLayoutWrappingStructVisitor) postValue(metaData *model.MetaData) string {
+	postValue, _ := self.context.Params[metaData.Selector()]
+	return postValue
+}
+
 func (self *formLayoutWrappingStructVisitor) setFieldValue(field *model.MetaData) (err error) {
-	postValue, _ := self.context.Params[field.Selector()]
 	switch s := field.Value.Addr().Interface().(type) {
 	case *model.Bool:
-		s.Set(postValue != "")
+		s.Set(self.postValue(field) != "")
 		// model.Bool doesn't have validation
 	case model.Reference:
 		// do nothing
 	case model.Value:
-		err = s.SetString(postValue)
+		err = s.SetString(self.postValue(field))
 		if err == nil {
 			err = s.Validate(field)
 		}
@@ -469,6 +468,21 @@ func (self *formLayoutWrappingStructVisitor) EndStruct(strct *model.MetaData) er
 	self.formFields = self.formLayout.EndStruct(strct, validationErr, self.form, self.context, self.formFields)
 	if strct.Parent == nil {
 		return self.endForm(strct)
+	}
+	return nil
+}
+
+func (self *formLayoutWrappingStructVisitor) ModifySlice(slice *model.MetaData) error {
+	debug.Nop()
+	var length int
+	if self.isPost {
+		length, _ = strconv.Atoi(self.context.Params[slice.Selector()+".length"])
+	} else {
+		length = slice.Value.Len() + 1
+	}
+	if length != slice.Value.Len() {
+		slice.Value = utils.SetSliceLengh(slice.Value, length)
+		mongo.InitRefs(self.formModel)
 	}
 	return nil
 }

@@ -8,6 +8,24 @@ import (
 	"strings"
 )
 
+func AppendEmptySliceField(slice reflect.Value) reflect.Value {
+	newField := reflect.Zero(slice.Type().Elem())
+	return reflect.Append(slice, newField)
+}
+
+// Sets the length of a slice by sub-slicing a slice that's too long,
+// or appending empty fields if slice is too short.
+func SetSliceLengh(slice reflect.Value, length int) reflect.Value {
+	if length > slice.Len() {
+		for i := slice.Len(); i < length; i++ {
+			slice = AppendEmptySliceField(slice)
+		}
+	} else if length < slice.Len() {
+		slice = slice.Slice(0, length)
+	}
+	return slice
+}
+
 func DeleteEmptySliceElementsVal(sliceVal reflect.Value) reflect.Value {
 	if sliceVal.Kind() != reflect.Slice {
 		panic("Argument is not a slice: " + sliceVal.String())

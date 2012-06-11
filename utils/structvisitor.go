@@ -12,10 +12,11 @@ type StructVisitor interface {
 	StructField(depth int, v reflect.Value, f reflect.StructField, index int) error
 	EndStruct(depth int, v reflect.Value) error
 
-	// BeginSlice is special: it can change the slice length and returns
-	// the altered or unaltered slice as reflect.Value.
-	// SliceField() and EndSlice() will be called on the altered slice.
-	BeginSlice(depth int, v reflect.Value) (reflect.Value, error)
+	// ModifySlice is special: it can change the slice length and
+	// returns the altered or unaltered slice as reflect.Value.
+	// BeginSlice, SliceField, EndSlice will be called on the altered slice.
+	ModifySlice(depth int, v reflect.Value) (reflect.Value, error)
+	BeginSlice(depth int, v reflect.Value) error
 	SliceField(depth int, v reflect.Value, index int) error
 	EndSlice(depth int, v reflect.Value) error
 
@@ -122,11 +123,18 @@ func visitStructRecursive(v reflect.Value, visitor StructVisitor, maxDepth, dept
 		return visitor.EndStruct(depth, v)
 
 	case reflect.Slice:
-		newV, err := visitor.BeginSlice(depth, v)
+		if depth > 0 {
+			// Can call v.Set() only for non root slices
+			modifiedV, err := visitor.ModifySlice(depth, v)
+			if err != nil {
+				return err
+			}
+			v.Set(modifiedV)
+		}
+		err = visitor.BeginSlice(depth, v)
 		if err != nil {
 			return err
 		}
-		v.Set(newV)
 		depth1 := depth + 1
 		if maxDepth == -1 || depth1 <= maxDepth {
 			for i := 0; i < v.Len(); i++ {
@@ -190,8 +198,12 @@ func (self ModifySliceStructVisitor) EndStruct(depth int, v reflect.Value) error
 	return nil
 }
 
-func (self ModifySliceStructVisitor) BeginSlice(depth int, v reflect.Value) (reflect.Value, error) {
+func (self ModifySliceStructVisitor) ModifySlice(depth int, v reflect.Value) (reflect.Value, error) {
 	return self(depth, v)
+}
+
+func (self ModifySliceStructVisitor) BeginSlice(depth int, v reflect.Value) error {
+	return nil
 }
 
 func (self ModifySliceStructVisitor) SliceField(depth int, v reflect.Value, index int) error {
