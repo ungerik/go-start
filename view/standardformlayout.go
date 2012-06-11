@@ -6,12 +6,12 @@ import (
 )
 
 const EditFormSliceTableScript = `
-function swapAttribs(a, b, attr) {
-	var x = a.attr(attr);
-	var y = b.attr(attr);
-	a.attr(attr, y);
-	b.attr(attr, x);
-}
+// function swapAttribs(a, b, attr) {
+// 	var x = a.attr(attr);
+// 	var y = b.attr(attr);
+// 	a.attr(attr, y);
+// 	b.attr(attr, x);
+// }
 
 function swapValues(a, b) {
 	var x = a.val();
@@ -21,23 +21,11 @@ function swapValues(a, b) {
 }
 
 function swapRowValues(tr0, tr1) {
-	var inputs0 = tr0.find("td > :input");
-	var inputs1 = tr1.find("td > :input");
-	for (i=0; i < inputs0.length-3; i++) {
-		swapValues(inputs0[i], inputs1[i]);
+	var inputs0 = tr0.find("td > :input").not(":button");
+	var inputs1 = tr1.find("td > :input").not(":button");
+	for (i=0; i < inputs0.length; i++) {
+		swapValues(inputs0.eq(i), inputs1.eq(i));
 	}	
-}
-
-function swapNames(tr0, tr1) {
-	// Swap tr classes
-	swapAttribs(tr0, tr1, "class");
-
-	// http://stackoverflow.com/questions/5897084/jquery-add-form-input-and-change-input-name
-	var inputs0 = tr0.find("td > *");
-	var inputs1 = tr1.find("td > *");
-	// for (i=0; i < inputs0.length-3; i++) {
-	// 	swapAttribs(inputs0[i], inputs1[i], "name");
-	// }
 }
 
 function removeRow(button) {
@@ -52,8 +40,14 @@ function addRow(button) {
 	var tr0 = jQuery(button).parents("tr");
 	var tr1 = tr0.clone();
 
-	// Change the last button to removeRow()
-	tr0.find("td:last > button:last").attr("onclick", "removeRow(this);").text("X");
+	// Change the buttons of the old row
+	var lastButton = tr0.find("td:last > button:last");
+	var downButton = lastButton.prev();
+	lastButton.attr("onclick", "removeRow(this);").text("X");
+	downButton.removeProp("disabled");
+
+	// Change the up button of the new row (could be disabled if first row)
+	tr1.find("td:last > button:first").removeProp("disabled");
 
 	// Set correct class for new row
 	var numRows = tr0.prevAll().length + 1;
