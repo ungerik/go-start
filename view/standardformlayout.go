@@ -20,19 +20,48 @@ function swapValues(a, b) {
 	b.val(x);
 }
 
+function swapChecked(a, b) {
+	var x = a.prop("checked");
+	var y = b.prop("checked");
+	a.prop("checked", y);
+	b.prop("checked", x);
+}
+
 function swapRowValues(tr0, tr1) {
 	var inputs0 = tr0.find("td > :input").not(":button");
 	var inputs1 = tr1.find("td > :input").not(":button");
 	for (i=0; i < inputs0.length; i++) {
 		swapValues(inputs0.eq(i), inputs1.eq(i));
 	}	
+	inputs0 = tr0.find("td > :checkbox");
+	inputs1 = tr1.find("td > :checkbox");
+	for (i=0; i < inputs0.length; i++) {
+		swapChecked(inputs0.eq(i), inputs1.eq(i));
+	}	
 }
 
 function removeRow(button) {
 	if (confirm("Are you sure you want to delete this row?")) {
 		var tr = jQuery(button).parents("tr");
-		var table = tr.parents("table");
-		tr.remove();
+
+		// Swap all values with following rows to move the values of the
+		// row to be deleted to the last row and everything else one row up
+		var rows = tr.add(tr.nextAll());
+		trs.each(function(index) {
+			if (index == 0) return;
+			swapRowValues(rows.eq(index-1), rows.eq(index));
+		});
+
+		var lastRowButtons = rows.last();
+		var lastButOneRowButtons = lastRowButtons.prev();
+		lastRowButtons = lastRowButtons.find("td:last");
+		lastButOneRowButtons = lastButOneRowButtons.find("td:last");
+
+		lastButOneRowButtons.empty();
+		lastButOneRowButtons.append(lastRowButtons.children());
+
+		// Delete the last row
+		rows.last().remove();
 	}
 }
 
@@ -237,14 +266,14 @@ func (self *StandardFormLayout) EndSlice(slice *model.MetaData, validationErr er
 					Views{
 						HTML("&nbsp;&nbsp;"),
 						&Button{
-							Content: HTML("&uarr;"),
+							Content:  HTML("&uarr;"),
 							Disabled: firstRow,
-							OnClick: "moveRowUp(this);",
+							OnClick:  "moveRowUp(this);",
 						},
 						&Button{
-							Content: HTML("&darr;"),
+							Content:  HTML("&darr;"),
 							Disabled: lastRow,
-							OnClick: "moveRowDown(this);",
+							OnClick:  "moveRowDown(this);",
 						},
 						&If{
 							Condition: lastRow,
