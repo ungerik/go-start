@@ -12,6 +12,12 @@ const EditFormSliceTableScript = `
 // 	a.attr(attr, y);
 // 	b.attr(attr, x);
 // }
+// function swapChildren(a, b) {
+// 	var x = a.children().detach();
+// 	var y = b.children().detach();
+// 	x.appendTo(b);
+// 	y.appendTo(a);
+// }
 
 function swapValues(a, b) {
 	var x = a.val();
@@ -40,43 +46,45 @@ function swapRowValues(tr0, tr1) {
 	}	
 }
 
+function resetButtons(table) {
+	var rows = table.find("tr");
+	rows.each(function(row) {
+		var firstRow = (row == 1); // ignore header row
+		var lastRow = (row == rows.length-1);
+		var buttons = jQuery(this).find("td:last > :button");
+		buttons.eq(0).prop("disabled", firstRow);
+		buttons.eq(1).prop("disabled", lastRow);
+		if (lastRow) {
+			buttons.eq(2).attr("onclick", "addRow(this);").text("+");
+		} else {
+			buttons.eq(2).attr("onclick", "removeRow(this);").text("X");
+		}
+	});
+}
+
 function removeRow(button) {
 	if (confirm("Are you sure you want to delete this row?")) {
 		var tr = jQuery(button).parents("tr");
+		var table = tr.parents("table");
 
 		// Swap all values with following rows to move the values of the
 		// row to be deleted to the last row and everything else one row up
 		var rows = tr.add(tr.nextAll());
-		trs.each(function(index) {
-			if (index == 0) return;
-			swapRowValues(rows.eq(index-1), rows.eq(index));
+		rows.each(function(i) {
+			if (i == 0) return;
+			swapRowValues(rows.eq(i-1), rows.eq(i));
 		});
 
-		var lastRowButtons = rows.last();
-		var lastButOneRowButtons = lastRowButtons.prev();
-		lastRowButtons = lastRowButtons.find("td:last");
-		lastButOneRowButtons = lastButOneRowButtons.find("td:last");
-
-		lastButOneRowButtons.empty();
-		lastButOneRowButtons.append(lastRowButtons.children());
-
-		// Delete the last row
 		rows.last().remove();
+
+		resetButtons(table);
 	}
 }
 
 function addRow(button) {
 	var tr0 = jQuery(button).parents("tr");
 	var tr1 = tr0.clone();
-
-	// Change the buttons of the old row
-	var lastButton = tr0.find("td:last > button:last");
-	var downButton = lastButton.prev();
-	lastButton.attr("onclick", "removeRow(this);").text("X");
-	downButton.removeProp("disabled");
-
-	// Change the up button of the new row (could be disabled if first row)
-	tr1.find("td:last > button:first").removeProp("disabled");
+	var table = tr0.parents("table");
 
 	// Set correct class for new row
 	var numRows = tr0.prevAll().length + 1;
@@ -93,6 +101,7 @@ function addRow(button) {
 
 	tr1.insertAfter(tr0);
 
+	resetButtons(table);
 }
 
 function moveRowUp(button) {
