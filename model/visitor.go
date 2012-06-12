@@ -3,7 +3,7 @@ package model
 import (
 	"fmt"
 	"github.com/ungerik/go-start/utils"
-	"github.com/ungerik/go-start/debug"
+	// "github.com/ungerik/go-start/debug"
 	"reflect"
 )
 
@@ -12,12 +12,14 @@ type Visitor interface {
 	StructField(field *MetaData) error
 	EndStruct(strct *MetaData) error
 
-	// ModifySlice will be called before BeginSlice and can modify slice.Value
-	// before it is used in further calls.
-	ModifySlice(slice *MetaData) error
+	// PreModifySlice will be called before BeginSlice and can modify
+	// slice.Value before it is used in further calls.
+	PreModifySlice(slice *MetaData) error
 	BeginSlice(slice *MetaData) error
 	SliceField(field *MetaData) error
 	EndSlice(slice *MetaData) error
+	// PostModifySlice will be called after EndSlice and can modify slice.Value.
+	PostModifySlice(slice *MetaData) error
 
 	BeginArray(array *MetaData) error
 	ArrayField(field *MetaData) error
@@ -132,12 +134,8 @@ func (self *structVisitorWrapper) EndStruct(depth int, v reflect.Value) error {
 	return self.visitor.EndStruct(self.metaData)
 }
 
-func (self *structVisitorWrapper) ModifySlice(depth int, v reflect.Value) (reflect.Value, error) {
-	debug.Nop()
-	if depth == 0 {
-		panic("ModifySlice() called for root slice")
-	}
-	err := self.visitor.ModifySlice(self.metaData)
+func (self *structVisitorWrapper) PreModifySlice(depth int, v reflect.Value) (reflect.Value, error) {
+	err := self.visitor.PreModifySlice(self.metaData)
 	return self.metaData.Value, err
 }
 
@@ -154,6 +152,11 @@ func (self *structVisitorWrapper) SliceField(depth int, v reflect.Value, index i
 func (self *structVisitorWrapper) EndSlice(depth int, v reflect.Value) error {
 	self.onEnd(depth, SliceKind)
 	return self.visitor.EndSlice(self.metaData)
+}
+
+func (self *structVisitorWrapper) PostModifySlice(depth int, v reflect.Value) (reflect.Value, error) {
+	err := self.visitor.PostModifySlice(self.metaData)
+	return self.metaData.Value, err
 }
 
 func (self *structVisitorWrapper) BeginArray(depth int, v reflect.Value) error {
@@ -186,7 +189,7 @@ func (self FieldOnlyVisitor) EndStruct(strct *MetaData) error {
 	return nil
 }
 
-func (self FieldOnlyVisitor) ModifySlice(slice *MetaData) error {
+func (self FieldOnlyVisitor) PreModifySlice(slice *MetaData) error {
 	return nil
 }
 
@@ -199,6 +202,10 @@ func (self FieldOnlyVisitor) SliceField(field *MetaData) error {
 }
 
 func (self FieldOnlyVisitor) EndSlice(slice *MetaData) error {
+	return nil
+}
+
+func (self FieldOnlyVisitor) PostModifySlice(slice *MetaData) error {
 	return nil
 }
 
@@ -230,7 +237,7 @@ func (self VisitorFunc) EndStruct(strct *MetaData) error {
 	return self(strct)
 }
 
-func (self VisitorFunc) ModifySlice(slice *MetaData) error {
+func (self VisitorFunc) PreModifySlice(slice *MetaData) error {
 	return nil
 }
 
@@ -244,6 +251,10 @@ func (self VisitorFunc) SliceField(field *MetaData) error {
 
 func (self VisitorFunc) EndSlice(slice *MetaData) error {
 	return self(slice)
+}
+
+func (self VisitorFunc) PostModifySlice(slice *MetaData) error {
+	return nil
 }
 
 func (self VisitorFunc) BeginArray(array *MetaData) error {

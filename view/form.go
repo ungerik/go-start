@@ -466,7 +466,7 @@ func (self *formLayoutWrappingStructVisitor) EndStruct(strct *model.MetaData) er
 	return nil
 }
 
-func (self *formLayoutWrappingStructVisitor) ModifySlice(slice *model.MetaData) error {
+func (self *formLayoutWrappingStructVisitor) PreModifySlice(slice *model.MetaData) error {
 	debug.Nop()
 	var length int
 	if self.isPost {
@@ -509,6 +509,10 @@ func (self *formLayoutWrappingStructVisitor) EndSlice(slice *model.MetaData) err
 	if slice.Parent == nil {
 		return self.endForm(slice)
 	}
+	return nil
+}
+
+func (self *formLayoutWrappingStructVisitor) PostModifySlice(slice *model.MetaData) error {
 	return nil
 }
 
