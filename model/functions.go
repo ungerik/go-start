@@ -1,25 +1,25 @@
 package model
 
 import (
-	"github.com/ungerik/go-start/errs"
-	// "github.com/ungerik/go-start/utils"
-	// "reflect"
+// "github.com/ungerik/go-start/errs"
+// "github.com/ungerik/go-start/utils"
+// "reflect"
 )
 
 // todo: need a visitor that visits every value only once
 // (begin end functions on same value)
-func Validate(data interface{}, maxDepth int) error {
-	var errors []error
-	VisitMaxDepth(data, maxDepth, VisitorFunc(
-		func(data *MetaData) error {
-			if validator, ok := data.ModelValidator(); ok {
-				errors = append(errors, validator.Validate(data))
-			}
-			return nil
-		},
-	))
-	return errs.Errors(errors...)
-}
+// func Validate(data interface{}, maxDepth int) error {
+// 	var errors []error
+// 	VisitMaxDepth(data, maxDepth, VisitorFunc(
+// 		func(data *MetaData) error {
+// 			if validator, ok := data.ModelValidator(); ok {
+// 				errors = append(errors, validator.Validate(data))
+// 			}
+// 			return nil
+// 		},
+// 	))
+// 	return errs.Errors(errors...)
+// }
 
 // func AppendEmptySliceEnds(strct interface{}) {
 // 	utils.VisitStruct(strct, utils.ModifySliceStructVisitor(

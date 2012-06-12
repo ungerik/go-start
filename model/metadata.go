@@ -67,10 +67,17 @@ func (self *MetaData) ModelValue() (val Value, ok bool) {
 
 func (self *MetaData) ModelValidator() (val Validator, ok bool) {
 	val, ok = self.Value.Interface().(Validator)
-	if !ok {
+	if !ok && self.Value.CanAddr() {
 		val, ok = self.Value.Addr().Interface().(Validator)
 	}
 	return val, ok
+}
+
+func (self *MetaData) Validate() error {
+	if validator, ok := self.ModelValidator(); ok {
+		return validator.Validate(self)
+	}
+	return nil
 }
 
 func (self *MetaData) RootParent() *MetaData {

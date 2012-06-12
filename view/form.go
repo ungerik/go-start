@@ -403,20 +403,17 @@ type formLayoutWrappingStructVisitor struct {
 	generalValidationErrors []error
 }
 
-func (self *formLayoutWrappingStructVisitor) postValue(metaData *model.MetaData) string {
-	postValue, _ := self.context.Params[metaData.Selector()]
-	return postValue
-}
-
 func (self *formLayoutWrappingStructVisitor) setFieldValue(field *model.MetaData) (err error) {
 	switch s := field.Value.Addr().Interface().(type) {
 	case *model.Bool:
-		s.Set(self.postValue(field) != "")
+		postValue, _ := self.context.Params[field.Selector()]
+		s.Set(postValue != "")
 		// model.Bool doesn't have validation
 	case model.Reference:
 		// do nothing
 	case model.Value:
-		err = s.SetString(self.postValue(field))
+		postValue, _ := self.context.Params[field.Selector()]
+		err = s.SetString(postValue)
 		if err == nil {
 			err = s.Validate(field)
 		}
@@ -427,17 +424,8 @@ func (self *formLayoutWrappingStructVisitor) setFieldValue(field *model.MetaData
 	return err
 }
 
-func (self *formLayoutWrappingStructVisitor) validate(data *model.MetaData) (err error) {
-	if validator, ok := data.ModelValidator(); ok {
-		err = validator.Validate(data)
-		if err != nil {
-			self.generalValidationErrors = append(self.generalValidationErrors, err)
-		}
-	}
-	return err
-}
-
 func (self *formLayoutWrappingStructVisitor) endForm(data *model.MetaData) (err error) {
+	debug.Dump(self.fieldValidationErrors, self.generalValidationErrors)
 	if self.isPost && len(self.fieldValidationErrors) == 0 && len(self.generalValidationErrors) == 0 {
 		self.formFields, err = self.form.submit(self.formModel, self.context, self.formFields)
 		if err != nil {
@@ -468,7 +456,9 @@ func (self *formLayoutWrappingStructVisitor) StructField(field *model.MetaData) 
 func (self *formLayoutWrappingStructVisitor) EndStruct(strct *model.MetaData) error {
 	var validationErr error
 	if self.isPost {
-		validationErr = self.validate(strct)
+		if validationErr = strct.Validate(); validationErr != nil {
+			self.generalValidationErrors = append(self.generalValidationErrors, validationErr)
+		}
 	}
 	self.formFields = self.formLayout.EndStruct(strct, validationErr, self.form, self.context, self.formFields)
 	if strct.Parent == nil {
@@ -512,7 +502,9 @@ func (self *formLayoutWrappingStructVisitor) SliceField(field *model.MetaData) e
 func (self *formLayoutWrappingStructVisitor) EndSlice(slice *model.MetaData) error {
 	var validationErr error
 	if self.isPost {
-		validationErr = self.validate(slice)
+		if validationErr = slice.Validate(); validationErr != nil {
+			self.generalValidationErrors = append(self.generalValidationErrors, validationErr)
+		}
 	}
 	self.formFields = self.formLayout.EndSlice(slice, validationErr, self.form, self.context, self.formFields)
 	if slice.Parent == nil {
@@ -541,7 +533,9 @@ func (self *formLayoutWrappingStructVisitor) ArrayField(field *model.MetaData) e
 func (self *formLayoutWrappingStructVisitor) EndArray(array *model.MetaData) error {
 	var validationErr error
 	if self.isPost {
-		validationErr = self.validate(array)
+		if validationErr = array.Validate(); validationErr != nil {
+			self.generalValidationErrors = append(self.generalValidationErrors, validationErr)
+		}
 	}
 	self.formFields = self.formLayout.EndArray(array, validationErr, self.form, self.context, self.formFields)
 	if array.Parent == nil {
