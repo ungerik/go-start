@@ -14,11 +14,16 @@ import (
 const FormIDName = "form_id"
 
 type GetFormModelFunc func(form *Form, context *Context) (model interface{}, err error)
+type OnSubmitFormFunc func(form *Form, formModel interface{}, context *Context) (message string, redirect URL, err error)
 
 func FormModel(model interface{}) GetFormModelFunc {
 	return func(form *Form, context *Context) (interface{}, error) {
 		return model, nil
 	}
+}
+
+func SaveModel(form *Form, formModel interface{}, context *Context) (string, URL, error) {
+	return "", nil, formModel.(mongo.Document).Save()
 }
 
 /*
@@ -91,7 +96,7 @@ type Form struct {
 	// any further (good idea?)
 	// If redirect result is not nil, it will be used instead of Form.Redirect.
 	// message or err will only be visible, if there is no redirect.
-	OnSubmit func(form *Form, formModel interface{}, context *Context) (message string, redirect URL, err error)
+	OnSubmit OnSubmitFormFunc
 
 	ModelMaxDepth         int      // if zero, no depth limit
 	ExcludedFields        []string // Use point notation for nested fields. In case of arrays/slices use wildcards
