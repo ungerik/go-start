@@ -97,7 +97,7 @@ func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *m
 	tableModel := table.Model.(ViewsTableModel)
 	if field.Parent.Index == 0 {
 		// If first array field, add label to table header
-		tableModel[0] = append(tableModel[0], Escape(form.DirectFieldLabel(field)))
+		tableModel[0] = append(tableModel[0], fieldFactory.NewTableHeader(field, form))
 	}
 	if tableModel.Rows()-1 == field.Parent.Index {
 		// Create row in table model for this array field
@@ -106,7 +106,15 @@ func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *m
 	}
 	// Append form field in last row for this struct field
 	row := &tableModel[tableModel.Rows()-1]
-	*row = append(*row, fieldFactory.NewInput(false, field, form))
+
+	var td View = fieldFactory.NewInput(false, field, form)
+	if validationErr != nil {
+		td = Views{
+			td,
+			fieldFactory.NewFieldErrorMessage(validationErr.Error(), field, form),
+		}
+	}
+	*row = append(*row, td)
 
 	return formFields
 }
@@ -145,12 +153,13 @@ func (self *StandardFormLayout) BeginArray(array *model.MetaData, form *Form, co
 }
 
 func (self *StandardFormLayout) ArrayField(field *model.MetaData, validationErr error, form *Form, context *Context, formFields Views) Views {
-	return self.StructField(field, validationErr, form, context, formFields) // todo replace
+	// todo replace. below handels non struct array fields:
+	return self.StructField(field, validationErr, form, context, formFields)
 	return formFields
 }
 
 func (self *StandardFormLayout) EndArray(array *model.MetaData, validationErr error, form *Form, context *Context, formFields Views) Views {
-	return self.endEndArrayOrSlice(array, formFields)
+	return self.endArrayOrSlice(array, formFields)
 }
 
 func (self *StandardFormLayout) BeginSlice(slice *model.MetaData, form *Form, context *Context, formFields Views) Views {
@@ -158,15 +167,16 @@ func (self *StandardFormLayout) BeginSlice(slice *model.MetaData, form *Form, co
 }
 
 func (self *StandardFormLayout) SliceField(field *model.MetaData, validationErr error, form *Form, context *Context, formFields Views) Views {
-	return self.StructField(field, validationErr, form, context, formFields) // todo replace
+	// todo replace. below handels non struct array fields:
+	return self.StructField(field, validationErr, form, context, formFields)
 	return formFields
 }
 
 func (self *StandardFormLayout) EndSlice(slice *model.MetaData, validationErr error, form *Form, context *Context, formFields Views) Views {
-	return self.endEndArrayOrSlice(slice, formFields)
+	return self.endArrayOrSlice(slice, formFields)
 }
 
-func (self *StandardFormLayout) endEndArrayOrSlice(arrayOrSlice *model.MetaData, formFields Views) Views {
+func (self *StandardFormLayout) endArrayOrSlice(arrayOrSlice *model.MetaData, formFields Views) Views {
 	if len(formFields) > 0 {
 		if table, ok := formFields[len(formFields)-1].(*Table); ok {
 			tableModel := table.Model.(ViewsTableModel)

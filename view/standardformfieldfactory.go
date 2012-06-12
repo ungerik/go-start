@@ -191,7 +191,15 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 	}
 
 	if withLabel {
-		return Views{self.NewLabel(input, metaData, form), input}
+		// todo add extra label for date/time
+		// HTML("(Format: "+model.DateFormat+")<br/>")
+		// HTML("(Format: "+model.DateTimeFormat+")<br/>")
+		var labelContent View = Escape(form.FieldLabel(metaData))
+		if form.IsFieldRequired(metaData) {
+			labelContent = Views{labelContent, form.GetRequiredMarker()}
+		}
+		label := &Label{For: input, Content: labelContent}
+		input = Views{label, input}
 	}
 	return input
 }
@@ -203,15 +211,12 @@ func (self *StandardFormFieldFactory) NewHiddenInput(metaData *model.MetaData, f
 	}
 }
 
-func (self *StandardFormFieldFactory) NewLabel(forView View, metaData *model.MetaData, form *Form) View {
-	// todo add extra label for date/time
-	// HTML("(Format: "+model.DateFormat+")<br/>")
-	// HTML("(Format: "+model.DateTimeFormat+")<br/>")
-	var labelContent View = Escape(form.FieldLabel(metaData))
+func (self *StandardFormFieldFactory) NewTableHeader(metaData *model.MetaData, form *Form) View {
+	var label View = Escape(form.DirectFieldLabel(metaData))
 	if form.IsFieldRequired(metaData) {
-		labelContent = Views{labelContent, form.GetRequiredMarker()}
+		label = Views{label, form.GetRequiredMarker()}
 	}
-	return &Label{For: forView, Content: labelContent}
+	return label
 }
 
 func (self *StandardFormFieldFactory) NewFieldDescrtiption(description string, form *Form) View {

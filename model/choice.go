@@ -72,5 +72,5 @@ type InvalidChoice struct {
 }
 
 func (self *InvalidChoice) Error() string {
-	return fmt.Sprintf("Invalid choice '%s'. Options: %#v", self.Value, self.Options)
+	return fmt.Sprintf("Invalid choice %s (options: %s)", self.Value, strings.Join(self.Options, ","))
 }

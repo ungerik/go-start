@@ -60,7 +60,7 @@ type FormFieldFactory interface {
 	CanCreateInput(metaData *model.MetaData, form *Form) bool
 	NewInput(withLabel bool, metaData *model.MetaData, form *Form) View
 	NewHiddenInput(metaData *model.MetaData, form *Form) View
-	NewLabel(forView View, metaData *model.MetaData, form *Form) View
+	NewTableHeader(metaData *model.MetaData, form *Form) View
 	NewFieldDescrtiption(description string, form *Form) View
 	NewFieldErrorMessage(message string, metaData *model.MetaData, form *Form) View
 	NewGeneralErrorMessage(message string, form *Form) View
@@ -425,7 +425,6 @@ func (self *formLayoutWrappingStructVisitor) setFieldValue(field *model.MetaData
 }
 
 func (self *formLayoutWrappingStructVisitor) endForm(data *model.MetaData) (err error) {
-	debug.Dump(self.fieldValidationErrors, self.generalValidationErrors)
 	if self.isPost && len(self.fieldValidationErrors) == 0 && len(self.generalValidationErrors) == 0 {
 		self.formFields, err = self.form.submit(self.formModel, self.context, self.formFields)
 		if err != nil {
