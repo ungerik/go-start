@@ -66,58 +66,6 @@ func (self *StandardFormLayout) EndFormContent(fieldValidationErrs, generalValid
 func (self *StandardFormLayout) BeginStruct(strct *model.MetaData, form *Form, context *Context, formContent *Views) {
 }
 
-func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) {
-	fieldFactory := form.GetFieldFactory()
-	// We expect a Table as last form field.
-	// If it doesn't exist yet because this is the first visible
-	// struct field in the first array field, then create it
-	var table *Table
-	if len(*formContent) > 0 {
-		table, _ = (*formContent)[len(*formContent)-1].(*Table)
-	}
-	if table == nil {
-		// First struct field of first array field, create table
-		// and table model.
-		table = &Table{
-			Caption:   form.FieldLabel(arrayOrSlice),
-			HeaderRow: true,
-			Model:     ViewsTableModel{Views{}},
-		}
-		table.Init(table) // get an ID now
-		// Also a hidden input to get back the changed length of the table
-		// if the user changes it via javascript in the client
-		lengthInput := &HiddenInput{
-			Name:  arrayOrSlice.Selector() + ".length",
-			Value: strconv.Itoa(arrayOrSlice.Value.Len()),
-		}
-		*formContent = append(*formContent, lengthInput, table)
-		// Add script for manipulating table rows
-		context.AddScript(EditFormSliceTableScript, 0)
-	}
-	tableModel := table.Model.(ViewsTableModel)
-	if field.Parent.Index == 0 {
-		// If first array field, add label to table header
-		tableModel[0] = append(tableModel[0], fieldFactory.NewTableHeader(field, form))
-	}
-	if tableModel.Rows()-1 == field.Parent.Index {
-		// Create row in table model for this array field
-		tableModel = append(tableModel, Views{})
-		table.Model = tableModel
-	}
-	// Append form field in last row for this struct field
-	row := &tableModel[tableModel.Rows()-1]
-
-	var td View = fieldFactory.NewInput(false, field, form)
-	if validationErr != nil {
-		td = Views{
-			td,
-			fieldFactory.NewFieldErrorMessage(validationErr.Error(), field, form),
-		}
-	}
-	*row = append(*row, td)
-
-}
-
 func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) {
 	fieldFactory := form.GetFieldFactory()
 	if !fieldFactory.CanCreateInput(field, form) || form.IsFieldExcluded(field) {
@@ -151,67 +99,141 @@ func (self *StandardFormLayout) BeginArray(array *model.MetaData, form *Form, co
 }
 
 func (self *StandardFormLayout) ArrayField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) {
-	// todo replace. below handels non struct array fields:
-	self.StructField(field, validationErr, form, context, formContent)
+	if field.Kind == model.ValueKind && !form.IsFieldExcluded(field.Parent) && form.GetFieldFactory().CanCreateInput(field, form) {
+		self.arrayOrSliceFieldValue(field, validationErr, form, context, formContent)
+	}
 }
 
 func (self *StandardFormLayout) EndArray(array *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) {
-	self.endArrayOrSlice(array, formContent)
+	self.endArrayOrSlice(array, form, formContent)
 }
 
 func (self *StandardFormLayout) BeginSlice(slice *model.MetaData, form *Form, context *Context, formContent *Views) {
 }
 
 func (self *StandardFormLayout) SliceField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) {
-	// todo replace. below handels non struct array fields:
-	self.StructField(field, validationErr, form, context, formContent)
+	if field.Kind == model.ValueKind && !form.IsFieldExcluded(field.Parent) && form.GetFieldFactory().CanCreateInput(field, form) {
+		self.arrayOrSliceFieldValue(field, validationErr, form, context, formContent)
+	}
 }
 
 func (self *StandardFormLayout) EndSlice(slice *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) {
-	self.endArrayOrSlice(slice, formContent)
+	self.endArrayOrSlice(slice, form, formContent)
 }
 
-func (self *StandardFormLayout) endArrayOrSlice(arrayOrSlice *model.MetaData, formContent *Views) {
+func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) {
+	fieldFactory := form.GetFieldFactory()
+	// We expect a Table as last form content field.
+	// If it doesn't exist yet because this is the first visible
+	// struct field in the first array field, then create it
+	var table *Table
 	if len(*formContent) > 0 {
+		table, _ = (*formContent)[len(*formContent)-1].(*Table)
+	}
+	if table == nil {
+		// First struct field of first array field, create table
+		// and table model.
+		table = &Table{
+			Caption:   form.FieldLabel(arrayOrSlice),
+			HeaderRow: true,
+			Model:     ViewsTableModel{Views{}},
+		}
+		table.Init(table) // get an ID now
+		*formContent = append(*formContent, table)
+		// Add script for manipulating table rows
+		context.AddScript(EditFormSliceTableScript, 0)
+	}
+	tableModel := table.Model.(ViewsTableModel)
+	if field.Parent.Index == 0 {
+		// If first array field, add label to table header
+		tableModel[0] = append(tableModel[0], fieldFactory.NewTableHeader(field, form))
+	}
+	if tableModel.Rows()-1 == field.Parent.Index {
+		// Create row in table model for this array field
+		tableModel = append(tableModel, Views{})
+		table.Model = tableModel
+	}
+	// Append form field in last row for this struct field
+	row := &tableModel[tableModel.Rows()-1]
+
+	var td View = fieldFactory.NewInput(false, field, form)
+	if validationErr != nil {
+		td = Views{
+			td,
+			fieldFactory.NewFieldErrorMessage(validationErr.Error(), field, form),
+		}
+	}
+	*row = append(*row, td)
+
+}
+
+func (self *StandardFormLayout) arrayOrSliceFieldValue(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) {
+	arrayOrSlice := field.Parent
+	fieldFactory := form.GetFieldFactory()
+	// We expect a Table as last form content field.
+	// If it doesn't exist yet because this is the first visible
+	// struct field in the first array field, then create it
+	var table *Table
+	if len(*formContent) > 0 {
+		table, _ = (*formContent)[len(*formContent)-1].(*Table)
+	}
+	if table == nil {
+		// First array/slice field, create table and table model.
+		table = &Table{
+			HeaderRow: true,
+			Model:     ViewsTableModel{Views{fieldFactory.NewTableHeader(arrayOrSlice, form)}},
+		}
+		table.Init(table) // get an ID now
+		*formContent = append(*formContent, table)
+		// Add script for manipulating table rows
+		context.AddScript(EditFormSliceTableScript, 0)
+	}
+	var td View = fieldFactory.NewInput(false, field, form)
+	if validationErr != nil {
+		td = Views{
+			td,
+			fieldFactory.NewFieldErrorMessage(validationErr.Error(), field, form),
+		}
+	}
+	table.Model = append(table.Model.(ViewsTableModel), Views{td})
+}
+
+func (self *StandardFormLayout) endArrayOrSlice(arrayOrSlice *model.MetaData, form *Form, formContent *Views) {
+	if len(*formContent) > 0 {
+		// Add "Actions" column with buttons to table with slice or array values
 		if table, ok := (*formContent)[len(*formContent)-1].(*Table); ok {
+			fieldFactory := form.GetFieldFactory()
 			tableModel := table.Model.(ViewsTableModel)
 			tableModel[0] = append(tableModel[0], HTML("Actions"))
 			rows := tableModel.Rows()
 			for i := 1; i < rows; i++ {
+				// todo: script depends on buttons being HTML buttons,
+				// but buttons are created by form field factory that doesn't
+				// guarantee that. needs decoupling via css classes.
 				firstRow := (i == 1)
 				lastRow := (i == rows-1)
 				buttons := Views{
-					HTML("&nbsp;&nbsp;"),
-					&Button{
-						Content:  HTML("&uarr;"),
-						Disabled: firstRow,
-						OnClick:  "gostart_form.moveRowUp(this);",
-					},
-					&Button{
-						Content:  HTML("&darr;"),
-						Disabled: lastRow,
-						OnClick:  "gostart_form.moveRowDown(this);",
-					},
+					HTML("&nbsp;&nbsp;"), // todo replace with css
+					fieldFactory.NewUpButton(firstRow, "gostart_form.moveRowUp(this);", form),
+					fieldFactory.NewDownButton(lastRow, "gostart_form.moveRowDown(this);", form),
 				}
 				if arrayOrSlice.Kind == model.SliceKind {
 					if lastRow {
-						buttons = append(buttons,
-							&Button{
-								Content: HTML("+"),
-								OnClick: "gostart_form.addRow(this);",
-							},
-						)
+						buttons = append(buttons, fieldFactory.NewAddButton("gostart_form.addRow(this);", form))
 					} else {
-						buttons = append(buttons,
-							&Button{
-								Content: HTML("X"),
-								OnClick: "gostart_form.removeRow(this)",
-							},
-						)
+						buttons = append(buttons, fieldFactory.NewRemoveButton("gostart_form.removeRow(this)", form))
 					}
 				}
 				tableModel[i] = append(tableModel[i], buttons)
 			}
+			// Add a hidden input to get back the changed length of the table
+			// if the user changes it via javascript in the client
+			*formContent = append(*formContent,
+				&HiddenInput{
+					Name:  arrayOrSlice.Selector() + ".length",
+					Value: strconv.Itoa(arrayOrSlice.Value.Len()),
+				},
+			)
 		}
 	}
 }
@@ -314,8 +336,8 @@ var gostart_form = {
 		tr1.attr("class", "row"+numRows+evenOdd);
 
 		// Correct name attributes of the new row's input elements
-		var oldIndex = "."+(numRows-2)+".";
-		var newIndex = "."+(numRows-1)+".";
+		var oldIndex = "."+(numRows-2);
+		var newIndex = "."+(numRows-1);
 		tr1.find("td > :input").not(":button").each(function(index) {
 			var i = this.name.lastIndexOf(oldIndex);
 			this.name = this.name.slice(0,i)+newIndex+this.name.slice(i+oldIndex.length);

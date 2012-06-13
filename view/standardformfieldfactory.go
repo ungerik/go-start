@@ -212,11 +212,17 @@ func (self *StandardFormFieldFactory) NewHiddenInput(metaData *model.MetaData, f
 }
 
 func (self *StandardFormFieldFactory) NewTableHeader(metaData *model.MetaData, form *Form) View {
-	var label View = Escape(form.DirectFieldLabel(metaData))
-	if form.IsFieldRequired(metaData) {
-		label = Views{label, form.GetRequiredMarker()}
+	switch metaData.Kind {
+	case model.ValueKind:
+		var label View = Escape(form.DirectFieldLabel(metaData))
+		if form.IsFieldRequired(metaData) {
+			label = Views{label, form.GetRequiredMarker()}
+		}
+		return label
+	case model.ArrayKind, model.SliceKind:
+		return Escape(form.FieldLabel(metaData))
 	}
-	return label
+	panic("Unsupported metaData.Kind for NewTableHeader(): " + metaData.Kind.String())
 }
 
 func (self *StandardFormFieldFactory) NewFieldDescrtiption(description string, form *Form) View {
@@ -244,10 +250,26 @@ func (self *StandardFormFieldFactory) NewSubmitButton(text, confirmationMessage 
 	}
 }
 
-func (self *StandardFormFieldFactory) NewAddSliceItemButton(form *Form) View {
-	return &Button{Value: "+"} // todo
+func (self *StandardFormFieldFactory) NewAddButton(onclick string, form *Form) View {
+	return &Button{Content: HTML("+"), OnClick: onclick}
 }
 
-func (self *StandardFormFieldFactory) NewRemoveSliceItemButton(form *Form) View {
-	return &Button{Value: "-"} // todo
+func (self *StandardFormFieldFactory) NewRemoveButton(onclick string, form *Form) View {
+	return &Button{Content: HTML("X"), OnClick: onclick}
+}
+
+func (self *StandardFormFieldFactory) NewUpButton(disabled bool, onclick string, form *Form) View {
+	return &Button{
+		Content:  HTML("&uarr;"),
+		Disabled: disabled,
+		OnClick:  onclick,
+	}
+}
+
+func (self *StandardFormFieldFactory) NewDownButton(disabled bool, onclick string, form *Form) View {
+	return &Button{
+		Content:  HTML("&darr;"),
+		Disabled: disabled,
+		OnClick:  onclick,
+	}
 }

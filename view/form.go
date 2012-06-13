@@ -66,8 +66,10 @@ type FormFieldFactory interface {
 	NewGeneralErrorMessage(message string, form *Form) View
 	NewSuccessMessage(message string, form *Form) View
 	NewSubmitButton(text, confirmationMessage string, form *Form) View
-	NewAddSliceItemButton(form *Form) View
-	NewRemoveSliceItemButton(form *Form) View
+	NewAddButton(onclick string, form *Form) View
+	NewRemoveButton(onclick string, form *Form) View
+	NewUpButton(disabled bool, onclick string, form *Form) View
+	NewDownButton(disabled bool, onclick string, form *Form) View
 }
 
 ///////////////////////////////////////////////////////////////////////////////
