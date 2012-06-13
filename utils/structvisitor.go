@@ -12,15 +12,9 @@ type StructVisitor interface {
 	StructField(depth int, v reflect.Value, f reflect.StructField, index int) error
 	EndStruct(depth int, v reflect.Value) error
 
-	// PreModifySlice is special: it can change the slice length and
-	// returns the altered or unaltered slice as reflect.Value.
-	PreModifySlice(depth int, v reflect.Value) (reflect.Value, error)
 	BeginSlice(depth int, v reflect.Value) error
 	SliceField(depth int, v reflect.Value, index int) error
 	EndSlice(depth int, v reflect.Value) error
-	// PostModifySlice is special: it can change the slice length and
-	// returns the altered or unaltered slice as reflect.Value.
-	PostModifySlice(depth int, v reflect.Value) (reflect.Value, error)
 
 	BeginArray(depth int, v reflect.Value) error
 	ArrayField(depth int, v reflect.Value, index int) error
@@ -125,13 +119,6 @@ func visitStructRecursive(v reflect.Value, visitor StructVisitor, maxDepth, dept
 		return visitor.EndStruct(depth, v)
 
 	case reflect.Slice:
-		if v.CanSet() {
-			modifiedV, err := visitor.PreModifySlice(depth, v)
-			if err != nil {
-				return err
-			}
-			v.Set(modifiedV)
-		}
 		err = visitor.BeginSlice(depth, v)
 		if err != nil {
 			return err
@@ -151,18 +138,7 @@ func visitStructRecursive(v reflect.Value, visitor StructVisitor, maxDepth, dept
 				}
 			}
 		}
-		err = visitor.EndSlice(depth, v)
-		if err != nil {
-			return err
-		}
-		if v.CanSet() {
-			modifiedV, err := visitor.PostModifySlice(depth, v)
-			if err != nil {
-				return err
-			}
-			v.Set(modifiedV)
-		}
-		return nil
+		return visitor.EndSlice(depth, v)
 
 	case reflect.Array:
 		err = visitor.BeginArray(depth, v)
