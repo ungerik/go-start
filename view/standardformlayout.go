@@ -1,7 +1,7 @@
 package view
 
 import (
-	"github.com/ungerik/go-start/debug"
+	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 	"strconv"
 	// "github.com/ungerik/go-start/utils"
@@ -41,41 +41,39 @@ DIV classes for coloring:
 type StandardFormLayout struct {
 }
 
-func (self *StandardFormLayout) BeginFormContent(form *Form, context *Context, formFields Views) Views {
-	return formFields
+func (self *StandardFormLayout) BeginFormContent(form *Form, context *Context, formContent *Views) {
 }
 
-func (self *StandardFormLayout) SubmitSuccess(message string, form *Form, context *Context, formFields Views) Views {
-	return append(formFields, form.GetFieldFactory().NewSuccessMessage(message, form))
+func (self *StandardFormLayout) SubmitSuccess(message string, form *Form, context *Context, formContent *Views) {
+	*formContent = append(*formContent, form.GetFieldFactory().NewSuccessMessage(message, form))
 }
 
-func (self *StandardFormLayout) SubmitError(message string, form *Form, context *Context, formFields Views) Views {
-	return append(formFields, form.GetFieldFactory().NewGeneralErrorMessage(message, form))
+func (self *StandardFormLayout) SubmitError(message string, form *Form, context *Context, formContent *Views) {
+	*formContent = append(*formContent, form.GetFieldFactory().NewGeneralErrorMessage(message, form))
 }
 
-func (self *StandardFormLayout) EndFormContent(fieldValidationErrs, generalValidationErrs []error, form *Form, context *Context, formFields Views) Views {
+func (self *StandardFormLayout) EndFormContent(fieldValidationErrs, generalValidationErrs []error, form *Form, context *Context, formContent *Views) {
 	fieldFactory := form.GetFieldFactory()
 	for _, err := range generalValidationErrs {
-		formFields = append(formFields, fieldFactory.NewGeneralErrorMessage(err.Error(), form))
-		formFields = append(Views{fieldFactory.NewGeneralErrorMessage(err.Error(), form)}, formFields...)
+		*formContent = append(*formContent, fieldFactory.NewGeneralErrorMessage(err.Error(), form))
+		*formContent = append(Views{fieldFactory.NewGeneralErrorMessage(err.Error(), form)}, *formContent...)
 	}
 	formId := &HiddenInput{Name: FormIDName, Value: form.FormID}
 	submitButton := fieldFactory.NewSubmitButton(form.GetSubmitButtonText(), form.SubmitButtonConfirm, form)
-	return append(formFields, formId, submitButton)
+	*formContent = append(*formContent, formId, submitButton)
 }
 
-func (self *StandardFormLayout) BeginStruct(strct *model.MetaData, form *Form, context *Context, formFields Views) Views {
-	return formFields
+func (self *StandardFormLayout) BeginStruct(strct *model.MetaData, form *Form, context *Context, formContent *Views) {
 }
 
-func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *model.MetaData, validationErr error, form *Form, context *Context, formFields Views) Views {
+func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) {
 	fieldFactory := form.GetFieldFactory()
 	// We expect a Table as last form field.
 	// If it doesn't exist yet because this is the first visible
 	// struct field in the first array field, then create it
 	var table *Table
-	if len(formFields) > 0 {
-		table, _ = formFields[len(formFields)-1].(*Table)
+	if len(*formContent) > 0 {
+		table, _ = (*formContent)[len(*formContent)-1].(*Table)
 	}
 	if table == nil {
 		// First struct field of first array field, create table
@@ -92,7 +90,7 @@ func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *m
 			Name:  arrayOrSlice.Selector() + ".length",
 			Value: strconv.Itoa(arrayOrSlice.Value.Len()),
 		}
-		formFields = append(formFields, lengthInput, table)
+		*formContent = append(*formContent, lengthInput, table)
 		// Add script for manipulating table rows
 		context.AddScript(EditFormSliceTableScript, 0)
 	}
@@ -118,69 +116,64 @@ func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *m
 	}
 	*row = append(*row, td)
 
-	return formFields
 }
 
-func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr error, form *Form, context *Context, formFields Views) Views {
+func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) {
 	fieldFactory := form.GetFieldFactory()
 	if !fieldFactory.CanCreateInput(field, form) || form.IsFieldExcluded(field) {
-		return formFields
+		return
 	}
 
 	grandParent := field.Parent.Parent
 	if grandParent != nil && (grandParent.Kind == model.ArrayKind || grandParent.Kind == model.SliceKind) {
 		if form.IsFieldExcluded(grandParent) {
-			return formFields
+			return
 		}
-		return self.structFieldInArrayOrSlice(grandParent, field, validationErr, form, context, formFields)
+		self.structFieldInArrayOrSlice(grandParent, field, validationErr, form, context, formContent)
+		return
 	}
 
 	if form.IsFieldHidden(field) {
-		return append(formFields, fieldFactory.NewHiddenInput(field, form))
+		*formContent = append(*formContent, fieldFactory.NewHiddenInput(field, form))
+		return
 	}
 	var formField View = fieldFactory.NewInput(true, field, form)
 	if validationErr != nil {
 		formField = Views{formField, fieldFactory.NewFieldErrorMessage(validationErr.Error(), field, form)}
 	}
-	return append(formFields, DIV(Config.Form.StandardFormLayoutDivClass, formField))
+	*formContent = append(*formContent, DIV(Config.Form.StandardFormLayoutDivClass, formField))
 }
 
-func (self *StandardFormLayout) EndStruct(strct *model.MetaData, validationErr error, form *Form, context *Context, formFields Views) Views {
-	return formFields
+func (self *StandardFormLayout) EndStruct(strct *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) {
 }
 
-func (self *StandardFormLayout) BeginArray(array *model.MetaData, form *Form, context *Context, formFields Views) Views {
-	debug.Nop()
-	return formFields
+func (self *StandardFormLayout) BeginArray(array *model.MetaData, form *Form, context *Context, formContent *Views) {
 }
 
-func (self *StandardFormLayout) ArrayField(field *model.MetaData, validationErr error, form *Form, context *Context, formFields Views) Views {
+func (self *StandardFormLayout) ArrayField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) {
 	// todo replace. below handels non struct array fields:
-	return self.StructField(field, validationErr, form, context, formFields)
-	return formFields
+	self.StructField(field, validationErr, form, context, formContent)
 }
 
-func (self *StandardFormLayout) EndArray(array *model.MetaData, validationErr error, form *Form, context *Context, formFields Views) Views {
-	return self.endArrayOrSlice(array, formFields)
+func (self *StandardFormLayout) EndArray(array *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) {
+	self.endArrayOrSlice(array, formContent)
 }
 
-func (self *StandardFormLayout) BeginSlice(slice *model.MetaData, form *Form, context *Context, formFields Views) Views {
-	return formFields
+func (self *StandardFormLayout) BeginSlice(slice *model.MetaData, form *Form, context *Context, formContent *Views) {
 }
 
-func (self *StandardFormLayout) SliceField(field *model.MetaData, validationErr error, form *Form, context *Context, formFields Views) Views {
+func (self *StandardFormLayout) SliceField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) {
 	// todo replace. below handels non struct array fields:
-	return self.StructField(field, validationErr, form, context, formFields)
-	return formFields
+	self.StructField(field, validationErr, form, context, formContent)
 }
 
-func (self *StandardFormLayout) EndSlice(slice *model.MetaData, validationErr error, form *Form, context *Context, formFields Views) Views {
-	return self.endArrayOrSlice(slice, formFields)
+func (self *StandardFormLayout) EndSlice(slice *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) {
+	self.endArrayOrSlice(slice, formContent)
 }
 
-func (self *StandardFormLayout) endArrayOrSlice(arrayOrSlice *model.MetaData, formFields Views) Views {
-	if len(formFields) > 0 {
-		if table, ok := formFields[len(formFields)-1].(*Table); ok {
+func (self *StandardFormLayout) endArrayOrSlice(arrayOrSlice *model.MetaData, formContent *Views) {
+	if len(*formContent) > 0 {
+		if table, ok := (*formContent)[len(*formContent)-1].(*Table); ok {
 			tableModel := table.Model.(ViewsTableModel)
 			tableModel[0] = append(tableModel[0], HTML("Actions"))
 			rows := tableModel.Rows()
@@ -221,7 +214,6 @@ func (self *StandardFormLayout) endArrayOrSlice(arrayOrSlice *model.MetaData, fo
 			}
 		}
 	}
-	return formFields
 }
 
 func (self *StandardFormLayout) fieldNeedsLabel(field *model.MetaData) bool {
