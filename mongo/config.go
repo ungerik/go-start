@@ -56,6 +56,10 @@ func Init() (err error) {
 	return nil
 }
 
+func GetGridFs() *mgo.GridFS {
+	return database.GridFS("fs")
+}
+
 func Close() {
 	if database.Session != nil {
 		database.Session.Close()
