@@ -10,12 +10,12 @@ import (
 // Name
 
 type Name struct {
-	Prefix       model.String
-	First        model.String `gostart:"label=Given"`
-	Middle       model.String
-	Last         model.String `gostart:"label=Family"`
-	Postfix      model.String
-	Organization model.String
+	Prefix       model.String `gostart:"size=10"`
+	First        model.String `gostart:"size=20|label=Given"`
+	Middle       model.String `gostart:"size=20"`
+	Last         model.String `gostart:"size=20|label=Family"`
+	Postfix      model.String `gostart:"size=10"`
+	Organization model.String `gostart:"size=40"`
 }
 
 func (self *Name) SetForPerson(prefix, first, middle, last, postfix string) {

@@ -68,7 +68,10 @@ var Config Configuration = Configuration{
 		//DefaultWriteScripts: JQuery,
 	},
 	Form: FormConfiguration{
-		DefaultLayout:                new(StandardFormLayout),
+		DefaultLayout: &StandardFormLayout{
+			DefaultInputSize:      80,
+			DefaultTableInputSize: 20,
+		},
 		DefaultFieldFactory:          new(StandardFormFieldFactory),
 		DefaultCSRFProtector:         nil,
 		DefaultSubmitButtonText:      "Save",

@@ -39,6 +39,16 @@ DIV classes for coloring:
 
 */
 type StandardFormLayout struct {
+	DefaultInputSize      int
+	DefaultTableInputSize int
+}
+
+func (self *StandardFormLayout) GetDefaultInputSize(metaData *model.MetaData) int {
+	grandParent := metaData.Parent.Parent
+	if grandParent != nil && (grandParent.Kind == model.ArrayKind || grandParent.Kind == model.SliceKind) {
+		return self.DefaultTableInputSize
+	}
+	return self.DefaultInputSize
 }
 
 func (self *StandardFormLayout) BeginFormContent(form *Form, context *Context, formContent *Views) {
@@ -213,7 +223,6 @@ func (self *StandardFormLayout) endArrayOrSlice(arrayOrSlice *model.MetaData, fo
 				firstRow := (i == 1)
 				lastRow := (i == rows-1)
 				buttons := Views{
-					HTML("&nbsp;&nbsp;"), // todo replace with css
 					fieldFactory.NewUpButton(firstRow, "gostart_form.moveRowUp(this);", form),
 					fieldFactory.NewDownButton(lastRow, "gostart_form.moveRowDown(this);", form),
 				}

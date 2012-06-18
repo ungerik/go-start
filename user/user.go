@@ -14,7 +14,7 @@ import (
 type User struct {
 	mongo.DocumentBase `bson:",inline"`
 	Name               modelext.Name
-	Username           model.String
+	Username           model.String `gostart:"size=20"`
 	Password           model.Password
 	Blocked            model.Bool
 	Admin              model.Bool

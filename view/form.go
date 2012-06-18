@@ -32,6 +32,8 @@ of the form including the submit button.
 It uses Form.GetFieldFactory() to create the field views.
 */
 type FormLayout interface {
+	GetDefaultInputSize(metaData *model.MetaData) int
+
 	BeginFormContent(form *Form, context *Context, formContent *Views)
 	// SubmitSuccess will be called before EndFormContent if there were no
 	// validation errors of the posted form data and Form.OnSubmit has
@@ -107,6 +109,7 @@ type Form struct {
 	RequiredFields        []string // Also available as static struct field tag. Use point notation for nested fields
 	Labels                map[string]string
 	FieldDescriptions     map[string]string
+	InputSizes            map[string]int
 	ErrorMessageClass     string // If empty, Config.Form.DefaultErrorMessageClass will be used
 	SuccessMessageClass   string // If empty, Config.Form.DefaultSuccessMessageClass will be used
 	FieldDescriptionClass string
@@ -251,6 +254,26 @@ func (self *Form) GetFieldDescription(metaData *model.MetaData) string {
 		return desc
 	}
 	return ""
+}
+
+func (self *Form) GetInputSize(metaData *model.MetaData) int {
+	selector := metaData.Selector()
+	if size, ok := self.InputSizes[selector]; ok {
+		return size
+	}
+	wildcardSelector := metaData.WildcardSelector()
+	if size, ok := self.InputSizes[wildcardSelector]; ok {
+		return size
+	}
+	if sizeStr, ok := metaData.Attrib("size"); ok {
+		size, _ := strconv.Atoi(sizeStr)
+		return size
+	}
+	layout := self.GetLayout()
+	if layout != nil {
+		return layout.GetDefaultInputSize(metaData)
+	}
+	return 0
 }
 
 // DirectFieldLabel returns a label for a form field generated from metaData.

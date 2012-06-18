@@ -68,21 +68,27 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 		input = Escape(value)
 
 	case *model.Date:
-		input = &TextField{
-			Class:    form.FieldInputClass(metaData),
-			Name:     metaData.Selector(),
-			Text:     s.Get(),
-			Size:     len(model.DateFormat),
-			Disabled: form.IsFieldDisabled(metaData),
+		input = Views{
+			HTML("(Format: " + model.DateFormat + ")<br/>"),
+			&TextField{
+				Class:    form.FieldInputClass(metaData),
+				Name:     metaData.Selector(),
+				Text:     s.Get(),
+				Size:     len(model.DateFormat),
+				Disabled: form.IsFieldDisabled(metaData),
+			},
 		}
 
 	case *model.DateTime:
-		input = &TextField{
-			Class:    form.FieldInputClass(metaData),
-			Name:     metaData.Selector(),
-			Text:     s.Get(),
-			Size:     len(model.DateTimeFormat),
-			Disabled: form.IsFieldDisabled(metaData),
+		input = Views{
+			HTML("(Format: " + model.DateTimeFormat + ")<br/>"),
+			&TextField{
+				Class:    form.FieldInputClass(metaData),
+				Name:     metaData.Selector(),
+				Text:     s.Get(),
+				Size:     len(model.DateTimeFormat),
+				Disabled: form.IsFieldDisabled(metaData),
+			},
 		}
 
 	case *model.Email:
@@ -91,7 +97,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 			Name:     metaData.Selector(),
 			Type:     EmailTextField,
 			Text:     s.Get(),
-			Size:     40,
+			Size:     form.GetInputSize(metaData),
 			Disabled: form.IsFieldDisabled(metaData),
 		}
 
@@ -125,7 +131,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 			Name:     metaData.Selector(),
 			Type:     PasswordTextField,
 			Text:     s.Get(),
-			Size:     40,
+			Size:     form.GetInputSize(metaData),
 			Disabled: form.IsFieldDisabled(metaData),
 		}
 
@@ -134,7 +140,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     s.Get(),
-			Size:     20,
+			Size:     form.GetInputSize(metaData),
 			Disabled: form.IsFieldDisabled(metaData),
 		}
 
@@ -153,7 +159,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     s.Get(),
-			Size:     80,
+			Size:     form.GetInputSize(metaData),
 			Disabled: form.IsFieldDisabled(metaData),
 		}
 		if maxlen, ok, _ := s.Maxlen(metaData); ok {
@@ -179,7 +185,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
 			Text:     s.Get(),
-			Size:     80,
+			Size:     form.GetInputSize(metaData),
 			Disabled: form.IsFieldDisabled(metaData),
 		}
 
@@ -191,9 +197,6 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 	}
 
 	if withLabel {
-		// todo add extra label for date/time
-		// HTML("(Format: "+model.DateFormat+")<br/>")
-		// HTML("(Format: "+model.DateTimeFormat+")<br/>")
 		var labelContent View = Escape(form.FieldLabel(metaData))
 		if form.IsFieldRequired(metaData) {
 			labelContent = Views{labelContent, form.GetRequiredMarker()}
@@ -251,11 +254,19 @@ func (self *StandardFormFieldFactory) NewSubmitButton(text, confirmationMessage 
 }
 
 func (self *StandardFormFieldFactory) NewAddButton(onclick string, form *Form) View {
-	return &Button{Content: HTML("+"), OnClick: onclick}
+	return &Button{
+		Content: HTML("+"),
+		OnClick: onclick,
+		Class:   "form-table-button",
+	}
 }
 
 func (self *StandardFormFieldFactory) NewRemoveButton(onclick string, form *Form) View {
-	return &Button{Content: HTML("X"), OnClick: onclick}
+	return &Button{
+		Content: HTML("X"),
+		OnClick: onclick,
+		Class:   "form-table-button",
+	}
 }
 
 func (self *StandardFormFieldFactory) NewUpButton(disabled bool, onclick string, form *Form) View {
@@ -263,6 +274,7 @@ func (self *StandardFormFieldFactory) NewUpButton(disabled bool, onclick string,
 		Content:  HTML("&uarr;"),
 		Disabled: disabled,
 		OnClick:  onclick,
+		Class:    "form-table-button",
 	}
 }
 
@@ -271,5 +283,6 @@ func (self *StandardFormFieldFactory) NewDownButton(disabled bool, onclick strin
 		Content:  HTML("&darr;"),
 		Disabled: disabled,
 		OnClick:  onclick,
+		Class:    "form-table-button",
 	}
 }
