@@ -5,6 +5,7 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	// "github.com/ungerik/go-start/debug"
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -42,10 +43,10 @@ func (self *LogStructVisitor) EndStruct(depth int, v reflect.Value) error {
 	return nil
 }
 
-func (self *LogStructVisitor) BeginSlice(depth int, v reflect.Value) (reflect.Value, error) {
+func (self *LogStructVisitor) BeginSlice(depth int, v reflect.Value) error {
 	indent := strings.Repeat("  ", depth)
 	self.Logger.Printf("%sBeginSlice(%T)", indent, v.Interface())
-	return v, nil
+	return nil
 }
 
 func (self *LogStructVisitor) SliceField(depth int, v reflect.Value, index int) error {

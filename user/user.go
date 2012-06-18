@@ -5,7 +5,6 @@ import (
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/modelext"
 	"github.com/ungerik/go-start/mongo"
-	"github.com/ungerik/go-start/utils"
 	"github.com/ungerik/go-start/view"
 )
 
@@ -29,48 +28,6 @@ type User struct {
 	Xing               []XingIdentity
 	GitHub             []GitHubIdentity
 	Skype              []SkypeIdentity
-}
-
-func (self *User) AddMissingIdentityFields() {
-	if len(self.Phone) == 0 {
-		self.Phone = make([]PhoneNumber, 1)
-	}
-	if len(self.Web) == 0 {
-		self.Web = make([]Website, 1)
-	}
-	if len(self.Email) == 0 {
-		self.Email = make([]EmailIdentity, 1)
-	}
-	if len(self.Facebook) == 0 {
-		self.Facebook = make([]FacebookIdentity, 1)
-	}
-	if len(self.Twitter) == 0 {
-		self.Twitter = make([]TwitterIdentity, 1)
-	}
-	if len(self.LinkedIn) == 0 {
-		self.LinkedIn = make([]LinkedInIdentity, 1)
-	}
-	if len(self.Xing) == 0 {
-		self.Xing = make([]XingIdentity, 1)
-	}
-	if len(self.GitHub) == 0 {
-		self.GitHub = make([]GitHubIdentity, 1)
-	}
-	if len(self.Skype) == 0 {
-		self.Skype = make([]SkypeIdentity, 1)
-	}
-}
-
-func (self *User) RemoveEmptyIdentityFields() {
-	self.Phone = utils.DeleteEmptySliceElements(self.Phone).([]PhoneNumber)
-	self.Web = utils.DeleteEmptySliceElements(self.Web).([]Website)
-	self.Email = utils.DeleteEmptySliceElements(self.Email).([]EmailIdentity)
-	self.Facebook = utils.DeleteEmptySliceElements(self.Facebook).([]FacebookIdentity)
-	self.Twitter = utils.DeleteEmptySliceElements(self.Twitter).([]TwitterIdentity)
-	self.LinkedIn = utils.DeleteEmptySliceElements(self.LinkedIn).([]LinkedInIdentity)
-	self.Xing = utils.DeleteEmptySliceElements(self.Xing).([]XingIdentity)
-	self.GitHub = utils.DeleteEmptySliceElements(self.GitHub).([]GitHubIdentity)
-	self.Skype = utils.DeleteEmptySliceElements(self.Skype).([]SkypeIdentity)
 }
 
 func (self *User) IdentityConfirmed() bool {

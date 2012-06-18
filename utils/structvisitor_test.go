@@ -262,3 +262,41 @@ func ExampleVisitStruct_limitDepth() {
 	//   EndStruct(utils.C)
 	// EndStruct(utils.exampleStruct)
 }
+
+func ExampleVisitStruct_sliceOfStructInAnonymousStruct() {
+	type emailIdentity struct {
+		Address     string
+		Description string
+	}
+	type user struct {
+		Name  string
+		Email []emailIdentity
+	}
+	type person struct {
+		user
+		ExtraInfo string
+	}
+	val := &person{
+		user: user{
+			Name: "Erik Unger",
+			Email: []emailIdentity{
+				emailIdentity{Address: "erik@erikunger.com", Description: "Test"},
+			},
+		},
+		ExtraInfo: "info",
+	}
+	VisitStruct(val, NewStdLogStructVisitor())
+	// Output:
+	// BeginStruct(utils.person)
+	//   StructField(0, Name string = "Erik Unger")
+	//   StructField(1, Email []utils.emailIdentity)
+	//   BeginSlice([]utils.emailIdentity)
+	//     SliceField(0, utils.emailIdentity)
+	//     BeginStruct(utils.emailIdentity)
+	//       StructField(0, Address string = "erik@erikunger.com")
+	//       StructField(1, Description string = "Test")
+	//     EndStruct(utils.emailIdentity)
+	//   EndSlice([]utils.emailIdentity)
+	//   StructField(2, ExtraInfo string = "info")
+	// EndStruct(utils.person)
+}

@@ -2,8 +2,7 @@ package view
 
 import (
 	"bytes"
-	// "github.com/ungerik/go-start/debug"
-	// "github.com/ungerik/go-start/errs"
+	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/mongo"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/utils"
@@ -11,12 +10,13 @@ import (
 	"strconv"
 )
 
-const FormIDName = "form_id"
+const FormIDName = "gostart_form_id"
 
 type GetFormModelFunc func(form *Form, context *Context) (model interface{}, err error)
 type OnSubmitFormFunc func(form *Form, formModel interface{}, context *Context) (message string, redirect URL, err error)
 
 func FormModel(model interface{}) GetFormModelFunc {
+	debug.Nop()
 	return func(form *Form, context *Context) (interface{}, error) {
 		return model, nil
 	}

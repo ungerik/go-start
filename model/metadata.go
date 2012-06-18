@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"fmt"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -198,6 +199,10 @@ func (self *MetaData) WildcardSelector() string {
 		buf.WriteString(m.NameOrWildcard())
 	}
 	return buf.String()
+}
+
+func (self *MetaData) String() string {
+	return fmt.Sprintf("%s: %T", self.Selector(), self.Value.Interface())
 }
 
 func ParseTagAttribs(tag string) map[string]string {

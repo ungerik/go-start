@@ -2,6 +2,7 @@ package utils
 
 import (
 	"reflect"
+	// "github.com/ungerik/go-start/debug"
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -46,22 +47,28 @@ func VisitStructDepth(strct interface{}, visitor StructVisitor, maxDepth int) er
 	return visitStructRecursive(reflect.ValueOf(strct), visitor, maxDepth, 0)
 }
 
-func visitAnonymousStructFieldRecursive(visitor StructVisitor, v reflect.Value, index *int, depth int) (err error) {
+func visitAnonymousStructFieldRecursive(visitor StructVisitor, v reflect.Value, maxDepth, depth int, index *int) (err error) {
 	if v.Kind() == reflect.Struct {
 		t := v.Type()
-		n := t.NumField()
-		for i := 0; i < n; i++ {
+		for i := 0; i < t.NumField(); i++ {
 			f := t.Field(i)
 			if f.PkgPath == "" && f.Tag.Get("gostart") != "-" { // Only exported fields
 				if vi, ok := DereferenceValue(v.Field(i)); ok {
 					if f.Anonymous {
-						err = visitAnonymousStructFieldRecursive(visitor, vi, index, depth)
+						err = visitAnonymousStructFieldRecursive(visitor, vi, maxDepth, depth, index)
+						if err != nil {
+							return err
+						}
 					} else {
 						err = visitor.StructField(depth, vi, f, *index)
+						if err != nil {
+							return err
+						}
+						err = visitStructRecursive(vi, visitor, maxDepth, depth)
+						if err != nil {
+							return err
+						}
 						*index++
-					}
-					if err != nil {
-						return err
 					}
 				}
 			}
@@ -90,14 +97,13 @@ func visitStructRecursive(v reflect.Value, visitor StructVisitor, maxDepth, dept
 		depth1 := depth + 1
 		if maxDepth == -1 || depth1 <= maxDepth {
 			t := v.Type()
-			n := t.NumField()
 			index := 0
-			for i := 0; i < n; i++ {
+			for i := 0; i < t.NumField(); i++ {
 				f := t.Field(i)
 				if f.PkgPath == "" && f.Tag.Get("gostart") != "-" { // Only exported fields
 					if vi, ok := DereferenceValue(v.Field(i)); ok {
 						if f.Anonymous {
-							err = visitAnonymousStructFieldRecursive(visitor, vi, &index, depth1)
+							err = visitAnonymousStructFieldRecursive(visitor, vi, maxDepth, depth1, &index)
 							if err != nil {
 								return err
 							}

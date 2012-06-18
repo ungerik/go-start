@@ -68,6 +68,14 @@ func (self *Password) Validate(metaData *MetaData) error {
 		return err
 	}
 
+	maxlen, ok, err := self.Maxlen(metaData)
+	if ok && len(value) > maxlen {
+		err = &StringTooLong{value, maxlen}
+	}
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -78,6 +86,15 @@ func (self *Password) Minlen(metaData *MetaData) (minlen int, ok bool, err error
 		ok = err == nil
 	}
 	return minlen, ok, err
+}
+
+func (self *Password) Maxlen(metaData *MetaData) (maxlen int, ok bool, err error) {
+	var str string
+	if str, ok = metaData.Attrib("maxlen"); ok {
+		maxlen, err = strconv.Atoi(str)
+		ok = err == nil
+	}
+	return maxlen, ok, err
 }
 
 func PasswordHash(password string) (hash string) {
