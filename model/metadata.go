@@ -119,7 +119,7 @@ func (self *MetaData) NameOrWildcard() string {
 	if self.Name != "" {
 		return self.Name
 	}
-	return strconv.Itoa(self.Index)
+	return "$"
 }
 
 // Path returns a slice of *MetaData that holds all parents from
