@@ -8,11 +8,11 @@ import (
 )
 
 ///////////////////////////////////////////////////////////////////////////////
-// NotImplemented
+// ErrNotImplemented
 
-type NotImplemented string
+type ErrNotImplemented string
 
-func (self NotImplemented) Error() string {
+func (self ErrNotImplemented) Error() string {
 	if self == "" {
 		return "Not implemented"
 	}
@@ -20,51 +20,51 @@ func (self NotImplemented) Error() string {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// IndexOutOfBounds
+// ErrIndexOutOfBounds
 
-type IndexOutOfBounds struct {
+type ErrIndexOutOfBounds struct {
 	What   string
 	Index  int
 	Length int
 }
 
-func (self *IndexOutOfBounds) Error() string {
+func (self *ErrIndexOutOfBounds) Error() string {
 	max := self.Length - 1
 	return fmt.Sprintf("%s index %d out of bounds [0..%d]", self.What, self.Index, max)
 }
 
-func IfIndexOutOfBounds(what string, index int, length int) *IndexOutOfBounds {
+func IfErrIndexOutOfBounds(what string, index int, length int) *ErrIndexOutOfBounds {
 	if index < 0 || index >= length {
 		if Config.FormatWithCallStack {
 			what += debug.CallStackInfo(2)
 		}
-		return &IndexOutOfBounds{what, index, length}
+		return &ErrIndexOutOfBounds{what, index, length}
 	}
 	return nil
 }
 
-func PanicIfIndexOutOfBounds(what string, index int, length int) {
+func PanicIfErrIndexOutOfBounds(what string, index int, length int) {
 	if index < 0 || index >= length {
 		if Config.FormatWithCallStack {
 			what += debug.CallStackInfo(2)
 		}
-		panic(&IndexOutOfBounds{what, index, length})
+		panic(&ErrIndexOutOfBounds{what, index, length})
 	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// MultipleErrors
+// ErrSlice
 
-// MultipleErrors implements error for a slice of errors.
+// ErrSlice implements error for a slice of errors.
 // Error() returns the Error() results for every slice field
 // concaternated by '\n'. nil errors are ignored.
-type MultipleErrors []error
+type ErrSlice []error
 
-func (self MultipleErrors) Error() string {
+func (self ErrSlice) Error() string {
 	return self.Join("\n")
 }
 
-func (self MultipleErrors) Join(sep string) string {
+func (self ErrSlice) Join(sep string) string {
 	var buf bytes.Buffer
 	for _, err := range self {
 		if err != nil {
@@ -85,10 +85,10 @@ func Errors(errs ...error) error {
 		return errs[0]
 	}
 	// for i := 0; i < len(errs); i++ {
-	// 	if multi, ok := errs[i].(MultipleErrors); ok {
+	// 	if multi, ok := errs[i].(ErrSlice); ok {
 	// 		errs = append(append(errs[0:i], multi...), errs[i+1:]...)
 	// 		i += len(multi)
 	// 	}
 	// }
-	return MultipleErrors(errs)
+	return ErrSlice(errs)
 }

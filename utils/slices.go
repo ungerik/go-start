@@ -56,7 +56,7 @@ func SliceInsert(slice []interface{}, index int, count int, value interface{}) (
 	}
 
 	length := len(slice)
-	errs.PanicIfIndexOutOfBounds("SliceInsert", index, length)
+	errs.PanicIfErrIndexOutOfBounds("SliceInsert", index, length)
 
 	result = make([]interface{}, length+count)
 	copy(result, slice[:index])
@@ -77,7 +77,7 @@ func SliceDelete(slice []interface{}, index int, count int) (result []interface{
 	}
 
 	length := len(slice)
-	errs.PanicIfIndexOutOfBounds("SliceDelete", index, length)
+	errs.PanicIfErrIndexOutOfBounds("SliceDelete", index, length)
 
 	if index+count > length {
 		count = length - index
