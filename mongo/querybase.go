@@ -85,14 +85,14 @@ func (self *queryBase) Limit(limit int) Query {
 
 func (self *queryBase) Sort(selector string) Query {
 	selector = strings.ToLower(selector)
-	q := &sortQuery{selector: selector, direction: 1}
+	q := &sortQuery{selector: selector}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
 func (self *queryBase) SortReverse(selector string) Query {
 	selector = strings.ToLower(selector)
-	q := &sortQuery{selector: selector, direction: -1}
+	q := &sortQuery{selector: "-" + selector}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
@@ -294,7 +294,7 @@ func (self *queryBase) One() (document interface{}, err error) {
 
 func (self *queryBase) TryOne() (document interface{}, found bool, err error) {
 	document, err = self.One()
-	if err == mgo.NotFound {
+	if err == mgo.ErrNotFound {
 		return nil, false, nil
 	}
 	return document, err == nil, err
@@ -307,7 +307,7 @@ func (self *queryBase) GetOrCreateOne() (document interface{}, found bool, err e
 	}
 	document = self.Collection().NewDocument()
 	err = q.One(document)
-	if err != nil && err != mgo.NotFound {
+	if err != nil && err != mgo.ErrNotFound {
 		return nil, false, err
 	}
 	// document has to be initialized again,
@@ -333,7 +333,7 @@ func (self *queryBase) OneID() (id bson.ObjectId, err error) {
 
 func (self *queryBase) TryOneID() (id bson.ObjectId, found bool, err error) {
 	id, err = self.OneID()
-	if err == mgo.NotFound {
+	if err == mgo.ErrNotFound {
 		return id, false, nil
 	}
 	return id, err == nil, err
@@ -373,5 +373,6 @@ func (self *queryBase) Refs() (refs []Ref, err error) {
 }
 
 func (self *queryBase) RemoveAll() error {
-	return self.Collection().collection.RemoveAll(self.bsonSelector())
+	_, err := self.Collection().collection.RemoveAll(self.bsonSelector())
+	return err
 }

@@ -198,7 +198,7 @@ func (self *Collection) DocumentWithID(id bson.ObjectId, subDocSelectors ...stri
 
 	self.checkDBConnection()
 	document = self.NewDocument(subDocSelectors...)
-	q := self.collection.Find(bson.M{"_id": id})
+	q := self.collection.FindId(id)
 	if len(subDocSelectors) == 0 {
 		err = q.One(document)
 	} else {
@@ -222,7 +222,7 @@ func (self *Collection) TryDocumentWithID(id bson.ObjectId, subDocSelectors ...s
 		return nil, false, nil
 	}
 	document, err = self.DocumentWithID(id, subDocSelectors...)
-	if err == mgo.NotFound {
+	if err == mgo.ErrNotFound {
 		return nil, false, nil
 	}
 	return document, err == nil, err
@@ -267,11 +267,11 @@ func (self *Collection) Insert(document interface{}) (id bson.ObjectId, err erro
 	if doc, ok := document.(Document); ok {
 		doc.SetObjectId(id)
 	}
-	newId, err := self.collection.Upsert(bson.M{"_id": id}, document)
+	change, err := self.collection.Upsert(bson.M{"_id": id}, document)
 	if err != nil {
 		return id, err
 	}
-	id = newId.(bson.ObjectId)
+	id = change.UpsertedId.(bson.ObjectId)
 	if doc, ok := document.(Document); ok {
 		doc.SetObjectId(id)
 	}

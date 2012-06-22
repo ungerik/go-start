@@ -483,7 +483,8 @@ func (self *setPostValuesStructVisitor) trySetFieldValue(field *model.MetaData) 
 		return nil
 
 	case model.Value:
-		return s.SetString(self.context.Request.FormValue(field.Selector()))
+		s.SetString(self.context.Request.FormValue(field.Selector()))
+		return nil
 	}
 	return nil
 }
