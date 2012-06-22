@@ -5,7 +5,7 @@ import (
 	"launchpad.net/mgo"
 )
 
-var database *mgo.Database
+var Database *mgo.Database
 
 var collections map[string]*Collection = map[string]*Collection{}
 
@@ -51,21 +51,17 @@ func Init() (err error) {
 	}
 	session.SetSafe(&Config.Safe)
 
-	database = session.DB(Config.Database)
+	Database = session.DB(Config.Database)
 
 	for _, collection := range collections {
-		collection.collection = database.C(collection.Name)
+		collection.collection = Database.C(collection.Name)
 	}
 
 	return nil
 }
 
-func GetGridFs() *mgo.GridFS {
-	return database.GridFS("fs")
-}
-
 func Close() {
-	if database.Session != nil {
-		database.Session.Close()
+	if Database.Session != nil {
+		Database.Session.Close()
 	}
 }
