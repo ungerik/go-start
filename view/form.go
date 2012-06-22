@@ -10,6 +10,7 @@ import (
 	"strconv"
 )
 
+const MultipartFormData = "multipart/form-data"
 const FormIDName = "gostart_form_id"
 
 type GetFormModelFunc func(form *Form, context *Context) (model interface{}, err error)
@@ -120,6 +121,7 @@ type Form struct {
 	SubmitButtonConfirm   string // Will add a confirmation dialog for onclick
 	Redirect              URL    // 302 redirect after successful Save()
 	ShowRefIDs            bool
+	Enctype               string
 }
 
 // GetLayout returns self.Layout if not nil,
@@ -406,6 +408,7 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 	writer.OpenTag("form").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	writer.Attrib("method", method)
 	writer.Attrib("action", action)
+	writer.AttribIfNotDefault("enctype", self.Enctype)
 	if len(content) > 0 {
 		content.Init(content)
 		err = content.Render(context, writer)
