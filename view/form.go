@@ -8,6 +8,8 @@ import (
 	"github.com/ungerik/go-start/utils"
 	"strings"
 	"strconv"
+	"io/ioutil"
+	// "mime/multipart"
 )
 
 const MultipartFormData = "multipart/form-data"
@@ -15,6 +17,18 @@ const FormIDName = "gostart_form_id"
 
 type GetFormModelFunc func(form *Form, context *Context) (model interface{}, err error)
 type OnSubmitFormFunc func(form *Form, formModel interface{}, context *Context) (message string, redirect URL, err error)
+
+type FileUploadFormModel struct {
+	File model.File
+}
+
+// GetFileUploadFormModel when set at Form.GetModel will create a
+// file upload form. Form.Enctype will be set to "multipart/form-fata"
+// *FileUploadFormModel will be passed as formModel at Form.OnSubmit
+func GetFileUploadFormModel(form *Form, context *Context) (interface{}, error) {
+	form.Enctype = MultipartFormData
+	return &FileUploadFormModel{}, nil
+}
 
 func FormModel(model interface{}) GetFormModelFunc {
 	debug.Nop()
@@ -119,7 +133,7 @@ type Form struct {
 	SubmitButtonText      string
 	SubmitButtonClass     string
 	SubmitButtonConfirm   string // Will add a confirmation dialog for onclick
-	Redirect              URL    // 302 redirect after successful Save()
+	Redirect              URL    // 302 redirect after successful OnSubmit()
 	ShowRefIDs            bool
 	Enctype               string
 }
@@ -235,14 +249,6 @@ func (self *Form) IsFieldExcluded(metaData *model.MetaData) bool {
 	return utils.StringIn(selector, self.ExcludedFields) || utils.StringIn(wildcardSelector, self.ExcludedFields)
 }
 
-func (self *Form) IsPost(context *Context) bool {
-	if context.Request.Method != "POST" {
-		return false
-	}
-	formID, ok := context.Params[FormIDName]
-	return ok && formID == self.FormID
-}
-
 func (self *Form) GetFieldDescription(metaData *model.MetaData) string {
 	selector := metaData.Selector()
 	if desc, ok := self.FieldDescriptions[selector]; ok {
@@ -288,6 +294,11 @@ func (self *Form) DirectFieldLabel(metaData *model.MetaData) string {
 	return strings.Replace(metaData.NameOrIndex(), "_", " ", -1)
 }
 
+func (self *Form) IsPost(context *Context) bool {
+	return context.Request.Method == "POST" &&
+		context.Request.FormValue(FormIDName) == self.FormID
+}
+
 // FieldLabel returns a label for a form field generated from metaData.
 // It creates the label from the names or label tags of metaData and
 // all its parents, starting with the root parent, concanated with a space
@@ -329,15 +340,14 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		panic("view.Form.GetFieldFactory() returned nil")
 	}
 
-	var content Views
 	var formModel interface{}
 	var hasErrors bool
+	content := Views{&HiddenInput{Name: FormIDName, Value: self.FormID}}
 	isPost := self.IsPost(context)
 
 	if self.GetModel == nil {
-		formId := &HiddenInput{Name: FormIDName, Value: self.FormID}
 		submitButton := self.GetFieldFactory().NewSubmitButton(self.GetSubmitButtonText(), self.SubmitButtonConfirm, self)
-		content = Views{formId, submitButton}
+		content = append(content, submitButton)
 	} else {
 		formModel, err = self.GetModel(self, context)
 		if err != nil {
@@ -393,7 +403,7 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 	}
 
 	// Render HTML form element
-	method := self.Method
+	method := strings.ToUpper(self.Method)
 	if method == "" {
 		method = "POST"
 	}
@@ -403,6 +413,12 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		if i := strings.Index(context.Request.RequestURI, "?"); i != -1 {
 			action += context.Request.RequestURI[i:]
 		}
+	}
+	// Hack: Value of hidden input FormIDName is not available when
+	// enctype is multipart/form-data (bug?), so pass the form id as
+	// URL parameter
+	if self.Enctype == MultipartFormData && context.Request.Method != "POST" {
+		action = utils.AddUrlParam(action, FormIDName, self.FormID)
 	}
 
 	writer.OpenTag("form").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
@@ -429,18 +445,47 @@ type setPostValuesStructVisitor struct {
 	context   *Context
 }
 
-func (self *setPostValuesStructVisitor) trySetFieldValue(field *model.MetaData) {
+func (self *setPostValuesStructVisitor) trySetFieldValue(field *model.MetaData) error {
 	switch s := field.Value.Addr().Interface().(type) {
 	case model.Reference:
 		// we don't handle references with forms yet
+		return nil
+
 	case *model.Bool:
-		postValue, _ := self.context.Params[field.Selector()]
-		s.Set(postValue != "")
-		// model.Bool doesn't have validation
+		s.Set(self.context.Request.FormValue(field.Selector()) != "")
+		return nil
+
+	case *model.Blob:
+		file, _, err := self.context.Request.FormFile(field.Selector())
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		bytes, err := ioutil.ReadAll(file)
+		if err != nil {
+			return err
+		}
+		s.Set(bytes)
+		return nil
+
+	case *model.File:
+		file, header, err := self.context.Request.FormFile(field.Selector())
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		bytes, err := ioutil.ReadAll(file)
+		if err != nil {
+			return err
+		}
+		s.Name = header.Filename
+		s.Data = bytes
+		return nil
+
 	case model.Value:
-		postValue, _ := self.context.Params[field.Selector()]
-		s.SetString(postValue)
+		return s.SetString(self.context.Request.FormValue(field.Selector()))
 	}
+	return nil
 }
 
 func (self *setPostValuesStructVisitor) BeginStruct(strct *model.MetaData) error {
@@ -448,8 +493,7 @@ func (self *setPostValuesStructVisitor) BeginStruct(strct *model.MetaData) error
 }
 
 func (self *setPostValuesStructVisitor) StructField(field *model.MetaData) error {
-	self.trySetFieldValue(field)
-	return nil
+	return self.trySetFieldValue(field)
 }
 
 func (self *setPostValuesStructVisitor) EndStruct(strct *model.MetaData) error {
@@ -458,7 +502,7 @@ func (self *setPostValuesStructVisitor) EndStruct(strct *model.MetaData) error {
 
 func (self *setPostValuesStructVisitor) BeginSlice(slice *model.MetaData) error {
 	if slice.Value.CanSet() && !self.form.IsFieldExcluded(slice) {
-		if lengthStr, ok := self.context.Params[slice.Selector()+".length"]; ok {
+		if lengthStr := self.context.Request.FormValue(slice.Selector() + ".length"); lengthStr != "" {
 			length, err := strconv.Atoi(lengthStr)
 			if err != nil {
 				panic(err.Error())
@@ -473,8 +517,7 @@ func (self *setPostValuesStructVisitor) BeginSlice(slice *model.MetaData) error 
 }
 
 func (self *setPostValuesStructVisitor) SliceField(field *model.MetaData) error {
-	self.trySetFieldValue(field)
-	return nil
+	return self.trySetFieldValue(field)
 }
 
 func (self *setPostValuesStructVisitor) EndSlice(slice *model.MetaData) error {
@@ -489,8 +532,7 @@ func (self *setPostValuesStructVisitor) BeginArray(array *model.MetaData) error 
 }
 
 func (self *setPostValuesStructVisitor) ArrayField(field *model.MetaData) error {
-	self.trySetFieldValue(field)
-	return nil
+	return self.trySetFieldValue(field)
 }
 
 func (self *setPostValuesStructVisitor) EndArray(array *model.MetaData) error {

@@ -68,9 +68,8 @@ func (self *StandardFormLayout) EndFormContent(fieldValidationErrs, generalValid
 		*formContent = append(*formContent, fieldFactory.NewGeneralErrorMessage(err.Error(), form))
 		*formContent = append(Views{fieldFactory.NewGeneralErrorMessage(err.Error(), form)}, *formContent...)
 	}
-	formId := &HiddenInput{Name: FormIDName, Value: form.FormID}
 	submitButton := fieldFactory.NewSubmitButton(form.GetSubmitButtonText(), form.SubmitButtonConfirm, form)
-	*formContent = append(*formContent, formId, submitButton)
+	*formContent = append(*formContent, submitButton)
 }
 
 func (self *StandardFormLayout) BeginStruct(strct *model.MetaData, form *Form, context *Context, formContent *Views) {

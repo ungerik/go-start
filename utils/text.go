@@ -5,12 +5,9 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
-	"io"
 	"path"
 	"strings"
 	"unicode"
-
-//	"github.com/ungerik/go-start/debug"
 )
 
 //func FormatName(name string) string {
@@ -149,20 +146,12 @@ func StripHTMLTags(text string) (plainText string) {
 	return string(chars)
 }
 
-func ReadStringFrom(reader io.Reader) (string, error) {
-	var buf bytes.Buffer
-	_, err := buf.ReadFrom(reader)
-	if err != nil {
-		return "", err
+func AddUrlParam(url, name, value string) string {
+	var separator string
+	if strings.Index(url, "?") == -1 {
+		separator = "?"
+	} else {
+		separator = "&"
 	}
-	return buf.String(), nil
-}
-
-func ReadBytesFrom(reader io.Reader) ([]byte, error) {
-	var buf bytes.Buffer
-	_, err := buf.ReadFrom(reader)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
+	return url + separator + name + "=" + value
 }

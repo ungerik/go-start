@@ -192,6 +192,13 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 	case *model.GeoLocation:
 		input = HTML(s.String())
 
+	case *model.Blob, *model.File:
+		input = &FileInput{
+			Class:    form.FieldInputClass(metaData),
+			Name:     metaData.Selector(),
+			Disabled: form.IsFieldDisabled(metaData),
+		}
+
 	default:
 		panic(fmt.Sprintf("Unsupported model.Value type %T", metaData.Value.Addr().Interface()))
 	}
