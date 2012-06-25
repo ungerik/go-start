@@ -19,7 +19,7 @@ func (self *Email) Set(value string) (err error) {
 }
 
 func (self *Email) IsEmpty() bool {
-	return len(*self) == 0
+	return *self == ""
 }
 
 func (self *Email) String() string {

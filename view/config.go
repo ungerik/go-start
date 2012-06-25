@@ -111,6 +111,7 @@ func Init(siteName, cookieSecret string, baseDirs ...string) (err error) {
 	return nil
 }
 
-func Close() {
+func Close() error {
 	web.Close()
+	return nil
 }

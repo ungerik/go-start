@@ -60,8 +60,9 @@ func Init() (err error) {
 	return nil
 }
 
-func Close() {
+func Close() error {
 	if Database.Session != nil {
 		Database.Session.Close()
 	}
+	return nil
 }
