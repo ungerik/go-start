@@ -1,6 +1,9 @@
 package model
 
-import "fmt"
+import (
+	"fmt"
+	// "github.com/ungerik/go-start/debug"
+)
 
 // todo change data type
 
@@ -14,8 +17,14 @@ func (self *GeoLocation) String() string {
 }
 
 func (self *GeoLocation) SetString(str string) error {
+	// At the moment GeoLocation will be handled as a struct of Float,
+	// so there is no value for GeoLocation itself when calling SetString
+	// from Form, only two separate Floats for the struct.
+	// That's why we ignore an empty string for the moment
+	if str == "" {
+		return nil
+	}
 	panic("not implemented")
-	return nil
 }
 
 func (self *GeoLocation) IsEmpty() bool {
