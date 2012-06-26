@@ -446,6 +446,10 @@ type setPostValuesStructVisitor struct {
 }
 
 func (self *setPostValuesStructVisitor) trySetFieldValue(field *model.MetaData) error {
+	if self.form.IsFieldDisabled(field) || self.form.IsFieldExcluded(field) {
+		return nil
+	}
+
 	switch s := field.Value.Addr().Interface().(type) {
 	case model.Reference:
 		// we don't handle references with forms yet
