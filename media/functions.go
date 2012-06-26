@@ -5,7 +5,7 @@ import (
 	"unicode"
 )
 
-func MakeFilename(filename string) string {
+func ValidUrlFilename(filename string) string {
 	result := make([]byte, utf8.RuneCountInString(filename))
 	i := 0
 	for _, c := range filename {

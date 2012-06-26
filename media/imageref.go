@@ -32,7 +32,7 @@ func (self *ImageRef) Validate(metaData *model.MetaData) error {
 }
 
 func (self *ImageRef) getImage(width, height int, grayscale bool) (*Image, *view.Image, error) {
-	image, err := Config.Backend.Image(self.String())
+	image, err := Config.Backend.LoadImage(self.String())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -61,7 +61,7 @@ func (self *ImageRef) LinkedImage(width, height int) (*view.Link, error) {
 	}
 	return &view.Link{
 		Model: &view.StringLink{
-			Url:     image.LinkURL.Get(),
+			Url:     image.Link.Get(),
 			Title:   image.Description.Get(),
 			Content: viewImage,
 		},
@@ -80,7 +80,7 @@ func (self *ImageRef) LinkedGrayscaleImage(width, height int) (*view.Link, error
 	}
 	return &view.Link{
 		Model: &view.StringLink{
-			Url:     image.LinkURL.Get(),
+			Url:     image.Link.Get(),
 			Title:   image.Description.Get(),
 			Content: viewImage,
 		},
@@ -100,13 +100,13 @@ func (self *ImageRef) ImageView(width, height int, grayscale bool, imageClass, l
 		return nil, err
 	}
 	viewImage.Class = imageClass
-	if image.LinkURL == "" {
+	if image.Link.IsEmpty() {
 		return viewImage, nil
 	}
 	return &view.Link{
 		Class: linkClass,
 		Model: &view.StringLink{
-			Url:     image.LinkURL.Get(),
+			Url:     image.Link.Get(),
 			Title:   image.Description.Get(),
 			Content: viewImage,
 		},

@@ -5,7 +5,7 @@ import (
 	"github.com/ungerik/go-start/mongo"
 )
 
-type Image struct {
+type ImageDoc struct {
 	mongo.DocumentBase `bson:",inline"`
 	media.Image        `bson:",inline"`
 }

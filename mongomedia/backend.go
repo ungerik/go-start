@@ -1,12 +1,12 @@
 package mongomedia
 
 import (
-	"github.com/ungerik/go-start/mongo"
-	"github.com/ungerik/go-start/media"
+	"io"
+	"errors"
 	"launchpad.net/mgo"
 	"launchpad.net/mgo/bson"
-	"errors"
-	"io"
+	"github.com/ungerik/go-start/mongo"
+	"github.com/ungerik/go-start/media"
 )
 
 // Init must be called after mongo.Init()
@@ -16,7 +16,7 @@ func Init(name string) error {
 	}
 	media.Config.Backend = &Backend{
 		gridFS: mongo.Database.GridFS(name),
-		images: mongo.NewCollection(name+".images", (*Image)(nil)),
+		images: mongo.NewCollection(name+".images", (*ImageDoc)(nil)),
 	}
 	return nil
 }
@@ -26,54 +26,59 @@ type Backend struct {
 	images *mongo.Collection
 }
 
-func (self *Backend) Image(id string) (*media.Image, error) {
+func (self *Backend) LoadImage(id string) (*media.Image, error) {
 	doc, err := self.images.DocumentWithID(bson.ObjectIdHex(id))
 	if err != nil {
 		return nil, err
 	}
-	return &doc.(*Image).Image, nil
+	return &doc.(*ImageDoc).Image, nil
 }
 
-func (self *Backend) LoadImage(id string) (image *media.BackendImage, found bool, err error) {
+func (self *Backend) SaveImage(image *media.Image) error {
+	if image.ID == "" {
+		doc := self.images.NewDocument().(*ImageDoc)
+		doc.Image = *image
+		id, err := self.images.Insert(doc)
+		if err != nil {
+			return err
+		}
+		image.ID.Set(id.Hex())
+		return nil
+	}
+
+	id := bson.ObjectIdHex(image.ID.Get())
+	doc := self.images.NewDocument().(*ImageDoc)
+	doc.SetObjectId(id)
+	doc.Image = *image
+	doc.Image.ID = ""
+	return self.images.Update(id, doc)
+}
+
+func (self *Backend) ImageVersionReader(id string) (reader io.ReadCloser, ctype string, err error) {
 	file, err := self.gridFS.OpenId(bson.ObjectIdHex(id))
 	if err == mgo.ErrNotFound {
-		return nil, false, nil
+		return nil, "", media.ErrInvalidImageID(id)
+	} else if err != nil {
+		return nil, "", err
 	}
-	if err != nil {
-		return nil, false, err
-	}
-	image = &media.BackendImage{Reader: file}
-	err = file.GetMeta(image)
-	if err != nil {
-		return nil, false, err
-	}
-	return image, true, nil
+	return file, file.ContentType(), nil
 }
 
-func (self *Backend) SaveImage(id string, image *media.BackendImage) (err error) {
-	file, err := self.gridFS.OpenId(bson.ObjectIdHex(id))
-	if err != nil {
-		return err
+func (self *Backend) ImageVersionWriter(version *media.ImageVersion) (writer io.WriteCloser, err error) {
+	if version.ID != "" {
+		err = self.gridFS.RemoveId(version.ID)
+		if err != nil {
+			return nil, err
+		}
+		version.ID = ""
 	}
-	defer image.Reader.Close()
-	_, err = io.Copy(file, image.Reader)
-	if err != nil {
-		return err
-	}
-	file.SetMeta(image)
-	return nil
-}
-
-func (self *Backend) SaveNewImage(image *media.BackendImage) (id string, err error) {
 	file, err := self.gridFS.Create("")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	defer image.Reader.Close()
-	_, err = io.Copy(file, image.Reader)
-	if err != nil {
-		return "", err
-	}
-	file.SetMeta(image)
-	return file.Id().(bson.ObjectId).Hex(), nil
+	id := file.Id().(bson.ObjectId).Hex()
+	file.SetName(id + "/" + version.Filename.Get())
+	file.SetMeta(version)
+	version.ID.Set(id)
+	return file, err
 }

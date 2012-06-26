@@ -4,28 +4,26 @@ import (
 	"io"
 )
 
-type BackendImage struct {
-	Reader      io.ReadCloser
-	Filename    string
-	ContentType string
-	Width       int
-	Height      int
-	Grayscale   bool
-}
-
 type Backend interface {
-	Image(id string) (*Image, error)
+	LoadImage(id string) (*Image, error)
+	// image.ID will be updated if empty
+	SaveImage(image *Image) error
 
-	// The image data can be read from image.Reader
-	LoadImage(id string) (image *BackendImage, found bool, err error)
-	// The image data will be copied from image.Reader
-	SaveImage(id string, image *BackendImage) (err error)
-	// The image data will be copied from image.Reader
-	SaveNewImage(image *BackendImage) (id string, err error)
+	// ImageVersionReader returns an io.ReadCloser to read the image-data
+	// with the given id from the backend
+	// If there is no image with the given id,
+	// err will be of type ErrInvalidImageID
+	ImageVersionReader(id string) (reader io.ReadCloser, ctype string, err error)
+
+	// ImageVersionWriter returns an io.WriteCloser to write the image-data
+	// to the backend. version.ID can be empty for a new image or the id
+	// of an existing image. version.ID can be changed by the function call
+	// regardless of the former value
+	ImageVersionWriter(version *ImageVersion) (writer io.WriteCloser, err error)
 }
 
-// type ErrInvalidImageID string
+type ErrInvalidImageID string
 
-// func (self ErrInvalidImageID) Error() string {
-// 	return "Invalid image ID: \"" + string(self) + "\""
-// }
+func (self ErrInvalidImageID) Error() string {
+	return "Invalid image ID: \"" + string(self) + "\""
+}
