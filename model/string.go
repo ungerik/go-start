@@ -59,6 +59,10 @@ func (self *String) Validate(metaData *MetaData) error {
 		return errors.New("Line breaks not allowed")
 	}
 
+	if self.Required(metaData) && self.IsEmpty() {
+		return NewRequiredError(metaData)
+	}
+
 	minlen, ok, err := self.Minlen(metaData)
 	if ok && len(value) < minlen {
 		err = &StringTooShort{value, minlen}

@@ -47,6 +47,10 @@ func (self *Text) Required(metaData *MetaData) bool {
 func (self *Text) Validate(metaData *MetaData) error {
 	value := string(*self)
 
+	if self.Required(metaData) && self.IsEmpty() {
+		return NewRequiredError(metaData)
+	}
+
 	minlen, ok, err := self.Minlen(metaData)
 	if ok && len(value) < minlen {
 		err = &StringTooShort{value, minlen}

@@ -43,7 +43,7 @@ func (self *Float) IsEmpty() bool {
 }
 
 func (self *Float) Required(metaData *MetaData) bool {
-	return metaData.BoolAttrib("required")
+	return true
 }
 
 func (self *Float) Validate(metaData *MetaData) error {

@@ -59,6 +59,10 @@ func (self *Password) Validate(metaData *MetaData) error {
 	if pos != -1 {
 		return errors.New("Line breaks not allowed")
 	}
+	
+	if self.Required(metaData) && self.IsEmpty() {
+		return NewRequiredError(metaData)
+	}
 
 	minlen, ok, err := self.Minlen(metaData)
 	if ok && len(value) < minlen {

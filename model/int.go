@@ -40,7 +40,7 @@ func (self *Int) IsEmpty() bool {
 }
 
 func (self *Int) Required(metaData *MetaData) bool {
-	return metaData.BoolAttrib("required")
+	return true
 }
 
 func (self *Int) Validate(metaData *MetaData) error {

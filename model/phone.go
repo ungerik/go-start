@@ -35,6 +35,9 @@ func (self *Phone) Required(metaData *MetaData) bool {
 }
 
 func (self *Phone) Validate(metaData *MetaData) error {
+	if self.Required(metaData) && self.IsEmpty() {
+		return NewRequiredError(metaData)
+	}
 	return nil
 }
 
