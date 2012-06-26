@@ -21,7 +21,7 @@ func (self *Link) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		writer.Attrib("target", "_blank")
 	}
 	if self.Model != nil {
-		writer.Attrib("href", self.Model.URL(context))
+		writer.Attrib("href", self.Model.URL(context.PathArgs...))
 		writer.AttribIfNotDefault("title", self.Model.LinkTitle(context))
 		writer.AttribIfNotDefault("rel", self.Model.LinkRel(context))
 		content := self.Model.LinkContent(context)

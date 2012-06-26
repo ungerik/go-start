@@ -21,7 +21,7 @@ func JQueryUI(context *Context, writer io.Writer) (err error) {
 
 func JQueryUIAutocompleteFromURL(domSelector string, dataURL URL, minLength int) PageWriteFunc {
 	return func(context *Context, writer io.Writer) (err error) {
-		url := dataURL.URL(context)
+		url := dataURL.URL(context.PathArgs...)
 		fmt.Fprintf(writer, "<script>$('%s').autocomplete({source:'%s',minLength:%d});</script>", domSelector, url, minLength)
 		return nil
 	}

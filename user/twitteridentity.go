@@ -32,7 +32,7 @@ func (self *TwitterIdentity) ProfileURL() string {
 	return "http://twitter.com/" + name
 }
 
-func (self *TwitterIdentity) URL(context *view.Context, args ...string) string {
+func (self *TwitterIdentity) URL(args ...string) string {
 	return self.ProfileURL()
 }
 

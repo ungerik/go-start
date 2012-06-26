@@ -29,7 +29,7 @@ func (self *Menu) Render(context *Context, writer *utils.XMLWriter) (err error) 
 	if self.ActiveItemClass != "" {
 		// First try exact URL match
 		for i := range self.Items {
-			url := self.Items[i].URL(context)
+			url := self.Items[i].URL(context.PathArgs...)
 			if url == requestURL {
 				activeIndex = i
 				break
@@ -39,7 +39,7 @@ func (self *Menu) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		// If no exact URL match is found, search for sub pages
 		if activeIndex == -1 {
 			for i := range self.Items {
-				url := self.Items[i].URL(context)
+				url := self.Items[i].URL(context.PathArgs...)
 				if strings.HasPrefix(requestURL, url) {
 					activeIndex = i
 					// todo
@@ -56,7 +56,7 @@ func (self *Menu) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		}
 		itemClass := self.ItemClass
 		linkModel := self.Items[index]
-		url := linkModel.URL(context)
+		url := linkModel.URL(context.PathArgs...)
 
 		// use i instead of index
 		if i == activeIndex {

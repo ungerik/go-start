@@ -2,6 +2,7 @@ package media
 
 import (
 	"github.com/ungerik/go-start/model"
+	// "github.com/ungerik/go-start/view"
 )
 
 type ImageVersion struct {
@@ -21,7 +22,7 @@ type Image struct {
 
 func (self *Image) VersionURL(width, height int, grayscale bool) (string, error) {
 	if width == self.Original.Width.GetInt() && height == self.Original.Height.GetInt() && self.Original.Grayscale.Get() == grayscale {
-
+		return "", nil
 	}
 	return "", nil
 }

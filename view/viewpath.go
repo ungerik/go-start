@@ -155,7 +155,7 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 				return handleErr(err)
 			case self.NoAuth != nil:
 				from := url.QueryEscape(context.Request.RequestURI)
-				to := self.NoAuth.URL(context) + "?from=" + from
+				to := self.NoAuth.URL(context.PathArgs...) + "?from=" + from
 				return handleErr(Redirect(to))
 			}
 			return handleErr(Forbidden("403 Forbidden: authentication required"))

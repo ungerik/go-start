@@ -39,7 +39,7 @@ func (self *TextPreview) Render(context *Context, writer *utils.XMLWriter) (err 
 		writer.Content("... ")
 		if self.MoreLink != nil {
 			writer.OpenTag("a")
-			writer.Attrib("href", self.MoreLink.URL(context))
+			writer.Attrib("href", self.MoreLink.URL(context.PathArgs...))
 			writer.AttribIfNotDefault("title", self.MoreLink.LinkTitle(context))
 			content := self.MoreLink.LinkContent(context)
 			if content != nil {

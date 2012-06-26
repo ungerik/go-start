@@ -19,7 +19,7 @@ func (self *XingIdentity) ProfileURL() string {
 	return "http://www.xing.com/profile/" + self.ID.Get()
 }
 
-func (self *XingIdentity) URL(context *view.Context, args ...string) string {
+func (self *XingIdentity) URL(args ...string) string {
 	return self.ProfileURL()
 }
 

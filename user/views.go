@@ -82,7 +82,7 @@ func LogoutView(redirect view.URL) view.View {
 		func(context *view.Context, writer *utils.XMLWriter) (err error) {
 			Logout(context)
 			if redirect != nil {
-				return view.Redirect(redirect.URL(context))
+				return view.Redirect(redirect.URL(context.PathArgs...))
 			}
 			return view.Redirect("/")
 		},

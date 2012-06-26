@@ -26,7 +26,7 @@ func (self *FacebookIdentity) ProfileURL() string {
 	return "http://facebook.com/" + name
 }
 
-func (self *FacebookIdentity) URL(context *view.Context, args ...string) string {
+func (self *FacebookIdentity) URL(args ...string) string {
 	return self.ProfileURL()
 }
 

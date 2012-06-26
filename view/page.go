@@ -114,7 +114,7 @@ func RSS(title string, url URL) PageWriteFunc {
 		writer.Write([]byte("<link rel='alternate' type='application/rss+xml' title='"))
 		writer.Write([]byte(title))
 		writer.Write([]byte("' href='"))
-		writer.Write([]byte(url.URL(context)))
+		writer.Write([]byte(url.URL(context.PathArgs...)))
 		writer.Write([]byte("'>\n"))
 		return nil
 	}
@@ -246,9 +246,8 @@ func (self *Page) SetPath(path string) {
 }
 
 // Implements the URL and LinkModel interface
-func (self *Page) URL(context *Context, args ...string) string {
-	path := StringURL(self.path).URL(context, args...)
-	return "http://" + context.Request.Host + path
+func (self *Page) URL(args ...string) string {
+	return StringURL(self.path).URL(args...)
 }
 
 // Implements the LinkModel interface
@@ -355,7 +354,7 @@ func (self *Page) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		templateContext.PreCSS = buf.String()
 	}
 	if self.CSS != nil {
-		templateContext.CSS = self.CSS.URL(context)
+		templateContext.CSS = self.CSS.URL(context.PathArgs...)
 	} else {
 		templateContext.CSS = Config.Page.DefaultCSS
 	}

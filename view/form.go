@@ -386,7 +386,7 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 				redirect = self.Redirect
 			}
 			if redirect != nil {
-				return Redirect(redirect.URL(context))
+				return Redirect(redirect.URL(context.PathArgs...))
 			}
 			if message == "" {
 				message = self.SuccessMessage

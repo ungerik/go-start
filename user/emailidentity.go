@@ -32,7 +32,7 @@ func (self *EmailIdentity) SendConfirmationEmail(context *view.Context, confirma
 	}
 
 	subject := fmt.Sprintf(Config.ConfirmationEmailSubject, view.Config.SiteName)
-	confirm := confirmationURL.URL(context) + "?code=" + url.QueryEscape(confirmationCode)
+	confirm := confirmationURL.URL(context.PathArgs...) + "?code=" + url.QueryEscape(confirmationCode)
 	message := fmt.Sprintf(Config.ConfirmationEmailMessage, view.Config.SiteName, confirm)
 
 	go func() {
@@ -47,7 +47,7 @@ func (self *EmailIdentity) MailtoURL() string {
 	return "mailto:" + self.Address.Get()
 }
 
-func (self *EmailIdentity) URL(context *view.Context, args ...string) string {
+func (self *EmailIdentity) URL(args ...string) string {
 	return self.MailtoURL()
 }
 

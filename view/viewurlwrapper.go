@@ -31,7 +31,6 @@ func (self *ViewURLWrapper) SetPath(path string) {
 	self.path = path
 }
 
-func (self *ViewURLWrapper) URL(context *Context, args ...string) string {
-	path := StringURL(self.path).URL(context, args...)
-	return "http://" + context.Request.Host + path
+func (self *ViewURLWrapper) URL(args ...string) string {
+	return StringURL(self.path).URL(args...)
 }

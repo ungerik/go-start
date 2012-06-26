@@ -230,7 +230,7 @@ type Website struct {
 	Description model.String
 }
 
-func (self *Website) URL(context *view.Context, args ...string) string {
+func (self *Website) URL(args ...string) string {
 	return self.Url.Get()
 }
 
