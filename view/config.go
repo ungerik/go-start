@@ -37,6 +37,7 @@ type Configuration struct {
 	TemplateSystem     templatesystem.Implementation
 	Page               PageConfiguration
 	Form               FormConfiguration
+	DisableCachedViews bool
 	BaseDirs           []string
 	StaticDirs         []string
 	TemplateDirs       []string

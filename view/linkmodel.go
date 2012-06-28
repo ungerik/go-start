@@ -23,7 +23,7 @@ func NewLinkModel(url interface{}, content ...interface{}) LinkModel {
 	case **Page:
 		return &PageLink{Page: s, Content: getContent()}
 	case *ViewWithURL:
-		return &URLLink{Url: &indirectViewWithURL{s}, Content: NewViews(content...)}
+		return &URLLink{Url: IndirectViewWithURL(s), Content: NewViews(content...)}
 	case LinkModel:
 		if len(content) > 0 {
 			return &URLLink{Url: s, Content: NewViews(content...)}
@@ -52,7 +52,7 @@ func NewLinkModelRel(url interface{}, rel string, content ...interface{}) LinkMo
 	case **Page:
 		return &PageLink{Page: s, Content: getContent(), Rel: rel}
 	case *ViewWithURL:
-		return &URLLink{Url: &indirectViewWithURL{s}, Content: NewViews(content...), Rel: rel}
+		return &URLLink{Url: IndirectViewWithURL(s), Content: NewViews(content...), Rel: rel}
 	case LinkModel:
 		if len(content) > 0 {
 			return &URLLink{Url: s, Content: NewViews(content...), Rel: rel}

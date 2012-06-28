@@ -13,7 +13,7 @@ func IndirectURL(urlPtr interface{}) URL {
 	case *URL:
 		return &indirectURL{s}
 	case *ViewWithURL:
-		return &indirectViewWithURL{s}
+		return IndirectViewWithURL(s)
 	case **Page:
 		return &indirectPageURL{s}
 	}
@@ -26,14 +26,6 @@ type indirectURL struct {
 
 func (self *indirectURL) URL(args ...string) string {
 	return (*self.url).URL(args...)
-}
-
-type indirectViewWithURL struct {
-	viewWithURL *ViewWithURL
-}
-
-func (self *indirectViewWithURL) URL(args ...string) string {
-	return (*self.viewWithURL).URL(args...)
 }
 
 type indirectPageURL struct {
