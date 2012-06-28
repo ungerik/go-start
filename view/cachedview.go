@@ -11,7 +11,7 @@ var cachedViews map[string]*CachedView
 // The CachedView is added to an internal list so that ClearAllCaches()
 // can call ClearCache() on every CachedView.
 // UncacheView() removes the CachedView from the internal list.
-func CacheView(view View, duration time.Duration) *CachedView {
+func CacheView(duration time.Duration, view View) *CachedView {
 	cachedView := &CachedView{
 		Content:  view,
 		Duration: duration,
@@ -43,6 +43,7 @@ func ClearAllCaches() {
 // CachedView implements ViewWithURL. If Content implements ViewWithURL too,
 // the ViewWithURL methods will be forwarded to Content.
 // Else CachedView provides its own implementation of ViewWithURL.
+// Caching will be disabled, when the request is not a GET or has url parameters.
 type CachedView struct {
 	ViewBaseWithId
 	Content    View
@@ -62,7 +63,7 @@ func (self *CachedView) Render(context *Context, writer *utils.XMLWriter) (err e
 	if self.Content == nil {
 		return nil
 	}
-	if Config.DisableCachedViews {
+	if Config.DisableCachedViews || len(context.Params) > 0 || context.Request.Method != "GET" {
 		return self.Content.Render(context, writer)
 	}
 	if self.data == nil || time.Now().After(self.validUntil) {

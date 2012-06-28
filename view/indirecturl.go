@@ -10,12 +10,12 @@ import (
 // implementation that dereferences the pointers at runtime.
 func IndirectURL(urlPtr interface{}) URL {
 	switch s := urlPtr.(type) {
-	case *URL:
-		return &indirectURL{s}
-	case *ViewWithURL:
-		return IndirectViewWithURL(s)
 	case **Page:
 		return &indirectPageURL{s}
+	case *ViewWithURL:
+		return IndirectViewWithURL(s)
+	case *URL:
+		return &indirectURL{s}
 	}
 	panic(errs.Format("%T not a pointer to a view.URL", urlPtr))
 }
