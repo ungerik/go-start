@@ -36,12 +36,12 @@ func (self *ImageRef) getImage(width, height int, grayscale bool) (*Image, *view
 	if err != nil {
 		return nil, nil, err
 	}
-	url, err := image.VersionURL(width, height, grayscale)
+	version, err := image.Version(width, height, grayscale)
 	if err != nil {
 		return nil, nil, err
 	}
 	viewImage := &view.Image{
-		URL:         url,
+		URL:         version.URL(),
 		Width:       width,
 		Height:      height,
 		Description: image.Description.Get(),
