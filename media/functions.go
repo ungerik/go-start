@@ -14,7 +14,7 @@ func ValidUrlFilename(filename string) string {
 		} else if c >= 'A' && c <= 'Z' {
 			result[i] = byte(unicode.ToLower(c))
 		} else {
-			result[i] = '_'
+			result[i] = '~'
 		}
 		i++
 	}
