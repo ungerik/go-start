@@ -12,6 +12,7 @@ type ImageVersion struct {
 	ID          model.String `bson:",omitempty"`
 	Filename    model.String
 	ContentType model.String
+	SourceRect  ModelRect
 	Width       model.Int
 	Height      model.Int
 	Grayscale   model.Bool

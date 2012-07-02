@@ -12,6 +12,22 @@ import (
 	// "github.com/ungerik/go-start/view"
 )
 
+type HorAlignment int
+
+const (
+	HorCenter HorAlignment = iota
+	Left
+	Right
+)
+
+type VerAlignment int
+
+const (
+	VerCenter VerAlignment = iota
+	Top
+	Bottom
+)
+
 // NewImage creates a new Image and saves the original version to Config.Backend.
 // GIF, TIFF, BMP images will be read, but written as PNG.
 func NewImage(filename string, data []byte) (*Image, error) {
@@ -80,15 +96,85 @@ func (self *Image) AspectRatio() float64 {
 	return self.Versions[0].AspectRatio()
 }
 
-func (self *Image) touchFromOutsideWithOriginalAspectRatio(width, height int) (int, int) {
+func (self *Image) touchOriginalFromOutsideSourceRect(width, height int, horAlign HorAlignment, verAlign VerAlignment) (r image.Rectangle) {
+	var offset image.Point
 	aspectRatio := float64(width) / float64(height)
-	originalAspectRatio := self.AspectRatio()
-	if aspectRatio > originalAspectRatio {
+	if aspectRatio > self.AspectRatio() {
 		// Wider than original
-		return width, int(float64(width) / originalAspectRatio)
+		// so touchOriginalFromOutside means
+		// that the source rect is as high as the original
+		r.Max.X = int(float64(self.Height()) * aspectRatio)
+		r.Max.Y = self.Height()
+		switch horAlign {
+		case HorCenter:
+			offset.X = (self.Width() - r.Max.X) / 2
+		case Right:
+			offset.X = self.Width() - r.Max.X
+		}
+	} else {
+		// Heigher than original,
+		// so touchOriginalFromOutside means
+		// that the source rect is as wide as the original
+		r.Max.X = self.Width()
+		r.Max.Y = int(float64(self.Width()) / aspectRatio)
+		switch verAlign {
+		case VerCenter:
+			offset.Y = (self.Height() - r.Max.Y) / 2
+		case Bottom:
+			offset.Y = self.Height() - r.Max.Y
+		}
 	}
-	// Heigher than original
-	return int(float64(height) * originalAspectRatio), height
+	return r.Add(offset)
+}
+
+func (self *Image) touchOriginalFromInsideSourceRect(width, height int, horAlign HorAlignment, verAlign VerAlignment) (r image.Rectangle) {
+	var offset image.Point
+	aspectRatio := float64(width) / float64(height)
+	if aspectRatio > self.AspectRatio() {
+		// Wider than original
+		// so touchOriginalFromInside means
+		// that the source rect is as wide as the original
+		r.Max.X = self.Width()
+		r.Max.Y = int(float64(self.Width()) / aspectRatio)
+		switch verAlign {
+		case VerCenter:
+			offset.Y = (self.Height() - r.Max.Y) / 2
+		case Bottom:
+			offset.Y = self.Height() - r.Max.Y
+		}
+	} else {
+		// Heigher than original,
+		// so touchOriginalFromInside means
+		// that the source rect is as high as the original
+		r.Max.X = int(float64(self.Height()) * aspectRatio)
+		r.Max.Y = self.Height()
+		switch horAlign {
+		case HorCenter:
+			offset.X = (self.Width() - r.Max.X) / 2
+		case Right:
+			offset.X = self.Width() - r.Max.X
+		}
+	}
+	return r.Add(offset)
+}
+
+func (self *Image) SourceRectVersion(r image.Rectangle, grayscale bool) (im *ImageVersion, err error) {
+	if self.Grayscale() {
+		grayscale = true // Ignore color requests when original image is grayscale
+	}
+
+	return
+}
+
+func (self *Image) Version(width, height int, touchOrigFromOutside bool, horAlign HorAlignment, verAlign VerAlignment, grayscale bool) (im *ImageVersion, err error) {
+	if touchOrigFromOutside {
+		return self.SourceRectVersion(self.touchOriginalFromOutsideSourceRect(width, height, horAlign, verAlign), grayscale)
+	}
+	return self.SourceRectVersion(self.touchOriginalFromInsideSourceRect(width, height, horAlign, verAlign), grayscale)
+}
+
+func (self *Image) CenteredVersion(width, height int, touchOrigFromOutside bool, grayscale bool) (im *ImageVersion, err error) {
+	return self.Version(width, height, touchOrigFromOutside, HorCenter, VerCenter, grayscale)
 }
 
 // func (self *Image) newVersion(width, height int, grayscale bool) (*ImageVersion, error) {
@@ -108,44 +194,43 @@ func (self *Image) touchFromOutsideWithOriginalAspectRatio(width, height int) (i
 // 	return version, nil
 // }
 
-func (self *Image) Version(width, height int, grayscale bool) (im *ImageVersion, err error) {
-	if self.Grayscale() {
-		// Ignore color requests when original image is grayscale
-		grayscale = true
-	}
+// func (self *Image) Version(width, height int, grayscale bool) (im *ImageVersion, err error) {
+// 	if self.Grayscale() {
+// 		grayscale = true // Ignore color requests when original image is grayscale
+// 	}
 
-	// aspectRatio := float64(width) / float64(height)
+// 	// aspectRatio := float64(width) / float64(height)
 
-	// If requested image is larger than original size, return original
-	if width > self.Width() || height > self.Height() {
-		// todo
-	}
+// 	// If requested image is larger than original size, return original
+// 	if width > self.Width() || height > self.Height() {
+// 		// todo
+// 	}
 
-	// Search for exact match
-	for i := range self.Versions {
-		version := &self.Versions[i]
-		if width == version.Width.GetInt() && height == version.Height.GetInt() && version.Grayscale.Get() == grayscale {
-			return version, nil
-		}
-	}
-	// 
+// 	// Search for exact match
+// 	for i := range self.Versions {
+// 		version := &self.Versions[i]
+// 		if width == version.Width.GetInt() && height == version.Height.GetInt() && version.Grayscale.Get() == grayscale {
+// 			return version, nil
+// 		}
+// 	}
+// 	// 
 
-	// outerWidth, outerHeight := self.touchFromOutsideWithOriginalAspectRatio(width, height)
-	// orig, err := self.Versions[0].LoadImage()
-	if err != nil {
-		return nil, err
-	}
-	// var r image.Rectangle
-	// scaled := ResizeImage(orig, r, width, height)
+// 	// outerWidth, outerHeight := self.touchFromOutsideWithOriginalAspectRatio(width, height)
+// 	// orig, err := self.Versions[0].LoadImage()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	// var r image.Rectangle
+// 	// scaled := ResizeImage(orig, r, width, height)
 
-	version := &ImageVersion{
-		Filename:    self.Versions[0].Filename,
-		ContentType: self.Versions[0].ContentType,
-		Width:       model.Int(width),
-		Height:      model.Int(height),
-		Grayscale:   model.Bool(grayscale),
-	}
-	self.Versions = append(self.Versions, *version)
+// 	version := &ImageVersion{
+// 		Filename:    self.Versions[0].Filename,
+// 		ContentType: self.Versions[0].ContentType,
+// 		Width:       model.Int(width),
+// 		Height:      model.Int(height),
+// 		Grayscale:   model.Bool(grayscale),
+// 	}
+// 	self.Versions = append(self.Versions, *version)
 
-	return nil, nil
-}
+// 	return nil, nil
+// }

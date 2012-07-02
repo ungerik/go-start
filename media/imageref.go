@@ -32,21 +32,22 @@ func (self *ImageRef) Validate(metaData *model.MetaData) error {
 }
 
 func (self *ImageRef) getImage(width, height int, grayscale bool) (*Image, *view.Image, error) {
-	image, err := Config.Backend.LoadImage(self.String())
-	if err != nil {
-		return nil, nil, err
-	}
-	version, err := image.Version(width, height, grayscale)
-	if err != nil {
-		return nil, nil, err
-	}
-	viewImage := &view.Image{
-		URL:         version.URL(),
-		Width:       width,
-		Height:      height,
-		Description: image.Description.Get(),
-	}
-	return image, viewImage, err
+	// image, err := Config.Backend.LoadImage(self.String())
+	// if err != nil {
+	// 	return nil, nil, err
+	// }
+	// version, err := image.Version(width, height, grayscale)
+	// if err != nil {
+	// 	return nil, nil, err
+	// }
+	// viewImage := &view.Image{
+	// 	URL:         version.URL(),
+	// 	Width:       width,
+	// 	Height:      height,
+	// 	Description: image.Description.Get(),
+	// }
+	// return image, viewImage, err
+	return nil, nil, nil
 }
 
 func (self *ImageRef) Image(width, height int) (*view.Image, error) {
