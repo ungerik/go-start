@@ -108,13 +108,13 @@ func (self *Image) touchFromOutsideWithOriginalAspectRatio(width, height int) (i
 // 	return version, nil
 // }
 
-func (self *Image) Version(width, height int, grayscale bool) (*ImageVersion, error) {
+func (self *Image) Version(width, height int, grayscale bool) (im *ImageVersion, err error) {
 	if self.Grayscale() {
 		// Ignore color requests when original image is grayscale
 		grayscale = true
 	}
 
-	aspectRatio := float64(width) / float64(height)
+	// aspectRatio := float64(width) / float64(height)
 
 	// If requested image is larger than original size, return original
 	if width > self.Width() || height > self.Height() {
@@ -130,13 +130,13 @@ func (self *Image) Version(width, height int, grayscale bool) (*ImageVersion, er
 	}
 	// 
 
-	outerWidth, outerHeight := self.touchFromOutsideWithOriginalAspectRatio(width, height)
-	orig, err := self.Versions[0].LoadImage()
+	// outerWidth, outerHeight := self.touchFromOutsideWithOriginalAspectRatio(width, height)
+	// orig, err := self.Versions[0].LoadImage()
 	if err != nil {
 		return nil, err
 	}
-	var r image.Rectangle
-	scaled := ResizeImage(orig, r, width, height)
+	// var r image.Rectangle
+	// scaled := ResizeImage(orig, r, width, height)
 
 	version := &ImageVersion{
 		Filename:    self.Versions[0].Filename,
