@@ -9,13 +9,14 @@ import (
 )
 
 type ImageVersion struct {
-	ID          model.String `bson:",omitempty"`
-	Filename    model.String
-	ContentType model.String
-	SourceRect  ModelRect
-	Width       model.Int
-	Height      model.Int
-	Grayscale   model.Bool
+	ID           model.String `bson:",omitempty"`
+	Filename     model.String
+	ContentType  model.String
+	SourceRect   ModelRect
+	OutsideColor model.Color
+	Width        model.Int
+	Height       model.Int
+	Grayscale    model.Bool
 }
 
 func (self *ImageVersion) URL() string {

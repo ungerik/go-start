@@ -105,3 +105,9 @@ func (self *Color) RGBA() color.RGBA {
 	}
 	return color.RGBA{b[0], b[1], b[2], b[3]}
 }
+
+func (self *Color) EqualsColor(c color.Color) bool {
+	r0, g0, b0, a0 := self.RGBA().RGBA()
+	r1, g1, b1, a1 := c.RGBA()
+	return r0 == r1 && g0 == g1 && b0 == b1 && a0 == a1
+}
