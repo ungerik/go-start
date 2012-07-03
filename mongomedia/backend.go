@@ -31,7 +31,9 @@ func (self *Backend) LoadImage(id string) (*media.Image, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &doc.(*ImageDoc).Image, nil
+	image := &doc.(*ImageDoc).Image
+	image.Init()
+	return image, nil
 }
 
 func (self *Backend) SaveImage(image *media.Image) error {

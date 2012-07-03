@@ -7,6 +7,7 @@ import (
 	_ "image/gif"
 	_ "code.google.com/p/go.image/tiff"
 	_ "code.google.com/p/go.image/bmp"
+	"image/draw"
 	"image/color"
 	"github.com/ungerik/go-start/model"
 	// "github.com/ungerik/go-start/view"
@@ -48,23 +49,23 @@ func NewImage(filename string, data []byte) (*Image, error) {
 			return nil, err
 		}
 	}
-	width := model.Int(i.Bounds().Dx())
-	height := model.Int(i.Bounds().Dy())
-	result := &Image{
-		Versions: []ImageVersion{{
-			Filename:    model.String(ValidUrlFilename(filename)),
-			ContentType: model.String("image/" + t),
-			SourceRect:  ModelRect{0, 0, width, height},
-			Width:       width,
-			Height:      height,
-			Grayscale:   model.Bool(i.ColorModel() == color.GrayModel || i.ColorModel() == color.Gray16Model),
-		}},
-	}
-	err = result.Versions[0].SaveImageData(data)
+	width := i.Bounds().Dx()
+	height := i.Bounds().Dy()
+	version := newImageVersion(
+		ValidUrlFilename(filename),
+		"image/"+t,
+		image.Rect(0, 0, width, height),
+		width,
+		height,
+		i.ColorModel() == color.GrayModel || i.ColorModel() == color.Gray16Model,
+	)
+	err = version.SaveImageData(data)
 	if err != nil {
 		return nil, err
 	}
-	return result, nil
+	image := &Image{Versions: []ImageVersion{version}}
+	image.Init()
+	return image, nil
 }
 
 type Image struct {
@@ -72,6 +73,12 @@ type Image struct {
 	Description model.String
 	Link        model.Url
 	Versions    []ImageVersion
+}
+
+func (self *Image) Init() {
+	for i := range self.Versions {
+		self.Versions[i].image = self
+	}
 }
 
 func (self *Image) Filename() string {
@@ -165,28 +172,58 @@ func (self *Image) touchOriginalFromInsideSourceRect(width, height int, horAlign
 	return r.Add(offset)
 }
 
-func (self *Image) SourceRectVersion(rect image.Rectangle, width, height int, grayscale bool, outsideColor color.Color) (im *ImageVersion, err error) {
+// SourceRectVersion searches and returns an existing matching version,
+// or a new one will be created and saved.
+func (self *Image) SourceRectVersion(sourceRect image.Rectangle, width, height int, grayscale bool, outsideColor color.Color) (im *ImageVersion, err error) {
 	if self.Grayscale() {
 		grayscale = true // Ignore color requests when original image is grayscale
 	}
 
 	// Search for exact match
 	for i := range self.Versions {
-		version := &self.Versions[i]
-		if version.SourceRect.Rectangle() == rect &&
-			version.Width.GetInt() == width &&
-			version.Height.GetInt() == height &&
-			version.OutsideColor.EqualsColor(outsideColor) &&
-			version.Grayscale.Get() == grayscale {
-
-			return version, nil
+		v := &self.Versions[i]
+		match := v.SourceRect.Rectangle() == sourceRect &&
+			v.Width.GetInt() == width &&
+			v.Height.GetInt() == height &&
+			v.OutsideColor.EqualsColor(outsideColor) &&
+			v.Grayscale.Get() == grayscale
+		if match {
+			return v, nil
 		}
 	}
 
-	if !rect.In(self.Rectangle()) {
+	// No exact match, create version
+	origImage, err := self.Versions[0].LoadImage()
+	if err != nil {
+		return nil, err
+	}
+
+	var versionImage image.Image
+	if sourceRect.In(self.Rectangle()) {
+		versionImage = ResizeImage(origImage, sourceRect, width, height)
+	} else {
+		if grayscale {
+			versionImage = image.NewGray(image.Rect(0, 0, width, height))
+		} else {
+			versionImage = image.NewRGBA(image.Rect(0, 0, width, height))
+		}
+		// Fill version with outsideColor
+		draw.Draw(versionImage.(draw.Image), versionImage.Bounds(), image.NewUniform(outsideColor), image.ZP, draw.Src)
+
+		// todo scale and draw sub image
 
 	}
-	return
+	self.Versions = append(self.Versions, newImageVersion(self.Filename(), self.ContentType(), sourceRect, width, height, grayscale))
+	version := &self.Versions[len(self.Versions)-1]
+	err = version.SaveImage(versionImage)
+	if err != nil {
+		return nil, err
+	}
+	err = Config.Backend.SaveImage(self)
+	if err != nil {
+		return nil, err
+	}
+	return version, nil
 }
 
 func (self *Image) VersionTouchOrigFromOutside(width, height int, horAlign HorAlignment, verAlign VerAlignment, grayscale bool, outsideColor color.Color) (im *ImageVersion, err error) {
@@ -204,61 +241,3 @@ func (self *Image) CenteredVersion(width, height int, grayscale bool) (im *Image
 func (self *Image) CenteredVersionTouchOrigFromOutside(width, height int, grayscale bool, outsideColor color.Color) (im *ImageVersion, err error) {
 	return self.VersionTouchOrigFromOutside(width, height, HorCenter, VerCenter, grayscale, outsideColor)
 }
-
-// func (self *Image) newVersion(width, height int, grayscale bool) (*ImageVersion, error) {
-// 	image, err := self.Versions[0].LoadImage()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if image == nil {
-// 	}
-// 	version := &ImageVersion{
-// 		Filename:    self.Versions[0].Filename,
-// 		ContentType: self.Versions[0].ContentType,
-// 		Width:       model.Int(width),
-// 		Height:      model.Int(height),
-// 		Grayscale:   model.Bool(grayscale),
-// 	}
-// 	return version, nil
-// }
-
-// func (self *Image) Version(width, height int, grayscale bool) (im *ImageVersion, err error) {
-// 	if self.Grayscale() {
-// 		grayscale = true // Ignore color requests when original image is grayscale
-// 	}
-
-// 	// aspectRatio := float64(width) / float64(height)
-
-// 	// If requested image is larger than original size, return original
-// 	if width > self.Width() || height > self.Height() {
-// 		// todo
-// 	}
-
-// 	// Search for exact match
-// 	for i := range self.Versions {
-// 		version := &self.Versions[i]
-// 		if width == version.Width.GetInt() && height == version.Height.GetInt() && version.Grayscale.Get() == grayscale {
-// 			return version, nil
-// 		}
-// 	}
-// 	// 
-
-// 	// outerWidth, outerHeight := self.touchFromOutsideWithOriginalAspectRatio(width, height)
-// 	// orig, err := self.Versions[0].LoadImage()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	// var r image.Rectangle
-// 	// scaled := ResizeImage(orig, r, width, height)
-
-// 	version := &ImageVersion{
-// 		Filename:    self.Versions[0].Filename,
-// 		ContentType: self.Versions[0].ContentType,
-// 		Width:       model.Int(width),
-// 		Height:      model.Int(height),
-// 		Grayscale:   model.Bool(grayscale),
-// 	}
-// 	self.Versions = append(self.Versions, *version)
-
-// 	return nil, nil
-// }
