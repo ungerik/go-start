@@ -1,9 +1,9 @@
 package media
 
 import (
+	"io"
 	"github.com/ungerik/go-start/view"
 	"github.com/ungerik/go-start/utils"
-	"io"
 )
 
 var View view.ViewWithURL = view.NewViewURLWrapper(view.RenderView(

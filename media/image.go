@@ -210,7 +210,7 @@ func (self *Image) SourceRectVersion(sourceRect image.Rectangle, width, height i
 		// Fill version with outsideColor
 		draw.Draw(versionImage.(draw.Image), versionImage.Bounds(), image.NewUniform(outsideColor), image.ZP, draw.Src)
 
-		// todo scale and draw sub image
+		panic("todo scale and draw sub image")
 
 	}
 	self.Versions = append(self.Versions, newImageVersion(self.Filename(), self.ContentType(), sourceRect, width, height, grayscale))

@@ -3,7 +3,6 @@ package media
 import (
 	"errors"
 	"github.com/ungerik/go-start/model"
-	// "github.com/ungerik/go-start/view"
 )
 
 type ImageRef string
