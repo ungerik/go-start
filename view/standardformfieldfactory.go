@@ -19,7 +19,7 @@ func (self *StandardFormFieldFactory) CanCreateInput(metaData *model.MetaData, f
 	return false
 }
 
-func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.MetaData, form *Form) (input View) {
+func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.MetaData, form *Form) (input View, err error) {
 	switch s := metaData.Value.Addr().Interface().(type) {
 	case *model.Bool:
 		checkbox := &Checkbox{
@@ -31,7 +31,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 		if withLabel {
 			checkbox.Label = form.FieldLabel(metaData)
 		}
-		return checkbox
+		return checkbox, nil
 
 	case *model.Choice:
 		options := s.Options(metaData)
@@ -146,7 +146,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 
 	case model.Reference:
 		if !form.ShowRefIDs {
-			return nil
+			return nil, nil
 		}
 		value := s.String()
 		if value == "" {
@@ -200,7 +200,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 		}
 
 	default:
-		panic(fmt.Sprintf("Unsupported model.Value type %T", metaData.Value.Addr().Interface()))
+		return nil, fmt.Errorf("Unsupported model.Value type %T", metaData.Value.Addr().Interface())
 	}
 
 	if withLabel {
@@ -211,28 +211,28 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 		label := &Label{For: input, Content: labelContent}
 		input = Views{label, input}
 	}
-	return input
+	return input, nil
 }
 
-func (self *StandardFormFieldFactory) NewHiddenInput(metaData *model.MetaData, form *Form) View {
+func (self *StandardFormFieldFactory) NewHiddenInput(metaData *model.MetaData, form *Form) (View, error) {
 	return &HiddenInput{
 		Name:  metaData.Selector(),
 		Value: fmt.Sprintf("%v", metaData.Value.Interface()),
-	}
+	}, nil
 }
 
-func (self *StandardFormFieldFactory) NewTableHeader(metaData *model.MetaData, form *Form) View {
+func (self *StandardFormFieldFactory) NewTableHeader(metaData *model.MetaData, form *Form) (View, error) {
 	switch metaData.Kind {
 	case model.ValueKind:
 		var label View = Escape(form.DirectFieldLabel(metaData))
 		if form.IsFieldRequired(metaData) {
 			label = Views{label, form.GetRequiredMarker()}
 		}
-		return label
+		return label, nil
 	case model.ArrayKind, model.SliceKind:
-		return Escape(form.FieldLabel(metaData))
+		return Escape(form.FieldLabel(metaData)), nil
 	}
-	panic("Unsupported metaData.Kind for NewTableHeader(): " + metaData.Kind.String())
+	return nil, fmt.Errorf("Unsupported metaData.Kind for NewTableHeader(): %s", metaData.Kind)
 }
 
 func (self *StandardFormFieldFactory) NewFieldDescrtiption(description string, form *Form) View {

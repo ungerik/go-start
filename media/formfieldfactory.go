@@ -20,10 +20,10 @@ func (self *FormFieldFactory) CanCreateInput(metaData *model.MetaData, form *vie
 	return self.FormFieldFactoryWrapper.CanCreateInput(metaData, form)
 }
 
-func (self *FormFieldFactory) NewInput(withLabel bool, metaData *model.MetaData, form *view.Form) view.View {
+func (self *FormFieldFactory) NewInput(withLabel bool, metaData *model.MetaData, form *view.Form) (view.View, error) {
 	if imageRef, ok := metaData.Value.Interface().(*ImageRef); ok {
 		imageRef.Image()
-		return nil
+		return nil, nil
 	}
 	return self.FormFieldFactoryWrapper.NewInput(withLabel, metaData, form)
 }

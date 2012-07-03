@@ -49,35 +49,35 @@ It uses Form.GetFieldFactory() to create the field views.
 type FormLayout interface {
 	GetDefaultInputSize(metaData *model.MetaData) int
 
-	BeginFormContent(form *Form, context *Context, formContent *Views)
+	BeginFormContent(form *Form, context *Context, formContent *Views) error
 	// SubmitSuccess will be called before EndFormContent if there were no
 	// validation errors of the posted form data and Form.OnSubmit has
 	// not returned an error.
-	SubmitSuccess(message string, form *Form, context *Context, formContent *Views)
+	SubmitSuccess(message string, form *Form, context *Context, formContent *Views) error
 	// SubmitError will be called before EndFormContent if there were no
 	// validation errors of the posted form data and Form.OnSubmit has
 	// returned an error.
-	SubmitError(message string, form *Form, context *Context, formContent *Views)
-	EndFormContent(fieldValidationErrs, generalValidationErrs []error, form *Form, context *Context, formContent *Views)
+	SubmitError(message string, form *Form, context *Context, formContent *Views) error
+	EndFormContent(fieldValidationErrs, generalValidationErrs []error, form *Form, context *Context, formContent *Views) error
 
-	BeginStruct(strct *model.MetaData, form *Form, context *Context, formContent *Views)
-	StructField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views)
-	EndStruct(strct *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views)
+	BeginStruct(strct *model.MetaData, form *Form, context *Context, formContent *Views) error
+	StructField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error
+	EndStruct(strct *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error
 
-	BeginArray(array *model.MetaData, form *Form, context *Context, formContent *Views)
-	ArrayField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views)
-	EndArray(array *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views)
+	BeginArray(array *model.MetaData, form *Form, context *Context, formContent *Views) error
+	ArrayField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error
+	EndArray(array *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error
 
-	BeginSlice(slice *model.MetaData, form *Form, context *Context, formContent *Views)
-	SliceField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views)
-	EndSlice(slice *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views)
+	BeginSlice(slice *model.MetaData, form *Form, context *Context, formContent *Views) error
+	SliceField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error
+	EndSlice(slice *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error
 }
 
 type FormFieldFactory interface {
 	CanCreateInput(metaData *model.MetaData, form *Form) bool
-	NewInput(withLabel bool, metaData *model.MetaData, form *Form) View
-	NewHiddenInput(metaData *model.MetaData, form *Form) View
-	NewTableHeader(metaData *model.MetaData, form *Form) View
+	NewInput(withLabel bool, metaData *model.MetaData, form *Form) (View, error)
+	NewHiddenInput(metaData *model.MetaData, form *Form) (View, error)
+	NewTableHeader(metaData *model.MetaData, form *Form) (View, error)
 	NewFieldDescrtiption(description string, form *Form) View
 	NewFieldErrorMessage(message string, metaData *model.MetaData, form *Form) View
 	NewGeneralErrorMessage(message string, form *Form) View
@@ -586,74 +586,76 @@ func (self *validateAndFormLayoutStructVisitor) validateGeneral(data *model.Meta
 }
 
 func (self *validateAndFormLayoutStructVisitor) endForm(data *model.MetaData) (err error) {
-	self.formLayout.EndFormContent(self.fieldValidationErrors, self.generalValidationErrors, self.form, self.context, self.formContent)
-	return nil
+	return self.formLayout.EndFormContent(self.fieldValidationErrors, self.generalValidationErrors, self.form, self.context, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) BeginStruct(strct *model.MetaData) error {
 	if strct.Parent == nil {
-		self.formLayout.BeginFormContent(self.form, self.context, self.formContent)
+		err := self.formLayout.BeginFormContent(self.form, self.context, self.formContent)
+		if err != nil {
+			return err
+		}
 	}
-	self.formLayout.BeginStruct(strct, self.form, self.context, self.formContent)
-	return nil
+	return self.formLayout.BeginStruct(strct, self.form, self.context, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) StructField(field *model.MetaData) error {
-	self.formLayout.StructField(field, self.validateField(field), self.form, self.context, self.formContent)
-	return nil
+	return self.formLayout.StructField(field, self.validateField(field), self.form, self.context, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) EndStruct(strct *model.MetaData) error {
-	self.formLayout.EndStruct(strct, self.validateGeneral(strct), self.form, self.context, self.formContent)
-	if strct.Parent == nil {
+	err := self.formLayout.EndStruct(strct, self.validateGeneral(strct), self.form, self.context, self.formContent)
+	if strct.Parent == nil && err == nil {
 		return self.endForm(strct)
 	}
-	return nil
+	return err
 }
 
 func (self *validateAndFormLayoutStructVisitor) BeginSlice(slice *model.MetaData) error {
 	if slice.Parent == nil {
-		self.formLayout.BeginFormContent(self.form, self.context, self.formContent)
+		err := self.formLayout.BeginFormContent(self.form, self.context, self.formContent)
+		if err != nil {
+			return err
+		}
 	}
 	// Add an empty slice field to generate one extra input row for slices
 	if !self.isPost && slice.Value.CanSet() && !self.form.IsFieldExcluded(slice) {
 		slice.Value.Set(utils.AppendEmptySliceField(slice.Value))
 		mongo.InitRefs(self.formModel)
 	}
-	self.formLayout.BeginSlice(slice, self.form, self.context, self.formContent)
-	return nil
+	return self.formLayout.BeginSlice(slice, self.form, self.context, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) SliceField(field *model.MetaData) error {
-	self.formLayout.SliceField(field, self.validateField(field), self.form, self.context, self.formContent)
-	return nil
+	return self.formLayout.SliceField(field, self.validateField(field), self.form, self.context, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) EndSlice(slice *model.MetaData) error {
-	self.formLayout.EndSlice(slice, self.validateGeneral(slice), self.form, self.context, self.formContent)
-	if slice.Parent == nil {
+	err := self.formLayout.EndSlice(slice, self.validateGeneral(slice), self.form, self.context, self.formContent)
+	if slice.Parent == nil && err == nil {
 		return self.endForm(slice)
 	}
-	return nil
+	return err
 }
 
 func (self *validateAndFormLayoutStructVisitor) BeginArray(array *model.MetaData) error {
 	if array.Parent == nil {
-		self.formLayout.BeginFormContent(self.form, self.context, self.formContent)
+		err := self.formLayout.BeginFormContent(self.form, self.context, self.formContent)
+		if err != nil {
+			return err
+		}
 	}
-	self.formLayout.BeginArray(array, self.form, self.context, self.formContent)
-	return nil
+	return self.formLayout.BeginArray(array, self.form, self.context, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) ArrayField(field *model.MetaData) error {
-	self.formLayout.ArrayField(field, self.validateField(field), self.form, self.context, self.formContent)
-	return nil
+	return self.formLayout.ArrayField(field, self.validateField(field), self.form, self.context, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) EndArray(array *model.MetaData) error {
-	self.formLayout.EndArray(array, self.validateGeneral(array), self.form, self.context, self.formContent)
-	if array.Parent == nil {
+	err := self.formLayout.EndArray(array, self.validateGeneral(array), self.form, self.context, self.formContent)
+	if array.Parent == nil && err == nil {
 		return self.endForm(array)
 	}
-	return nil
+	return err
 }

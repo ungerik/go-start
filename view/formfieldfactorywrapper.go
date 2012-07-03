@@ -12,15 +12,15 @@ func (self *FormFieldFactoryWrapper) CanCreateInput(metaData *model.MetaData, fo
 	return self.Wrapped.CanCreateInput(metaData, form)
 }
 
-func (self *FormFieldFactoryWrapper) NewInput(withLabel bool, metaData *model.MetaData, form *Form) View {
+func (self *FormFieldFactoryWrapper) NewInput(withLabel bool, metaData *model.MetaData, form *Form) (View, error) {
 	return self.Wrapped.NewInput(withLabel, metaData, form)
 }
 
-func (self *FormFieldFactoryWrapper) NewHiddenInput(metaData *model.MetaData, form *Form) View {
+func (self *FormFieldFactoryWrapper) NewHiddenInput(metaData *model.MetaData, form *Form) (View, error) {
 	return self.Wrapped.NewHiddenInput(metaData, form)
 }
 
-func (self *FormFieldFactoryWrapper) NewTableHeader(metaData *model.MetaData, form *Form) View {
+func (self *FormFieldFactoryWrapper) NewTableHeader(metaData *model.MetaData, form *Form) (View, error) {
 	return self.Wrapped.NewTableHeader(metaData, form)
 }
 
