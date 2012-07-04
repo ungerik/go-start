@@ -5,7 +5,7 @@ import (
 	"github.com/ungerik/go-mail"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/view"
-	"launchpad.net/mgo/bson"
+	"labix.org/v2/mgo/bson"
 	"net/url"
 )
 

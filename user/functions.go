@@ -5,7 +5,7 @@ import (
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/mongo"
 	"github.com/ungerik/go-start/view"
-	"launchpad.net/mgo/bson"
+	"labix.org/v2/mgo/bson"
 	"reflect"
 )
 

@@ -250,7 +250,7 @@ import (
 	_ "github.com/ungerik/goconfig"
 	_ "github.com/ungerik/mustache.go"
 	_ "github.com/ungerik/web.go"
-	_ "launchpad.net/mgo"
+	_ "labix.org/v2/mgo"
 
 	_ "github.com/ungerik/go-start/debug"
 	_ "github.com/ungerik/go-start/errs"

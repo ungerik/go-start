@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/model"
-	"launchpad.net/mgo/bson"
+	"labix.org/v2/mgo/bson"
 )
 
 /*

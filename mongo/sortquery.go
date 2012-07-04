@@ -1,7 +1,7 @@
 package mongo
 
 import (
-	"launchpad.net/mgo"
+	"labix.org/v2/mgo"
 	"github.com/ungerik/go-start/utils"
 )
 

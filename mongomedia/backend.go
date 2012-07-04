@@ -3,8 +3,8 @@ package mongomedia
 import (
 	"io"
 	"errors"
-	"launchpad.net/mgo"
-	"launchpad.net/mgo/bson"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 	"github.com/ungerik/go-start/mongo"
 	"github.com/ungerik/go-start/media"
 )
