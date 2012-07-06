@@ -48,13 +48,15 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 
 	case *model.DynamicChoice:
 		options := s.Options()
+		index := s.Index()
 		if len(options) == 0 || options[0] != "" {
 			options = append([]string{""}, options...)
+			index++
 		}
 		input = &Select{
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
-			Model:    &IndexedStringsSelectModel{options, s.Index()},
+			Model:    &IndexedStringsSelectModel{options, index},
 			Disabled: form.IsFieldDisabled(metaData),
 			Size:     1,
 		}
