@@ -2,14 +2,15 @@ package view
 
 import (
 	"fmt"
-	"github.com/ungerik/go-start/debug"
-	"github.com/ungerik/go-start/utils"
-	"github.com/ungerik/web.go"
 	"net/http"
 	"net/url"
 	"regexp"
 	"runtime"
+	runtime_debug "runtime/debug"
 	"strings"
+	"github.com/ungerik/web.go"
+	"github.com/ungerik/go-start/utils"
+	"github.com/ungerik/go-start/debug"
 )
 
 const PathFragmentPattern = "([a-zA-Z0-9_\\-\\.]+)"
@@ -144,7 +145,13 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 			case Forbidden:
 				context.Abort(http.StatusForbidden, err.Error())
 			default:
-				context.Abort(http.StatusInternalServerError, err.Error())
+				fmt.Println(err.Error())
+				runtime_debug.PrintStack()
+				msg := err.Error()
+				if Config.Debug.Mode {
+					msg += string(runtime_debug.Stack())
+				}
+				context.Abort(http.StatusInternalServerError, msg)
 			}
 			return ""
 		}
