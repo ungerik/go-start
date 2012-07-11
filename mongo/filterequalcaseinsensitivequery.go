@@ -1,7 +1,7 @@
 package mongo
 
 import (
-	"labix.org/v2/mgo/bson"
+	"github.com/ungerik/go-start/mgo/bson"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -25,4 +25,3 @@ func (self *filterEqualCaseInsensitiveQuery) Selector() string {
 //func (self *filterEqualCaseInsensitiveQuery) CompareString() string {
 //	return self.str
 //}
-

@@ -3,8 +3,8 @@ package mongomedia
 import (
 	"io"
 	"errors"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"github.com/ungerik/go-start/mgo"
+	"github.com/ungerik/go-start/mgo/bson"
 	"github.com/ungerik/go-start/mongo"
 	"github.com/ungerik/go-start/media"
 )
@@ -58,7 +58,7 @@ func (self *Backend) SaveImage(image *media.Image) error {
 
 func (self *Backend) ImageVersionReader(id string) (reader io.ReadCloser, ctype string, err error) {
 	file, err := self.gridFS.OpenId(bson.ObjectIdHex(id))
-	if err == mgo.ErrNotFound {
+	if err == mgo.NotFound {
 		return nil, "", media.ErrInvalidImageID(id)
 	} else if err != nil {
 		return nil, "", err

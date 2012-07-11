@@ -1,6 +1,6 @@
 package mongo
 
-import "labix.org/v2/mgo"
+import "github.com/ungerik/go-start/mgo"
 
 ///////////////////////////////////////////////////////////////////////////////
 // limitQuery

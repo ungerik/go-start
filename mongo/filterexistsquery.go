@@ -1,7 +1,7 @@
 package mongo
 
 import (
-	"labix.org/v2/mgo/bson"
+	"github.com/ungerik/go-start/mgo/bson"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -24,4 +24,3 @@ func (self *filterExistsQuery) Selector() string {
 //func (self *filterExistsQuery) Exists() bool {
 //	return self.exists
 //}
-

@@ -2,7 +2,7 @@ package media
 
 import (
 // "github.com/ungerik/go-start/mongo"
-// "labix.org/v2/mgo"
+// "github.com/ungerik/go-start/mgo"
 // "errors"
 )
 

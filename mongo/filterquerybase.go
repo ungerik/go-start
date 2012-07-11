@@ -1,9 +1,9 @@
 package mongo
 
 import (
-	"labix.org/v2/mgo/bson"
+	"github.com/ungerik/go-start/mgo/bson"
 	"github.com/ungerik/go-start/errs"
-	"labix.org/v2/mgo"
+	"github.com/ungerik/go-start/mgo"
 
 //	"github.com/ungerik/go-start/debug"
 )

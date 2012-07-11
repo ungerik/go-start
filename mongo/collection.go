@@ -5,8 +5,8 @@ import (
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/utils"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"github.com/ungerik/go-start/mgo"
+	"github.com/ungerik/go-start/mgo/bson"
 	"reflect"
 	"strconv"
 	"strings"
@@ -198,7 +198,7 @@ func (self *Collection) DocumentWithID(id bson.ObjectId, subDocSelectors ...stri
 
 	self.checkDBConnection()
 	document = self.NewDocument(subDocSelectors...)
-	q := self.collection.FindId(id)
+	q := self.collection.Find(bson.M{"_id": id})
 	if len(subDocSelectors) == 0 {
 		err = q.One(document)
 	} else {
@@ -222,7 +222,7 @@ func (self *Collection) TryDocumentWithID(id bson.ObjectId, subDocSelectors ...s
 		return nil, false, nil
 	}
 	document, err = self.DocumentWithID(id, subDocSelectors...)
-	if err == mgo.ErrNotFound {
+	if err == mgo.NotFound {
 		return nil, false, nil
 	}
 	return document, err == nil, err
@@ -267,11 +267,11 @@ func (self *Collection) Insert(document interface{}) (id bson.ObjectId, err erro
 	if doc, ok := document.(Document); ok {
 		doc.SetObjectId(id)
 	}
-	change, err := self.collection.Upsert(bson.M{"_id": id}, document)
+	newId, err := self.collection.Upsert(bson.M{"_id": id}, document)
 	if err != nil {
 		return id, err
 	}
-	id = change.UpsertedId.(bson.ObjectId)
+	id = newId.(bson.ObjectId)
 	if doc, ok := document.(Document); ok {
 		doc.SetObjectId(id)
 	}

@@ -1,7 +1,7 @@
 package mongo
 
 import (
-	"labix.org/v2/mgo/bson"
+	"github.com/ungerik/go-start/mgo/bson"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,4 +28,3 @@ func (self *filterQuery) Selector() string {
 //func (self *filterQuery) Value() interface{} {
 //	return self.value
 //}
-

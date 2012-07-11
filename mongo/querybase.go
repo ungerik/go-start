@@ -5,8 +5,8 @@ import (
 	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/model"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"github.com/ungerik/go-start/mgo"
+	"github.com/ungerik/go-start/mgo/bson"
 	"strings"
 )
 
@@ -294,7 +294,7 @@ func (self *queryBase) One() (document interface{}, err error) {
 
 func (self *queryBase) TryOne() (document interface{}, found bool, err error) {
 	document, err = self.One()
-	if err == mgo.ErrNotFound {
+	if err == mgo.NotFound {
 		return nil, false, nil
 	}
 	return document, err == nil, err
@@ -307,7 +307,7 @@ func (self *queryBase) GetOrCreateOne() (document interface{}, found bool, err e
 	}
 	document = self.Collection().NewDocument()
 	err = q.One(document)
-	if err != nil && err != mgo.ErrNotFound {
+	if err != nil && err != mgo.NotFound {
 		return nil, false, err
 	}
 	// document has to be initialized again,
@@ -333,7 +333,7 @@ func (self *queryBase) OneID() (id bson.ObjectId, err error) {
 
 func (self *queryBase) TryOneID() (id bson.ObjectId, found bool, err error) {
 	id, err = self.OneID()
-	if err == mgo.ErrNotFound {
+	if err == mgo.NotFound {
 		return id, false, nil
 	}
 	return id, err == nil, err
@@ -373,6 +373,5 @@ func (self *queryBase) Refs() (refs []Ref, err error) {
 }
 
 func (self *queryBase) RemoveAll() error {
-	_, err := self.Collection().collection.RemoveAll(self.bsonSelector())
-	return err
+	return self.Collection().collection.RemoveAll(self.bsonSelector())
 }

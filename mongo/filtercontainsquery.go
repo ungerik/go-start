@@ -1,7 +1,7 @@
 package mongo
 
 import (
-	"labix.org/v2/mgo/bson"
+	"github.com/ungerik/go-start/mgo/bson"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,4 +34,3 @@ func (self *filterContainsQuery) Selector() string {
 //func (self *filterContainsQuery) CaseInsensitive() bool {
 //	return self.caseInsensitive
 //}
-

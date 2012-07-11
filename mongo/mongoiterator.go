@@ -2,7 +2,7 @@ package mongo
 
 import (
 	"github.com/ungerik/go-start/model"
-	"labix.org/v2/mgo"
+	"github.com/ungerik/go-start/mgo"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
