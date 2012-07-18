@@ -2,9 +2,8 @@
 go-start is a high level web-framework for Go,
 like Django for Python or Rails for Ruby.
 
-Source: https://github.com/ungerik/go-start/
-
-Documentation: http://go-start.org/pkg/go-start/gostart/
+* Source: https://github.com/ungerik/go-start/
+* Documentation: http://go-start.org/pkg/go-start/gostart/
 
 Note: Don't use Go on 32 bit systems in production, it has severe memory leaks.
 (If the documentation URL above doesn't work, then godoc -html has has crashed because of that issue)
@@ -26,6 +25,16 @@ Features:
 	* RSS parsing: http://github.com/ungerik/go-rss
 	* Amiando event management: http://github.com/ungerik/go-amiando
 		(used by http://startuplive.in)
+
+Planned Features:
+
+* medialib
+* CSRF protection
+* Tutorial App
+* Remove web.go
+* Controller of MVC implemented as REST service
+* Support for LESS CSS
+* Support for Twitter Bootstrap
 
 
 ## Views:
@@ -247,10 +256,10 @@ import (
 	_ "github.com/ungerik/go-gravatar"
 	_ "github.com/ungerik/go-mail"
 	_ "github.com/ungerik/go-rss"
+	_ "github.com/ungerik/go-start/mgo"
 	_ "github.com/ungerik/goconfig"
 	_ "github.com/ungerik/mustache.go"
 	_ "github.com/ungerik/web.go"
-	_ "github.com/ungerik/go-start/mgo"
 
 	_ "github.com/ungerik/go-start/debug"
 	_ "github.com/ungerik/go-start/errs"

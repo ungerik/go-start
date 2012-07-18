@@ -2,14 +2,14 @@ package media
 
 import (
 	"bytes"
-	"image"
-	"image/png"
-	_ "image/gif"
-	_ "code.google.com/p/go.image/tiff"
 	_ "code.google.com/p/go.image/bmp"
-	"image/draw"
-	"image/color"
+	_ "code.google.com/p/go.image/tiff"
 	"github.com/ungerik/go-start/model"
+	"image"
+	"image/color"
+	"image/draw"
+	_ "image/gif"
+	"image/png"
 	// "github.com/ungerik/go-start/view"
 )
 
@@ -110,7 +110,7 @@ func (self *Image) AspectRatio() float64 {
 	return self.Versions[0].AspectRatio()
 }
 
-func (self *Image) touchOriginalFromOutsideSourceRect(width, height int, horAlign HorAlignment, verAlign VerAlignment) (r image.Rectangle) {
+func (self *Image) sourceRectTouchOriginalFromOutside(width, height int, horAlign HorAlignment, verAlign VerAlignment) (r image.Rectangle) {
 	var offset image.Point
 	aspectRatio := float64(width) / float64(height)
 	if aspectRatio > self.AspectRatio() {
@@ -141,7 +141,7 @@ func (self *Image) touchOriginalFromOutsideSourceRect(width, height int, horAlig
 	return r.Add(offset)
 }
 
-func (self *Image) touchOriginalFromInsideSourceRect(width, height int, horAlign HorAlignment, verAlign VerAlignment) (r image.Rectangle) {
+func (self *Image) sourceRectTouchOriginalFromInside(width, height int, horAlign HorAlignment, verAlign VerAlignment) (r image.Rectangle) {
 	var offset image.Point
 	aspectRatio := float64(width) / float64(height)
 	if aspectRatio > self.AspectRatio() {
@@ -201,6 +201,11 @@ func (self *Image) SourceRectVersion(sourceRect image.Rectangle, width, height i
 	var versionImage image.Image
 	if sourceRect.In(self.Rectangle()) {
 		versionImage = ResizeImage(origImage, sourceRect, width, height)
+		if grayscale && !self.Grayscale() {
+			var grayVersion image.Image = image.NewGray(versionImage.Bounds())
+			draw.Draw(grayVersion.(draw.Image), versionImage.Bounds(), versionImage, image.ZP, draw.Src)
+			versionImage = grayVersion
+		}
 	} else {
 		if grayscale {
 			versionImage = image.NewGray(image.Rect(0, 0, width, height))
@@ -209,10 +214,26 @@ func (self *Image) SourceRectVersion(sourceRect image.Rectangle, width, height i
 		}
 		// Fill version with outsideColor
 		draw.Draw(versionImage.(draw.Image), versionImage.Bounds(), image.NewUniform(outsideColor), image.ZP, draw.Src)
+		// Where to draw the source image into the version image
+		sourceWidth := float64(sourceRect.Dx())
+		sourceHeight := float64(sourceRect.Dy())
+		if !(sourceRect.Min.X < 0 || sourceRect.Min.Y < 0) {
+			panic("touching from outside means that sourceRect x or y must be negative")
+		}
+		relativeLeft := float64(-sourceRect.Min.X) / sourceWidth
+		relativeTop := float64(-sourceRect.Min.Y) / sourceHeight
+		// relativeRight := 
 
-		panic("todo scale and draw sub image")
+		var destRect image.Rectangle
+		destRect.Min.X = int(float64(width) * relativeLeft)
+		destRect.Min.Y = int(float64(height) * relativeTop)
 
+		// todo
+		destImage := ResizeImage(origImage, origImage.Bounds(), destRect.Dx(), destRect.Dy())
+		draw.Draw(versionImage.(draw.Image), destRect, destImage, image.ZP, draw.Src)
 	}
+
+	// Save new image version
 	self.Versions = append(self.Versions, newImageVersion(self.Filename(), self.ContentType(), sourceRect, width, height, grayscale))
 	version := &self.Versions[len(self.Versions)-1]
 	err = version.SaveImage(versionImage)
@@ -227,11 +248,11 @@ func (self *Image) SourceRectVersion(sourceRect image.Rectangle, width, height i
 }
 
 func (self *Image) VersionTouchOrigFromOutside(width, height int, horAlign HorAlignment, verAlign VerAlignment, grayscale bool, outsideColor color.Color) (im *ImageVersion, err error) {
-	return self.SourceRectVersion(self.touchOriginalFromOutsideSourceRect(width, height, horAlign, verAlign), width, height, grayscale, outsideColor)
+	return self.SourceRectVersion(self.sourceRectTouchOriginalFromOutside(width, height, horAlign, verAlign), width, height, grayscale, outsideColor)
 }
 
 func (self *Image) Version(width, height int, horAlign HorAlignment, verAlign VerAlignment, grayscale bool) (im *ImageVersion, err error) {
-	return self.SourceRectVersion(self.touchOriginalFromInsideSourceRect(width, height, horAlign, verAlign), width, height, grayscale, color.RGBA{})
+	return self.SourceRectVersion(self.sourceRectTouchOriginalFromInside(width, height, horAlign, verAlign), width, height, grayscale, color.RGBA{})
 }
 
 func (self *Image) CenteredVersion(width, height int, grayscale bool) (im *ImageVersion, err error) {

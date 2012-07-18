@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/ungerik/go-start/errs"
+	// "github.com/ungerik/go-start/errs"
 	"reflect"
 	"sort"
 	"strconv"
@@ -47,44 +47,44 @@ func DeleteEmptySliceElements(slice interface{}) interface{} {
 	return DeleteEmptySliceElementsVal(reflect.ValueOf(slice)).Interface()
 }
 
-func SliceInsert(slice []interface{}, index int, count int, value interface{}) (result []interface{}) {
-	switch {
-	case count < 0:
-		panic(errs.Format("Negative count %d not allowed", count))
-	case count == 0:
-		return slice
-	}
+// func SliceInsert(slice []interface{}, index int, count int, value interface{}) (result []interface{}) {
+// 	switch {
+// 	case count < 0:
+// 		panic(errs.Format("Negative count %d not allowed", count))
+// 	case count == 0:
+// 		return slice
+// 	}
 
-	length := len(slice)
-	errs.PanicIfErrIndexOutOfBounds("SliceInsert", index, length)
+// 	length := len(slice)
+// 	errs.PanicIfErrIndexOutOfBounds("SliceInsert", index, length)
 
-	result = make([]interface{}, length+count)
-	copy(result, slice[:index])
-	copy(result[index+count:], slice[index:])
-	for i := index; i < index+count; i++ {
-		result[i] = value
-	}
+// 	result = make([]interface{}, length+count)
+// 	copy(result, slice[:index])
+// 	copy(result[index+count:], slice[index:])
+// 	for i := index; i < index+count; i++ {
+// 		result[i] = value
+// 	}
 
-	return result
-}
+// 	return result
+// }
 
-func SliceDelete(slice []interface{}, index int, count int) (result []interface{}) {
-	switch {
-	case count < 0:
-		panic(errs.Format("Negative count %d not allowed", count))
-	case count == 0:
-		return slice
-	}
+// func SliceDelete(slice []interface{}, index int, count int) (result []interface{}) {
+// 	switch {
+// 	case count < 0:
+// 		panic(errs.Format("Negative count %d not allowed", count))
+// 	case count == 0:
+// 		return slice
+// 	}
 
-	length := len(slice)
-	errs.PanicIfErrIndexOutOfBounds("SliceDelete", index, length)
+// 	length := len(slice)
+// 	errs.PanicIfErrIndexOutOfBounds("SliceDelete", index, length)
 
-	if index+count > length {
-		count = length - index
-	}
+// 	if index+count > length {
+// 		count = length - index
+// 	}
 
-	return append(slice[:index], slice[index+count:]...)
-}
+// 	return append(slice[:index], slice[index+count:]...)
+// }
 
 // Implements sort.Interface
 type Sortable struct {
