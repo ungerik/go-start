@@ -215,20 +215,16 @@ func (self *Image) SourceRectVersion(sourceRect image.Rectangle, width, height i
 		// Fill version with outsideColor
 		draw.Draw(versionImage.(draw.Image), versionImage.Bounds(), image.NewUniform(outsideColor), image.ZP, draw.Src)
 		// Where to draw the source image into the version image
-		sourceWidth := float64(sourceRect.Dx())
-		sourceHeight := float64(sourceRect.Dy())
+		var destRect image.Rectangle
 		if !(sourceRect.Min.X < 0 || sourceRect.Min.Y < 0) {
 			panic("touching from outside means that sourceRect x or y must be negative")
 		}
-		relativeLeft := float64(-sourceRect.Min.X) / sourceWidth
-		relativeTop := float64(-sourceRect.Min.Y) / sourceHeight
-		// relativeRight := 
-
-		var destRect image.Rectangle
-		destRect.Min.X = int(float64(width) * relativeLeft)
-		destRect.Min.Y = int(float64(height) * relativeTop)
-
-		// todo
+		sourceW := float64(sourceRect.Dx())
+		sourceH := float64(sourceRect.Dy())
+		destRect.Min.X = int(float64(-sourceRect.Min.X) / sourceW * float64(width))
+		destRect.Min.Y = int(float64(-sourceRect.Min.Y) / sourceH * float64(height))
+		destRect.Max.X = destRect.Min.X + int(float64(self.Width())/sourceW*float64(width))
+		destRect.Max.Y = destRect.Min.Y + int(float64(self.Height())/sourceH*float64(height))
 		destImage := ResizeImage(origImage, origImage.Bounds(), destRect.Dx(), destRect.Dy())
 		draw.Draw(versionImage.(draw.Image), destRect, destImage, image.ZP, draw.Src)
 	}
