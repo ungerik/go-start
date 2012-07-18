@@ -4,8 +4,6 @@ import (
 	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 	"strconv"
-	// "github.com/ungerik/go-start/utils"
-	// "github.com/ungerik/go-start/mongo"
 )
 
 /*
@@ -102,6 +100,7 @@ func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr
 		*formContent = append(*formContent, input)
 		return nil
 	}
+
 	formField, err := fieldFactory.NewInput(true, field, form)
 	if err != nil {
 		return err

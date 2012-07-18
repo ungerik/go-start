@@ -6,6 +6,15 @@ import (
 	"github.com/ungerik/go-start/model"
 )
 
+func AddStandardLabel(form *Form, forView View, metaData *model.MetaData) Views {
+	var labelContent View = Escape(form.FieldLabel(metaData))
+	if form.IsFieldRequired(metaData) {
+		labelContent = Views{labelContent, form.GetRequiredMarker()}
+	}
+	label := &Label{For: forView, Content: labelContent}
+	return Views{label, forView}
+}
+
 type StandardFormFieldFactory struct {
 }
 
@@ -206,12 +215,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 	}
 
 	if withLabel {
-		var labelContent View = Escape(form.FieldLabel(metaData))
-		if form.IsFieldRequired(metaData) {
-			labelContent = Views{labelContent, form.GetRequiredMarker()}
-		}
-		label := &Label{For: input, Content: labelContent}
-		input = Views{label, input}
+		return AddStandardLabel(form, input, metaData), nil
 	}
 	return input, nil
 }

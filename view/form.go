@@ -3,12 +3,12 @@ package view
 import (
 	"bytes"
 	"github.com/ungerik/go-start/debug"
-	"github.com/ungerik/go-start/mongo"
 	"github.com/ungerik/go-start/model"
+	"github.com/ungerik/go-start/mongo"
 	"github.com/ungerik/go-start/utils"
-	"strings"
-	"strconv"
 	"io/ioutil"
+	"strconv"
+	"strings"
 	// "mime/multipart"
 )
 
@@ -103,8 +103,8 @@ type Form struct {
 	// practice to always use form ids.
 	FormID        string
 	CSRFProtector CSRFProtector
-	Layout        FormLayout       // Config.DefaultFormLayout will be used if nil
-	FieldFactory  FormFieldFactory // Config.DefaultFormFieldFactory will be used if nil
+	Layout        FormLayout       // Config.Form.DefaultLayout will be used if nil
+	FieldFactory  FormFieldFactory // Config.Form.DefaultFieldFactory will be used if nil
 	GetModel      GetFormModelFunc
 
 	// OnSubmit is called after the form was submitted and did not produce any

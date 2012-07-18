@@ -174,7 +174,7 @@ func (self *Image) sourceRectTouchOriginalFromInside(width, height int, horAlign
 
 // SourceRectVersion searches and returns an existing matching version,
 // or a new one will be created and saved.
-func (self *Image) SourceRectVersion(sourceRect image.Rectangle, width, height int, grayscale bool, outsideColor color.Color) (im *ImageVersion, err error) {
+func (self *Image) VersionSourceRect(sourceRect image.Rectangle, width, height int, grayscale bool, outsideColor color.Color) (im *ImageVersion, err error) {
 	if self.Grayscale() {
 		grayscale = true // Ignore color requests when original image is grayscale
 	}
@@ -243,18 +243,22 @@ func (self *Image) SourceRectVersion(sourceRect image.Rectangle, width, height i
 	return version, nil
 }
 
-func (self *Image) VersionTouchOrigFromOutside(width, height int, horAlign HorAlignment, verAlign VerAlignment, grayscale bool, outsideColor color.Color) (im *ImageVersion, err error) {
-	return self.SourceRectVersion(self.sourceRectTouchOriginalFromOutside(width, height, horAlign, verAlign), width, height, grayscale, outsideColor)
-}
-
 func (self *Image) Version(width, height int, horAlign HorAlignment, verAlign VerAlignment, grayscale bool) (im *ImageVersion, err error) {
-	return self.SourceRectVersion(self.sourceRectTouchOriginalFromInside(width, height, horAlign, verAlign), width, height, grayscale, color.RGBA{})
+	return self.VersionSourceRect(self.sourceRectTouchOriginalFromInside(width, height, horAlign, verAlign), width, height, grayscale, color.RGBA{})
 }
 
-func (self *Image) CenteredVersion(width, height int, grayscale bool) (im *ImageVersion, err error) {
+func (self *Image) VersionCentered(width, height int, grayscale bool) (im *ImageVersion, err error) {
 	return self.Version(width, height, HorCenter, VerCenter, grayscale)
 }
 
-func (self *Image) CenteredVersionTouchOrigFromOutside(width, height int, grayscale bool, outsideColor color.Color) (im *ImageVersion, err error) {
+func (self *Image) VersionTouchOrigFromOutside(width, height int, horAlign HorAlignment, verAlign VerAlignment, grayscale bool, outsideColor color.Color) (im *ImageVersion, err error) {
+	return self.VersionSourceRect(self.sourceRectTouchOriginalFromOutside(width, height, horAlign, verAlign), width, height, grayscale, outsideColor)
+}
+
+func (self *Image) VersionTouchOrigFromOutsideCentered(width, height int, grayscale bool, outsideColor color.Color) (im *ImageVersion, err error) {
 	return self.VersionTouchOrigFromOutside(width, height, HorCenter, VerCenter, grayscale, outsideColor)
+}
+
+func (self *Image) Thumbnail(size int) (im *ImageVersion, err error) {
+	return self.VersionCentered(size, size, self.Grayscale())
 }
