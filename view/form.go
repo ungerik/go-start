@@ -7,6 +7,7 @@ import (
 	"github.com/ungerik/go-start/mongo"
 	"github.com/ungerik/go-start/utils"
 	"io/ioutil"
+	"reflect"
 	"strconv"
 	"strings"
 	// "mime/multipart"
@@ -105,7 +106,17 @@ type Form struct {
 	CSRFProtector CSRFProtector
 	Layout        FormLayout       // Config.Form.DefaultLayout will be used if nil
 	FieldFactory  FormFieldFactory // Config.Form.DefaultFieldFactory will be used if nil
-	GetModel      GetFormModelFunc
+
+	// GetModel returns the data-model used to create the form fields
+	// and will receive changes from a form submit.
+	// Thus, the model must be setable by reflection.
+	// Be careful to not return the same model object at every call,
+	// because the changed model from a submit will then be re-used
+	// at a later form display which is usually not wanted.
+	// Use the wrapper function FormModel() only when the form is
+	// embedded in a DynamicView and the model argument is dynamically
+	// created per View render.
+	GetModel GetFormModelFunc
 
 	// OnSubmit is called after the form was submitted and did not produce any
 	// validation errors.
@@ -213,40 +224,19 @@ func (self *Form) IsFieldRequired(metaData *model.MetaData) bool {
 	if val, ok := metaData.ModelValue(); ok && val.Required(metaData) {
 		return true
 	}
-	selector := metaData.Selector()
-	wildcardSelector := metaData.WildcardSelector()
-	return utils.StringIn(selector, self.RequiredFields) || utils.StringIn(wildcardSelector, self.RequiredFields)
-}
-
-func (self *Form) isFieldRequiredSelectors(metaData *model.MetaData, selector, wildcardSelector string) bool {
-	if metaData.BoolAttrib("required") {
-		return true
-	}
-	return utils.StringIn(selector, self.RequiredFields) || utils.StringIn(wildcardSelector, self.RequiredFields)
+	return metaData.SelectorsMatch(self.RequiredFields)
 }
 
 func (self *Form) IsFieldDisabled(metaData *model.MetaData) bool {
-	if metaData.BoolAttrib("disabled") {
-		return true
-	}
-	selector := metaData.Selector()
-	wildcardSelector := metaData.WildcardSelector()
-	return utils.StringIn(selector, self.DisabledFields) || utils.StringIn(wildcardSelector, self.DisabledFields)
+	return metaData.BoolAttrib("disabled") || metaData.SelectorsMatch(self.DisabledFields)
 }
 
 func (self *Form) IsFieldHidden(metaData *model.MetaData) bool {
-	if metaData.BoolAttrib("hidden") {
-		return true
-	}
-	selector := metaData.Selector()
-	wildcardSelector := metaData.WildcardSelector()
-	return utils.StringIn(selector, self.HiddenFields) || utils.StringIn(wildcardSelector, self.HiddenFields)
+	return metaData.BoolAttrib("hidden") || metaData.SelectorsMatch(self.HiddenFields)
 }
 
 func (self *Form) IsFieldExcluded(metaData *model.MetaData) bool {
-	selector := metaData.Selector()
-	wildcardSelector := metaData.WildcardSelector()
-	return utils.StringIn(selector, self.ExcludedFields) || utils.StringIn(wildcardSelector, self.ExcludedFields)
+	return metaData.SelectorsMatch(self.ExcludedFields)
 }
 
 func (self *Form) GetFieldDescription(metaData *model.MetaData) string {
@@ -352,6 +342,10 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		formModel, err = self.GetModel(self, context)
 		if err != nil {
 			return err
+		}
+		v := reflect.ValueOf(formModel)
+		if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
+			panic("Form model must be a pointer to a struct")
 		}
 		if isPost {
 			setPostValues := &setPostValuesStructVisitor{
@@ -567,22 +561,31 @@ func (self *validateAndFormLayoutStructVisitor) validateField(field *model.MetaD
 	if !self.isPost {
 		return nil
 	}
-	err := field.Validate()
-	if err != nil {
-		self.fieldValidationErrors = append(self.fieldValidationErrors, err)
+	if value, ok := field.ModelValue(); ok {
+		err := value.Validate(field)
+		if err == nil && value.IsEmpty() && self.form.IsFieldRequired(field) {
+			err = model.NewRequiredError(field)
+		}
+		if err != nil {
+			self.fieldValidationErrors = append(self.fieldValidationErrors, err)
+		}
+		return err
 	}
-	return err
+	return nil
 }
 
 func (self *validateAndFormLayoutStructVisitor) validateGeneral(data *model.MetaData) error {
 	if !self.isPost {
 		return nil
 	}
-	err := data.Validate()
-	if err != nil {
-		self.generalValidationErrors = append(self.generalValidationErrors, err)
+	if validator, ok := data.ModelValidator(); ok {
+		err := validator.Validate(data)
+		if err != nil {
+			self.generalValidationErrors = append(self.generalValidationErrors, err)
+		}
+		return err
 	}
-	return err
+	return nil
 }
 
 func (self *validateAndFormLayoutStructVisitor) endForm(data *model.MetaData) (err error) {

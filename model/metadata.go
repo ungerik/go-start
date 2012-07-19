@@ -1,12 +1,13 @@
 package model
 
 import (
-	// "github.com/ungerik/go-start/debug"
 	"bytes"
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
-	"fmt"
+
+	"github.com/ungerik/go-start/utils"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -72,13 +73,6 @@ func (self *MetaData) ModelValidator() (val Validator, ok bool) {
 		val, ok = self.Value.Addr().Interface().(Validator)
 	}
 	return val, ok
-}
-
-func (self *MetaData) Validate() error {
-	if validator, ok := self.ModelValidator(); ok {
-		return validator.Validate(self)
-	}
-	return nil
 }
 
 func (self *MetaData) RootParent() *MetaData {
@@ -199,6 +193,10 @@ func (self *MetaData) WildcardSelector() string {
 		buf.WriteString(m.NameOrWildcard())
 	}
 	return buf.String()
+}
+
+func (self *MetaData) SelectorsMatch(list []string) bool {
+	return utils.StringIn(self.Selector(), list) || utils.StringIn(self.WildcardSelector(), list)
 }
 
 func (self *MetaData) String() string {
