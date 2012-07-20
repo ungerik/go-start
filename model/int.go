@@ -15,11 +15,15 @@ func (self *Int) Get() int64 {
 	return int64(*self)
 }
 
+func (self *Int) Set(value int64) {
+	*self = Int(value)
+}
+
 func (self *Int) GetInt() int {
 	return int(*self)
 }
 
-func (self *Int) Set(value int64) {
+func (self *Int) SetInt(value int) {
 	*self = Int(value)
 }
 
