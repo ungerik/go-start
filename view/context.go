@@ -1,13 +1,13 @@
 package view
 
 import (
-	"hash/crc32"
 	"bytes"
 	"container/heap"
 	"encoding/base64"
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/utils"
 	"github.com/ungerik/web.go"
+	"hash/crc32"
 	"strconv"
 	"strings"
 )

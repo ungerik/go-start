@@ -220,23 +220,35 @@ func (self *Form) GetSubmitButtonText() string {
 	return self.SubmitButtonText
 }
 
-func (self *Form) IsFieldRequired(metaData *model.MetaData) bool {
-	if val, ok := metaData.ModelValue(); ok && val.Required(metaData) {
+func (self *Form) IsFieldRequired(field *model.MetaData) bool {
+	if val, ok := field.ModelValue(); ok && val.Required(field) {
 		return true
 	}
-	return metaData.SelectorsMatch(self.RequiredFields)
+	return field.SelectorsMatch(self.RequiredFields)
 }
 
-func (self *Form) IsFieldDisabled(metaData *model.MetaData) bool {
-	return metaData.BoolAttrib("disabled") || metaData.SelectorsMatch(self.DisabledFields)
+func (self *Form) IsFieldDisabled(field *model.MetaData) bool {
+	return field.BoolAttrib("disabled") || field.SelectorsMatch(self.DisabledFields)
 }
 
-func (self *Form) IsFieldHidden(metaData *model.MetaData) bool {
-	return metaData.BoolAttrib("hidden") || metaData.SelectorsMatch(self.HiddenFields)
+// IsFieldHidden returns if a hidden input element will be created for a form field.
+// Hidden fields are not validated.
+func (self *Form) IsFieldHidden(field *model.MetaData) bool {
+	return field.BoolAttrib("hidden") || field.SelectorsMatch(self.HiddenFields)
 }
 
-func (self *Form) IsFieldExcluded(metaData *model.MetaData) bool {
-	return metaData.SelectorsMatch(self.ExcludedFields)
+func (self *Form) IsFieldExcluded(field *model.MetaData) bool {
+	return field.SelectorsMatch(self.ExcludedFields)
+}
+
+// IsFieldVisible returns if the FieldFactory can create an input widget
+// for the field, and if the field neither hidden or excluded.
+// Only visible fields are validated.
+// IsFieldExcluded and IsFieldHidden have different semantics.
+func (self *Form) IsFieldVisible(field *model.MetaData) bool {
+	return self.GetFieldFactory().CanCreateInput(field, self) &&
+		!self.IsFieldExcluded(field) &&
+		!self.IsFieldHidden(field)
 }
 
 func (self *Form) GetFieldDescription(metaData *model.MetaData) string {
@@ -558,7 +570,7 @@ type validateAndFormLayoutStructVisitor struct {
 }
 
 func (self *validateAndFormLayoutStructVisitor) validateField(field *model.MetaData) error {
-	if !self.isPost {
+	if !self.isPost || !self.form.IsFieldVisible(field) {
 		return nil
 	}
 	if value, ok := field.ModelValue(); ok {
