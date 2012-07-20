@@ -27,7 +27,7 @@ func (self *Bool) SetString(str string) error {
 }
 
 func (self *Bool) IsEmpty() bool {
-	return *self == false
+	return false
 }
 
 func (self *Bool) Required(metaData *MetaData) bool {

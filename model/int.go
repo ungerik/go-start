@@ -36,7 +36,7 @@ func (self *Int) SetString(str string) error {
 }
 
 func (self *Int) IsEmpty() bool {
-	return *self == 0
+	return false
 }
 
 func (self *Int) Required(metaData *MetaData) bool {

@@ -9,6 +9,8 @@ func (self *Email) Get() string {
 }
 
 func (self *Email) Set(value string) (err error) {
+	*self = Email(value) // set value in any case, so that user can see wrong value in form
+
 	if value != "" {
 		if value, err = email.ValidateAddress(value); err != nil {
 			return err

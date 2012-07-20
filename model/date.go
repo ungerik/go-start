@@ -11,6 +11,8 @@ func (self *Date) Get() string {
 }
 
 func (self *Date) Set(value string) error {
+	*self = Date(value) // set value in any case, so that user can see wrong value in form
+
 	if value != "" {
 		if _, err := time.Parse(DateFormat, value); err != nil {
 			return err

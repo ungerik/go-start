@@ -13,6 +13,8 @@ func (self *DateTime) Get() string {
 }
 
 func (self *DateTime) Set(value string) (err error) {
+	*self = DateTime(value) // set value in any case, so that user can see wrong value in form
+
 	if value != "" {
 		if _, err = time.Parse(DateTimeFormat, value); err != nil {
 			if _, err = time.Parse(ShortDateTimeFormat, value); err != nil {
