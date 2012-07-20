@@ -69,6 +69,11 @@ func (self *StandardFormLayout) EndFormContent(fieldValidationErrs, generalValid
 		*formContent = append(*formContent, fieldFactory.NewGeneralErrorMessage(err.Error(), form))
 		*formContent = append(Views{fieldFactory.NewGeneralErrorMessage(err.Error(), form)}, *formContent...)
 	}
+	if form.GeneralErrorOnFieldError && len(fieldValidationErrs) > 0 {
+		e := Config.Form.GeneralErrorMessageOnFieldError
+		*formContent = append(*formContent, fieldFactory.NewGeneralErrorMessage(e, form))
+		*formContent = append(Views{fieldFactory.NewGeneralErrorMessage(e, form)}, *formContent...)
+	}
 	submitButton := fieldFactory.NewSubmitButton(form.GetSubmitButtonText(), form.SubmitButtonConfirm, form)
 	*formContent = append(*formContent, submitButton)
 	return nil

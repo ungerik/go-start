@@ -20,17 +20,17 @@ type PageConfiguration struct {
 }
 
 type FormConfiguration struct {
-	DefaultLayout                FormLayout
-	DefaultFieldFactory          FormFieldFactory
-	DefaultCSRFProtector         CSRFProtector
-	DefaultErrorMessageClass     string
-	DefaultSuccessMessageClass   string
-	DefaultSubmitButtonClass     string
-	DefaultFieldDescriptionClass string
-	StandardFormLayoutDivClass   string
-	DefaultSubmitButtonText      string
-	DefaultRequiredMarker        View
-	NumFieldRepeatMessage        int
+	DefaultLayout                   FormLayout
+	DefaultFieldFactory             FormFieldFactory
+	DefaultCSRFProtector            CSRFProtector
+	DefaultErrorMessageClass        string
+	DefaultSuccessMessageClass      string
+	DefaultSubmitButtonClass        string
+	DefaultFieldDescriptionClass    string
+	StandardFormLayoutDivClass      string
+	DefaultSubmitButtonText         string
+	GeneralErrorMessageOnFieldError string
+	DefaultRequiredMarker           View
 }
 
 type Configuration struct {
@@ -73,14 +73,14 @@ var Config Configuration = Configuration{
 			DefaultInputSize:      80,
 			DefaultTableInputSize: 20,
 		},
-		DefaultFieldFactory:          new(StandardFormFieldFactory),
-		DefaultCSRFProtector:         nil,
-		DefaultSubmitButtonText:      "Save",
-		DefaultErrorMessageClass:     "error",
-		DefaultSuccessMessageClass:   "success",
-		DefaultFieldDescriptionClass: "description",
-		DefaultRequiredMarker:        HTML("<span class='required'>*</span>"),
-		//NumFieldRepeatMessage:        6,
+		DefaultFieldFactory:             new(StandardFormFieldFactory),
+		DefaultCSRFProtector:            nil,
+		DefaultSubmitButtonText:         "Save",
+		DefaultErrorMessageClass:        "error",
+		DefaultSuccessMessageClass:      "success",
+		DefaultFieldDescriptionClass:    "description",
+		DefaultRequiredMarker:           HTML("<span class='required'>*</span>"),
+		GeneralErrorMessageOnFieldError: "This form has errors",
 	},
 	BaseDirs:         []string{"."},
 	StaticDirs:       []string{"static"},    // every StaticDir will be appended to every BaseDir to search for static files

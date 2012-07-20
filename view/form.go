@@ -128,25 +128,26 @@ type Form struct {
 	// message or err will only be visible, if there is no redirect.
 	OnSubmit OnSubmitFormFunc
 
-	ModelMaxDepth         int      // if zero, no depth limit
-	ExcludedFields        []string // Use point notation for nested fields. In case of arrays/slices use wildcards
-	HiddenFields          []string // Use point notation for nested fields. In case of arrays/slices use wildcards
-	DisabledFields        []string // Use point notation for nested fields
-	RequiredFields        []string // Also available as static struct field tag. Use point notation for nested fields
-	Labels                map[string]string
-	FieldDescriptions     map[string]string
-	InputSizes            map[string]int
-	ErrorMessageClass     string // If empty, Config.Form.DefaultErrorMessageClass will be used
-	SuccessMessageClass   string // If empty, Config.Form.DefaultSuccessMessageClass will be used
-	FieldDescriptionClass string
-	RequiredMarker        View // If nil, Config.Form.DefaultRequiredMarker will be used
-	SuccessMessage        string
-	SubmitButtonText      string
-	SubmitButtonClass     string
-	SubmitButtonConfirm   string // Will add a confirmation dialog for onclick
-	Redirect              URL    // 302 redirect after successful OnSubmit()
-	ShowRefIDs            bool
-	Enctype               string
+	ModelMaxDepth            int      // if zero, no depth limit
+	ExcludedFields           []string // Use point notation for nested fields. In case of arrays/slices use wildcards
+	HiddenFields             []string // Use point notation for nested fields. In case of arrays/slices use wildcards
+	DisabledFields           []string // Use point notation for nested fields
+	RequiredFields           []string // Also available as static struct field tag. Use point notation for nested fields
+	Labels                   map[string]string
+	FieldDescriptions        map[string]string
+	InputSizes               map[string]int
+	ErrorMessageClass        string // If empty, Config.Form.DefaultErrorMessageClass will be used
+	SuccessMessageClass      string // If empty, Config.Form.DefaultSuccessMessageClass will be used
+	FieldDescriptionClass    string
+	GeneralErrorOnFieldError bool
+	RequiredMarker           View // If nil, Config.Form.DefaultRequiredMarker will be used
+	SuccessMessage           string
+	SubmitButtonText         string
+	SubmitButtonClass        string
+	SubmitButtonConfirm      string // Will add a confirmation dialog for onclick
+	Redirect                 URL    // 302 redirect after successful OnSubmit()
+	ShowRefIDs               bool
+	Enctype                  string
 }
 
 // GetLayout returns self.Layout if not nil,
@@ -564,7 +565,6 @@ type validateAndFormLayoutStructVisitor struct {
 	isPost      bool
 
 	// Output
-	formFields              Views
 	fieldValidationErrors   []error
 	generalValidationErrors []error
 }
