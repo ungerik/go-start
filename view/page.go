@@ -61,10 +61,10 @@ type Page struct {
 	// Called before any other function when rendering the page
 	OnPreRender func(page *Page, response *Response) (err error)
 
-	// Writes the head title tag (HTML escaped)
+	// Writes the head title tag
 	Title Renderer
 
-	// Writes the head meta description tag (HTML escaped)
+	// Writes the head meta description tag
 	MetaDescription Renderer
 
 	// Content of the head meta viewport tag,
