@@ -42,18 +42,17 @@ func (self *Url) SetString(str string) error {
 func (self *Url) FixValue(metaData *MetaData) {
 }
 
-func (self *Url) Validate(metaData *MetaData) []*ValidationError {
-	errors := NoValidationErrors
+func (self *Url) Validate(metaData *MetaData) error {
 	if self.IsEmpty() {
 		if self.Required(metaData) {
-			errors = append(errors, NewRequiredValidationError(metaData))
+			return NewRequiredError(metaData)
 		}
 	} else {
 		if _, err := url.Parse(self.Get()); err != nil {
-			errors = append(errors, &ValidationError{err, metaData})
+			return err
 		}
 	}
-	return errors
+	return nil
 }
 
 func (self *Url) Required(metaData *MetaData) bool {

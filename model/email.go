@@ -9,6 +9,8 @@ func (self *Email) Get() string {
 }
 
 func (self *Email) Set(value string) (err error) {
+	*self = Email(value) // set value in any case, so that user can see wrong value in form
+
 	if value != "" {
 		if value, err = email.ValidateAddress(value); err != nil {
 			return err
@@ -19,7 +21,7 @@ func (self *Email) Set(value string) (err error) {
 }
 
 func (self *Email) IsEmpty() bool {
-	return len(*self) == 0
+	return *self == ""
 }
 
 func (self *Email) String() string {
@@ -33,14 +35,14 @@ func (self *Email) SetString(str string) (err error) {
 func (self *Email) FixValue(metaData *MetaData) {
 }
 
-func (self *Email) Validate(metaData *MetaData) []*ValidationError {
+func (self *Email) Validate(metaData *MetaData) error {
 	str := self.Get()
 	if self.Required(metaData) || str != "" {
 		if _, err := email.ValidateAddress(str); err != nil {
-			return NewValidationErrors(err, metaData)
+			return err
 		}
 	}
-	return NoValidationErrors
+	return nil
 }
 
 func (self *Email) Required(metaData *MetaData) bool {

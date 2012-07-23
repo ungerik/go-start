@@ -9,6 +9,10 @@ import (
 ///////////////////////////////////////////////////////////////////////////////
 // DummyImage
 
+func NewDummyImage(width, height int) *DummyImage {
+	return &DummyImage{Width: width, Height: height}
+}
+
 // DummyImage represents a HTML img element with src utilizing http://dummyimage.com.
 type DummyImage struct {
 	ViewBaseWithId

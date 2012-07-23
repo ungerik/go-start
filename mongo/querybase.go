@@ -5,8 +5,8 @@ import (
 	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/model"
-	"launchpad.net/mgo"
-	"launchpad.net/mgo/bson"
+	"github.com/ungerik/go-start/mgo"
+	"github.com/ungerik/go-start/mgo/bson"
 	"strings"
 )
 
@@ -85,14 +85,14 @@ func (self *queryBase) Limit(limit int) Query {
 
 func (self *queryBase) Sort(selector string) Query {
 	selector = strings.ToLower(selector)
-	q := &sortQuery{selector: selector, direction: 1}
+	q := &sortQuery{selector: selector}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
 func (self *queryBase) SortReverse(selector string) Query {
 	selector = strings.ToLower(selector)
-	q := &sortQuery{selector: selector, direction: -1}
+	q := &sortQuery{selector: "-" + selector}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }

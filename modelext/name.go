@@ -1,21 +1,21 @@
 package modelext
 
 import (
-	"strings"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/utils"
+	"strings"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
 // Name
 
 type Name struct {
-	Prefix       model.String
-	First        model.String
-	Middle       model.String
-	Last         model.String
-	Postfix      model.String
-	Organization model.String
+	Prefix       model.String `gostart:"size=10"`
+	First        model.String `gostart:"size=20|label=Given"`
+	Middle       model.String `gostart:"size=20"`
+	Last         model.String `gostart:"size=20|label=Family"`
+	Postfix      model.String `gostart:"size=10"`
+	Organization model.String `gostart:"size=40"`
 }
 
 func (self *Name) SetForPerson(prefix, first, middle, last, postfix string) {
@@ -39,6 +39,6 @@ func (self *Name) SetForOrganization(organization string) {
 func (self *Name) String() string {
 	if self.Organization != "" {
 		return self.Organization.Get()
-	} 
+	}
 	return utils.JoinNonEmptyStrings(" ", self.Prefix.Get(), self.First.Get(), self.Middle.Get(), self.Last.Get(), self.Postfix.Get())
 }

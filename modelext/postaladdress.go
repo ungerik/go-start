@@ -9,11 +9,11 @@ import (
 // PostalAddress
 
 type PostalAddress struct {
-	FirstLine  model.String
-	SecondLine model.String
-	ZIP        model.String
-	City       model.String
-	State      model.String
+	FirstLine  model.String `gostart:"size=40"`
+	SecondLine model.String `gostart:"size=40"`
+	ZIP        model.String `gostart:"size=10"`
+	City       model.String `gostart:"size=20"`
+	State      model.String `gostart:"size=20"`
 	Country    model.Country
 }
 

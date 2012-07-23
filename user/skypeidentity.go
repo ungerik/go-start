@@ -20,7 +20,7 @@ func (self *SkypeIdentity) CallURL() string {
 	return "skype:" + self.ID.Get()
 }
 
-func (self *SkypeIdentity) URL(response *view.Response, args ...string) string {
+func (self *SkypeIdentity) URL(args ...string) string {
 	return self.CallURL()
 }
 

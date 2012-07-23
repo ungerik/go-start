@@ -35,16 +35,28 @@ func (self *Text) SetString(str string) error {
 func (self *Text) FixValue(metaData *MetaData) {
 }
 
-func (self *Text) Validate(metaData *MetaData) []*ValidationError {
+func (self *Text) Required(metaData *MetaData) bool {
+	if minlen, ok, _ := self.Minlen(metaData); ok {
+		if minlen > 0 {
+			return true
+		}
+	}
+	return metaData.BoolAttrib("required")
+}
+
+func (self *Text) Validate(metaData *MetaData) error {
 	value := string(*self)
-	errors := []*ValidationError{}
+
+	if self.Required(metaData) && self.IsEmpty() {
+		return NewRequiredError(metaData)
+	}
 
 	minlen, ok, err := self.Minlen(metaData)
 	if ok && len(value) < minlen {
 		err = &StringTooShort{value, minlen}
 	}
 	if err != nil {
-		errors = append(errors, &ValidationError{err, metaData})
+		return err
 	}
 
 	maxlen, ok, err := self.Maxlen(metaData)
@@ -52,10 +64,10 @@ func (self *Text) Validate(metaData *MetaData) []*ValidationError {
 		err = &StringTooLong{value, maxlen}
 	}
 	if err != nil {
-		errors = append(errors, &ValidationError{err, metaData})
+		return err
 	}
 
-	return errors
+	return nil
 }
 
 func (self *Text) Minlen(metaData *MetaData) (minlen int, ok bool, err error) {

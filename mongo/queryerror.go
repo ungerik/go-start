@@ -1,9 +1,9 @@
 package mongo
 
 import (
-	"launchpad.net/mgo/bson"
+	"github.com/ungerik/go-start/mgo/bson"
 	"github.com/ungerik/go-start/model"
-	"launchpad.net/mgo"
+	"github.com/ungerik/go-start/mgo"
 )
 
 ///////////////////////////////////////////////////////////////////////////////

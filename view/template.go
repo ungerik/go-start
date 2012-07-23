@@ -15,10 +15,10 @@ func NewTemplate(filename string, getContext GetTemplateContextFunc) *Template {
 func NewHTML5BoilerplateCSSTemplate(getContext GetTemplateContextFunc, filenames ...string) Views {
 	views := make(Views, len(filenames)+2)
 	views[0] = &StaticFile{Filename: "css/html5boilerplate/normalize.css"}
-	views[len(views)-1] = &StaticFile{Filename: "css/html5boilerplate/poststyle.css"}
 	for i := range filenames {
 		views[i+1] = NewTemplate(filenames[i], getContext)
 	}
+	views[len(views)-1] = &StaticFile{Filename: "css/html5boilerplate/poststyle.css"}
 	return views
 }
 

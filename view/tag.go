@@ -31,7 +31,7 @@ func (self *Tag) Render(response *Response) (err error) {
 		err = self.Content.Render(response)
 	}
 	if self.ExtraClose {
-		writer.ExtraCloseTag()
+		writer.ForceCloseTag()
 	} else {
 		writer.CloseTag()
 	}

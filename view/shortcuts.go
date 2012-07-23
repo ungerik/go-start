@@ -72,7 +72,7 @@ func RSSLink(title string, url URL) View {
 
 // Img creates a HTML img element for an URL with optional width and height.
 // The first int of dimensions is width, the second one height.
-func IMG(url string, dimensions ...int) View {
+func IMG(url string, dimensions ...int) *Image {
 	var width int
 	var height int
 	dimCount := len(dimensions)
@@ -81,9 +81,6 @@ func IMG(url string, dimensions ...int) View {
 		if dimCount >= 2 {
 			height = dimensions[1]
 		}
-	}
-	if url == "" && width > 0 && height > 0 {
-		return &DummyImage{Width: width, Height: height}
 	}
 	return &Image{URL: url, Width: width, Height: height}
 }

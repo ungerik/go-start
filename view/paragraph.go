@@ -23,6 +23,6 @@ func (self *Paragraph) Render(response *Response) (err error) {
 	if self.Content != nil {
 		err = self.Content.Render(response)
 	}
-	writer.ExtraCloseTag()
+	writer.ForceCloseTag()
 	return err
 }

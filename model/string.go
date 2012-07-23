@@ -42,13 +42,25 @@ func (self *String) SetString(str string) error {
 func (self *String) FixValue(metaData *MetaData) {
 }
 
-func (self *String) Validate(metaData *MetaData) []*ValidationError {
+func (self *String) Required(metaData *MetaData) bool {
+	if minlen, ok, _ := self.Minlen(metaData); ok {
+		if minlen > 0 {
+			return true
+		}
+	}
+	return metaData.BoolAttrib("required")
+}
+
+func (self *String) Validate(metaData *MetaData) error {
 	value := string(*self)
-	e := NoValidationErrors
 
 	pos := strings.IndexAny(value, "\n\r")
 	if pos != -1 {
-		e = append(e, &ValidationError{errors.New("model.String contains line breaks"), metaData})
+		return errors.New("Line breaks not allowed")
+	}
+
+	if self.Required(metaData) && self.IsEmpty() {
+		return NewRequiredError(metaData)
 	}
 
 	minlen, ok, err := self.Minlen(metaData)
@@ -56,7 +68,7 @@ func (self *String) Validate(metaData *MetaData) []*ValidationError {
 		err = &StringTooShort{value, minlen}
 	}
 	if err != nil {
-		e = append(e, &ValidationError{err, metaData})
+		return err
 	}
 
 	maxlen, ok, err := self.Maxlen(metaData)
@@ -64,10 +76,10 @@ func (self *String) Validate(metaData *MetaData) []*ValidationError {
 		err = &StringTooLong{value, maxlen}
 	}
 	if err != nil {
-		e = append(e, &ValidationError{err, metaData})
+		return err
 	}
 
-	return e
+	return nil
 }
 
 func (self *String) Minlen(metaData *MetaData) (minlen int, ok bool, err error) {
@@ -98,7 +110,7 @@ type StringTooShort struct {
 }
 
 func (self *StringTooShort) Error() string {
-	return fmt.Sprintf("String shorter than minimum of %d characters ('%s')", self.Minlen, self.Str)
+	return fmt.Sprintf("String shorter than minimum of %d characters", self.Minlen)
 }
 
 type StringTooLong struct {
@@ -107,5 +119,5 @@ type StringTooLong struct {
 }
 
 func (self *StringTooLong) Error() string {
-	return fmt.Sprintf("String longer than maximum of %d characters ('%s')", self.Maxlen, self.Str)
+	return fmt.Sprintf("String longer than maximum of %d characters", self.Maxlen)
 }

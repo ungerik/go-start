@@ -6,26 +6,23 @@ import (
 )
 
 type PasswordFormModel struct {
-	Password1 model.Password `gostart:"required|label=Password|minlen=6"`
-	Password2 model.Password `gostart:"required|label=Repeat password"`
+	Password1 model.Password `gostart:"label=Password|minlen=6|size=20"`
+	Password2 model.Password `gostart:"label=Repeat password|size=20"`
 }
 
-func (self *PasswordFormModel) Validate(metaData *model.MetaData) []*model.ValidationError {
+func (self *PasswordFormModel) Validate(metaData *model.MetaData) error {
 	if self.Password1 != self.Password2 {
-		return model.NewValidationErrors(errors.New("Passwords don't match"), metaData)
+		return errors.New("Passwords don't match")
 	}
-	return model.NoValidationErrors
+	return nil
 }
 
 type EmailPasswordFormModel struct {
-	Email             model.Email `gostart:"required"`
-	PasswordFormModel `bson:",inline"`
+	Email             model.Email `gostart:"required|size=20"`
+	PasswordFormModel `bson:",inline" gostart:"size=20"`
 }
 
 type LoginFormModel struct {
-	Email    model.Email `gostart:"required"`
-	Password model.Password `gostart:"required"`
+	Email    model.Email    `gostart:"required|size=20"`
+	Password model.Password `gostart:"required|size=20"`
 }
-
-
-

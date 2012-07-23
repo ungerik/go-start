@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/model"
-	"launchpad.net/mgo/bson"
+	"github.com/ungerik/go-start/mgo/bson"
 )
 
 /*
@@ -13,8 +13,8 @@ Only the ID will be saved in MongoDB, the collection name is for validation
 and convenience functions only.
 */
 type Ref struct {
-	ID             bson.ObjectId
-	CollectionName string
+	ID             bson.ObjectId `gostart:"-"`
+	CollectionName string        `gostart:"-"`
 }
 
 func (self *Ref) String() string {
@@ -56,19 +56,18 @@ func (self *Ref) SetBSON(raw bson.Raw) error {
 	return nil
 }
 
-func (self *Ref) Validate(metaData *model.MetaData) (errors []*model.ValidationError) {
-	errors = model.NoValidationErrors
+func (self *Ref) Validate(metaData *model.MetaData) error {
 	if self.CollectionName == "" {
-		errors = append(errors, &model.ValidationError{errs.Format("Missing CollectionName"), metaData})
+		return errs.Format("Missing CollectionName")
 	}
 	length := len(self.ID)
 	if length != 0 && length != 12 {
-		errors = append(errors, &model.ValidationError{errs.Format("Invalid ObjectId length %d", length), metaData})
+		return errs.Format("Invalid ObjectId length %d", length)
 	}
 	if self.Required(metaData) && self.IsEmpty() {
-		errors = append(errors, model.NewRequiredValidationError(metaData))
+		return model.NewRequiredError(metaData)
 	}
-	return errors
+	return nil
 }
 
 func (self *Ref) Required(metaData *model.MetaData) bool {

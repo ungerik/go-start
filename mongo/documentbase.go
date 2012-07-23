@@ -1,18 +1,18 @@
 package mongo
 
 import (
-	"launchpad.net/mgo/bson"
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/model"
+	"github.com/ungerik/go-start/mgo/bson"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
 // DocumentBase
 
 type DocumentBase struct {
-	ID              bson.ObjectId `bson:"_id,omitempty"`
-	collection      *Collection
-	embeddingStruct interface{}
+	ID              bson.ObjectId `bson:"_id,omitempty" gostart:"-"`
+	collection      *Collection   `gostart:"-"`
+	embeddingStruct interface{}   `gostart:"-"`
 }
 
 func (self *DocumentBase) Init(collection *Collection, embeddingStruct interface{}) {

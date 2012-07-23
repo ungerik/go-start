@@ -102,7 +102,7 @@ func (self *XMLWriter) CloseTag() *XMLWriter {
 }
 
 // Creates an explicit close tag, even if there is no content
-func (self *XMLWriter) ExtraCloseTag() *XMLWriter {
+func (self *XMLWriter) ForceCloseTag() *XMLWriter {
 	self.finishOpenTag()
 	return self.CloseTag()
 }

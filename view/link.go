@@ -1,19 +1,8 @@
 package view
 
-import
-
-//	"bytes"
-"github.com/ungerik/go-start/utils"
-
-//func RenderLink(response *Response, link *Link) (html string, err error) {
-//	var buf bytes.Buffer
-//	err = link.Render(context, utils.NewXMLWriter(&buf))
-//	return buf.String(), err
-//}
-//
-//func RenderLinkModel(response *Response, model LinkModel) (html string, err error) {
-//	return RenderLink(context, &Link{Model: model})
-//}
+import (
+	"github.com/ungerik/go-start/utils"
+)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Link
@@ -33,7 +22,7 @@ func (self *Link) Render(response *Response) (err error) {
 		writer.Attrib("target", "_blank")
 	}
 	if self.Model != nil {
-		writer.Attrib("href", self.Model.URL(response))
+		writer.Attrib("href", self.Model.URL(response.Request.PathArgs...))
 		writer.AttribIfNotDefault("title", self.Model.LinkTitle(response))
 		writer.AttribIfNotDefault("rel", self.Model.LinkRel(response))
 		content := self.Model.LinkContent(response)
@@ -41,6 +30,6 @@ func (self *Link) Render(response *Response) (err error) {
 			err = content.Render(response)
 		}
 	}
-	writer.ExtraCloseTag() // a
+	writer.ForceCloseTag() // a
 	return err
 }

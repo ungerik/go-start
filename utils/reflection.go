@@ -7,6 +7,27 @@ import (
 	"unicode"
 )
 
+// IsErrorType checks if t is the built-in type error.
+func IsErrorType(t reflect.Type) bool {
+	return t == reflect.TypeOf(func(error) {}).In(0)
+}
+
+/*
+DereferenceValue recursively dereferences v if it is a pointer or interface.
+It will return ok == false if nil is encountered.
+*/
+func DereferenceValue(v reflect.Value) (result reflect.Value, ok bool) {
+	k := v.Kind()
+	if k == reflect.Ptr || k == reflect.Interface {
+		if v.IsNil() {
+			return v, false
+		} else {
+			return DereferenceValue(v.Elem())
+		}
+	}
+	return v, true
+}
+
 type MatchStructFieldFunc func(field *reflect.StructField) bool
 
 func IsExportedName(name string) bool {
@@ -81,6 +102,9 @@ func CallMethod1(object interface{}, method string, args ...interface{}) (result
 }
 
 func IsDefaultValue(value interface{}) bool {
+	if value == nil {
+		return true
+	}
 	v := reflect.ValueOf(value)
 	switch v.Kind() {
 	case reflect.Ptr:
@@ -105,7 +129,7 @@ func IsDefaultValue(value interface{}) bool {
 		return v.Bool() == false
 
 	case reflect.Struct:
-		// todo when struct comparison works
+		return reflect.DeepEqual(value, reflect.Zero(v.Type()).Interface())
 
 	case reflect.Slice, reflect.Map, reflect.Chan, reflect.Func, reflect.Interface:
 		return v.IsNil()

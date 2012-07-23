@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"regexp"
 	"runtime"
+	runtime_debug "runtime/debug"
 	"strings"
 )
 
@@ -144,7 +145,13 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 			case Forbidden:
 				response.Forbidden403(err.Error())
 			default:
-				response.Abort(http.StatusInternalServerError, err.Error())
+				fmt.Println(err.Error())
+				runtime_debug.PrintStack()
+				msg := err.Error()
+				if Config.Debug.Mode {
+					msg += string(runtime_debug.Stack())
+				}
+				response.Abort(http.StatusInternalServerError, msg)
 			}
 			return ""
 		}
@@ -155,7 +162,7 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 				return handleErr(err)
 			case self.NoAuth != nil:
 				from := url.QueryEscape(response.Request.RequestURI)
-				to := self.NoAuth.URL(response) + "?from=" + from
+				to := self.NoAuth.URL(response.Request.Params...) + "?from=" + from
 				return handleErr(Redirect(to))
 			}
 			return handleErr(Forbidden("403 Forbidden: authentication required"))

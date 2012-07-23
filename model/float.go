@@ -39,28 +39,31 @@ func (self *Float) SetString(str string) error {
 }
 
 func (self *Float) IsEmpty() bool {
-	return !self.IsValid()
+	return false
 }
 
-func (self *Float) Validate(metaData *MetaData) []*ValidationError {
+func (self *Float) Required(metaData *MetaData) bool {
+	return true
+}
+
+func (self *Float) Validate(metaData *MetaData) error {
 	value := float64(*self)
-	errors := NoValidationErrors
 	min, ok, err := self.Min(metaData)
 	if err != nil {
-		errors = append(errors, &ValidationError{err, metaData})
+		return err
 	} else if ok && value < min {
-		errors = append(errors, &ValidationError{&FloatBelowMin{value, min}, metaData})
+		return &FloatBelowMin{value, min}
 	}
 	max, ok, err := self.Max(metaData)
 	if err != nil {
-		errors = append(errors, &ValidationError{err, metaData})
+		return err
 	} else if ok && value > max {
-		errors = append(errors, &ValidationError{&FloatAboveMax{value, max}, metaData})
+		return &FloatAboveMax{value, max}
 	}
 	if valid := self.Valid(metaData); valid && !self.IsValid() {
-		errors = append(errors, &ValidationError{&FloatNotReal{value}, metaData})
+		return &FloatNotReal{value}
 	}
-	return errors
+	return nil
 }
 
 func (self *Float) Min(metaData *MetaData) (min float64, ok bool, err error) {

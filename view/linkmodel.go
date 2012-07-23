@@ -5,9 +5,6 @@ import (
 	"reflect"
 )
 
-///////////////////////////////////////////////////////////////////////////////
-// LinkModel
-
 type LinkModel interface {
 	URL
 	LinkContent(response *Response) View
@@ -22,26 +19,33 @@ func NewLinkModel(url interface{}, content ...interface{}) LinkModel {
 		}
 		return NewViews(content...)
 	}
+	getContentString := func() string {
+		if len(content) == 0 {
+			return ""
+		}
+		s, _ := content[0].(string)
+		return s
+	}
 	switch s := url.(type) {
 	case **Page:
-		return &PageLink{Page: s, Content: getContent()}
+		return &PageLink{Page: s, Content: getContent(), Title: getContentString()}
 	case *ViewWithURL:
-		return &URLLink{Url: &indirectViewWithURL{s}, Content: NewViews(content...)}
+		return &URLLink{Url: IndirectViewWithURL(s), Content: NewViews(content...), Title: getContentString()}
 	case LinkModel:
 		if len(content) > 0 {
-			return &URLLink{Url: s, Content: NewViews(content...)}
+			return &URLLink{Url: s, Content: NewViews(content...), Title: getContentString()}
 		}
 		return s
 	case URL:
-		return &URLLink{Url: s, Content: getContent()}
+		return &URLLink{Url: s, Content: getContent(), Title: getContentString()}
 	case fmt.Stringer:
-		return &StringLink{Url: s.String(), Content: getContent()}
+		return &StringLink{Url: s.String(), Content: getContent(), Title: getContentString()}
 	}
 	v := reflect.ValueOf(url)
 	if v.Kind() != reflect.String {
 		panic(fmt.Errorf("Invalid type for url: %T", url))
 	}
-	return &StringLink{Url: v.String(), Content: getContent()}
+	return &StringLink{Url: v.String(), Content: getContent(), Title: getContentString()}
 }
 
 func NewLinkModelRel(url interface{}, rel string, content ...interface{}) LinkModel {
@@ -51,25 +55,33 @@ func NewLinkModelRel(url interface{}, rel string, content ...interface{}) LinkMo
 		}
 		return NewViews(content...)
 	}
+	getContentString := func() string {
+		if len(content) == 0 {
+			return ""
+		}
+		s, _ := content[0].(string)
+		return s
+	}
 	switch s := url.(type) {
 	case **Page:
-		return &PageLink{Page: s, Content: getContent(), Rel: rel}
+		return &PageLink{Page: s, Content: getContent(), Rel: rel, Title: getContentString()}
 	case *ViewWithURL:
-		return &URLLink{Url: &indirectViewWithURL{s}, Content: NewViews(content...), Rel: rel}
+		return &URLLink{Url: IndirectViewWithURL(s), Content: NewViews(content...), Rel: rel, Title: getContentString()}
 	case LinkModel:
 		if len(content) > 0 {
-			return &URLLink{Url: s, Content: NewViews(content...), Rel: rel}
+			return &URLLink{Url: s, Content: NewViews(content...), Rel: rel, Title: getContentString()}
 		}
 		return s
 	case URL:
-		return &URLLink{Url: s, Content: getContent(), Rel: rel}
+		return &URLLink{Url: s, Content: getContent(), Rel: rel, Title: getContentString()}
 	case fmt.Stringer:
-		return &StringLink{Url: s.String(), Content: getContent(), Rel: rel}
+		return &StringLink{Url: s.String(), Content: getContent(), Rel: rel, Title: getContentString()}
 	}
 	v := reflect.ValueOf(url)
 	if v.Kind() != reflect.String {
 		panic(fmt.Errorf("Invalid type for url: %T", url))
 	}
+<<<<<<< HEAD
 	return &StringLink{Url: v.String(), Content: getContent(), Rel: rel}
 }
 
@@ -171,4 +183,7 @@ func (self *URLLink) LinkTitle(response *Response) string {
 
 func (self *URLLink) LinkRel(response *Response) string {
 	return self.Rel
+=======
+	return &StringLink{Url: v.String(), Content: getContent(), Rel: rel, Title: getContentString()}
+>>>>>>> master
 }

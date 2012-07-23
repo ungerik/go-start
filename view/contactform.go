@@ -17,6 +17,7 @@ type ContactFormModel struct {
 // NewContactForm creates a new contact form that sends submitted data to recipientEmail.
 func NewContactForm(recipientEmail, subjectPrefix, formClass, buttonClass, formID string) *Form {
 	return &Form{
+<<<<<<< HEAD
 		Class:          formClass,
 		ButtonClass:    buttonClass,
 		ButtonText:     "Send",
@@ -26,9 +27,21 @@ func NewContactForm(recipientEmail, subjectPrefix, formClass, buttonClass, formI
 			return &ContactFormModel{}, nil
 		},
 		OnSubmit: func(form *Form, formModel interface{}, response *Response) error {
+=======
+		Class:             formClass,
+		SubmitButtonClass: buttonClass,
+		SubmitButtonText:  "Send",
+		SuccessMessage:    "Message sent",
+		FormID:            formID,
+		GetModel: func(form *Form, context *Context) (interface{}, error) {
+			return &ContactFormModel{}, nil
+		},
+		OnSubmit: func(form *Form, formModel interface{}, context *Context) (string, URL, error) {
+>>>>>>> master
 			model := formModel.(*ContactFormModel)
 			subject := fmt.Sprintf("%sFrom %s <%s>: %s", subjectPrefix, model.Name, model.Email, model.Subject)
-			return email.NewBriefMessage(subject, model.Message.Get(), recipientEmail).Send()
+			err := email.NewBriefMessage(subject, model.Message.Get(), recipientEmail).Send()
+			return "", nil, err
 		},
 	}
 }

@@ -1,5 +1,28 @@
 package view
 
+<<<<<<< HEAD
+=======
+import (
+	"github.com/ungerik/go-start/utils"
+)
+
+func TableHeaderRow(views ...View) func(context *Context) (Views, error) {
+	return func(context *Context) (Views, error) {
+		return Views(views), nil
+	}
+}
+
+func TableHeaderRowEscape(s ...string) func(context *Context) (Views, error) {
+	views := make(Views, len(s))
+	for i := range s {
+		views[i] = Escape(s[i])
+	}
+	return func(context *Context) (Views, error) {
+		return views, nil
+	}
+}
+
+>>>>>>> master
 ///////////////////////////////////////////////////////////////////////////////
 // TableModelView
 

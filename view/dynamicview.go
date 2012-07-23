@@ -17,9 +17,6 @@ type DynamicView func(response *Response) (view View, err error)
 func (self DynamicView) Init(thisView View) {
 }
 
-func (self DynamicView) OnRemove() {
-}
-
 func (self DynamicView) ID() string {
 	return ""
 }

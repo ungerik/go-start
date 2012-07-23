@@ -1,6 +1,6 @@
 package mongo
 
-import "launchpad.net/mgo"
+import "github.com/ungerik/go-start/mgo"
 
 ///////////////////////////////////////////////////////////////////////////////
 // skipQuery

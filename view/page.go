@@ -6,6 +6,124 @@ import (
 	"html"
 )
 
+<<<<<<< HEAD
+=======
+// PageWriteFunc is used by Page to write dynamic or static content to the page.
+type PageWriteFunc func(context *Context, writer io.Writer) (err error)
+
+// PageTitle writes a static page title.
+func PageTitle(title string) PageWriteFunc {
+	return PageWrite(title)
+}
+
+// PageMetaDescription writes a static meta description.
+func PageMetaDescription(description string) PageWriteFunc {
+	return PageWrite(description)
+}
+
+// PageWrite writes static text.
+func PageWrite(text string) PageWriteFunc {
+	return func(context *Context, writer io.Writer) (err error) {
+		writer.Write([]byte(text))
+		return nil
+	}
+}
+
+// PageWriters combines multiple PageWriteFunc into a single PageWriteFunc
+// by calling them one after another.
+func PageWriters(funcs ...PageWriteFunc) PageWriteFunc {
+	return func(context *Context, writer io.Writer) (err error) {
+		for _, f := range funcs {
+			if f != nil {
+				if err = f(context, writer); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	}
+}
+
+// IndirectPageWriter takes the pointer to a PageWriteFunc variable
+// and dereferences it when the returned PageWriteFunc is called.
+// Used to break dependency cycles of variable initializations by
+// using a pointer to a variable instead of its value.
+func IndirectPageWriter(pageWritePtr *PageWriteFunc) PageWriteFunc {
+	return func(context *Context, writer io.Writer) (err error) {
+		return (*pageWritePtr)(context, writer)
+	}
+}
+
+// PageWritersFilterPort calls funcs only
+// if the request is made to a specific port
+func PageWritersFilterPort(port uint16, funcs ...PageWriteFunc) PageWriteFunc {
+	if len(funcs) == 0 {
+		return nil
+	}
+	return func(context *Context, writer io.Writer) (err error) {
+		if context.RequestPort() != port {
+			return nil
+		}
+		return PageWriters(funcs...)(context, writer)
+	}
+}
+
+// Stylesheet writes a HTML style tag with the passed css as content.
+func Stylesheet(css string) PageWriteFunc {
+	return func(context *Context, writer io.Writer) (err error) {
+		writer.Write([]byte("<style>"))
+		writer.Write([]byte(css))
+		writer.Write([]byte("</style>\n"))
+		return nil
+	}
+}
+
+// StylesheetURL writes a HTML style tag with that references url.
+func StylesheetURL(url string) PageWriteFunc {
+	return func(context *Context, writer io.Writer) (err error) {
+		writer.Write([]byte("<link rel='stylesheet' href='"))
+		writer.Write([]byte(url))
+		writer.Write([]byte("'>\n"))
+		return nil
+	}
+}
+
+// Script writes a HTML script tag with the passed script as content.
+func Script(script string) PageWriteFunc {
+	return func(context *Context, writer io.Writer) (err error) {
+		writer.Write([]byte("<script>"))
+		writer.Write([]byte(script))
+		writer.Write([]byte("</script>\n"))
+		return nil
+	}
+}
+
+// ScriptURL writes a HTML script tag with that references url.
+func ScriptURL(url string) PageWriteFunc {
+	return func(context *Context, writer io.Writer) (err error) {
+		writer.Write([]byte("<script src='"))
+		writer.Write([]byte(url))
+		writer.Write([]byte("'></script>\n"))
+		return nil
+	}
+}
+
+// RSS a application/rss+xml link tag with the given title and url.
+func RSS(title string, url URL) PageWriteFunc {
+	return func(context *Context, writer io.Writer) (err error) {
+		writer.Write([]byte("<link rel='alternate' type='application/rss+xml' title='"))
+		writer.Write([]byte(title))
+		writer.Write([]byte("' href='"))
+		writer.Write([]byte(url.URL(context.PathArgs...)))
+		writer.Write([]byte("'>\n"))
+		return nil
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Page
+
+>>>>>>> master
 /*
 Page is the basis to render complete HTML pages.
 An arbitrary View or ViewWithURL can be used to render other text formats
@@ -106,6 +224,9 @@ func (self *Page) Init(thisView View) {
 	if self == nil {
 		panic("Page is nil")
 	}
+	if thisView == self.thisView {
+		return // already initialized
+	}
 
 	// Uses alwaysMustache template rendering
 	self.TemplateSystem = &templatesystem.Mustache{}
@@ -126,9 +247,8 @@ func (self *Page) SetPath(path string) {
 }
 
 // Implements the URL and LinkModel interface
-func (self *Page) URL(response *Response, args ...string) string {
-	path := StringURL(self.path).URL(response, args...)
-	return "http://" + response.Request.Host + path
+func (self *Page) URL(args ...string) string {
+	return StringURL(self.path).URL(args...)
 }
 
 // Implements the LinkModel interface
@@ -164,21 +284,24 @@ func (self *Page) Render(response *Response) (err error) {
 	}
 
 	var templateContext struct {
-		Title             string
-		MetaDescription   string
-		MetaViewport      string
-		Head              string
-		PreCSS            string
-		CSS               string
-		PostCSS           string
-		HeadScripts       string
-		Scripts           string
-		Favicon16x16URL   string
-		Favicon57x57URL   string
-		Favicon72x72URL   string
-		Favicon114x114URL string
-		Favicon129x129URL string
-		Content           string
+		Title              string
+		MetaDescription    string
+		MetaViewport       string
+		Head               string
+		PreCSS             string
+		CSS                string
+		PostCSS            string
+		DynamicStyle       string
+		HeadScripts        string
+		DynamicHeadScripts string
+		Scripts            string
+		DynamicScripts     string
+		Favicon16x16URL    string
+		Favicon57x57URL    string
+		Favicon72x72URL    string
+		Favicon114x114URL  string
+		Favicon129x129URL  string
+		Content            string
 	}
 
 	if self.Title != nil {
@@ -232,7 +355,7 @@ func (self *Page) Render(response *Response) (err error) {
 		templateContext.PreCSS = r.String()
 	}
 	if self.CSS != nil {
-		templateContext.CSS = self.CSS.URL(response)
+		templateContext.CSS = self.CSS.URL(response.Request.Params...)
 	} else {
 		templateContext.CSS = Config.Page.DefaultCSS
 	}
@@ -281,6 +404,12 @@ func (self *Page) Render(response *Response) (err error) {
 		}
 		templateContext.Content = r.String()
 	}
+
+	// Get dynamic style and scripts after self.Content.Render()
+	// because they are added in Render()
+	templateContext.DynamicStyle = context.dynamicStyle.String()
+	templateContext.DynamicHeadScripts = context.dynamicHeadScripts.String()
+	templateContext.DynamicScripts = context.dynamicScripts.String()
 
 	self.Template.GetContext = TemplateContext(templateContext)
 	return self.Template.Render(response)

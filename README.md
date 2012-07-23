@@ -4,7 +4,7 @@ Installation:
 go get github.com/ungerik/go-start
 
 Documentation:
-http://go-start.org/pkg/github.com/ungerik/go-start/
+http://go.pkgdoc.org/github.com/ungerik/go-start
 
 Presentation Slides:
 http://speakerdeck.com/u/ungerik/

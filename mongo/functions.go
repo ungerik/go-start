@@ -4,7 +4,7 @@ import (
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/utils"
-	"launchpad.net/mgo/bson"
+	"github.com/ungerik/go-start/mgo/bson"
 	"reflect"
 	"sort"
 	"strings"
@@ -12,16 +12,14 @@ import (
 //	"github.com/ungerik/go-start/debug"
 )
 
-// todo DropDatabase()
-
-func AddCollection(collection *Collection) (err error) {
-	if _, ok := collections[collection.Name]; ok {
-		return errs.Format("Collection %s already added", collection.Name)
-	}
-	collection.Init()
-	collections[collection.Name] = collection
-	return nil
-}
+// func AddCollection(collection *Collection) (err error) {
+// 	if _, ok := collections[collection.Name]; ok {
+// 		return errs.Format("Collection %s already added", collection.Name)
+// 	}
+// 	collection.Init()
+// 	collections[collection.Name] = collection
+// 	return nil
+// }
 
 func CollectionByName(name string) (collection *Collection, ok bool) {
 	collection, ok = collections[name]
@@ -153,20 +151,17 @@ func SortRefs(refs []Ref, lessFunc func(a, b *Ref) bool) {
 //}
 
 func InitRefs(document interface{}) {
-	model.WalkStructure(document, 0,
-		func(data interface{}, metaData *model.MetaData) {
-			if ref, ok := data.(*Ref); ok && ref.CollectionName == "" {
-				m := metaData
-				if m.IsIndex() {
-					m = m.Parent
-				}
-				ref.CollectionName, ok = m.Attrib("to")
+	model.Visit(document, model.FieldOnlyVisitor(
+		func(data *model.MetaData) error {
+			if ref, ok := data.Value.Addr().Interface().(*Ref); ok && ref.CollectionName == "" {
+				ref.CollectionName, ok = data.Attrib("to")
 				if !ok {
-					panic(metaData.Selector() + " is missing the 'to' meta-data tag")
+					panic(data.Selector() + " is missing the 'to' meta-data tag")
 				}
 			}
+			return nil
 		},
-	)
+	))
 }
 
 // Returns an iterator of dereferenced refs, or an error iterator if there was an error

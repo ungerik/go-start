@@ -2,10 +2,10 @@ package mongo
 
 import (
 	"fmt"
-	"launchpad.net/mgo"
+	"github.com/ungerik/go-start/mgo"
 )
 
-var database *mgo.Database
+var Database *mgo.Database
 
 var collections map[string]*Collection = map[string]*Collection{}
 
@@ -41,7 +41,7 @@ func Init() (err error) {
 		host = Config.Host
 	}
 
-	// http://goneat.org/pkg/launchpad.net/mgo/#Session.Mongo
+	// http://goneat.org/pkg/github.com/ungerik/go-start/mgo/#Session.Mongo
 	// [mongodb://][user:pass@]host1[:port1][,host2[:port2],...][/database][?options]
 	url := fmt.Sprintf("mongodb://%s%s/%s", login, host, Config.Database)
 
@@ -51,13 +51,18 @@ func Init() (err error) {
 	}
 	session.SetSafe(&Config.Safe)
 
-	database = session.DB(Config.Database)
+	Database = session.DB(Config.Database)
+
+	for _, collection := range collections {
+		collection.collection = Database.C(collection.Name)
+	}
 
 	return nil
 }
 
-func Close() {
-	if database.Session != nil {
-		database.Session.Close()
+func Close() error {
+	if Database.Session != nil {
+		Database.Session.Close()
 	}
+	return nil
 }

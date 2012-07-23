@@ -3,9 +3,9 @@ package user
 import (
 	"fmt"
 	"github.com/ungerik/go-mail"
+	"github.com/ungerik/go-start/mgo/bson"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/view"
-	"launchpad.net/mgo/bson"
 	"net/url"
 )
 
@@ -32,7 +32,7 @@ func (self *EmailIdentity) SendConfirmationEmail(response *view.Response, confir
 	}
 
 	subject := fmt.Sprintf(Config.ConfirmationEmailSubject, view.Config.SiteName)
-	confirm := confirmationURL.URL(response) + "?code=" + url.QueryEscape(confirmationCode)
+	confirm := confirmationURL.URL(context.PathArgs...) + "?code=" + url.QueryEscape(confirmationCode)
 	message := fmt.Sprintf(Config.ConfirmationEmailMessage, view.Config.SiteName, confirm)
 
 	go func() {
@@ -47,7 +47,7 @@ func (self *EmailIdentity) MailtoURL() string {
 	return "mailto:" + self.Address.Get()
 }
 
-func (self *EmailIdentity) URL(response *view.Response, args ...string) string {
+func (self *EmailIdentity) URL(args ...string) string {
 	return self.MailtoURL()
 }
 

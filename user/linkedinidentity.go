@@ -31,7 +31,7 @@ func (self *LinkedInIdentity) ProfileURL() string {
 	return ""
 }
 
-func (self *LinkedInIdentity) URL(response *view.Response, args ...string) string {
+func (self *LinkedInIdentity) URL(args ...string) string {
 	return self.ProfileURL()
 }
 

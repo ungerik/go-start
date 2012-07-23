@@ -17,9 +17,6 @@ type RenderView func(response *Response) error
 func (self RenderView) Init(thisView View) {
 }
 
-func (self RenderView) OnRemove() {
-}
-
 func (self RenderView) ID() string {
 	return ""
 }

@@ -29,7 +29,9 @@ func (self *Checkbox) Render(response *Response) (err error) {
 	}
 	writer.CloseTag()
 
-	writer.OpenTag("label").Attrib("for", self.id).Content(self.Label).CloseTag()
+	if self.Label != "" {
+		writer.OpenTag("label").Attrib("for", self.id).Content(self.Label).CloseTag()
+	}
 	return nil
 }
 

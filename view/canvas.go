@@ -13,6 +13,6 @@ func (self *Canvas) Render(response *Response) (err error) {
 	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("label").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	writer.Attrib("width", self.Width).Attrib("height", self.Height)
-	writer.ExtraCloseTag()
+	writer.ForceCloseTag()
 	return err
 }

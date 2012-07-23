@@ -10,14 +10,11 @@ type ViewBaseWithId struct {
 }
 
 func (self *ViewBaseWithId) Init(thisView View) {
+	if thisView == self.thisView {
+		return // already initialized
+	}
 	self.ViewBase.Init(thisView)
 	self.id = NewViewID(thisView)
-}
-
-func (self *ViewBaseWithId) OnRemove() {
-	DeleteViewID(self.id)
-	self.id = ""
-	self.ViewBase.OnRemove()
 }
 
 func (self *ViewBaseWithId) ID() string {

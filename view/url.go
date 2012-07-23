@@ -1,15 +1,8 @@
 package view
 
-import (
-	"github.com/ungerik/go-start/errs"
-	"strings"
-)
-
-///////////////////////////////////////////////////////////////////////////////
-// URL
-
-// URL is an interface to return URL strings depending on the request context.
+// URL is an interface to return URL strings depending on the request path args.
 type URL interface {
+<<<<<<< HEAD
 	// If args are passed, they will be used instead of context.PathArgs.
 	URL(response *Response, args ...string) string
 }
@@ -72,4 +65,7 @@ func (self StringURL) URL(response *Response, args ...string) string {
 		url = strings.Replace(url, PathFragmentPattern, arg, 1)
 	}
 	return url
+=======
+	URL(args ...string) string
+>>>>>>> master
 }

@@ -1,12 +1,12 @@
 package mongo
 
 import (
-	"github.com/ungerik/go-start/debug"
+	"fmt"
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/utils"
-	"launchpad.net/mgo"
-	"launchpad.net/mgo/bson"
+	"github.com/ungerik/go-start/mgo"
+	"github.com/ungerik/go-start/mgo/bson"
 	"reflect"
 	"strconv"
 	"strings"
@@ -16,13 +16,20 @@ import (
 // NewCollection
 
 func NewCollection(name string, documentPrototype interface{}) *Collection {
-	debug.Nop()
+	if _, ok := collections[name]; ok {
+		panic(fmt.Sprintf("Collection %s already created", name))
+	}
 
 	t := reflect.TypeOf(documentPrototype)
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
-	return &Collection{Name: name, DocumentType: t}
+	collection := &Collection{Name: name, DocumentType: t}
+
+	collection.Init()
+	collections[name] = collection
+
+	return collection
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -55,13 +62,13 @@ type Collection struct {
 	Name         string
 	DocumentType reflect.Type
 	collection   *mgo.Collection
-	foreignRefs  []ForeignRef
+	// foreignRefs  []ForeignRef
 }
 
 func (self *Collection) Init() {
 	self.thisQuery = self
-	self.collection = database.C(self.Name)
-	self.foreignRefs = []ForeignRef{}
+	//self.collection = database.C(self.Name)
+	// self.foreignRefs = []ForeignRef{}
 }
 
 func (self *Collection) checkDBConnection() {

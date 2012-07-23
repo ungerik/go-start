@@ -18,7 +18,7 @@ func (self *Table) Render(response *Response) (err error) {
 	writer.OpenTag("table").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 
 	if self.Caption != "" {
-		writer.OpenTag("caption").Content(self.Caption).CloseTag()
+		writer.OpenTag("caption").EscapeContent(self.Caption).CloseTag()
 	}
 
 	if self.Model != nil {
@@ -52,14 +52,14 @@ func (self *Table) Render(response *Response) (err error) {
 				if err != nil {
 					return err
 				}
-				writer.ExtraCloseTag() // td/th
+				writer.ForceCloseTag() // td/th
 			}
 
-			writer.ExtraCloseTag() // tr
+			writer.ForceCloseTag() // tr
 		}
 	}
 
-	writer.ExtraCloseTag() // table
+	writer.ForceCloseTag() // table
 	return nil
 }
 
@@ -82,13 +82,21 @@ func (self ViewsTableModel) Rows() int {
 }
 
 func (self ViewsTableModel) Columns() int {
-	if len(self) == 0 {
-		return 0
+	columns := 0
+	for row := range self {
+		x := len(self[row])
+		if x > columns {
+			columns = x
+		}
 	}
-	return len(self[0])
+	return columns
 }
 
 func (self ViewsTableModel) CellView(row int, column int, response *Response) (view View, err error) {
+func (self ViewsTableModel) CellView(row int, column int, context *Context) (view View, err error) {
+	if column >= len(self[row]) {
+		return nil, nil
+	}
 	return self[row][column], nil
 }
 
@@ -102,10 +110,14 @@ func (self HTMLStringsTableModel) Rows() int {
 }
 
 func (self HTMLStringsTableModel) Columns() int {
-	if len(self) == 0 {
-		return 0
+	columns := 0
+	for row := range self {
+		x := len(self[row])
+		if x > columns {
+			columns = x
+		}
 	}
-	return len(self[0])
+	return columns
 }
 
 func (self HTMLStringsTableModel) CellView(row int, column int, response *Response) (view View, err error) {
@@ -122,10 +134,14 @@ func (self EscapeStringsTableModel) Rows() int {
 }
 
 func (self EscapeStringsTableModel) Columns() int {
-	if len(self) == 0 {
-		return 0
+	columns := 0
+	for row := range self {
+		x := len(self[row])
+		if x > columns {
+			columns = x
+		}
 	}
-	return len(self[0])
+	return columns
 }
 
 func (self EscapeStringsTableModel) CellView(row int, column int, response *Response) (view View, err error) {

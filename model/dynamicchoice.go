@@ -2,7 +2,7 @@ package model
 
 import (
 	"fmt"
-	"launchpad.net/mgo/bson"
+	"github.com/ungerik/go-start/mgo/bson"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ func (self *DynamicChoice) SetOptions(options []string) {
 
 func (self *DynamicChoice) String() string {
 	if self.index < 0 || self.index >= len(self.options) {
-		return "[invalid choice]"
+		return ""
 	}
 	return self.options[self.index]
 }
@@ -64,15 +64,18 @@ func (self *DynamicChoice) SetBSON(raw bson.Raw) (err error) {
 }
 
 func (self *DynamicChoice) IsEmpty() bool {
-	return self.CheckIndex(self.index) != nil
+	return self.String() == ""
 }
 
-func (self *DynamicChoice) Validate(metaData *MetaData) []*ValidationError {
-	err := self.CheckIndex(self.index)
-	if err != nil {
-		return NewValidationErrors(err, metaData)
+func (self *DynamicChoice) Required(metaData *MetaData) bool {
+	return len(self.options) > 0 && self.options[0] != ""
+}
+
+func (self *DynamicChoice) Validate(metaData *MetaData) error {
+	if self.Required(metaData) && self.IsEmpty() {
+		return NewRequiredError(metaData)
 	}
-	return NoValidationErrors
+	return self.CheckIndex(self.index)
 }
 
 func (self *DynamicChoice) CheckIndex(index int) error {

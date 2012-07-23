@@ -21,3 +21,7 @@ type XMLBuffer struct {
 func (self *XMLBuffer) String() string {
 	return self.buffer.String()
 }
+
+func (self *XMLBuffer) Bytes() []byte {
+	return self.buffer.Bytes()
+}

@@ -8,9 +8,6 @@ type HTML string
 func (self HTML) Init(thisView View) {
 }
 
-func (self HTML) OnRemove() {
-}
-
 func (self HTML) ID() string {
 	return ""
 }

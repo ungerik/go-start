@@ -17,7 +17,7 @@ func (self *Auth) Authenticate(response *view.Response) (ok bool, err error) {
 
 	ok, err = IsConfirmedUserID(id)
 	if !ok && err == nil && self.LoginURL != nil {
-		err = view.Redirect(self.LoginURL.URL(response))
+		err = view.Redirect(self.LoginURL.URL(context.PathArgs...))
 	}
 	return ok, err
 }

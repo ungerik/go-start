@@ -11,6 +11,9 @@ type If struct {
 }
 
 func (self *If) Init(thisView View) {
+	if thisView == self.thisView {
+		return // already initialized
+	}
 	self.ViewBaseWithId.Init(thisView)
 
 	// ViewBaseWithId.Init() initializes the child reported by IterateChildren(),
@@ -23,22 +26,6 @@ func (self *If) Init(thisView View) {
 	}
 	if child != nil {
 		child.Init(child)
-	}
-}
-
-func (self *If) OnRemove() {
-	self.ViewBaseWithId.OnRemove()
-
-	// ViewBaseWithId.OnRemove() removes the child reported by IterateChildren(),
-	// we need to remove the child for the other case of !self.Condition
-	var child View
-	if !self.Condition {
-		child = self.Content
-	} else {
-		child = self.ElseContent
-	}
-	if child != nil {
-		child.OnRemove()
 	}
 }
 

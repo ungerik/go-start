@@ -1,7 +1,7 @@
 package mongo
 
 import (
-	"launchpad.net/mgo/bson"
+	"github.com/ungerik/go-start/mgo/bson"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -24,6 +24,3 @@ func (self *filterAllInQuery) Selector() string {
 //func (self *filterAllInQuery) Values() []interface{} {
 //	return self.values
 //}
-
-
-

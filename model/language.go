@@ -45,18 +45,17 @@ func (self *Language) EnglishName() string {
 func (self *Language) FixValue(metaData *MetaData) {
 }
 
-func (self *Language) Validate(metaData *MetaData) []*ValidationError {
+func (self *Language) Validate(metaData *MetaData) error {
 	str := self.Get()
-	errors := NoValidationErrors
 	if self.Required(metaData) || str != "" {
 		//		if _, ok := i18n.Languages()[str]; !ok {
 		//			errors = append(errors, &InvalidLanguageCode{str})
 		//		}
 	}
 	if self.Required(metaData) && self.IsEmpty() {
-		errors = append(errors, NewRequiredValidationError(metaData))
+		return NewRequiredError(metaData)
 	}
-	return errors
+	return nil
 }
 
 func (self *Language) Required(metaData *MetaData) bool {

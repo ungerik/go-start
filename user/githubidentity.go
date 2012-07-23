@@ -22,7 +22,7 @@ func (self *GitHubIdentity) ProfileURL() string {
 	return "https://github.com/" + self.Name.Get()
 }
 
-func (self *GitHubIdentity) URL(response *view.Response, args ...string) string {
+func (self *GitHubIdentity) URL(args ...string) string {
 	return self.ProfileURL()
 }
 

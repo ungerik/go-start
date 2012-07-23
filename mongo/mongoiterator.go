@@ -2,7 +2,7 @@ package mongo
 
 import (
 	"github.com/ungerik/go-start/model"
-	"launchpad.net/mgo"
+	"github.com/ungerik/go-start/mgo"
 )
 
 ///////////////////////////////////////////////////////////////////////////////

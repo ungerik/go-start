@@ -1,7 +1,7 @@
 package mongo
 
 import (
-	"launchpad.net/mgo/bson"
+	"github.com/ungerik/go-start/mgo/bson"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -24,4 +24,3 @@ func (self *filterArraySizeQuery) Selector() string {
 //func (self *filterArraySizeQuery) Size() int {
 //	return self.size
 //}
-

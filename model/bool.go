@@ -27,9 +27,13 @@ func (self *Bool) SetString(str string) error {
 }
 
 func (self *Bool) IsEmpty() bool {
-	return *self == false
+	return false
 }
 
-func (self *Bool) Validate(metaData *MetaData) []*ValidationError {
-	return NoValidationErrors
+func (self *Bool) Required(metaData *MetaData) bool {
+	return false
+}
+
+func (self *Bool) Validate(metaData *MetaData) error {
+	return nil
 }

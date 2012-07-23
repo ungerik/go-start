@@ -50,24 +50,24 @@ func NewLoginForm(buttonText, class, errorMessageClass, successMessageClass stri
 				ErrorMessageClass:   errorMessageClass,
 				SuccessMessageClass: successMessageClass,
 				SuccessMessage:      "Login successful",
-				ButtonText:          buttonText,
+				SubmitButtonText:    buttonText,
 				FormID:              "gostart_user_login",
 				GetModel:            view.FormModel(model),
 				Redirect:            redirectURL,
-				OnSubmit: func(form *view.Form, formModel interface{}, response *view.Response) (err error) {
+				OnSubmit: func(form *view.Form, formModel interface{}, response *view.Response) (string, view.URL, error) {
 					m := formModel.(*LoginFormModel)
 					ok, err := LoginEmailPassword(response.Session, m.Email.Get(), m.Password.Get())
 					if err != nil {
 						if view.Config.Debug.Mode {
-							return err
+							return "", nil, err
 						} else {
-							return errors.New("An internal error ocoured")
+							return "", nil, errors.New("An internal error ocoured")
 						}
 					}
 					if !ok {
-						return errors.New("Wrong email and password combination")
+						return "", nil, errors.New("Wrong email and password combination")
 					}
-					return nil
+					return "", nil, nil
 				},
 			}
 			return form, nil
@@ -81,7 +81,7 @@ func LogoutView(redirect view.URL) view.View {
 		func(response *view.Response) (err error) {
 			Logout(response.Session)
 			if redirect != nil {
-				return view.Redirect(redirect.URL(response))
+				return view.Redirect(redirect.URL(context.PathArgs...))
 			}
 			return view.Redirect("/")
 		},
@@ -95,38 +95,38 @@ func NewSignupForm(buttonText, class, errorMessageClass, successMessageClass str
 		ErrorMessageClass:   errorMessageClass,
 		SuccessMessageClass: successMessageClass,
 		SuccessMessage:      Config.ConfirmationSent,
-		ButtonText:          buttonText,
+		SubmitButtonText:    buttonText,
 		FormID:              "gostart_user_signup",
 		GetModel: func(form *view.Form, response *view.Response) (interface{}, error) {
 			return &EmailPasswordFormModel{}, nil
 		},
 		Redirect: redirectURL,
-		OnSubmit: func(form *view.Form, formModel interface{}, response *view.Response) error {
+		OnSubmit: func(form *view.Form, formModel interface{}, response *view.Response) string, view.URL, error {
 			m := formModel.(*EmailPasswordFormModel)
 			email := m.Email.Get()
 			password := m.Password1.Get()
 			var user *User
 			doc, found, err := FindByEmail(email)
 			if err != nil {
-				return err
+				return "", nil, err
 			}
 			if found {
 				user = From(doc)
 				if user.EmailPasswordConfirmed() {
-					return errors.New("A user with that email and a password already exists")
+					return "", nil, errors.New("A user with that email and a password already exists")
 				}
 				user.Password.SetHashed(password)
 			} else {
 				user, _, err = New(email, password)
 				if err != nil {
-					return err
+					return "", nil, err
 				}
 			}
 			err = <-user.Email[0].SendConfirmationEmail(response, confirmationURL)
 			if err != nil {
-				return err
+				return "", nil, err
 			}
-			return user.Save()
+			return "", nil, user.Save()
 		},
 	}
 }

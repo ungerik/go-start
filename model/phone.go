@@ -1,7 +1,6 @@
 package model
 
 import (
-	"github.com/ungerik/go-start/utils"
 	"strings"
 )
 
@@ -31,8 +30,15 @@ func (self *Phone) SetString(str string) error {
 func (self *Phone) FixValue(metaData *MetaData) {
 }
 
-func (self *Phone) Validate(metaData *MetaData) []*ValidationError {
-	return NoValidationErrors
+func (self *Phone) Required(metaData *MetaData) bool {
+	return metaData.BoolAttrib("required")
+}
+
+func (self *Phone) Validate(metaData *MetaData) error {
+	if self.Required(metaData) && self.IsEmpty() {
+		return NewRequiredError(metaData)
+	}
+	return nil
 }
 
 func NormalizePhoneNumber(number string) string {
@@ -46,10 +52,10 @@ func NormalizePhoneNumber(number string) string {
 	number = strings.Replace(number, "(0)", "", -1)
 	number = strings.Replace(number, ")", "", -1)
 	number = strings.Replace(number, "(", "", -1)
-	if utils.StringStartsWith(number, "++") {
+	if strings.HasPrefix(number, "++") {
 		return "00" + number[2:]
 	}
-	if utils.StringStartsWith(number, "+") {
+	if strings.HasPrefix(number, "+") {
 		return "00" + number[1:]
 	}
 	return number

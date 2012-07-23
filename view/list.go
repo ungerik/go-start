@@ -35,11 +35,11 @@ func (self *List) Render(response *Response) (err error) {
 			if err != nil {
 				return err
 			}
-			writer.ExtraCloseTag() // li
+			writer.ForceCloseTag() // li
 		}
 	}
 
-	writer.ExtraCloseTag() // ol/ul
+	writer.ForceCloseTag() // ol/ul
 	return nil
 }
 

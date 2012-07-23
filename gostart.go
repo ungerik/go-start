@@ -2,15 +2,13 @@
 go-start is a high level web-framework for Go,
 like Django for Python or Rails for Ruby.
 
-Source: https://github.com/ungerik/go-start/
-
-Documentation: http://go-start.org/pkg/go-start/gostart/
+* Source: https://github.com/ungerik/go-start/
+* Documentation: http://go-start.org/pkg/go-start/gostart/
 
 Note: Don't use Go on 32 bit systems in production, it has severe memory leaks.
 (If the documentation URL above doesn't work, then godoc -html has has crashed because of that issue)
 
-Intro:
-======
+## Intro:
 
 Features:
 
@@ -28,9 +26,18 @@ Features:
 	* Amiando event management: http://github.com/ungerik/go-amiando
 		(used by http://startuplive.in)
 
+Planned Features:
 
-Views:
-======
+* medialib
+* CSRF protection
+* Tutorial App
+* Remove web.go
+* Controller of MVC implemented as REST service
+* Support for LESS CSS
+* Support for Twitter Bootstrap
+
+
+## Views:
 
 The philosophy for creating HTML views is (unlike Rails/Django) that you should
 not have to learn yet another language to be able to write templates.
@@ -100,8 +107,7 @@ and creates a dynamic view for every iterated data item:
 	}
 
 
-Pages and URLs:
-===============
+## Pages and URLs:
 
 	Homepage := &Page{
 		OnPreRender: func(page *Page, response *Response) (err error) {
@@ -147,8 +153,7 @@ Pages and URLs:
 
 
 
-Models:
-=======
+## Models:
 
 Data is abstacted as models. The same model abstraction and data validation is
 used for HTML forms and for databases. So a model can be loaded from a database,
@@ -169,6 +174,7 @@ struct type:
 		if self.Password1 != self.Password2 {
 			return model.NewValidationErrors(os.NewError("Passwords don't match"), metaData)
 		}
+	errors := NoValidationErrors
 		return model.NoValidationErrors
 	}
 
@@ -250,17 +256,19 @@ import (
 	_ "github.com/ungerik/go-gravatar"
 	_ "github.com/ungerik/go-mail"
 	_ "github.com/ungerik/go-rss"
+	_ "github.com/ungerik/go-start/mgo"
 	_ "github.com/ungerik/goconfig"
 	_ "github.com/ungerik/mustache.go"
 	_ "github.com/ungerik/web.go"
-	_ "launchpad.net/mgo"
 
 	_ "github.com/ungerik/go-start/debug"
 	_ "github.com/ungerik/go-start/errs"
 	_ "github.com/ungerik/go-start/i18n"
+	_ "github.com/ungerik/go-start/media"
 	_ "github.com/ungerik/go-start/model"
 	_ "github.com/ungerik/go-start/modelext"
 	_ "github.com/ungerik/go-start/mongo"
+	_ "github.com/ungerik/go-start/mongomedia"
 	_ "github.com/ungerik/go-start/templatesystem"
 	_ "github.com/ungerik/go-start/user"
 	_ "github.com/ungerik/go-start/utils"

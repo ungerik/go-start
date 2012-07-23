@@ -1,7 +1,7 @@
 package mongo
 
 import (
-	"launchpad.net/mgo/bson"
+	"github.com/ungerik/go-start/mgo/bson"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,4 +34,3 @@ func (self *filterEndsWithQuery) Selector() string {
 //func (self *filterEndsWithQuery) CaseInsensitive() bool {
 //	return self.caseInsensitive
 //}
-

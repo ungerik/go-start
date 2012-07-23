@@ -23,3 +23,14 @@ func (self *Time) Set(t time.Time) {
 func (self *Time) IsEmpty() bool {
 	return *self == 0
 }
+
+func (self *Time) Required(metaData *MetaData) bool {
+	return metaData.BoolAttrib("required")
+}
+
+func (self *Time) Validate(metaData *MetaData) error {
+	if self.Required(metaData) && self.IsEmpty() {
+		return NewRequiredError(metaData)
+	}
+	return nil
+}

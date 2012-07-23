@@ -13,6 +13,8 @@ func (self *DateTime) Get() string {
 }
 
 func (self *DateTime) Set(value string) (err error) {
+	*self = DateTime(value) // set value in any case, so that user can see wrong value in form
+
 	if value != "" {
 		if _, err = time.Parse(DateTimeFormat, value); err != nil {
 			if _, err = time.Parse(ShortDateTimeFormat, value); err != nil {
@@ -77,18 +79,17 @@ func (self *DateTime) FixValue(metaData *MetaData) {
 }
 
 // todo min max
-func (self *DateTime) Validate(metaData *MetaData) []*ValidationError {
+func (self *DateTime) Validate(metaData *MetaData) error {
 	value := self.Get()
-	errors := NoValidationErrors
+	if self.Required(metaData) && self.IsEmpty() {
+		return NewRequiredError(metaData)
+	}
 	if self.Required(metaData) || value != "" {
 		if _, err := time.Parse(DateTimeFormat, value); err != nil {
-			errors = append(errors, &ValidationError{err, metaData})
+			return err
 		}
 	}
-	if self.Required(metaData) && self.IsEmpty() {
-		errors = append(errors, NewRequiredValidationError(metaData))
-	}
-	return errors
+	return nil
 }
 
 func (self *DateTime) Required(metaData *MetaData) bool {

@@ -13,10 +13,6 @@ func (self *ViewURLWrapper) Init(thisView View) {
 	self.View.Init(self.View)
 }
 
-func (self *ViewURLWrapper) OnRemove() {
-	self.View.OnRemove()
-}
-
 func (self *ViewURLWrapper) ID() string {
 	return self.View.ID()
 }
@@ -33,7 +29,6 @@ func (self *ViewURLWrapper) SetPath(path string) {
 	self.path = path
 }
 
-func (self *ViewURLWrapper) URL(response *Response, args ...string) string {
-	path := StringURL(self.path).URL(response, args...)
-	return "http://" + response.Request.Host + path
+func (self *ViewURLWrapper) URL(args ...string) string {
+	return StringURL(self.path).URL(args...)
 }

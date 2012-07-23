@@ -9,6 +9,17 @@ import (
 	"runtime/debug"
 )
 
+// Nop is a dummy function that can be called in source files where
+// other debug functions are constantly added and removed.
+// That way import "github.com/ungerik/go-start/debug" won't cause an error when
+// no other debug function is currently used.
+// Arbitrary objects can be passed as arguments to avoid "declared and not used"
+// error messages when commenting code out and in.
+// The result is a nil interface{} dummy value.
+func Nop(dummiesIn ...interface{}) (dummyOut interface{}) {
+	return nil
+}
+
 // Set Logger to nil to suppress debug output
 var Logger *log.Logger = log.New(os.Stdout, "", 0)
 
@@ -54,11 +65,4 @@ func Print(values ...interface{}) {
 
 func Quit() {
 	os.Exit(-1)
-}
-
-// Nop is a dummy function that can be called in source files where
-// other debug functions are constantly added and removed.
-// That way import "github.com/ungerik/go-start/debug" won't cause an error when
-// no other debug function is called.
-func Nop() {
 }

@@ -46,7 +46,7 @@ func (self *TextPreview) Render(response *Response) (err error) {
 			if content != nil {
 				err = content.Render(response)
 			}
-			writer.ExtraCloseTag() // a
+			writer.ForceCloseTag() // a
 		}
 	}
 	return err
