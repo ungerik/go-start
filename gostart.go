@@ -93,14 +93,14 @@ Example of a dynamic view:
 		},
 	)
 
-Beside DynamicView there is also a ModelView. It takes a model.Iterator
+Beside DynamicView there is also a ModelIteratorView. It takes a model.Iterator
 and creates a dynamic view for every iterated data item:
 
-	view := &ModelView{
+	view := &ModelIteratorView{
 		GetModelIterator: func(context *Context) model.Iterator {
 			return models.Users.Sort("Name.First").Sort("Name.Last").Iterator()
 		},
-		GetModelView: func(model interface{}, context *Context) (view View, err error) {
+		GetModelIteratorView: func(model interface{}, context *Context) (view View, err error) {
 			user := model.(*models.User)
 			return PrintfEscape("%s, ", user.Name), nil
 		},

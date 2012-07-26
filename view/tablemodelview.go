@@ -21,23 +21,23 @@ func TableHeaderRowEscape(s ...string) func(context *Context) (Views, error) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// TableModelView
+// TableModelIteratorView
 
-type TableModelView struct {
+type TableModelIteratorView struct {
 	ViewBase
-	Class             string
-	Caption           string
-	GetModelIterator  GetModelIteratorFunc
-	GetHeaderRow      func(context *Context) (views Views, err error)
-	GetRow            func(row int, rowModel interface{}, context *Context) (views Views, err error)
-	table             Table
+	Class            string
+	Caption          string
+	GetModelIterator GetModelIteratorFunc
+	GetHeaderRow     func(context *Context) (views Views, err error)
+	GetRow           func(row int, rowModel interface{}, context *Context) (views Views, err error)
+	table            Table
 }
 
-func (self *TableModelView) IterateChildren(callback IterateChildrenCallback) {
+func (self *TableModelIteratorView) IterateChildren(callback IterateChildrenCallback) {
 	callback(self, &self.table)
 }
 
-func (self *TableModelView) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *TableModelIteratorView) Render(context *Context, writer *utils.XMLWriter) (err error) {
 	self.table.Class = self.Class
 	self.table.Caption = self.Caption
 
