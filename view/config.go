@@ -31,6 +31,7 @@ type FormConfiguration struct {
 	DefaultSubmitButtonText         string
 	GeneralErrorMessageOnFieldError string
 	DefaultRequiredMarker           View
+	// ModelAuthenticators             map[string]Authenticator
 }
 
 type Configuration struct {
@@ -81,6 +82,7 @@ var Config Configuration = Configuration{
 		DefaultFieldDescriptionClass:    "description",
 		DefaultRequiredMarker:           HTML("<span class='required'>*</span>"),
 		GeneralErrorMessageOnFieldError: "This form has errors",
+		// ModelAuthenticators:             make(map[string]Authenticator),
 	},
 	BaseDirs:         []string{"."},
 	StaticDirs:       []string{"static"},    // every StaticDir will be appended to every BaseDir to search for static files

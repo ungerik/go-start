@@ -85,13 +85,13 @@ func (self *StandardFormLayout) BeginStruct(strct *model.MetaData, form *Form, c
 
 func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error {
 	fieldFactory := form.GetFieldFactory()
-	if !fieldFactory.CanCreateInput(field, form) || form.IsFieldExcluded(field) {
+	if !fieldFactory.CanCreateInput(field, form) || form.IsFieldExcluded(field, context) {
 		return nil
 	}
 
 	grandParent := field.Parent.Parent
 	if grandParent != nil && (grandParent.Kind == model.ArrayKind || grandParent.Kind == model.SliceKind) {
-		if form.IsFieldExcluded(grandParent) {
+		if form.IsFieldExcluded(grandParent, context) {
 			return nil
 		}
 		return self.structFieldInArrayOrSlice(grandParent, field, validationErr, form, context, formContent)
@@ -126,7 +126,7 @@ func (self *StandardFormLayout) BeginArray(array *model.MetaData, form *Form, co
 }
 
 func (self *StandardFormLayout) ArrayField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error {
-	if field.Kind == model.ValueKind && !form.IsFieldExcluded(field.Parent) && form.GetFieldFactory().CanCreateInput(field, form) {
+	if field.Kind == model.ValueKind && !form.IsFieldExcluded(field.Parent, context) && form.GetFieldFactory().CanCreateInput(field, form) {
 		return self.arrayOrSliceFieldValue(field, validationErr, form, context, formContent)
 	}
 	return nil
@@ -141,7 +141,7 @@ func (self *StandardFormLayout) BeginSlice(slice *model.MetaData, form *Form, co
 }
 
 func (self *StandardFormLayout) SliceField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error {
-	if field.Kind == model.ValueKind && !form.IsFieldExcluded(field.Parent) && form.GetFieldFactory().CanCreateInput(field, form) {
+	if field.Kind == model.ValueKind && !form.IsFieldExcluded(field.Parent, context) && form.GetFieldFactory().CanCreateInput(field, form) {
 		return self.arrayOrSliceFieldValue(field, validationErr, form, context, formContent)
 	}
 	return nil

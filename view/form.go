@@ -2,15 +2,17 @@ package view
 
 import (
 	"bytes"
-	"github.com/ungerik/go-start/debug"
-	"github.com/ungerik/go-start/model"
-	"github.com/ungerik/go-start/mongo"
-	"github.com/ungerik/go-start/utils"
+	"fmt"
 	"io/ioutil"
 	"reflect"
 	"strconv"
 	"strings"
 	// "mime/multipart"
+
+	"github.com/ungerik/go-start/debug"
+	"github.com/ungerik/go-start/model"
+	"github.com/ungerik/go-start/mongo"
+	"github.com/ungerik/go-start/utils"
 )
 
 const MultipartFormData = "multipart/form-data"
@@ -118,6 +120,11 @@ type Form struct {
 	// created per View render.
 	GetModel GetFormModelFunc
 
+	// ModelFieldAuthenticators maps a field selector to an Authenticator.
+	// Fields that match the selector will only be displayed if the
+	// Authenticator returns true.
+	ModelFieldAuthenticators map[string]Authenticator
+
 	// OnSubmit is called after the form was submitted and did not produce any
 	// validation errors.
 	// If message is non empty, it will be displayed instead of
@@ -221,6 +228,19 @@ func (self *Form) GetSubmitButtonText() string {
 	return self.SubmitButtonText
 }
 
+// func (self *Form) ModelAuthenticator(name string) (auth Authenticator, found bool) {
+// 	if self.ModelAuthenticators != nil {
+// 		auth, found = self.ModelAuthenticators[name]
+// 		if found {
+// 			return auth, true
+// 		}
+// 	}
+// 	if Config.Form.ModelAuthenticators != nil {
+// 		auth, found = Config.Form.ModelAuthenticators[name]
+// 	}
+// 	return auth, found
+// }
+
 func (self *Form) IsFieldRequired(field *model.MetaData) bool {
 	if val, ok := field.ModelValue(); ok && val.Required(field) {
 		return true
@@ -238,7 +258,22 @@ func (self *Form) IsFieldHidden(field *model.MetaData) bool {
 	return field.BoolAttrib("hidden") || field.SelectorsMatch(self.HiddenFields)
 }
 
-func (self *Form) IsFieldExcluded(field *model.MetaData) bool {
+func (self *Form) IsFieldExcluded(field *model.MetaData, context *Context) bool {
+	if self.ModelFieldAuthenticators != nil {
+		auth, ok := self.ModelFieldAuthenticators[field.Selector()]
+		if !ok {
+			auth, ok = self.ModelFieldAuthenticators[field.WildcardSelector()]
+		}
+		if ok {
+			ok, err := auth.Authenticate(context)
+			if err != nil {
+				fmt.Println("Error in view.Form.IsFieldExcluded(): " + err.Error())
+			}
+			if !ok {
+				return true
+			}
+		}
+	}
 	return field.SelectorsMatch(self.ExcludedFields)
 }
 
@@ -246,9 +281,9 @@ func (self *Form) IsFieldExcluded(field *model.MetaData) bool {
 // for the field, and if the field neither hidden or excluded.
 // Only visible fields are validated.
 // IsFieldExcluded and IsFieldHidden have different semantics.
-func (self *Form) IsFieldVisible(field *model.MetaData) bool {
+func (self *Form) IsFieldVisible(field *model.MetaData, context *Context) bool {
 	return self.GetFieldFactory().CanCreateInput(field, self) &&
-		!self.IsFieldExcluded(field) &&
+		!self.IsFieldExcluded(field, context) &&
 		!self.IsFieldHidden(field)
 }
 
@@ -453,7 +488,7 @@ type setPostValuesStructVisitor struct {
 }
 
 func (self *setPostValuesStructVisitor) trySetFieldValue(field *model.MetaData) error {
-	if self.form.IsFieldDisabled(field) || self.form.IsFieldExcluded(field) {
+	if self.form.IsFieldDisabled(field) || self.form.IsFieldExcluded(field, self.context) {
 		return nil
 	}
 
@@ -513,7 +548,7 @@ func (self *setPostValuesStructVisitor) EndStruct(strct *model.MetaData) error {
 }
 
 func (self *setPostValuesStructVisitor) BeginSlice(slice *model.MetaData) error {
-	if slice.Value.CanSet() && !self.form.IsFieldExcluded(slice) {
+	if slice.Value.CanSet() && !self.form.IsFieldExcluded(slice, self.context) {
 		if lengthStr := self.context.Request.FormValue(slice.Selector() + ".length"); lengthStr != "" {
 			length, err := strconv.Atoi(lengthStr)
 			if err != nil {
@@ -533,7 +568,7 @@ func (self *setPostValuesStructVisitor) SliceField(field *model.MetaData) error 
 }
 
 func (self *setPostValuesStructVisitor) EndSlice(slice *model.MetaData) error {
-	if slice.Value.CanSet() && !self.form.IsFieldExcluded(slice) {
+	if slice.Value.CanSet() && !self.form.IsFieldExcluded(slice, self.context) {
 		slice.Value.Set(utils.DeleteEmptySliceElementsVal(slice.Value))
 	}
 	return nil
@@ -570,7 +605,7 @@ type validateAndFormLayoutStructVisitor struct {
 }
 
 func (self *validateAndFormLayoutStructVisitor) validateField(field *model.MetaData) error {
-	if !self.isPost || !self.form.IsFieldVisible(field) {
+	if !self.isPost || !self.form.IsFieldVisible(field, self.context) {
 		return nil
 	}
 	if value, ok := field.ModelValue(); ok {
@@ -634,7 +669,7 @@ func (self *validateAndFormLayoutStructVisitor) BeginSlice(slice *model.MetaData
 		}
 	}
 	// Add an empty slice field to generate one extra input row for slices
-	if !self.isPost && slice.Value.CanSet() && !self.form.IsFieldExcluded(slice) {
+	if !self.isPost && slice.Value.CanSet() && !self.form.IsFieldExcluded(slice, self.context) {
 		slice.Value.Set(utils.AppendEmptySliceField(slice.Value))
 		mongo.InitRefs(self.formModel)
 	}
