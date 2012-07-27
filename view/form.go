@@ -120,10 +120,10 @@ type Form struct {
 	// created per View render.
 	GetModel GetFormModelFunc
 
-	// ModelFieldAuthenticators maps a field selector to an Authenticator.
+	// ModelFieldAuth maps a field selector to an Authenticator.
 	// Fields that match the selector will only be displayed if the
 	// Authenticator returns true.
-	ModelFieldAuthenticators map[string]Authenticator
+	ModelFieldAuth map[string]Authenticator
 
 	// OnSubmit is called after the form was submitted and did not produce any
 	// validation errors.
@@ -258,11 +258,14 @@ func (self *Form) IsFieldHidden(field *model.MetaData) bool {
 	return field.BoolAttrib("hidden") || field.SelectorsMatch(self.HiddenFields)
 }
 
+// IsFieldExcluded returns wether a field will be excluded from the form.
+// Fields will be excluded, if their selector matches one in Form.ExcludedFields
+// or if a matching Authenticator from Form.ModelFieldAuth returns false
 func (self *Form) IsFieldExcluded(field *model.MetaData, context *Context) bool {
-	if self.ModelFieldAuthenticators != nil {
-		auth, ok := self.ModelFieldAuthenticators[field.Selector()]
+	if self.ModelFieldAuth != nil {
+		auth, ok := self.ModelFieldAuth[field.Selector()]
 		if !ok {
-			auth, ok = self.ModelFieldAuthenticators[field.WildcardSelector()]
+			auth, ok = self.ModelFieldAuth[field.WildcardSelector()]
 		}
 		if ok {
 			ok, err := auth.Authenticate(context)
