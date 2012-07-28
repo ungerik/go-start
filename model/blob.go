@@ -4,6 +4,11 @@ import (
 // "io/ioutil"
 )
 
+/*
+Blob is just a bunch of bytes.
+Struct tag attributes:
+	`model:"required"`
+*/
 type Blob []byte
 
 func (self *Blob) Get() []byte {

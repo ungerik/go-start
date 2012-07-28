@@ -95,6 +95,13 @@ type FormFieldFactory interface {
 ///////////////////////////////////////////////////////////////////////////////
 // Form
 
+/*
+Form creates an input form for a data model.
+
+Rules for form fields:
+
+	TODO
+*/
 type Form struct {
 	ViewBaseWithId
 	Class  string
@@ -228,19 +235,6 @@ func (self *Form) GetSubmitButtonText() string {
 	return self.SubmitButtonText
 }
 
-// func (self *Form) ModelAuthenticator(name string) (auth Authenticator, found bool) {
-// 	if self.ModelAuthenticators != nil {
-// 		auth, found = self.ModelAuthenticators[name]
-// 		if found {
-// 			return auth, true
-// 		}
-// 	}
-// 	if Config.Form.ModelAuthenticators != nil {
-// 		auth, found = Config.Form.ModelAuthenticators[name]
-// 	}
-// 	return auth, found
-// }
-
 func (self *Form) IsFieldRequired(field *model.MetaData) bool {
 	if val, ok := field.ModelValue(); ok && val.Required(field) {
 		return true
@@ -262,12 +256,15 @@ func (self *Form) IsFieldHidden(field *model.MetaData) bool {
 // Fields will be excluded, if their selector matches one in Form.ExcludedFields
 // or if a matching Authenticator from Form.ModelFieldAuth returns false
 func (self *Form) IsFieldExcluded(field *model.MetaData, context *Context) bool {
-	if self.ModelFieldAuth != nil {
-		auth, ok := self.ModelFieldAuth[field.Selector()]
-		if !ok {
-			auth, ok = self.ModelFieldAuth[field.WildcardSelector()]
+	if field.SelectorsMatch(self.ExcludedFields) {
+		return true
+	}
+	if len(self.ModelFieldAuth) > 0 {
+		auth, hasAuth := self.ModelFieldAuth[field.Selector()]
+		if !hasAuth {
+			auth, hasAuth = self.ModelFieldAuth[field.WildcardSelector()]
 		}
-		if ok {
+		if hasAuth {
 			ok, err := auth.Authenticate(context)
 			if err != nil {
 				fmt.Println("Error in view.Form.IsFieldExcluded(): " + err.Error())
@@ -277,7 +274,40 @@ func (self *Form) IsFieldExcluded(field *model.MetaData, context *Context) bool 
 			}
 		}
 	}
-	return field.SelectorsMatch(self.ExcludedFields)
+	if len(Config.NamedAuthenticators) > 0 {
+		if authAttrib, ok := field.Attrib(StructTagKey, "auth"); ok {
+			for _, name := range strings.Split(authAttrib, ",") {
+				// if multi := strings.Split(name, "+"); len(multi) > 1 {
+				// 	// Needs to pass all sub-Authenticators
+				// 	for _, name := range multi {
+				// 		if auth, ok := NamedAuthenticator(name); ok {
+				// 			ok, err := auth.Authenticate(context)
+				// 			if err != nil {
+				// 				fmt.Println("Error in view.Form.IsFieldExcluded(): " + err.Error())
+				// 			}
+				// 			if !ok {
+				// 				return true
+				// 			}
+				// 		}
+				// 	}
+				// } else {
+				if auth, ok := NamedAuthenticator(name); ok {
+					ok, err := auth.Authenticate(context)
+					if ok {
+						// Only needs to pass one Authenticator			
+						return false
+					}
+					if err != nil {
+						fmt.Println("Error in view.Form.IsFieldExcluded(): " + err.Error())
+					}
+				}
+				// }
+			}
+			// No Authenticators passed, thus exclude
+			return true
+		}
+	}
+	return false
 }
 
 // IsFieldVisible returns if the FieldFactory can create an input widget

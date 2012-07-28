@@ -33,27 +33,27 @@ type FormConfiguration struct {
 	DefaultSubmitButtonText         string
 	GeneralErrorMessageOnFieldError string
 	DefaultRequiredMarker           View
-	// ModelAuthenticators             map[string]Authenticator
 }
 
 type Configuration struct {
-	TemplateSystem     templatesystem.Implementation
-	Page               PageConfiguration
-	Form               FormConfiguration
-	DisableCachedViews bool
-	BaseDirs           []string
-	StaticDirs         []string
-	TemplateDirs       []string
-	RedirectSubdomains []string // Exapmle: "www"
-	BaseURL            string
-	SiteName           string
-	CookieSecret       string
-	SessionTracker     SessionTracker
-	SessionDataStore   SessionDataStore
-	OnPreAuth          func(context *Context) error
-	GlobalAuth         Authenticator // Will allways be used before all other authenticators
-	FallbackAuth       Authenticator // Will be used when no other authenticator is defined for the view
-	LoginSignupPage    **Page
+	TemplateSystem      templatesystem.Implementation
+	Page                PageConfiguration
+	Form                FormConfiguration
+	DisableCachedViews  bool
+	BaseDirs            []string
+	StaticDirs          []string
+	TemplateDirs        []string
+	RedirectSubdomains  []string // Exapmle: "www"
+	BaseURL             string
+	SiteName            string
+	CookieSecret        string
+	SessionTracker      SessionTracker
+	SessionDataStore    SessionDataStore
+	OnPreAuth           func(context *Context) error
+	GlobalAuth          Authenticator // Will allways be used before all other authenticators
+	FallbackAuth        Authenticator // Will be used when no other authenticator is defined for the view
+	NamedAuthenticators map[string]Authenticator
+	LoginSignupPage     **Page
 	// Middlewares               []Middleware
 	Debug struct {
 		Mode           bool
@@ -84,13 +84,13 @@ var Config Configuration = Configuration{
 		DefaultFieldDescriptionClass:    "description",
 		DefaultRequiredMarker:           HTML("<span class='required'>*</span>"),
 		GeneralErrorMessageOnFieldError: "This form has errors",
-		// ModelAuthenticators:             make(map[string]Authenticator),
 	},
-	BaseDirs:         []string{"."},
-	StaticDirs:       []string{"static"},    // every StaticDir will be appended to every BaseDir to search for static files
-	TemplateDirs:     []string{"templates"}, // every TemplateDir will be appended to every BaseDir to search for template files
-	SessionTracker:   &CookieSessionTracker{},
-	SessionDataStore: NewCookieSessionDataStore(),
+	BaseDirs:            []string{"."},
+	StaticDirs:          []string{"static"},    // every StaticDir will be appended to every BaseDir to search for static files
+	TemplateDirs:        []string{"templates"}, // every TemplateDir will be appended to every BaseDir to search for template files
+	SessionTracker:      &CookieSessionTracker{},
+	SessionDataStore:    NewCookieSessionDataStore(),
+	NamedAuthenticators: make(map[string]Authenticator),
 }
 
 // Init updates Config with the site-name, cookie secret and base directories used for static and template file search.

@@ -1,5 +1,13 @@
 package view
 
+func NamedAuthenticator(name string) (auth Authenticator, ok bool) {
+	if len(Config.NamedAuthenticators) == 0 {
+		return nil, false
+	}
+	auth, ok = Config.NamedAuthenticators[name]
+	return auth, ok
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Authenticator
 
