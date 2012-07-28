@@ -208,7 +208,7 @@ Example of a collection and document struct:
 	type ExampleDoc struct {
 		mongo.DocumentBase `bson:",inline"`               // Give it a Mongo ID
 		Person             mongo.Ref  `model:"to=people"` // Mongo ID ref to a document in "people" collection
-		LongerText         model.Text `model:"rows=5|cols=80|maxlen=400"`
+		LongerText         model.Text `model:"maxlen=400" view:"rows=5|cols=80"`
 		Integer            model.Int  `model:"min=1|max=100"`
 		Email              model.Email    // Normalization + special treament in forms
 		PhoneNumber        model.Phone    // Normalization + special treament in forms
