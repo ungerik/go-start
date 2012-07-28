@@ -57,7 +57,7 @@ func (self *Choice) Validate(metaData *MetaData) error {
 }
 
 func (self *Choice) Options(metaData *MetaData) []string {
-	options, ok := metaData.Attrib("options")
+	options, ok := metaData.Attrib(StructTagKey, "options")
 	if !ok {
 		return nil
 	}

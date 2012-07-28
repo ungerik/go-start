@@ -28,7 +28,7 @@ func (self *Blob) IsEmpty() bool {
 }
 
 func (self *Blob) Required(metaData *MetaData) bool {
-	return metaData.BoolAttrib("required")
+	return metaData.BoolAttrib(StructTagKey, "required")
 }
 
 func (self *Blob) Validate(metaData *MetaData) error {

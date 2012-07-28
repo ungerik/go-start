@@ -249,13 +249,13 @@ func (self *Form) IsFieldRequired(field *model.MetaData) bool {
 }
 
 func (self *Form) IsFieldDisabled(field *model.MetaData) bool {
-	return field.BoolAttrib("disabled") || field.SelectorsMatch(self.DisabledFields)
+	return field.BoolAttrib(StructTagKey, "disabled") || field.SelectorsMatch(self.DisabledFields)
 }
 
 // IsFieldHidden returns if a hidden input element will be created for a form field.
 // Hidden fields are not validated.
 func (self *Form) IsFieldHidden(field *model.MetaData) bool {
-	return field.BoolAttrib("hidden") || field.SelectorsMatch(self.HiddenFields)
+	return field.BoolAttrib(StructTagKey, "hidden") || field.SelectorsMatch(self.HiddenFields)
 }
 
 // IsFieldExcluded returns wether a field will be excluded from the form.
@@ -299,7 +299,7 @@ func (self *Form) GetFieldDescription(metaData *model.MetaData) string {
 	if desc, ok := self.FieldDescriptions[wildcardSelector]; ok {
 		return desc
 	}
-	if desc, ok := metaData.Attrib("description"); ok {
+	if desc, ok := metaData.Attrib(StructTagKey, "description"); ok {
 		return desc
 	}
 	return ""
@@ -314,8 +314,11 @@ func (self *Form) GetInputSize(metaData *model.MetaData) int {
 	if size, ok := self.InputSizes[wildcardSelector]; ok {
 		return size
 	}
-	if sizeStr, ok := metaData.Attrib("size"); ok {
-		size, _ := strconv.Atoi(sizeStr)
+	if sizeStr, ok := metaData.Attrib(StructTagKey, "size"); ok {
+		size, err := strconv.Atoi(sizeStr)
+		if err != nil {
+			panic("Error in Form.GetInputSize(): " + err.Error())
+		}
 		return size
 	}
 	layout := self.GetLayout()
@@ -329,7 +332,7 @@ func (self *Form) GetInputSize(metaData *model.MetaData) int {
 // It creates the label only from the name or label tag of metaData,
 // not including its parents.
 func (self *Form) DirectFieldLabel(metaData *model.MetaData) string {
-	if label, ok := metaData.Attrib("label"); ok {
+	if label, ok := metaData.Attrib(StructTagKey, "label"); ok {
 		return label
 	}
 	return strings.Replace(metaData.NameOrIndex(), "_", " ", -1)
@@ -364,7 +367,7 @@ func (self *Form) FieldLabel(metaData *model.MetaData) string {
 }
 
 func (self *Form) FieldInputClass(metaData *model.MetaData) string {
-	class, _ := metaData.Attrib("class")
+	class, _ := metaData.Attrib(StructTagKey, "class")
 	return class
 }
 

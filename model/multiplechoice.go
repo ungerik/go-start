@@ -18,7 +18,7 @@ func (self *MultipleChoice) IsEmpty() bool {
 }
 
 func (self *MultipleChoice) Required(metaData *MetaData) bool {
-	return metaData.BoolAttrib("required")
+	return metaData.BoolAttrib(StructTagKey, "required")
 }
 
 func (self *MultipleChoice) Validate(metaData *MetaData) error {

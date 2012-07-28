@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 )
 
+const StructTagKey = "view"
+
 type PageConfiguration struct {
 	Template                string
 	DefaultWriteHead        PageWriteFunc // will be called after WriteTitle

@@ -49,7 +49,7 @@ func (self *Password) Required(metaData *MetaData) bool {
 			return true
 		}
 	}
-	return metaData.BoolAttrib("required")
+	return metaData.BoolAttrib(StructTagKey, "required")
 }
 
 func (self *Password) Validate(metaData *MetaData) error {
@@ -59,7 +59,7 @@ func (self *Password) Validate(metaData *MetaData) error {
 	if pos != -1 {
 		return errors.New("Line breaks not allowed")
 	}
-	
+
 	if self.Required(metaData) && self.IsEmpty() {
 		return NewRequiredError(metaData)
 	}
@@ -85,7 +85,7 @@ func (self *Password) Validate(metaData *MetaData) error {
 
 func (self *Password) Minlen(metaData *MetaData) (minlen int, ok bool, err error) {
 	var str string
-	if str, ok = metaData.Attrib("minlen"); ok {
+	if str, ok = metaData.Attrib(StructTagKey, "minlen"); ok {
 		minlen, err = strconv.Atoi(str)
 		ok = err == nil
 	}
@@ -94,7 +94,7 @@ func (self *Password) Minlen(metaData *MetaData) (minlen int, ok bool, err error
 
 func (self *Password) Maxlen(metaData *MetaData) (maxlen int, ok bool, err error) {
 	var str string
-	if str, ok = metaData.Attrib("maxlen"); ok {
+	if str, ok = metaData.Attrib(StructTagKey, "maxlen"); ok {
 		maxlen, err = strconv.Atoi(str)
 		ok = err == nil
 	}

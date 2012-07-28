@@ -51,14 +51,15 @@ func GetMetaDataKind(v reflect.Value) MetaDataKind {
 
 // MetaData holds meta data about an model data item.
 type MetaData struct {
-	Kind    MetaDataKind
-	Value   reflect.Value
-	Depth   int    // number of steps up to the root parent
-	Name    string // empty for array and slice fields
-	Index   int    // will also be set for struct fields
-	Parent  *MetaData
-	tag     string
-	attribs map[string]string // cached tag attributes
+	Kind   MetaDataKind
+	Value  reflect.Value
+	Depth  int    // number of steps up to the root parent
+	Name   string // empty for array and slice fields
+	Index  int    // will also be set for struct fields
+	Parent *MetaData
+	tag    reflect.StructTag
+	// cached tag attributes, by package
+	attribs map[string]map[string]string
 	path    []*MetaData
 }
 
@@ -130,24 +131,42 @@ func (self *MetaData) Path() []*MetaData {
 	return self.path
 }
 
+func ParseTagAttribs(tag string) map[string]string {
+	attribs := make(map[string]string)
+	for _, s := range strings.Split(tag, "|") {
+		pos := strings.Index(s, "=")
+		if pos == -1 {
+			attribs[s] = "true"
+		} else {
+			attribs[s[:pos]] = s[pos+1:]
+		}
+	}
+	return attribs
+}
+
 /*
 Attrib returns the value of a tag attribute if available.
 Array and slice fields inherit the attributes of their named
 parent fields.
 The meaning of attributes is interpreted by the package that reads them.
-Attributes are defined in a struct tag named "gostart" and written
-as name=value. Multiple attributes are separated by '|'.
+Attributes are defined in a struct tag named "gostart", "model" or "view"
+and written as name=value. Multiple attributes are separated by '|'.
 Example:
 
 	type Struct {
-		X int `gostart:"min=0|max=10"`
-		S []int `gostart:"maxlen=3|min=0|max=10"
+		X int `model:"min=0|max=10"`
+		S []int `model:"maxlen=3|min=0|max=10"
 		hidden int
 		Ignore int `gostart:"-"`
+		Z int `view:"lable=A longer label for display"`
 	}
 */
-func (self *MetaData) Attrib(name string) (value string, ok bool) {
+func (self *MetaData) Attrib(tagKey, name string) (value string, ok bool) {
 	if self.attribs == nil {
+		self.attribs = make(map[string]map[string]string)
+	}
+	keyAttribs, ok := self.attribs[tagKey]
+	if !ok {
 		structField := self
 		for !structField.IsStructField() {
 			structField = structField.Parent
@@ -155,16 +174,17 @@ func (self *MetaData) Attrib(name string) (value string, ok bool) {
 				return "", false
 			}
 		}
-		self.attribs = ParseTagAttribs(structField.tag)
+		keyAttribs = ParseTagAttribs(structField.tag.Get(tagKey))
+		self.attribs[tagKey] = keyAttribs
 	}
-	value, ok = self.attribs[name]
+	value, ok = keyAttribs[name]
 	return value, ok
 }
 
 // BoolAttrib uses Attrib() to check if the value of an attribute is "true".
 // A non existing attribibute is considered to be false.
-func (self *MetaData) BoolAttrib(name string) bool {
-	value, ok := self.Attrib(name)
+func (self *MetaData) BoolAttrib(tagKey, name string) bool {
+	value, ok := self.Attrib(tagKey, name)
 	return ok && value == "true"
 }
 
@@ -201,17 +221,4 @@ func (self *MetaData) SelectorsMatch(list []string) bool {
 
 func (self *MetaData) String() string {
 	return fmt.Sprintf("%s: %T", self.Selector(), self.Value.Interface())
-}
-
-func ParseTagAttribs(tag string) map[string]string {
-	attribs := make(map[string]string)
-	for _, s := range strings.Split(tag, "|") {
-		pos := strings.Index(s, "=")
-		if pos == -1 {
-			attribs[s] = "true"
-		} else {
-			attribs[s[:pos]] = s[pos+1:]
-		}
-	}
-	return attribs
 }

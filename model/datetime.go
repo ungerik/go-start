@@ -93,5 +93,5 @@ func (self *DateTime) Validate(metaData *MetaData) error {
 }
 
 func (self *DateTime) Required(metaData *MetaData) bool {
-	return metaData.BoolAttrib("required")
+	return metaData.BoolAttrib(StructTagKey, "required")
 }

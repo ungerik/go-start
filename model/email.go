@@ -46,5 +46,5 @@ func (self *Email) Validate(metaData *MetaData) error {
 }
 
 func (self *Email) Required(metaData *MetaData) bool {
-	return metaData.BoolAttrib("required")
+	return metaData.BoolAttrib(StructTagKey, "required")
 }

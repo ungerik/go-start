@@ -67,7 +67,7 @@ func (self *Float) Validate(metaData *MetaData) error {
 }
 
 func (self *Float) Min(metaData *MetaData) (min float64, ok bool, err error) {
-	str, ok := metaData.Attrib("min")
+	str, ok := metaData.Attrib(StructTagKey, "min")
 	if !ok {
 		return 0, false, nil
 	}
@@ -76,7 +76,7 @@ func (self *Float) Min(metaData *MetaData) (min float64, ok bool, err error) {
 }
 
 func (self *Float) Max(metaData *MetaData) (max float64, ok bool, err error) {
-	str, ok := metaData.Attrib("max")
+	str, ok := metaData.Attrib(StructTagKey, "max")
 	if !ok {
 		return 0, false, nil
 	}
@@ -85,7 +85,7 @@ func (self *Float) Max(metaData *MetaData) (max float64, ok bool, err error) {
 }
 
 func (self *Float) Valid(metaData *MetaData) bool {
-	return metaData.BoolAttrib("valid")
+	return metaData.BoolAttrib(StructTagKey, "valid")
 }
 
 type FloatBelowMin struct {
@@ -112,8 +112,4 @@ type FloatNotReal struct {
 
 func (self *FloatNotReal) Error() string {
 	return fmt.Sprintf("Float %v is not a real number", self.Value)
-}
-
-func (self *Float) Hidden(metaData *MetaData) (hidden bool) {
-	return metaData.BoolAttrib("hidden")
 }

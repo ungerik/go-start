@@ -5,3 +5,5 @@ type Configuration struct {
 }
 
 var Config Configuration
+
+const StructTagKey = "model"

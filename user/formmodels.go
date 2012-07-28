@@ -6,8 +6,8 @@ import (
 )
 
 type PasswordFormModel struct {
-	Password1 model.Password `gostart:"label=Password|minlen=6|size=20"`
-	Password2 model.Password `gostart:"label=Repeat password|size=20"`
+	Password1 model.Password `model:"minlen=6" view:"label=Password|size=20"`
+	Password2 model.Password `view:"label=Repeat password|size=20"`
 }
 
 func (self *PasswordFormModel) Validate(metaData *model.MetaData) error {
@@ -18,11 +18,11 @@ func (self *PasswordFormModel) Validate(metaData *model.MetaData) error {
 }
 
 type EmailPasswordFormModel struct {
-	Email             model.Email `gostart:"required|size=20"`
-	PasswordFormModel `bson:",inline" gostart:"size=20"`
+	Email             model.Email `model:"required" view:"size=20"`
+	PasswordFormModel `bson:",inline" view:"size=20"`
 }
 
 type LoginFormModel struct {
-	Email    model.Email    `gostart:"required|size=20"`
-	Password model.Password `gostart:"required|size=20"`
+	Email    model.Email    `model:"required" view:"size=20"`
+	Password model.Password `model:"required" view:"size=20"`
 }

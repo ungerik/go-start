@@ -8,10 +8,10 @@ import (
 
 // ContactFormModel is a default form model for contact forms.
 type ContactFormModel struct {
-	Name    model.String `gostart:"label=Your name|maxlen=40"`
-	Email   model.Email  `gostart:"label=Your email address|required|maxlen=40"`
-	Subject model.String `gostart:"label=Subject|maxlen=40"`
-	Message model.Text   `gostart:"label=Your message|required|cols=40|rows=10"`
+	Name    model.String `view:"label=Your name" model:"maxlen=40"`
+	Email   model.Email  `view:"label=Your email address" model:"required|maxlen=40"`
+	Subject model.String `view:"label=Subject" model:"maxlen=40"`
+	Message model.Text   `view:"label=Your message|cols=40|rows=10" model:"required"`
 }
 
 // NewContactForm creates a new contact form that sends submitted data to recipientEmail.

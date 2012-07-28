@@ -87,5 +87,5 @@ func (self *Date) Validate(metaData *MetaData) error {
 }
 
 func (self *Date) Required(metaData *MetaData) bool {
-	return metaData.BoolAttrib("required")
+	return metaData.BoolAttrib(StructTagKey, "required")
 }

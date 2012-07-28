@@ -2,7 +2,9 @@ package media
 
 import (
 	"errors"
+
 	"github.com/ungerik/go-start/model"
+	"github.com/ungerik/go-start/view"
 )
 
 type ImageRef string
@@ -21,7 +23,7 @@ func (self *ImageRef) IsEmpty() bool {
 }
 
 func (self *ImageRef) Required(metaData *model.MetaData) bool {
-	return metaData.BoolAttrib("required")
+	return metaData.BoolAttrib(view.StructTagKey, "required")
 }
 
 func (self *ImageRef) Validate(metaData *model.MetaData) error {

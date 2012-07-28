@@ -25,7 +25,7 @@ func (self *Time) IsEmpty() bool {
 }
 
 func (self *Time) Required(metaData *MetaData) bool {
-	return metaData.BoolAttrib("required")
+	return metaData.BoolAttrib(StructTagKey, "required")
 }
 
 func (self *Time) Validate(metaData *MetaData) error {

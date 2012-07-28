@@ -64,7 +64,7 @@ func (self *Color) SetString(str string) error {
 }
 
 func (self *Color) Required(metaData *MetaData) bool {
-	return metaData.BoolAttrib("required")
+	return metaData.BoolAttrib(StructTagKey, "required")
 }
 
 func (self *Color) IsValid() bool {

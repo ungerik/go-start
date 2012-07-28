@@ -71,7 +71,7 @@ func (self *Ref) Validate(metaData *model.MetaData) error {
 }
 
 func (self *Ref) Required(metaData *model.MetaData) bool {
-	return metaData.BoolAttrib("required")
+	return metaData.BoolAttrib(model.StructTagKey, "required")
 }
 
 // Dummy function to implement model.Reference
