@@ -8,15 +8,17 @@ import (
 	"path/filepath"
 )
 
+const StructTagKey = "view"
+
 type PageConfiguration struct {
-	Template              string
-	DefaultAdditionalHead Renderer // will be invoked after Title
-	DefaultCSS            string
-	DefaultMetaViewport   string
-	DefaultHeadScripts    Renderer      // write scripts as last element of the HTML head
-	DefaultScripts        Renderer      // will be invoked if Page.Scripts is nil
-	PostScripts           Renderer      // will always be invoked after Page.Scripts
-	DefaultAuth           Authenticator // Will be used for pages with Page.NeedsAuth == true
+	Template                string
+	DefaultWriteHead        Renderer // will be called after WriteTitle
+	DefaultCSS              string
+	DefaultMetaViewport     string
+	DefaultWriteHeadScripts Renderer      // write scripts as last element of the HTML head
+	DefaultWriteScripts     Renderer      // will be called if Page.WriteScripts is nil
+	PostWriteScripts        Renderer      // will always be called after Page.WriteScripts
+	DefaultAuth             Authenticator // Will be used for pages with Page.NeedsAuth == true
 }
 
 type FormConfiguration struct {
@@ -34,48 +36,26 @@ type FormConfiguration struct {
 }
 
 type Configuration struct {
-<<<<<<< HEAD
-	TemplateSystem            templatesystem.Implementation
-	Page                      PageConfiguration
-	BaseDirs                  []string
-	StaticDirs                []string
-	TemplateDirs              []string
-	RedirectSubdomains        []string // Exapmle: "www"
-	BaseURL                   string
-	SiteName                  string
-	CookieSecret              string
-	SessionTracker            SessionTracker
-	SessionDataStore          SessionDataStore
-	OnPreAuth                 func(response *Response) error
-	GlobalAuth                Authenticator // Will allways be used before all other authenticators
-	FallbackAuth              Authenticator // Will be used when no other authenticator is defined for the view
-	LoginSignupPage           **Page
-	Middlewares               []Middleware
-	NumFieldRepeatFormMessage int
-	FormErrorMessageClass     string
-	FormSuccessMessageClass   string
-	Debug                     struct {
-=======
-	TemplateSystem     templatesystem.Implementation
-	Page               PageConfiguration
-	Form               FormConfiguration
-	DisableCachedViews bool
-	BaseDirs           []string
-	StaticDirs         []string
-	TemplateDirs       []string
-	RedirectSubdomains []string // Exapmle: "www"
-	BaseURL            string
-	SiteName           string
-	CookieSecret       string
-	SessionTracker     SessionTracker
-	SessionDataStore   SessionDataStore
-	OnPreAuth          func(context *Context) error
-	GlobalAuth         Authenticator // Will allways be used before all other authenticators
-	FallbackAuth       Authenticator // Will be used when no other authenticator is defined for the view
-	LoginSignupPage    **Page
+	TemplateSystem      templatesystem.Implementation
+	Page                PageConfiguration
+	Form                FormConfiguration
+	DisableCachedViews  bool
+	BaseDirs            []string
+	StaticDirs          []string
+	TemplateDirs        []string
+	RedirectSubdomains  []string // Exapmle: "www"
+	BaseURL             string
+	SiteName            string
+	CookieSecret        string
+	SessionTracker      SessionTracker
+	SessionDataStore    SessionDataStore
+	OnPreAuth           func(response *Response) error
+	GlobalAuth          Authenticator // Will allways be used before all other authenticators
+	FallbackAuth        Authenticator // Will be used when no other authenticator is defined for the view
+	NamedAuthenticators map[string]Authenticator
+	LoginSignupPage     **Page
 	// Middlewares               []Middleware
 	Debug struct {
->>>>>>> master
 		Mode           bool
 		PrintPaths     bool
 		PrintRedirects bool
@@ -105,11 +85,12 @@ var Config Configuration = Configuration{
 		DefaultRequiredMarker:           HTML("<span class='required'>*</span>"),
 		GeneralErrorMessageOnFieldError: "This form has errors",
 	},
-	BaseDirs:         []string{"."},
-	StaticDirs:       []string{"static"},    // every StaticDir will be appended to every BaseDir to search for static files
-	TemplateDirs:     []string{"templates"}, // every TemplateDir will be appended to every BaseDir to search for template files
-	SessionTracker:   &CookieSessionTracker{},
-	SessionDataStore: NewCookieSessionDataStore(),
+	BaseDirs:            []string{"."},
+	StaticDirs:          []string{"static"},    // every StaticDir will be appended to every BaseDir to search for static files
+	TemplateDirs:        []string{"templates"}, // every TemplateDir will be appended to every BaseDir to search for template files
+	SessionTracker:      &CookieSessionTracker{},
+	SessionDataStore:    NewCookieSessionDataStore(),
+	NamedAuthenticators: make(map[string]Authenticator),
 }
 
 // Init updates Config with the site-name, cookie secret and base directories used for static and template file search.

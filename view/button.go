@@ -58,7 +58,7 @@ func (self *Button) Render(response *Response) (err error) {
 			writer.AttribIfNotDefault("onclick", self.OnClick)
 		}
 		if self.Content != nil {
-			err = self.Content.Render(context, writer)
+			err = self.Content.Render(response)
 		}
 		writer.ForceCloseTag()
 	}

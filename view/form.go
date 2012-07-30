@@ -2,22 +2,24 @@ package view
 
 import (
 	"bytes"
-	"github.com/ungerik/go-start/debug"
-	"github.com/ungerik/go-start/model"
-	"github.com/ungerik/go-start/mongo"
-	"github.com/ungerik/go-start/utils"
+	"fmt"
 	"io/ioutil"
 	"reflect"
 	"strconv"
 	"strings"
 	// "mime/multipart"
-)
 
-type GetFormModelFunc func(form *Form, response *Response) (model interface{}, err error)
-type OnSubmitFormFunc func(form *Form, formModel interface{}, response *Response) (message string, redirect URL, err error)
+	"github.com/ungerik/go-start/debug"
+	"github.com/ungerik/go-start/model"
+	"github.com/ungerik/go-start/mongo"
+	"github.com/ungerik/go-start/utils"
+)
 
 const MultipartFormData = "multipart/form-data"
 const FormIDName = "gostart_form_id"
+
+type GetFormModelFunc func(form *Form, response *Response) (model interface{}, err error)
+type OnSubmitFormFunc func(form *Form, formModel interface{}, response *Response) (message string, redirect URL, err error)
 
 type FileUploadFormModel struct {
 	File model.File
@@ -26,18 +28,19 @@ type FileUploadFormModel struct {
 // GetFileUploadFormModel when set at Form.GetModel will create a
 // file upload form. Form.Enctype will be set to "multipart/form-fata"
 // *FileUploadFormModel will be passed as formModel at Form.OnSubmit
-func GetFileUploadFormModel(form *Form, context *Context) (interface{}, error) {
+func GetFileUploadFormModel(form *Form, response *Response) (interface{}, error) {
 	form.Enctype = MultipartFormData
 	return &FileUploadFormModel{}, nil
 }
 
 func FormModel(model interface{}) GetFormModelFunc {
+	debug.Nop()
 	return func(form *Form, response *Response) (interface{}, error) {
 		return model, nil
 	}
 }
 
-func SaveModel(form *Form, formModel interface{}, context *Context) (string, URL, error) {
+func SaveModel(form *Form, formModel interface{}, response *Response) (string, URL, error) {
 	return "", nil, formModel.(mongo.Document).Save()
 }
 
@@ -49,28 +52,28 @@ It uses Form.GetFieldFactory() to create the field views.
 type FormLayout interface {
 	GetDefaultInputSize(metaData *model.MetaData) int
 
-	BeginFormContent(form *Form, context *Context, formContent *Views) error
+	BeginFormContent(form *Form, response *Response, formContent *Views) error
 	// SubmitSuccess will be called before EndFormContent if there were no
 	// validation errors of the posted form data and Form.OnSubmit has
 	// not returned an error.
-	SubmitSuccess(message string, form *Form, context *Context, formContent *Views) error
+	SubmitSuccess(message string, form *Form, response *Response, formContent *Views) error
 	// SubmitError will be called before EndFormContent if there were no
 	// validation errors of the posted form data and Form.OnSubmit has
 	// returned an error.
-	SubmitError(message string, form *Form, context *Context, formContent *Views) error
-	EndFormContent(fieldValidationErrs, generalValidationErrs []error, form *Form, context *Context, formContent *Views) error
+	SubmitError(message string, form *Form, response *Response, formContent *Views) error
+	EndFormContent(fieldValidationErrs, generalValidationErrs []error, form *Form, response *Response, formContent *Views) error
 
-	BeginStruct(strct *model.MetaData, form *Form, context *Context, formContent *Views) error
-	StructField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error
-	EndStruct(strct *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error
+	BeginStruct(strct *model.MetaData, form *Form, response *Response, formContent *Views) error
+	StructField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error
+	EndStruct(strct *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error
 
-	BeginArray(array *model.MetaData, form *Form, context *Context, formContent *Views) error
-	ArrayField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error
-	EndArray(array *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error
+	BeginArray(array *model.MetaData, form *Form, response *Response, formContent *Views) error
+	ArrayField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error
+	EndArray(array *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error
 
-	BeginSlice(slice *model.MetaData, form *Form, context *Context, formContent *Views) error
-	SliceField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error
-	EndSlice(slice *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error
+	BeginSlice(slice *model.MetaData, form *Form, response *Response, formContent *Views) error
+	SliceField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error
+	EndSlice(slice *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error
 }
 
 type FormFieldFactory interface {
@@ -92,6 +95,13 @@ type FormFieldFactory interface {
 ///////////////////////////////////////////////////////////////////////////////
 // Form
 
+/*
+Form creates an input form for a data model.
+
+Rules for form fields:
+
+	TODO
+*/
 type Form struct {
 	ViewBaseWithId
 	Class  string
@@ -116,6 +126,11 @@ type Form struct {
 	// embedded in a DynamicView and the model argument is dynamically
 	// created per View render.
 	GetModel GetFormModelFunc
+
+	// ModelFieldAuth maps a field selector to an Authenticator.
+	// Fields that match the selector will only be displayed if the
+	// Authenticator returns true.
+	ModelFieldAuth map[string]Authenticator
 
 	// OnSubmit is called after the form was submitted and did not produce any
 	// validation errors.
@@ -227,43 +242,83 @@ func (self *Form) IsFieldRequired(field *model.MetaData) bool {
 	return field.SelectorsMatch(self.RequiredFields)
 }
 
-<<<<<<< HEAD
-func (self *Form) Render(response *Response) (err error) {
-	if self.OnSubmit != nil {
-		// Determine if it's a POST request for this form:
-		isPOST := false
-		if response.Request.Method == "POST" {
-			// Every HTML form gets an ID to allow more than one form per page:
-			id, ok := response.Request.Params["form_id"]
-			if ok && id == self.FormID {
-				isPOST = true
-			}
-		}
-=======
 func (self *Form) IsFieldDisabled(field *model.MetaData) bool {
-	return field.BoolAttrib("disabled") || field.SelectorsMatch(self.DisabledFields)
+	return field.BoolAttrib(StructTagKey, "disabled") || field.SelectorsMatch(self.DisabledFields)
 }
 
 // IsFieldHidden returns if a hidden input element will be created for a form field.
 // Hidden fields are not validated.
 func (self *Form) IsFieldHidden(field *model.MetaData) bool {
-	return field.BoolAttrib("hidden") || field.SelectorsMatch(self.HiddenFields)
+	return field.BoolAttrib(StructTagKey, "hidden") || field.SelectorsMatch(self.HiddenFields)
 }
 
-func (self *Form) IsFieldExcluded(field *model.MetaData) bool {
-	return field.SelectorsMatch(self.ExcludedFields)
+// IsFieldExcluded returns wether a field will be excluded from the form.
+// Fields will be excluded, if their selector matches one in Form.ExcludedFields
+// or if a matching Authenticator from Form.ModelFieldAuth returns false
+func (self *Form) IsFieldExcluded(field *model.MetaData, response *Response) bool {
+	if field.SelectorsMatch(self.ExcludedFields) {
+		return true
+	}
+	if len(self.ModelFieldAuth) > 0 {
+		auth, hasAuth := self.ModelFieldAuth[field.Selector()]
+		if !hasAuth {
+			auth, hasAuth = self.ModelFieldAuth[field.WildcardSelector()]
+		}
+		if hasAuth {
+			ok, err := auth.Authenticate(context)
+			if err != nil {
+				fmt.Println("Error in view.Form.IsFieldExcluded(): " + err.Error())
+			}
+			if !ok {
+				return true
+			}
+		}
+	}
+	if len(Config.NamedAuthenticators) > 0 {
+		if authAttrib, ok := field.Attrib(StructTagKey, "auth"); ok {
+			for _, name := range strings.Split(authAttrib, ",") {
+				// if multi := strings.Split(name, "+"); len(multi) > 1 {
+				// 	// Needs to pass all sub-Authenticators
+				// 	for _, name := range multi {
+				// 		if auth, ok := NamedAuthenticator(name); ok {
+				// 			ok, err := auth.Authenticate(context)
+				// 			if err != nil {
+				// 				fmt.Println("Error in view.Form.IsFieldExcluded(): " + err.Error())
+				// 			}
+				// 			if !ok {
+				// 				return true
+				// 			}
+				// 		}
+				// 	}
+				// } else {
+				if auth, ok := NamedAuthenticator(name); ok {
+					ok, err := auth.Authenticate(context)
+					if ok {
+						// Only needs to pass one Authenticator			
+						return false
+					}
+					if err != nil {
+						fmt.Println("Error in view.Form.IsFieldExcluded(): " + err.Error())
+					}
+				}
+				// }
+			}
+			// No Authenticators passed, thus exclude
+			return true
+		}
+	}
+	return false
 }
 
 // IsFieldVisible returns if the FieldFactory can create an input widget
 // for the field, and if the field neither hidden or excluded.
 // Only visible fields are validated.
 // IsFieldExcluded and IsFieldHidden have different semantics.
-func (self *Form) IsFieldVisible(field *model.MetaData) bool {
+func (self *Form) IsFieldVisible(field *model.MetaData, response *Response) bool {
 	return self.GetFieldFactory().CanCreateInput(field, self) &&
-		!self.IsFieldExcluded(field) &&
+		!self.IsFieldExcluded(field, context) &&
 		!self.IsFieldHidden(field)
 }
->>>>>>> master
 
 func (self *Form) GetFieldDescription(metaData *model.MetaData) string {
 	selector := metaData.Selector()
@@ -274,7 +329,7 @@ func (self *Form) GetFieldDescription(metaData *model.MetaData) string {
 	if desc, ok := self.FieldDescriptions[wildcardSelector]; ok {
 		return desc
 	}
-	if desc, ok := metaData.Attrib("description"); ok {
+	if desc, ok := metaData.Attrib(StructTagKey, "description"); ok {
 		return desc
 	}
 	return ""
@@ -289,8 +344,11 @@ func (self *Form) GetInputSize(metaData *model.MetaData) int {
 	if size, ok := self.InputSizes[wildcardSelector]; ok {
 		return size
 	}
-	if sizeStr, ok := metaData.Attrib("size"); ok {
-		size, _ := strconv.Atoi(sizeStr)
+	if sizeStr, ok := metaData.Attrib(StructTagKey, "size"); ok {
+		size, err := strconv.Atoi(sizeStr)
+		if err != nil {
+			panic("Error in Form.GetInputSize(): " + err.Error())
+		}
 		return size
 	}
 	layout := self.GetLayout()
@@ -304,64 +362,17 @@ func (self *Form) GetInputSize(metaData *model.MetaData) int {
 // It creates the label only from the name or label tag of metaData,
 // not including its parents.
 func (self *Form) DirectFieldLabel(metaData *model.MetaData) string {
-	if label, ok := metaData.Attrib("label"); ok {
+	if label, ok := metaData.Attrib(StructTagKey, "label"); ok {
 		return label
 	}
 	return strings.Replace(metaData.NameOrIndex(), "_", " ", -1)
 }
 
-func (self *Form) IsPost(context *Context) bool {
+func (self *Form) IsPost(response *Response) bool {
 	return context.Request.Method == "POST" &&
 		context.Request.FormValue(FormIDName) == self.FormID
 }
 
-<<<<<<< HEAD
-		if self.GetModel != nil {
-			formModel, err = self.GetModel(self, response)
-			if err != nil {
-				return err
-			}
-			model.WalkStructure(formModel, self.ModelMaxDepth, func(data interface{}, metaData *model.MetaData) {
-				if modelValue, ok := data.(model.Value); ok {
-					selector := metaData.Selector()
-					arraySelector := metaData.ArrayWildcardSelector()
-
-					if utils.StringIn(selector, self.HideFields) || utils.StringIn(arraySelector, self.HideFields) {
-						return
-					}
-
-					var valueErrors []*model.ValidationError
-					if isPOST {
-						formValue, ok := response.Request.Params[selector]
-						if b, isBool := modelValue.(*model.Bool); isBool {
-							b.Set(formValue != "")
-						} else if ok {
-							err = modelValue.SetString(formValue)
-							if err == nil {
-								valueErrors = modelValue.Validate(metaData)
-								if len(valueErrors) == 0 {
-									if modelValue.IsEmpty() && self.isFieldRequiredSelectors(metaData, selector, arraySelector) {
-										valueErrors = []*model.ValidationError{model.NewRequiredValidationError(metaData)}
-									}
-								}
-							} else {
-								valueErrors = model.NewValidationErrors(err, metaData)
-							}
-							numValueErrors += len(valueErrors)
-						}
-					}
-
-					disable := utils.StringIn(selector, self.DisableFields)
-
-					views = append(views, self.newFormField(modelValue, metaData, disable, valueErrors))
-
-				} else if validator, ok := data.(model.Validator); ok {
-
-					generalErrors = append(generalErrors, validator.Validate(metaData)...)
-
-				}
-			})
-=======
 // FieldLabel returns a label for a form field generated from metaData.
 // It creates the label from the names or label tags of metaData and
 // all its parents, starting with the root parent, concanated with a space
@@ -379,46 +390,18 @@ func (self *Form) FieldLabel(metaData *model.MetaData) string {
 	for _, m := range metaData.Path()[1:] {
 		if buf.Len() > 0 {
 			buf.WriteByte(' ')
->>>>>>> master
 		}
 		buf.WriteString(self.DirectFieldLabel(m))
 	}
 	return buf.String()
 }
 
-<<<<<<< HEAD
-		hasErrors := numValueErrors > 0 || len(generalErrors) > 0
-
-		if isPOST {
-			var message string
-			if hasErrors {
-				message = "Form not saved because of invalid values! "
-				for _, err := range generalErrors {
-					message = message + err.WrappedError.Error() + ". "
-				}
-			} else {
-				// Try to save the new form field values
-				err = self.OnSubmit(self, formModel, response)
-				if err == nil {
-					message = self.SuccessMessage
-				} else {
-					message = err.Error()
-					hasErrors = true
-				}
-
-				// Redirect if saved without errors and redirect URL is set
-				if !hasErrors && self.Redirect != nil {
-					return Redirect(self.Redirect.URL(response))
-				}
-			}
-=======
 func (self *Form) FieldInputClass(metaData *model.MetaData) string {
-	class, _ := metaData.Attrib("class")
+	class, _ := metaData.Attrib(StructTagKey, "class")
 	return class
 }
->>>>>>> master
 
-func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *Form) Render(response *Response, writer *utils.XMLWriter) (err error) {
 	if self.OnSubmit == nil {
 		panic("view.Form.OnSubmit must not be nil")
 	}
@@ -505,9 +488,8 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 	action := self.Action
 	if action == "" {
 		action = "."
-		url := response.Request.URLString()
-		if i := strings.Index(url, "?"); i != -1 {
-			action += url[i:]
+		if i := strings.Index(context.Request.RequestURI, "?"); i != -1 {
+			action += context.Request.RequestURI[i:]
 		}
 	}
 	// Hack: Value of hidden input FormIDName is not available when
@@ -517,15 +499,9 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 		action = utils.AddUrlParam(action, FormIDName, self.FormID)
 	}
 
-	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("form").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	writer.Attrib("method", method)
 	writer.Attrib("action", action)
-<<<<<<< HEAD
-	err = RenderChildViewsHTML(self, response)
-	writer.ExtraCloseTag() // form
-	return err
-=======
 	writer.AttribIfNotDefault("enctype", self.Enctype)
 	if len(content) > 0 {
 		content.Init(content)
@@ -536,7 +512,6 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 	}
 	writer.ForceCloseTag() // form
 	return nil
->>>>>>> master
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -545,11 +520,11 @@ func (self *Form) Render(context *Context, writer *utils.XMLWriter) (err error) 
 type setPostValuesStructVisitor struct {
 	form      *Form
 	formModel interface{}
-	context   *Context
+	response  *Response
 }
 
 func (self *setPostValuesStructVisitor) trySetFieldValue(field *model.MetaData) error {
-	if self.form.IsFieldDisabled(field) || self.form.IsFieldExcluded(field) {
+	if self.form.IsFieldDisabled(field) || self.form.IsFieldExcluded(field, self.response) {
 		return nil
 	}
 
@@ -559,11 +534,11 @@ func (self *setPostValuesStructVisitor) trySetFieldValue(field *model.MetaData) 
 		return nil
 
 	case *model.Bool:
-		s.Set(self.context.Request.FormValue(field.Selector()) != "")
+		s.Set(self.response.Request.FormValue(field.Selector()) != "")
 		return nil
 
 	case *model.Blob:
-		file, _, err := self.context.Request.FormFile(field.Selector())
+		file, _, err := self.response.Request.FormFile(field.Selector())
 		if err != nil {
 			return err
 		}
@@ -576,7 +551,7 @@ func (self *setPostValuesStructVisitor) trySetFieldValue(field *model.MetaData) 
 		return nil
 
 	case *model.File:
-		file, header, err := self.context.Request.FormFile(field.Selector())
+		file, header, err := self.response.Request.FormFile(field.Selector())
 		if err != nil {
 			return err
 		}
@@ -590,7 +565,7 @@ func (self *setPostValuesStructVisitor) trySetFieldValue(field *model.MetaData) 
 		return nil
 
 	case model.Value:
-		s.SetString(self.context.Request.FormValue(field.Selector()))
+		s.SetString(self.response.Request.FormValue(field.Selector()))
 		return nil
 	}
 	return nil
@@ -609,8 +584,8 @@ func (self *setPostValuesStructVisitor) EndStruct(strct *model.MetaData) error {
 }
 
 func (self *setPostValuesStructVisitor) BeginSlice(slice *model.MetaData) error {
-	if slice.Value.CanSet() && !self.form.IsFieldExcluded(slice) {
-		if lengthStr := self.context.Request.FormValue(slice.Selector() + ".length"); lengthStr != "" {
+	if slice.Value.CanSet() && !self.form.IsFieldExcluded(slice, self.response) {
+		if lengthStr := self.response.Request.FormValue(slice.Selector() + ".length"); lengthStr != "" {
 			length, err := strconv.Atoi(lengthStr)
 			if err != nil {
 				panic(err.Error())
@@ -629,7 +604,7 @@ func (self *setPostValuesStructVisitor) SliceField(field *model.MetaData) error 
 }
 
 func (self *setPostValuesStructVisitor) EndSlice(slice *model.MetaData) error {
-	if slice.Value.CanSet() && !self.form.IsFieldExcluded(slice) {
+	if slice.Value.CanSet() && !self.form.IsFieldExcluded(slice, self.response) {
 		slice.Value.Set(utils.DeleteEmptySliceElementsVal(slice.Value))
 	}
 	return nil
@@ -657,7 +632,7 @@ type validateAndFormLayoutStructVisitor struct {
 	formLayout  FormLayout
 	formModel   interface{}
 	formContent *Views
-	context     *Context
+	response    *Response
 	isPost      bool
 
 	// Output
@@ -666,7 +641,7 @@ type validateAndFormLayoutStructVisitor struct {
 }
 
 func (self *validateAndFormLayoutStructVisitor) validateField(field *model.MetaData) error {
-	if !self.isPost || !self.form.IsFieldVisible(field) {
+	if !self.isPost || !self.form.IsFieldVisible(field, self.response) {
 		return nil
 	}
 	if value, ok := field.ModelValue(); ok {
@@ -697,25 +672,25 @@ func (self *validateAndFormLayoutStructVisitor) validateGeneral(data *model.Meta
 }
 
 func (self *validateAndFormLayoutStructVisitor) endForm(data *model.MetaData) (err error) {
-	return self.formLayout.EndFormContent(self.fieldValidationErrors, self.generalValidationErrors, self.form, self.context, self.formContent)
+	return self.formLayout.EndFormContent(self.fieldValidationErrors, self.generalValidationErrors, self.form, self.response, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) BeginStruct(strct *model.MetaData) error {
 	if strct.Parent == nil {
-		err := self.formLayout.BeginFormContent(self.form, self.context, self.formContent)
+		err := self.formLayout.BeginFormContent(self.form, self.response, self.formContent)
 		if err != nil {
 			return err
 		}
 	}
-	return self.formLayout.BeginStruct(strct, self.form, self.context, self.formContent)
+	return self.formLayout.BeginStruct(strct, self.form, self.response, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) StructField(field *model.MetaData) error {
-	return self.formLayout.StructField(field, self.validateField(field), self.form, self.context, self.formContent)
+	return self.formLayout.StructField(field, self.validateField(field), self.form, self.response, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) EndStruct(strct *model.MetaData) error {
-	err := self.formLayout.EndStruct(strct, self.validateGeneral(strct), self.form, self.context, self.formContent)
+	err := self.formLayout.EndStruct(strct, self.validateGeneral(strct), self.form, self.response, self.formContent)
 	if strct.Parent == nil && err == nil {
 		return self.endForm(strct)
 	}
@@ -724,25 +699,25 @@ func (self *validateAndFormLayoutStructVisitor) EndStruct(strct *model.MetaData)
 
 func (self *validateAndFormLayoutStructVisitor) BeginSlice(slice *model.MetaData) error {
 	if slice.Parent == nil {
-		err := self.formLayout.BeginFormContent(self.form, self.context, self.formContent)
+		err := self.formLayout.BeginFormContent(self.form, self.response, self.formContent)
 		if err != nil {
 			return err
 		}
 	}
 	// Add an empty slice field to generate one extra input row for slices
-	if !self.isPost && slice.Value.CanSet() && !self.form.IsFieldExcluded(slice) {
+	if !self.isPost && slice.Value.CanSet() && !self.form.IsFieldExcluded(slice, self.response) {
 		slice.Value.Set(utils.AppendEmptySliceField(slice.Value))
 		mongo.InitRefs(self.formModel)
 	}
-	return self.formLayout.BeginSlice(slice, self.form, self.context, self.formContent)
+	return self.formLayout.BeginSlice(slice, self.form, self.response, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) SliceField(field *model.MetaData) error {
-	return self.formLayout.SliceField(field, self.validateField(field), self.form, self.context, self.formContent)
+	return self.formLayout.SliceField(field, self.validateField(field), self.form, self.response, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) EndSlice(slice *model.MetaData) error {
-	err := self.formLayout.EndSlice(slice, self.validateGeneral(slice), self.form, self.context, self.formContent)
+	err := self.formLayout.EndSlice(slice, self.validateGeneral(slice), self.form, self.response, self.formContent)
 	if slice.Parent == nil && err == nil {
 		return self.endForm(slice)
 	}
@@ -751,20 +726,20 @@ func (self *validateAndFormLayoutStructVisitor) EndSlice(slice *model.MetaData) 
 
 func (self *validateAndFormLayoutStructVisitor) BeginArray(array *model.MetaData) error {
 	if array.Parent == nil {
-		err := self.formLayout.BeginFormContent(self.form, self.context, self.formContent)
+		err := self.formLayout.BeginFormContent(self.form, self.response, self.formContent)
 		if err != nil {
 			return err
 		}
 	}
-	return self.formLayout.BeginArray(array, self.form, self.context, self.formContent)
+	return self.formLayout.BeginArray(array, self.form, self.response, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) ArrayField(field *model.MetaData) error {
-	return self.formLayout.ArrayField(field, self.validateField(field), self.form, self.context, self.formContent)
+	return self.formLayout.ArrayField(field, self.validateField(field), self.form, self.response, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) EndArray(array *model.MetaData) error {
-	err := self.formLayout.EndArray(array, self.validateGeneral(array), self.form, self.context, self.formContent)
+	err := self.formLayout.EndArray(array, self.validateGeneral(array), self.form, self.response, self.formContent)
 	if array.Parent == nil && err == nil {
 		return self.endForm(array)
 	}

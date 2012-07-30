@@ -11,7 +11,7 @@ type FileInput struct {
 	Disabled bool
 }
 
-func (self *FileInput) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *FileInput) Render(response *Response, writer *utils.XMLWriter) (err error) {
 	writer.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	writer.Attrib("type", "file").Attrib("name", self.Name)
 	if self.Disabled {

@@ -1,5 +1,13 @@
 package view
 
+func NamedAuthenticator(name string) (auth Authenticator, ok bool) {
+	if len(Config.NamedAuthenticators) == 0 {
+		return nil, false
+	}
+	auth, ok = Config.NamedAuthenticators[name]
+	return auth, ok
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Authenticator
 
@@ -7,7 +15,7 @@ package view
 type Authenticator interface {
 	// Authenticate returns the auth result in ok,
 	// err is used for real errors not negative authentication
-	Authenticate(response *Response) (ok bool, err error)
+	Authenticate(request *Request) (ok bool, err error)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -17,7 +25,7 @@ type Authenticator interface {
 // Can be used for debugging.
 type BoolAuth bool
 
-func (self BoolAuth) Authenticate(response *Response) (ok bool, err error) {
+func (self BoolAuth) Authenticate(request *Request) (ok bool, err error) {
 	return bool(self), nil
 }
 
@@ -27,9 +35,9 @@ func (self BoolAuth) Authenticate(response *Response) (ok bool, err error) {
 // AnyAuthenticator returns true if any of its authenticators returns true.
 type AnyAuthenticator []Authenticator
 
-func (self AnyAuthenticator) Authenticate(response *Response) (ok bool, err error) {
+func (self AnyAuthenticator) Authenticate(request *Request) (ok bool, err error) {
 	for _, auth := range self {
-		if ok, err = auth.Authenticate(response); ok || err != nil {
+		if ok, err = auth.Authenticate(request); ok || err != nil {
 			return ok, err
 		}
 	}
@@ -42,9 +50,9 @@ func (self AnyAuthenticator) Authenticate(response *Response) (ok bool, err erro
 // AllAuthenticators returns true if all of its authenticators return true.
 type AllAuthenticators []Authenticator
 
-func (self AllAuthenticators) Authenticate(response *Response) (ok bool, err error) {
+func (self AllAuthenticators) Authenticate(request *Request) (ok bool, err error) {
 	for _, auth := range self {
-		if ok, err = auth.Authenticate(response); !ok {
+		if ok, err = auth.Authenticate(request); !ok {
 			return false, err
 		}
 	}

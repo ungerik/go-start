@@ -1,8 +1,8 @@
 package view
 
 import (
-	"strings"
 	"github.com/ungerik/go-start/utils"
+	"strings"
 	// "github.com/ungerik/go-start/debug"
 )
 
@@ -32,7 +32,6 @@ func (self *Menu) Render(response *Response) (err error) {
 		// First try exact URL match
 		for i := range self.Items {
 			url := self.Items[i].URL(response.Request.PathArgs...)
->>>>>>> master
 			if url == requestURL {
 				activeIndex = i
 				break
@@ -42,13 +41,8 @@ func (self *Menu) Render(response *Response) (err error) {
 		// If no exact URL match is found, search for sub pages
 		if activeIndex == -1 {
 			for i := range self.Items {
-<<<<<<< HEAD
-				url := self.Items[i].URL(response)
-				if utils.StringStartsWith(requestURL, url) {
-=======
-				url := self.Items[i].URL(context.PathArgs...)
+				url := self.Items[i].URL(response.Request.PathArgs...)
 				if strings.HasPrefix(requestURL, url) {
->>>>>>> master
 					activeIndex = i
 					// todo
 					// not perfect, what if homepage matches first, but other matches better?

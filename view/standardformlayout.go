@@ -49,21 +49,21 @@ func (self *StandardFormLayout) GetDefaultInputSize(metaData *model.MetaData) in
 	return self.DefaultInputSize
 }
 
-func (self *StandardFormLayout) BeginFormContent(form *Form, context *Context, formContent *Views) error {
+func (self *StandardFormLayout) BeginFormContent(form *Form, response *Response, formContent *Views) error {
 	return nil
 }
 
-func (self *StandardFormLayout) SubmitSuccess(message string, form *Form, context *Context, formContent *Views) error {
+func (self *StandardFormLayout) SubmitSuccess(message string, form *Form, response *Response, formContent *Views) error {
 	*formContent = append(*formContent, form.GetFieldFactory().NewSuccessMessage(message, form))
 	return nil
 }
 
-func (self *StandardFormLayout) SubmitError(message string, form *Form, context *Context, formContent *Views) error {
+func (self *StandardFormLayout) SubmitError(message string, form *Form, response *Response, formContent *Views) error {
 	*formContent = append(*formContent, form.GetFieldFactory().NewGeneralErrorMessage(message, form))
 	return nil
 }
 
-func (self *StandardFormLayout) EndFormContent(fieldValidationErrs, generalValidationErrs []error, form *Form, context *Context, formContent *Views) error {
+func (self *StandardFormLayout) EndFormContent(fieldValidationErrs, generalValidationErrs []error, form *Form, response *Response, formContent *Views) error {
 	fieldFactory := form.GetFieldFactory()
 	for _, err := range generalValidationErrs {
 		*formContent = append(*formContent, fieldFactory.NewGeneralErrorMessage(err.Error(), form))
@@ -79,11 +79,11 @@ func (self *StandardFormLayout) EndFormContent(fieldValidationErrs, generalValid
 	return nil
 }
 
-func (self *StandardFormLayout) BeginStruct(strct *model.MetaData, form *Form, context *Context, formContent *Views) error {
+func (self *StandardFormLayout) BeginStruct(strct *model.MetaData, form *Form, response *Response, formContent *Views) error {
 	return nil
 }
 
-func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error {
+func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
 	fieldFactory := form.GetFieldFactory()
 	if !fieldFactory.CanCreateInput(field, form) || form.IsFieldExcluded(field) {
 		return nil
@@ -117,41 +117,41 @@ func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr
 	return nil
 }
 
-func (self *StandardFormLayout) EndStruct(strct *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error {
+func (self *StandardFormLayout) EndStruct(strct *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
 	return nil
 }
 
-func (self *StandardFormLayout) BeginArray(array *model.MetaData, form *Form, context *Context, formContent *Views) error {
+func (self *StandardFormLayout) BeginArray(array *model.MetaData, form *Form, response *Response, formContent *Views) error {
 	return nil
 }
 
-func (self *StandardFormLayout) ArrayField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error {
+func (self *StandardFormLayout) ArrayField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
 	if field.Kind == model.ValueKind && !form.IsFieldExcluded(field.Parent) && form.GetFieldFactory().CanCreateInput(field, form) {
 		return self.arrayOrSliceFieldValue(field, validationErr, form, context, formContent)
 	}
 	return nil
 }
 
-func (self *StandardFormLayout) EndArray(array *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error {
+func (self *StandardFormLayout) EndArray(array *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
 	return self.endArrayOrSlice(array, form, formContent)
 }
 
-func (self *StandardFormLayout) BeginSlice(slice *model.MetaData, form *Form, context *Context, formContent *Views) error {
+func (self *StandardFormLayout) BeginSlice(slice *model.MetaData, form *Form, response *Response, formContent *Views) error {
 	return nil
 }
 
-func (self *StandardFormLayout) SliceField(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error {
+func (self *StandardFormLayout) SliceField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
 	if field.Kind == model.ValueKind && !form.IsFieldExcluded(field.Parent) && form.GetFieldFactory().CanCreateInput(field, form) {
 		return self.arrayOrSliceFieldValue(field, validationErr, form, context, formContent)
 	}
 	return nil
 }
 
-func (self *StandardFormLayout) EndSlice(slice *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error {
+func (self *StandardFormLayout) EndSlice(slice *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
 	return self.endArrayOrSlice(slice, form, formContent)
 }
 
-func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error {
+func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
 	fieldFactory := form.GetFieldFactory()
 	// We expect a Table as last form content field.
 	// If it doesn't exist yet because this is the first visible
@@ -204,7 +204,7 @@ func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *m
 	return nil
 }
 
-func (self *StandardFormLayout) arrayOrSliceFieldValue(field *model.MetaData, validationErr error, form *Form, context *Context, formContent *Views) error {
+func (self *StandardFormLayout) arrayOrSliceFieldValue(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
 	arrayOrSlice := field.Parent
 	fieldFactory := form.GetFieldFactory()
 	// We expect a Table as last form content field.

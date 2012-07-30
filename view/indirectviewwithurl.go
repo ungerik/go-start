@@ -22,7 +22,7 @@ func (self *indirectViewWithURL) IterateChildren(callback IterateChildrenCallbac
 	(*self.viewWithURL).IterateChildren(callback)
 }
 
-func (self *indirectViewWithURL) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *indirectViewWithURL) Render(response *Response, writer *utils.XMLWriter) (err error) {
 	return (*self.viewWithURL).Render(context, writer)
 }
 

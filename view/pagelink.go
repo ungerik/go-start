@@ -15,20 +15,20 @@ func (self *PageLink) URL(args ...string) string {
 	return self.Page.URL(args...)
 }
 
-func (self *PageLink) LinkContent(context *Context) View {
+func (self *PageLink) LinkContent(response *Response) View {
 	if self.Content == nil {
 		return HTML(self.LinkTitle(context))
 	}
 	return self.Content
 }
 
-func (self *PageLink) LinkTitle(context *Context) string {
+func (self *PageLink) LinkTitle(response *Response) string {
 	if self.Title == "" {
 		return self.Page.LinkTitle(context)
 	}
 	return self.Title
 }
 
-func (self *PageLink) LinkRel(context *Context) string {
+func (self *PageLink) LinkRel(response *Response) string {
 	return self.Rel
 }

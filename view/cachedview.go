@@ -1,8 +1,8 @@
 package view
 
 import (
-	"time"
 	"github.com/ungerik/go-start/utils"
+	"time"
 )
 
 var cachedViews map[string]*CachedView
@@ -59,23 +59,23 @@ func (self *CachedView) IterateChildren(callback IterateChildrenCallback) {
 	}
 }
 
-func (self *CachedView) Render(context *Context, writer *utils.XMLWriter) (err error) {
+func (self *CachedView) Render(response *Response) (err error) {
 	if self.Content == nil {
 		return nil
 	}
-	if Config.DisableCachedViews || len(context.Params) > 0 || context.Request.Method != "GET" {
-		return self.Content.Render(context, writer)
+	if Config.DisableCachedViews || len(response.Request.Params) > 0 || response.Request.Method != "GET" {
+		return self.Content.Render(response)
 	}
 	if self.data == nil || time.Now().After(self.validUntil) {
 		xmlBuffer := utils.NewXMLBuffer()
-		err = self.Content.Render(context, &xmlBuffer.XMLWriter)
+		err = self.Content.Render(response)
 		if err != nil {
 			return err
 		}
 		self.data = xmlBuffer.Bytes()
 		self.validUntil = time.Now().Add(self.Duration)
 	}
-	_, err = writer.Write(self.data)
+	_, err = response.Write(self.data)
 	return err
 }
 

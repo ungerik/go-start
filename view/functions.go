@@ -1,35 +1,46 @@
 package view
 
 import (
+	"io"
+	"strconv"
+
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/templatesystem"
 	"github.com/ungerik/go-start/utils"
 	"github.com/ungerik/goconfig"
 	"github.com/ungerik/web.go"
-	"io"
-	"strconv"
 
 //	"github.com/ungerik/go-start/debug"
 )
 
-var viewsByID map[string]View = map[string]View{}
+var viewIdChan chan string = make(chan string, 16)
+var viewIdCounter int64
+
+func init() {
+	go func() {
+		for {
+			// Use base32 encoding for ids to make them shorter
+			viewIdChan <- strconv.FormatInt(viewIdCounter, 32)
+			viewIdCounter++
+		}
+	}()
+}
+
+// var viewsByID map[string]View = map[string]View{}
 var viewsByPath map[string]View = map[string]View{}
 
-var viewIdCounter uint64
-
 func NewViewID(view View) (id string) {
-	viewIdCounter++
-	id = strconv.FormatUint(viewIdCounter, 32)
-	viewsByID[id] = view
+	id = <-viewIdChan
+	// viewsByID[id] = view
 	return id
 }
 
-func DeleteViewID(id string) {
-	if _, exists := viewsByID[id]; !exists {
-		panic("View ID '" + id + "' does not exist")
-	}
-	delete(viewsByID, id)
-}
+// func DeleteViewID(id string) {
+// 	if _, exists := viewsByID[id]; !exists {
+// 		panic("View ID '" + id + "' does not exist")
+// 	}
+// 	delete(viewsByID, id)
+// }
 
 func FindStaticFile(filename string) (filePath string, found bool, modifiedTime int64) {
 	return utils.FindFile2ModifiedTime(Config.BaseDirs, Config.StaticDirs, filename)
@@ -100,10 +111,10 @@ func RenderTemplate(filename string, out io.Writer, context interface{}) (err er
 	return templ.Render(out, context)
 }
 
-func RenderChildViewsHTML(parent View, response *Response) (err error) {
+func RenderChildViewsHTML(parent View, response *Response, writer *utils.XMLWriter) (err error) {
 	parent.IterateChildren(func(parent View, child View) (next bool) {
 		if child != nil {
-			err = child.Render(response)
+			err = child.Render(context, writer)
 			if err != nil {
 				return false
 			}

@@ -93,7 +93,6 @@ func (self ViewsTableModel) Columns() int {
 }
 
 func (self ViewsTableModel) CellView(row int, column int, response *Response) (view View, err error) {
-func (self ViewsTableModel) CellView(row int, column int, context *Context) (view View, err error) {
 	if column >= len(self[row]) {
 		return nil, nil
 	}

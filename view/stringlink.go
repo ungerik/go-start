@@ -13,20 +13,20 @@ func (self *StringLink) URL(args ...string) string {
 	return StringURL(self.Url).URL(args...)
 }
 
-func (self *StringLink) LinkContent(context *Context) View {
+func (self *StringLink) LinkContent(response *Response) View {
 	if self.Content == nil {
 		return HTML(self.LinkTitle(context))
 	}
 	return self.Content
 }
 
-func (self *StringLink) LinkTitle(context *Context) string {
+func (self *StringLink) LinkTitle(response *Response) string {
 	if self.Title == "" {
 		return self.URL(context.PathArgs...)
 	}
 	return self.Title
 }
 
-func (self *StringLink) LinkRel(context *Context) string {
+func (self *StringLink) LinkRel(response *Response) string {
 	return self.Rel
 }
