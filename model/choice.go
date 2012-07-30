@@ -7,7 +7,15 @@ import (
 )
 
 /*
-Separate options with ',' escape ',' in options with '\,'
+Choice can hold one of several string options.
+The options are defined by the struct tag attribute "options"
+delimited by colons ",". 
+A colon in an option can be escaped with "\,"
+An empty string can be used as the first option.
+Choice is required, when the first option in not an empty string.
+Struct tag attributes:
+	`model:"options=Red,Green,Blue"`
+	`model:"options=,Second,Third"` // empty string is a valid value
 */
 type Choice string
 
@@ -57,7 +65,7 @@ func (self *Choice) Validate(metaData *MetaData) error {
 }
 
 func (self *Choice) Options(metaData *MetaData) []string {
-	options, ok := metaData.Attrib("options")
+	options, ok := metaData.Attrib(StructTagKey, "options")
 	if !ok {
 		return nil
 	}

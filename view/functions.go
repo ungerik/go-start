@@ -111,10 +111,10 @@ func RenderTemplate(filename string, out io.Writer, context interface{}) (err er
 	return templ.Render(out, context)
 }
 
-func RenderChildViewsHTML(parent View, response *Response, writer *utils.XMLWriter) (err error) {
+func RenderChildViewsHTML(parent View, response *Response) (err error) {
 	parent.IterateChildren(func(parent View, child View) (next bool) {
 		if child != nil {
-			err = child.Render(context, writer)
+			err = child.Render(response)
 			if err != nil {
 				return false
 			}

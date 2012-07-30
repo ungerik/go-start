@@ -19,7 +19,7 @@ func (self *File) IsEmpty() bool {
 }
 
 func (self *File) Required(metaData *MetaData) bool {
-	return metaData.BoolAttrib("required")
+	return metaData.BoolAttrib(StructTagKey, "required")
 }
 
 func (self *File) Validate(metaData *MetaData) error {

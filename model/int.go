@@ -65,7 +65,7 @@ func (self *Int) Validate(metaData *MetaData) error {
 }
 
 func (self *Int) Min(metaData *MetaData) (min int64, ok bool, err error) {
-	str, ok := metaData.Attrib("min")
+	str, ok := metaData.Attrib(StructTagKey, "min")
 	if !ok {
 		return 0, false, nil
 	}
@@ -74,7 +74,7 @@ func (self *Int) Min(metaData *MetaData) (min int64, ok bool, err error) {
 }
 
 func (self *Int) Max(metaData *MetaData) (max int64, ok bool, err error) {
-	str, ok := metaData.Attrib("max")
+	str, ok := metaData.Attrib(StructTagKey, "max")
 	if !ok {
 		return 0, false, nil
 	}
@@ -98,8 +98,4 @@ type IntAboveMax struct {
 
 func (self *IntAboveMax) Error() string {
 	return fmt.Sprintf("Int %d above maximum of %d", self.Value, self.Max)
-}
-
-func (self *Int) Hidden(metaData *MetaData) (hidden bool) {
-	return metaData.BoolAttrib("hidden")
 }

@@ -93,14 +93,14 @@ Example of a dynamic view:
 		},
 	)
 
-Beside DynamicView there is also a ModelView. It takes a model.Iterator
+Beside DynamicView there is also a ModelIteratorView. It takes a model.Iterator
 and creates a dynamic view for every iterated data item:
 
-	view := &ModelView{
+	view := &ModelIteratorView{
 		GetModelIterator: func(response *Response) model.Iterator {
 			return models.Users.Sort("Name.First").Sort("Name.Last").Iterator()
 		},
-		GetModelView: func(model interface{}, response *Response) (view View, err error) {
+		GetModelIteratorView: func(model interface{}, response *Response) (view View, err error) {
 			user := model.(*models.User)
 			return PrintfEscape("%s, ", user.Name), nil
 		},
@@ -165,9 +165,9 @@ Custom model wide validation is done by adding a Validate() method to the
 struct type:
 
 	type SignupFormModel struct {
-		Email     model.Email    `gostart:"required"`
-		Password1 model.Password `gostart:"required|label=Password|minlen=6"`
-		Password2 model.Password `gostart:"label=Repeat password"`
+		Email     model.Email    `model:"required"`
+		Password1 model.Password `view:"label=Password" model:"minlen=6"`
+		Password2 model.Password `view:"label=Repeat password"`
 	}
 
 	func (self *SignupFormModel) Validate(metaData *model.MetaData) []*model.ValidationError {
@@ -206,17 +206,17 @@ Example of a collection and document struct:
 	var ExampleDocs *mongo.Collection = mongo.NewCollection("exampledocs", (*ExampleDoc)(nil))
 
 	type ExampleDoc struct {
-		mongo.DocumentBase `bson:",inline"`                 // Give it a Mongo ID
-		Person             mongo.Ref  `gostart:"to=people"` // Mongo ID ref to a document in "people" collection
-		LongerText         model.Text `gostart:"rows=5|cols=80|maxlen=400"`
-		Integer            model.Int  `gostart:"min=1|max=100"`
+		mongo.DocumentBase `bson:",inline"`               // Give it a Mongo ID
+		Person             mongo.Ref  `model:"to=people"` // Mongo ID ref to a document in "people" collection
+		LongerText         model.Text `model:"maxlen=400" view:"rows=5|cols=80"`
+		Integer            model.Int  `model:"min=1|max=100"`
 		Email              model.Email    // Normalization + special treament in forms
 		PhoneNumber        model.Phone    // Normalization + special treament in forms
 		Password           model.Password // Hashed + special treament in forms
 		SubDoc             struct {
 			Day       model.Date
-			Drinks    []mongo.Choice `gostart:"options=Beer,Wine,Water"` // Mongo array of strings
-			RealFloat model.Float    `gostart:"valid" // Must be a real float value, not NaN or Inf
+			Drinks    []mongo.Choice `model:"options=Beer,Wine,Water"` // Mongo array of strings
+			RealFloat model.Float    `model:"valid" // Must be a real float value, not NaN or Inf
 		}
 	}
 

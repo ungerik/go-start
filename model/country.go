@@ -54,7 +54,7 @@ func (self *Country) Validate(metaData *MetaData) error {
 }
 
 func (self *Country) Required(metaData *MetaData) bool {
-	return metaData.BoolAttrib("required")
+	return metaData.BoolAttrib(StructTagKey, "required")
 }
 
 type InvalidCountryCode struct {

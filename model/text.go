@@ -41,7 +41,7 @@ func (self *Text) Required(metaData *MetaData) bool {
 			return true
 		}
 	}
-	return metaData.BoolAttrib("required")
+	return metaData.BoolAttrib(StructTagKey, "required")
 }
 
 func (self *Text) Validate(metaData *MetaData) error {
@@ -72,7 +72,7 @@ func (self *Text) Validate(metaData *MetaData) error {
 
 func (self *Text) Minlen(metaData *MetaData) (minlen int, ok bool, err error) {
 	var str string
-	if str, ok = metaData.Attrib("minlen"); ok {
+	if str, ok = metaData.Attrib(StructTagKey, "minlen"); ok {
 		minlen, err = strconv.Atoi(str)
 		ok = err == nil
 	}
@@ -81,27 +81,9 @@ func (self *Text) Minlen(metaData *MetaData) (minlen int, ok bool, err error) {
 
 func (self *Text) Maxlen(metaData *MetaData) (maxlen int, ok bool, err error) {
 	var str string
-	if str, ok = metaData.Attrib("maxlen"); ok {
+	if str, ok = metaData.Attrib(StructTagKey, "maxlen"); ok {
 		maxlen, err = strconv.Atoi(str)
 		ok = err == nil
 	}
 	return maxlen, ok, err
-}
-
-func (self *Text) Rows(metaData *MetaData) (rows int, ok bool, err error) {
-	var str string
-	if str, ok = metaData.Attrib("rows"); ok {
-		rows, err = strconv.Atoi(str)
-		ok = err == nil
-	}
-	return rows, ok, err
-}
-
-func (self *Text) Cols(metaData *MetaData) (cols int, ok bool, err error) {
-	var str string
-	if str, ok = metaData.Attrib("cols"); ok {
-		cols, err = strconv.Atoi(str)
-		ok = err == nil
-	}
-	return cols, ok, err
 }

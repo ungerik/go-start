@@ -85,16 +85,16 @@ func (self *StandardFormLayout) BeginStruct(strct *model.MetaData, form *Form, r
 
 func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
 	fieldFactory := form.GetFieldFactory()
-	if !fieldFactory.CanCreateInput(field, form) || form.IsFieldExcluded(field) {
+	if !fieldFactory.CanCreateInput(field, form) || form.IsFieldExcluded(field, response) {
 		return nil
 	}
 
 	grandParent := field.Parent.Parent
 	if grandParent != nil && (grandParent.Kind == model.ArrayKind || grandParent.Kind == model.SliceKind) {
-		if form.IsFieldExcluded(grandParent) {
+		if form.IsFieldExcluded(grandParent, response) {
 			return nil
 		}
-		return self.structFieldInArrayOrSlice(grandParent, field, validationErr, form, context, formContent)
+		return self.structFieldInArrayOrSlice(grandParent, field, validationErr, form, response, formContent)
 	}
 
 	if form.IsFieldHidden(field) {
@@ -126,8 +126,8 @@ func (self *StandardFormLayout) BeginArray(array *model.MetaData, form *Form, re
 }
 
 func (self *StandardFormLayout) ArrayField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
-	if field.Kind == model.ValueKind && !form.IsFieldExcluded(field.Parent) && form.GetFieldFactory().CanCreateInput(field, form) {
-		return self.arrayOrSliceFieldValue(field, validationErr, form, context, formContent)
+	if field.Kind == model.ValueKind && !form.IsFieldExcluded(field.Parent, response) && form.GetFieldFactory().CanCreateInput(field, form) {
+		return self.arrayOrSliceFieldValue(field, validationErr, form, response, formContent)
 	}
 	return nil
 }
@@ -141,8 +141,8 @@ func (self *StandardFormLayout) BeginSlice(slice *model.MetaData, form *Form, re
 }
 
 func (self *StandardFormLayout) SliceField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
-	if field.Kind == model.ValueKind && !form.IsFieldExcluded(field.Parent) && form.GetFieldFactory().CanCreateInput(field, form) {
-		return self.arrayOrSliceFieldValue(field, validationErr, form, context, formContent)
+	if field.Kind == model.ValueKind && !form.IsFieldExcluded(field.Parent, response) && form.GetFieldFactory().CanCreateInput(field, form) {
+		return self.arrayOrSliceFieldValue(field, validationErr, form, response, formContent)
 	}
 	return nil
 }
@@ -171,7 +171,7 @@ func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *m
 		table.Init(table) // get an ID now
 		*formContent = append(*formContent, table)
 		// Add script for manipulating table rows
-		context.AddScript(EditFormSliceTableScript, 0)
+		response.AddScript(EditFormSliceTableScript, 0)
 	}
 	tableModel := table.Model.(ViewsTableModel)
 	if field.Parent.Index == 0 {
@@ -227,7 +227,7 @@ func (self *StandardFormLayout) arrayOrSliceFieldValue(field *model.MetaData, va
 		table.Init(table) // get an ID now
 		*formContent = append(*formContent, table)
 		// Add script for manipulating table rows
-		context.AddScript(EditFormSliceTableScript, 0)
+		response.AddScript(EditFormSliceTableScript, 0)
 	}
 	td, err := fieldFactory.NewInput(false, field, form)
 	if err != nil {

@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 func IndirectViewWithURL(viewWithURL *ViewWithURL) ViewWithURL {
 	return &indirectViewWithURL{viewWithURL}
 }
@@ -22,8 +20,8 @@ func (self *indirectViewWithURL) IterateChildren(callback IterateChildrenCallbac
 	(*self.viewWithURL).IterateChildren(callback)
 }
 
-func (self *indirectViewWithURL) Render(response *Response, writer *utils.XMLWriter) (err error) {
-	return (*self.viewWithURL).Render(context, writer)
+func (self *indirectViewWithURL) Render(response *Response) (err error) {
+	return (*self.viewWithURL).Render(response)
 }
 
 func (self *indirectViewWithURL) URL(args ...string) string {

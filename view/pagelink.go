@@ -17,14 +17,14 @@ func (self *PageLink) URL(args ...string) string {
 
 func (self *PageLink) LinkContent(response *Response) View {
 	if self.Content == nil {
-		return HTML(self.LinkTitle(context))
+		return HTML(self.LinkTitle(response))
 	}
 	return self.Content
 }
 
 func (self *PageLink) LinkTitle(response *Response) string {
 	if self.Title == "" {
-		return self.Page.LinkTitle(context)
+		return self.Page.LinkTitle(response)
 	}
 	return self.Title
 }

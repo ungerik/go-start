@@ -2,20 +2,20 @@ package media
 
 import (
 	"io"
+
 	"github.com/ungerik/go-start/view"
-	"github.com/ungerik/go-start/utils"
 )
 
 var View view.ViewWithURL = view.NewViewURLWrapper(view.RenderView(
-	func(context *view.Context, writer *utils.XMLWriter) error {
-		reader, contentType, err := Config.Backend.ImageVersionReader(context.PathArgs[0])
+	func(response *view.Response) error {
+		reader, contentType, err := Config.Backend.ImageVersionReader(response.Request.URLArgs[0])
 		if err != nil {
 			if _, ok := err.(ErrInvalidImageID); ok {
-				return view.NotFound(context.PathArgs[0] + "/" + context.PathArgs[1] + " not found")
+				return view.NotFound(response.Request.URLArgs[0] + "/" + response.Request.URLArgs[1] + " not found")
 			}
 			return err
 		}
-		_, err = io.Copy(writer, reader)
+		_, err = io.Copy(response, reader)
 		if err != nil {
 			return err
 		}
@@ -23,7 +23,7 @@ var View view.ViewWithURL = view.NewViewURLWrapper(view.RenderView(
 		if err != nil {
 			return err
 		}
-		context.Header().Set("Content-Type", contentType)
+		response.Header().Set("Content-Type", contentType)
 		return nil
 	},
 ))

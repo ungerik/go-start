@@ -48,7 +48,7 @@ func (self *String) Required(metaData *MetaData) bool {
 			return true
 		}
 	}
-	return metaData.BoolAttrib("required")
+	return metaData.BoolAttrib(StructTagKey, "required")
 }
 
 func (self *String) Validate(metaData *MetaData) error {
@@ -84,7 +84,7 @@ func (self *String) Validate(metaData *MetaData) error {
 
 func (self *String) Minlen(metaData *MetaData) (minlen int, ok bool, err error) {
 	var str string
-	if str, ok = metaData.Attrib("minlen"); ok {
+	if str, ok = metaData.Attrib(StructTagKey, "minlen"); ok {
 		minlen, err = strconv.Atoi(str)
 		ok = err == nil
 	}
@@ -93,15 +93,11 @@ func (self *String) Minlen(metaData *MetaData) (minlen int, ok bool, err error) 
 
 func (self *String) Maxlen(metaData *MetaData) (maxlen int, ok bool, err error) {
 	var str string
-	if str, ok = metaData.Attrib("maxlen"); ok {
+	if str, ok = metaData.Attrib(StructTagKey, "maxlen"); ok {
 		maxlen, err = strconv.Atoi(str)
 		ok = err == nil
 	}
 	return maxlen, ok, err
-}
-
-func (self *String) Hidden(metaData *MetaData) (hidden bool) {
-	return metaData.BoolAttrib("hidden")
 }
 
 type StringTooShort struct {

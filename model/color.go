@@ -7,7 +7,13 @@ import (
 	"encoding/hex"
 )
 
-// Color holds a hex web-color with the # prefix.
+/*
+Color holds a hex web-color with the # prefix.
+The Set method accepts all valid web color syntaxes
+except for color names.
+Struct tag attributes:
+	`model:"required"`
+*/
 type Color string
 
 func (self *Color) Get() string {
@@ -64,7 +70,7 @@ func (self *Color) SetString(str string) error {
 }
 
 func (self *Color) Required(metaData *MetaData) bool {
-	return metaData.BoolAttrib("required")
+	return metaData.BoolAttrib(StructTagKey, "required")
 }
 
 func (self *Color) IsValid() bool {

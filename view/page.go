@@ -237,7 +237,7 @@ func (self *Page) Render(response *Response) (err error) {
 		templateContext.PreCSS = r.String()
 	}
 	if self.CSS != nil {
-		templateContext.CSS = self.CSS.URL(response.Request.Params...)
+		templateContext.CSS = self.CSS.URL(response.Request.URLArgs...)
 	} else {
 		templateContext.CSS = Config.Page.DefaultCSS
 	}
@@ -289,9 +289,9 @@ func (self *Page) Render(response *Response) (err error) {
 
 	// Get dynamic style and scripts after self.Content.Render()
 	// because they are added in Render()
-	templateContext.DynamicStyle = context.dynamicStyle.String()
-	templateContext.DynamicHeadScripts = context.dynamicHeadScripts.String()
-	templateContext.DynamicScripts = context.dynamicScripts.String()
+	templateContext.DynamicStyle = response.dynamicStyle.String()
+	templateContext.DynamicHeadScripts = response.dynamicHeadScripts.String()
+	templateContext.DynamicScripts = response.dynamicScripts.String()
 
 	self.Template.GetContext = TemplateContext(templateContext)
 	return self.Template.Render(response)

@@ -5,6 +5,7 @@ import (
 	"container/heap"
 	"fmt"
 	"hash/crc32"
+	"net/http"
 
 	"github.com/ungerik/web.go"
 )
@@ -103,6 +104,10 @@ func (self *Response) NotFound404(message string) {
 
 func (self *Response) AuthorizationRequired401() {
 	self.Abort(401, "Authorization Required")
+}
+
+func (self *Response) Header() http.Header {
+	return self.webContext.Header()
 }
 
 func (self *Response) SetHeader(header string, value string, unique bool) {

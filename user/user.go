@@ -14,11 +14,11 @@ import (
 type User struct {
 	mongo.DocumentBase `bson:",inline"`
 	Name               modelext.Name
-	Username           model.String `gostart:"size=20"`
+	Username           model.String `view:"size=20"`
 	Password           model.Password
 	Blocked            model.Bool
 	Admin              model.Bool
-	PostalAddress      modelext.PostalAddress `gostart:"label=Postal Address"`
+	PostalAddress      modelext.PostalAddress `view:"label=Postal Address"`
 	Phone              []PhoneNumber
 	Web                []Website
 	Email              []EmailIdentity
@@ -225,7 +225,7 @@ type PhoneNumber struct {
 
 // Implements view.LinkModel
 type Website struct {
-	Url         model.Url `gostart:"label=URL"`
+	Url         model.Url `view:"label=URL"`
 	Title       model.String
 	Description model.String
 }

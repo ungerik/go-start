@@ -119,7 +119,7 @@ func (self *structVisitorWrapper) StructField(depth int, v reflect.Value, f refl
 		Depth:  depth,
 		Name:   f.Name,
 		Index:  index,
-		tag:    f.Tag.Get("gostart"),
+		tag:    f.Tag,
 	}
 	return self.visitor.StructField(self.metaData)
 }

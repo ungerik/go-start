@@ -2,8 +2,11 @@ package model
 
 import "strconv"
 
-// Attributes:
-// * label
+/*
+Bool model value.
+Struct tag attributes:
+	none
+*/
 type Bool bool
 
 func (self *Bool) Get() bool {

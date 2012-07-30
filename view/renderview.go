@@ -6,7 +6,7 @@ RenderView implements all View methods for a View.Render compatible function.
 Example:
 
 	renderView := RenderView(
-		func(response *Response, writer *utils.XMLWriter) error {
+		func(response *Response) error {
 			writer.Write([]byte("<html><body>Any Content</body></html>"))
 			return nil
 		},

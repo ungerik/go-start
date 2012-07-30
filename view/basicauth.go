@@ -39,7 +39,7 @@ func (self *BasicAuth) Authenticate(response *Response) (ok bool, err error) {
 		}
 	}
 
-	response.SetHeader("WWW-Authenticate", "Basic realm=\""+self.Realm+"\"", false)
+	response.Header().Set("WWW-Authenticate", "Basic realm=\""+self.Realm+"\"")
 	response.AuthorizationRequired401()
 	return false, nil
 }

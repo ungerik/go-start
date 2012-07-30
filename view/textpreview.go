@@ -40,7 +40,7 @@ func (self *TextPreview) Render(response *Response) (err error) {
 		writer.Content("... ")
 		if self.MoreLink != nil {
 			writer.OpenTag("a")
-			writer.Attrib("href", self.MoreLink.URL(response))
+			writer.Attrib("href", self.MoreLink.URL(response.Request.URLArgs...))
 			writer.AttribIfNotDefault("title", self.MoreLink.LinkTitle(response))
 			content := self.MoreLink.LinkContent(response)
 			if content != nil {

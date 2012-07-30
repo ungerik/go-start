@@ -81,7 +81,7 @@ func LogoutView(redirect view.URL) view.View {
 		func(response *view.Response) (err error) {
 			Logout(response.Session)
 			if redirect != nil {
-				return view.Redirect(redirect.URL(context.PathArgs...))
+				return view.Redirect(redirect.URL(response.Request.URLArgs...))
 			}
 			return view.Redirect("/")
 		},
@@ -101,7 +101,7 @@ func NewSignupForm(buttonText, class, errorMessageClass, successMessageClass str
 			return &EmailPasswordFormModel{}, nil
 		},
 		Redirect: redirectURL,
-		OnSubmit: func(form *view.Form, formModel interface{}, response *view.Response) string, view.URL, error {
+		OnSubmit: func(form *view.Form, formModel interface{}, response *view.Response) (string, view.URL, error) {
 			m := formModel.(*EmailPasswordFormModel)
 			email := m.Email.Get()
 			password := m.Password1.Get()

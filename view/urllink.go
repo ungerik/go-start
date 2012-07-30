@@ -15,14 +15,14 @@ func (self *URLLink) URL(args ...string) string {
 
 func (self *URLLink) LinkContent(response *Response) View {
 	if self.Content == nil {
-		return HTML(self.LinkTitle(context))
+		return HTML(self.LinkTitle(response))
 	}
 	return self.Content
 }
 
 func (self *URLLink) LinkTitle(response *Response) string {
 	if self.Title == "" {
-		return self.Url.URL(context.PathArgs...)
+		return self.Url.URL(response.Request.URLArgs...)
 	}
 	return self.Title
 }

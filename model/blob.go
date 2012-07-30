@@ -4,6 +4,11 @@ import (
 // "io/ioutil"
 )
 
+/*
+Blob is just a bunch of bytes.
+Struct tag attributes:
+	`model:"required"`
+*/
 type Blob []byte
 
 func (self *Blob) Get() []byte {
@@ -28,7 +33,7 @@ func (self *Blob) IsEmpty() bool {
 }
 
 func (self *Blob) Required(metaData *MetaData) bool {
-	return metaData.BoolAttrib("required")
+	return metaData.BoolAttrib(StructTagKey, "required")
 }
 
 func (self *Blob) Validate(metaData *MetaData) error {

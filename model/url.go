@@ -56,5 +56,5 @@ func (self *Url) Validate(metaData *MetaData) error {
 }
 
 func (self *Url) Required(metaData *MetaData) bool {
-	return metaData.BoolAttrib("required")
+	return metaData.BoolAttrib(StructTagKey, "required")
 }

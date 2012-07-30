@@ -6,10 +6,10 @@ import (
 )
 
 ///////////////////////////////////////////////////////////////////////////////
-// ModelView
+// ModelIteratorView
 
 type GetModelIteratorFunc func(response *Response) model.Iterator
-type GetModelViewFunc func(model interface{}, response *Response) (view View, err error)
+type GetModelIteratorViewFunc func(model interface{}, response *Response) (view View, err error)
 
 func ModelIterator(iter model.Iterator) GetModelIteratorFunc {
 	return func(response *Response) model.Iterator {
@@ -17,18 +17,18 @@ func ModelIterator(iter model.Iterator) GetModelIteratorFunc {
 	}
 }
 
-type ModelView struct {
+type ModelIteratorView struct {
 	ViewBase
-	GetModelIterator GetModelIteratorFunc
-	GetModelView     GetModelViewFunc // nil Views will be ignored
+	GetModelIterator     GetModelIteratorFunc
+	GetModelIteratorView GetModelIteratorViewFunc // nil Views will be ignored
 }
 
-func (self *ModelView) Render(response *Response) (err error) {
+func (self *ModelIteratorView) Render(response *Response) (err error) {
 	var children Views
 
 	iter := self.GetModelIterator(response)
 	for model := iter.Next(); model != nil; model = iter.Next() {
-		view, err := self.GetModelView(model, response)
+		view, err := self.GetModelIteratorView(model, response)
 		if err != nil {
 			return err
 		}

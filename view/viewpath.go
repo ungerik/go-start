@@ -162,7 +162,7 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 				return handleErr(err)
 			case self.NoAuth != nil:
 				from := url.QueryEscape(response.Request.RequestURI)
-				to := self.NoAuth.URL(response.Request.Params...) + "?from=" + from
+				to := self.NoAuth.URL(response.Request.URLArgs...) + "?from=" + from
 				return handleErr(Redirect(to))
 			}
 			return handleErr(Forbidden("403 Forbidden: authentication required"))
@@ -175,7 +175,7 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 		}
 
 		if Config.GlobalAuth != nil {
-			if ok, err := Config.GlobalAuth.Authenticate(response); !ok {
+			if ok, err := Config.GlobalAuth.Authenticate(response.Request); !ok {
 				return handleNoAuth(err)
 			}
 		}
@@ -184,7 +184,7 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 			self.Auth = Config.FallbackAuth
 		}
 		if self.Auth != nil {
-			if ok, err := self.Auth.Authenticate(response); !ok {
+			if ok, err := self.Auth.Authenticate(response.Request); !ok {
 				return handleNoAuth(err)
 			}
 		}

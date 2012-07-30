@@ -98,7 +98,7 @@ func (self *Template) Render(response *Response) (err error) {
 	}
 
 	// todo: how to add config data to context if it's not a slice?
-	// map[string][]string{"args": context.PathArgs}
+	// map[string][]string{"args": response.Request.URLArgs}
 	// Config, context.Web
 	return self.template.Render(response, context)
 }

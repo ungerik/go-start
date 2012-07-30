@@ -22,7 +22,7 @@ func (self *Link) Render(response *Response) (err error) {
 		writer.Attrib("target", "_blank")
 	}
 	if self.Model != nil {
-		writer.Attrib("href", self.Model.URL(response.Request.PathArgs...))
+		writer.Attrib("href", self.Model.URL(response.Request.URLArgs...))
 		writer.AttribIfNotDefault("title", self.Model.LinkTitle(response))
 		writer.AttribIfNotDefault("rel", self.Model.LinkRel(response))
 		content := self.Model.LinkContent(response)

@@ -28,7 +28,7 @@ type Request struct {
 // URL returns the complete URL of the request including protocol and host.
 func (self *Request) URLString() string {
 	url := self.RequestURI
-	if !utils.StringStartsWith(url, "http") {
+	if !strings.HasPrefix(url, "http") {
 		url = "http://" + self.webContext.Request.Host + url
 	}
 	return url

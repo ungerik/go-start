@@ -59,7 +59,7 @@ func (self *Language) Validate(metaData *MetaData) error {
 }
 
 func (self *Language) Required(metaData *MetaData) bool {
-	return metaData.BoolAttrib("required")
+	return metaData.BoolAttrib(StructTagKey, "required")
 }
 
 type InvalidLanguageCode struct {

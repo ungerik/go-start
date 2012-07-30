@@ -32,7 +32,7 @@ func (self *EmailIdentity) SendConfirmationEmail(response *view.Response, confir
 	}
 
 	subject := fmt.Sprintf(Config.ConfirmationEmailSubject, view.Config.SiteName)
-	confirm := confirmationURL.URL(context.PathArgs...) + "?code=" + url.QueryEscape(confirmationCode)
+	confirm := confirmationURL.URL(response.Request.URLArgs...) + "?code=" + url.QueryEscape(confirmationCode)
 	message := fmt.Sprintf(Config.ConfirmationEmailMessage, view.Config.SiteName, confirm)
 
 	go func() {

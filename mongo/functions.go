@@ -154,7 +154,7 @@ func InitRefs(document interface{}) {
 	model.Visit(document, model.FieldOnlyVisitor(
 		func(data *model.MetaData) error {
 			if ref, ok := data.Value.Addr().Interface().(*Ref); ok && ref.CollectionName == "" {
-				ref.CollectionName, ok = data.Attrib("to")
+				ref.CollectionName, ok = data.Attrib(model.StructTagKey, "to")
 				if !ok {
 					panic(data.Selector() + " is missing the 'to' meta-data tag")
 				}

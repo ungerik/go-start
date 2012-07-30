@@ -265,7 +265,7 @@ func (self *Form) IsFieldExcluded(field *model.MetaData, response *Response) boo
 			auth, hasAuth = self.ModelFieldAuth[field.WildcardSelector()]
 		}
 		if hasAuth {
-			ok, err := auth.Authenticate(context)
+			ok, err := auth.Authenticate(response.Request)
 			if err != nil {
 				fmt.Println("Error in view.Form.IsFieldExcluded(): " + err.Error())
 			}
@@ -281,7 +281,7 @@ func (self *Form) IsFieldExcluded(field *model.MetaData, response *Response) boo
 				// 	// Needs to pass all sub-Authenticators
 				// 	for _, name := range multi {
 				// 		if auth, ok := NamedAuthenticator(name); ok {
-				// 			ok, err := auth.Authenticate(context)
+				// 			ok, err := auth.Authenticate(response)
 				// 			if err != nil {
 				// 				fmt.Println("Error in view.Form.IsFieldExcluded(): " + err.Error())
 				// 			}
@@ -292,7 +292,7 @@ func (self *Form) IsFieldExcluded(field *model.MetaData, response *Response) boo
 				// 	}
 				// } else {
 				if auth, ok := NamedAuthenticator(name); ok {
-					ok, err := auth.Authenticate(context)
+					ok, err := auth.Authenticate(response.Request)
 					if ok {
 						// Only needs to pass one Authenticator			
 						return false
@@ -316,7 +316,7 @@ func (self *Form) IsFieldExcluded(field *model.MetaData, response *Response) boo
 // IsFieldExcluded and IsFieldHidden have different semantics.
 func (self *Form) IsFieldVisible(field *model.MetaData, response *Response) bool {
 	return self.GetFieldFactory().CanCreateInput(field, self) &&
-		!self.IsFieldExcluded(field, context) &&
+		!self.IsFieldExcluded(field, response) &&
 		!self.IsFieldHidden(field)
 }
 
@@ -368,9 +368,8 @@ func (self *Form) DirectFieldLabel(metaData *model.MetaData) string {
 	return strings.Replace(metaData.NameOrIndex(), "_", " ", -1)
 }
 
-func (self *Form) IsPost(response *Response) bool {
-	return context.Request.Method == "POST" &&
-		context.Request.FormValue(FormIDName) == self.FormID
+func (self *Form) IsPost(request *Request) bool {
+	return request.Method == "POST" && request.FormValue(FormIDName) == self.FormID
 }
 
 // FieldLabel returns a label for a form field generated from metaData.
@@ -401,7 +400,7 @@ func (self *Form) FieldInputClass(metaData *model.MetaData) string {
 	return class
 }
 
-func (self *Form) Render(response *Response, writer *utils.XMLWriter) (err error) {
+func (self *Form) Render(response *Response) (err error) {
 	if self.OnSubmit == nil {
 		panic("view.Form.OnSubmit must not be nil")
 	}
@@ -417,13 +416,13 @@ func (self *Form) Render(response *Response, writer *utils.XMLWriter) (err error
 	var formModel interface{}
 	var hasErrors bool
 	content := Views{&HiddenInput{Name: FormIDName, Value: self.FormID}}
-	isPost := self.IsPost(context)
+	isPost := self.IsPost(response.Request)
 
 	if self.GetModel == nil {
 		submitButton := self.GetFieldFactory().NewSubmitButton(self.GetSubmitButtonText(), self.SubmitButtonConfirm, self)
 		content = append(content, submitButton)
 	} else {
-		formModel, err = self.GetModel(self, context)
+		formModel, err = self.GetModel(self, response)
 		if err != nil {
 			return err
 		}
@@ -435,7 +434,7 @@ func (self *Form) Render(response *Response, writer *utils.XMLWriter) (err error
 			setPostValues := &setPostValuesStructVisitor{
 				form:      self,
 				formModel: formModel,
-				context:   context,
+				response:  response,
 			}
 			err = model.Visit(formModel, setPostValues)
 			if err != nil {
@@ -447,7 +446,7 @@ func (self *Form) Render(response *Response, writer *utils.XMLWriter) (err error
 			formLayout:  layout,
 			formModel:   formModel,
 			formContent: &content,
-			context:     context,
+			response:    response,
 			isPost:      isPost,
 		}
 		err = model.Visit(formModel, validateAndFormLayout)
@@ -458,25 +457,25 @@ func (self *Form) Render(response *Response, writer *utils.XMLWriter) (err error
 	}
 
 	if isPost && !hasErrors {
-		message, redirect, err := self.OnSubmit(self, formModel, context)
+		message, redirect, err := self.OnSubmit(self, formModel, response)
 		if err == nil {
 			if redirect == nil {
 				redirect = self.Redirect
 			}
 			if redirect != nil {
-				return Redirect(redirect.URL(context.PathArgs...))
+				return Redirect(redirect.URL(response.Request.URLArgs...))
 			}
 			if message == "" {
 				message = self.SuccessMessage
 			}
 			if message != "" {
-				self.GetLayout().SubmitSuccess(message, self, context, &content)
+				self.GetLayout().SubmitSuccess(message, self, response, &content)
 			}
 		} else {
 			if message == "" {
 				message = err.Error()
 			}
-			self.GetLayout().SubmitError(message, self, context, &content)
+			self.GetLayout().SubmitError(message, self, response, &content)
 		}
 	}
 
@@ -488,24 +487,25 @@ func (self *Form) Render(response *Response, writer *utils.XMLWriter) (err error
 	action := self.Action
 	if action == "" {
 		action = "."
-		if i := strings.Index(context.Request.RequestURI, "?"); i != -1 {
-			action += context.Request.RequestURI[i:]
+		if i := strings.Index(response.Request.RequestURI, "?"); i != -1 {
+			action += response.Request.RequestURI[i:]
 		}
 	}
 	// Hack: Value of hidden input FormIDName is not available when
 	// enctype is multipart/form-data (bug?), so pass the form id as
 	// URL parameter
-	if self.Enctype == MultipartFormData && context.Request.Method != "POST" {
+	if self.Enctype == MultipartFormData && response.Request.Method != "POST" {
 		action = utils.AddUrlParam(action, FormIDName, self.FormID)
 	}
 
+	writer := utils.NewXMLWriter(response)
 	writer.OpenTag("form").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	writer.Attrib("method", method)
 	writer.Attrib("action", action)
 	writer.AttribIfNotDefault("enctype", self.Enctype)
 	if len(content) > 0 {
 		content.Init(content)
-		err = content.Render(context, writer)
+		err = content.Render(response)
 		if err != nil {
 			return err
 		}

@@ -32,7 +32,7 @@ func (self *GeoLocation) IsEmpty() bool {
 }
 
 func (self *GeoLocation) Required(metaData *MetaData) bool {
-	return metaData.BoolAttrib("required")
+	return metaData.BoolAttrib(StructTagKey, "required")
 }
 
 func (self *GeoLocation) Validate(metaData *MetaData) error {

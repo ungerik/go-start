@@ -2,6 +2,8 @@ package view
 
 import (
 	"fmt"
+	"strconv"
+
 	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 )
@@ -180,8 +182,20 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 		input = textField
 
 	case *model.Text:
-		cols, _, _ := s.Cols(metaData) // will be zero if not available, which is OK
-		rows, _, _ := s.Rows(metaData) // will be zero if not available, which is OK
+		var cols int // will be zero if not available, which is OK
+		if str, ok := metaData.Attrib(StructTagKey, "cols"); ok {
+			cols, err = strconv.Atoi(str)
+			if err != nil {
+				panic("Error in StandardFormFieldFactory.NewInput(): " + err.Error())
+			}
+		}
+		var rows int // will be zero if not available, which is OK
+		if str, ok := metaData.Attrib(StructTagKey, "rows"); ok {
+			rows, err = strconv.Atoi(str)
+			if err != nil {
+				panic("Error in StandardFormFieldFactory.NewInput(): " + err.Error())
+			}
+		}
 		input = &TextArea{
 			Class:    form.FieldInputClass(metaData),
 			Name:     metaData.Selector(),
