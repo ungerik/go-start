@@ -175,7 +175,7 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 		}
 
 		if Config.GlobalAuth != nil {
-			if ok, err := Config.GlobalAuth.Authenticate(response.Request); !ok {
+			if ok, err := Config.GlobalAuth.Authenticate(response); !ok {
 				return handleNoAuth(err)
 			}
 		}
@@ -184,7 +184,7 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 			self.Auth = Config.FallbackAuth
 		}
 		if self.Auth != nil {
-			if ok, err := self.Auth.Authenticate(response.Request); !ok {
+			if ok, err := self.Auth.Authenticate(response); !ok {
 				return handleNoAuth(err)
 			}
 		}

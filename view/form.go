@@ -265,7 +265,7 @@ func (self *Form) IsFieldExcluded(field *model.MetaData, response *Response) boo
 			auth, hasAuth = self.ModelFieldAuth[field.WildcardSelector()]
 		}
 		if hasAuth {
-			ok, err := auth.Authenticate(response.Request)
+			ok, err := auth.Authenticate(response)
 			if err != nil {
 				fmt.Println("Error in view.Form.IsFieldExcluded(): " + err.Error())
 			}
@@ -292,7 +292,7 @@ func (self *Form) IsFieldExcluded(field *model.MetaData, response *Response) boo
 				// 	}
 				// } else {
 				if auth, ok := NamedAuthenticator(name); ok {
-					ok, err := auth.Authenticate(response.Request)
+					ok, err := auth.Authenticate(response)
 					if ok {
 						// Only needs to pass one Authenticator			
 						return false
