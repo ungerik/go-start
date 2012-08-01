@@ -1,7 +1,6 @@
 package user
 
 import (
-	"github.com/ungerik/go-mail"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/modelext"
 	"github.com/ungerik/go-start/mongo"
@@ -106,9 +105,8 @@ func (self *User) PrimaryEmail() string {
 }
 
 func (self *User) HasEmail(address string) bool {
-	address = email.NormalizeAddress(address)
 	for _, email := range self.Email {
-		if email.Address.Get() == address {
+		if email.Address.EqualsCaseinsensitive(address) {
 			return true
 		}
 	}
