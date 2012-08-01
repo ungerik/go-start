@@ -1,9 +1,25 @@
 package view
 
-///////////////////////////////////////////////////////////////////////////////
-// TableModelView
+func TableHeaderRow(views ...View) func(response *Response) (Views, error) {
+	return func(response *Response) (Views, error) {
+		return Views(views), nil
+	}
+}
 
-type TableModelView struct {
+func TableHeaderRowEscape(s ...string) func(response *Response) (Views, error) {
+	views := make(Views, len(s))
+	for i := range s {
+		views[i] = Escape(s[i])
+	}
+	return func(response *Response) (Views, error) {
+		return views, nil
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// ModelIteratorTableView
+
+type ModelIteratorTableView struct {
 	ViewBase
 	Class             string
 	Caption           string
@@ -13,11 +29,11 @@ type TableModelView struct {
 	table             Table
 }
 
-func (self *TableModelView) IterateChildren(callback IterateChildrenCallback) {
+func (self *ModelIteratorTableView) IterateChildren(callback IterateChildrenCallback) {
 	callback(self, &self.table)
 }
 
-func (self *TableModelView) Render(response *Response) (err error) {
+func (self *ModelIteratorTableView) Render(response *Response) (err error) {
 	self.table.Class = self.Class
 	self.table.Caption = self.Caption
 
