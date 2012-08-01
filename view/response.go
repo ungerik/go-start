@@ -110,10 +110,6 @@ func (self *Response) Header() http.Header {
 	return self.webContext.Header()
 }
 
-func (self *Response) SetHeader(header string, value string, unique bool) {
-	self.webContext.SetHeader(header, value, unique)
-}
-
 func (self *Response) ContentType(ext string) {
 	self.webContext.ContentType(ext)
 }
