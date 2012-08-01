@@ -1,12 +1,13 @@
 package user
 
 import (
-	"github.com/ungerik/go-mail"
+	"reflect"
+	"strings"
+
 	"github.com/ungerik/go-start/errs"
+	"github.com/ungerik/go-start/mgo/bson"
 	"github.com/ungerik/go-start/mongo"
 	"github.com/ungerik/go-start/view"
-	"github.com/ungerik/go-start/mgo/bson"
-	"reflect"
 )
 
 var (
@@ -108,8 +109,7 @@ func IsConfirmedUserID(id string) (confirmed bool, err error) {
 // Email functions
 
 func FindByEmail(addr string) (doc interface{}, found bool, err error) {
-	addr = email.NormalizeAddress(addr)
-	query := Config.Collection.Filter("Email.Address", addr)
+	query := Config.Collection.FilterEqualCaseInsensitive("Email.Address", strings.TrimSpace(addr))
 	return query.TryOne()
 }
 
@@ -153,6 +153,7 @@ func Logout(session *view.Session) {
 }
 
 func LoginEmailPassword(session *view.Session, email, password string) (emailPasswdMatch bool, err error) {
+	email = strings.TrimSpace(email)
 	userDoc, found, err := FindByEmail(email)
 	if !found {
 		return false, err

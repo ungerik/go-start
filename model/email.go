@@ -28,6 +28,10 @@ func (self *Email) String() string {
 	return self.Get()
 }
 
+func (self *Email) EqualsCaseinsensitive(address string) bool {
+	return email.CompareAddressesCaseinsensitive(self.Get(), address)
+}
+
 func (self *Email) SetString(str string) (err error) {
 	return self.Set(str)
 }

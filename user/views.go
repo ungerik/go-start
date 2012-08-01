@@ -122,7 +122,7 @@ func NewSignupForm(buttonText, class, errorMessageClass, successMessageClass str
 					return "", nil, err
 				}
 			}
-			err = <-user.Email[0].SendConfirmationEmail(response, confirmationURL)
+			err = <-user.Email[0].SendConfirmationEmail(response.Request.URLArgs, confirmationURL)
 			if err != nil {
 				return "", nil, err
 			}

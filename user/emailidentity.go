@@ -22,7 +22,7 @@ type EmailIdentity struct {
 
 // EmailIdentity has to be saved after a successful call because the confirmation code could have changed
 // confirmationPage needs to be a page with one URL parameter
-func (self *EmailIdentity) SendConfirmationEmail(response *view.Response, confirmationURL view.URL) <-chan error {
+func (self *EmailIdentity) SendConfirmationEmail(urlArgs []string, confirmationURL view.URL) <-chan error {
 	errChan := make(chan error, 1)
 
 	confirmationCode := self.ConfirmationCode.Get()
@@ -32,7 +32,7 @@ func (self *EmailIdentity) SendConfirmationEmail(response *view.Response, confir
 	}
 
 	subject := fmt.Sprintf(Config.ConfirmationEmailSubject, view.Config.SiteName)
-	confirm := confirmationURL.URL(response.Request.URLArgs...) + "?code=" + url.QueryEscape(confirmationCode)
+	confirm := confirmationURL.URL(urlArgs...) + "?code=" + url.QueryEscape(confirmationCode)
 	message := fmt.Sprintf(Config.ConfirmationEmailMessage, view.Config.SiteName, confirm)
 
 	go func() {
