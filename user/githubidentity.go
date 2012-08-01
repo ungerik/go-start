@@ -26,11 +26,11 @@ func (self *GitHubIdentity) URL(args ...string) string {
 	return self.ProfileURL()
 }
 
-func (self *GitHubIdentity) LinkContent(response *view.Response) view.View {
-	return view.Escape(self.LinkTitle(response))
+func (self *GitHubIdentity) LinkContent(urlArgs ...string) view.View {
+	return view.Escape(self.LinkTitle(urlArgs...))
 }
 
-func (self *GitHubIdentity) LinkTitle(response *view.Response) string {
+func (self *GitHubIdentity) LinkTitle(urlArgs ...string) string {
 	name := self.Name.Get()
 	if name == "" {
 		name = self.ID.Get()
@@ -41,6 +41,6 @@ func (self *GitHubIdentity) LinkTitle(response *view.Response) string {
 	return name
 }
 
-func (self *GitHubIdentity) LinkRel(response *view.Response) string {
+func (self *GitHubIdentity) LinkRel() string {
 	return ""
 }

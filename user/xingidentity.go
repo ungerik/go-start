@@ -23,14 +23,14 @@ func (self *XingIdentity) URL(args ...string) string {
 	return self.ProfileURL()
 }
 
-func (self *XingIdentity) LinkContent(response *view.Response) view.View {
-	return view.Escape(self.LinkTitle(response))
+func (self *XingIdentity) LinkContent(urlArgs ...string) view.View {
+	return view.Escape(self.LinkTitle(urlArgs...))
 }
 
-func (self *XingIdentity) LinkTitle(response *view.Response) string {
+func (self *XingIdentity) LinkTitle(urlArgs ...string) string {
 	return self.ID.Get()
 }
 
-func (self *XingIdentity) LinkRel(response *view.Response) string {
+func (self *XingIdentity) LinkRel() string {
 	return ""
 }

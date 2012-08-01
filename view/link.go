@@ -23,9 +23,9 @@ func (self *Link) Render(response *Response) (err error) {
 	}
 	if self.Model != nil {
 		writer.Attrib("href", self.Model.URL(response.Request.URLArgs...))
-		writer.AttribIfNotDefault("title", self.Model.LinkTitle(response))
-		writer.AttribIfNotDefault("rel", self.Model.LinkRel(response))
-		content := self.Model.LinkContent(response)
+		writer.AttribIfNotDefault("title", self.Model.LinkTitle())
+		writer.AttribIfNotDefault("rel", self.Model.LinkRel())
+		content := self.Model.LinkContent()
 		if content != nil {
 			err = content.Render(response)
 		}

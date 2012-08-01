@@ -51,14 +51,14 @@ func (self *EmailIdentity) URL(args ...string) string {
 	return self.MailtoURL()
 }
 
-func (self *EmailIdentity) LinkContent(response *view.Response) view.View {
+func (self *EmailIdentity) LinkContent(urlArgs ...string) view.View {
 	return view.Escape(self.Address.Get())
 }
 
-func (self *EmailIdentity) LinkTitle(response *view.Response) string {
+func (self *EmailIdentity) LinkTitle(urlArgs ...string) string {
 	return self.Address.Get()
 }
 
-func (self *EmailIdentity) LinkRel(response *view.Response) string {
+func (self *EmailIdentity) LinkRel() string {
 	return ""
 }

@@ -30,11 +30,11 @@ func (self *FacebookIdentity) URL(args ...string) string {
 	return self.ProfileURL()
 }
 
-func (self *FacebookIdentity) LinkContent(response *view.Response) view.View {
-	return view.Escape(self.LinkTitle(response))
+func (self *FacebookIdentity) LinkContent(urlArgs ...string) view.View {
+	return view.Escape(self.LinkTitle(urlArgs...))
 }
 
-func (self *FacebookIdentity) LinkTitle(response *view.Response) string {
+func (self *FacebookIdentity) LinkTitle(urlArgs ...string) string {
 	name := self.Name.Get()
 	if name == "" {
 		name = self.ID.Get()
@@ -45,6 +45,6 @@ func (self *FacebookIdentity) LinkTitle(response *view.Response) string {
 	return name
 }
 
-func (self *FacebookIdentity) LinkRel(response *view.Response) string {
+func (self *FacebookIdentity) LinkRel() string {
 	return ""
 }

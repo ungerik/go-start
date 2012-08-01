@@ -134,16 +134,16 @@ func (self *Page) URL(args ...string) string {
 }
 
 // Implements the LinkModel interface
-func (self *Page) LinkContent(response *Response) View {
-	return HTML(self.LinkTitle(response))
+func (self *Page) LinkContent(urlArgs ...string) View {
+	return HTML(self.LinkTitle(urlArgs...))
 }
 
 // Implements the LinkModel interface
-func (self *Page) LinkTitle(response *Response) string {
+func (self *Page) LinkTitle(urlArgs ...string) string {
 	if self.Title == nil {
 		return ""
 	}
-	r := response.New()
+	r := NewDummyResponse()
 	err := self.Title.Render(r)
 	if err != nil {
 		//return err.String()
@@ -153,7 +153,7 @@ func (self *Page) LinkTitle(response *Response) string {
 }
 
 // Implements the LinkModel interface
-func (self *Page) LinkRel(response *Response) string {
+func (self *Page) LinkRel() string {
 	return ""
 }
 

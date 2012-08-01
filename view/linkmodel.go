@@ -7,9 +7,9 @@ import (
 
 type LinkModel interface {
 	URL
-	LinkContent(response *Response) View
-	LinkTitle(response *Response) string
-	LinkRel(response *Response) string
+	LinkContent(urlArgs ...string) View
+	LinkTitle(urlArgs ...string) string
+	LinkRel() string
 }
 
 func NewLinkModel(url interface{}, content ...interface{}) LinkModel {

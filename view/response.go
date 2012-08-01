@@ -10,6 +10,17 @@ import (
 	"github.com/ungerik/web.go"
 )
 
+// NewDummyResponse() creates a Response that can only
+// be used as buffer for Write and Printf methods.
+// Use String() to get the content of the buffer.
+// Any other method will result in a runtime panic.
+// Such a dummy response can be used in conjunction
+// with a Renderer implementation to render an intermediate
+// string result without creating a real HTTP reponse.
+func NewDummyResponse() *Response {
+	return new(Response)
+}
+
 func newResponse(webContext *web.Context, respondingView View, urlArgs []string) *Response {
 	response := &Response{
 		webContext:     webContext,
@@ -40,6 +51,7 @@ type Response struct {
 
 // New creates a clone of the response with an empty buffer.
 // Used to render preliminary text.
+// See also NewDummyResponse().
 func (self *Response) New() *Response {
 	return &Response{
 		webContext:     self.webContext,

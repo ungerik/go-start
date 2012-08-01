@@ -24,14 +24,14 @@ func (self *SkypeIdentity) URL(args ...string) string {
 	return self.CallURL()
 }
 
-func (self *SkypeIdentity) LinkContent(response *view.Response) view.View {
-	return view.Escape(self.LinkTitle(response))
+func (self *SkypeIdentity) LinkContent(urlArgs ...string) view.View {
+	return view.Escape(self.LinkTitle(urlArgs...))
 }
 
-func (self *SkypeIdentity) LinkTitle(response *view.Response) string {
+func (self *SkypeIdentity) LinkTitle(urlArgs ...string) string {
 	return self.ID.Get()
 }
 
-func (self *SkypeIdentity) LinkRel(response *view.Response) string {
+func (self *SkypeIdentity) LinkRel() string {
 	return ""
 }

@@ -73,9 +73,9 @@ func (self *Menu) Render(response *Response) (err error) {
 
 		writer.OpenTag("a")
 		writer.Attrib("href", url)
-		writer.AttribIfNotDefault("title", linkModel.LinkTitle(response))
-		writer.AttribIfNotDefault("rel", linkModel.LinkRel(response))
-		content := linkModel.LinkContent(response)
+		writer.AttribIfNotDefault("title", linkModel.LinkTitle())
+		writer.AttribIfNotDefault("rel", linkModel.LinkRel())
+		content := linkModel.LinkContent()
 		if content != nil {
 			err = content.Render(response)
 			if err != nil {
