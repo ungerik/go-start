@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 ///////////////////////////////////////////////////////////////////////////////
 // Iframe
 
@@ -19,20 +17,19 @@ type Iframe struct {
 }
 
 func (self *Iframe) Render(response *Response) (err error) {
-	writer := utils.NewXMLWriter(response)
-	writer.OpenTag("iframe").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
-	writer.Attrib("width", self.Width).Attrib("height", self.Height)
-	writer.Attrib("frameborder", self.Border)
-	writer.Attrib("marginwidth", self.MarginWidth).Attrib("marginheight", self.MarginHeight)
+	response.XML.OpenTag("iframe").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.Attrib("width", self.Width).Attrib("height", self.Height)
+	response.XML.Attrib("frameborder", self.Border)
+	response.XML.Attrib("marginwidth", self.MarginWidth).Attrib("marginheight", self.MarginHeight)
 	if self.Scrolling {
-		writer.Attrib("scrolling", "yes")
+		response.XML.Attrib("scrolling", "yes")
 	} else {
-		writer.Attrib("scrolling", "no")
+		response.XML.Attrib("scrolling", "no")
 	}
 	if self.Seamless {
-		writer.Attrib("seamless", "seamless")
+		response.XML.Attrib("seamless", "seamless")
 	}
-	writer.Attrib("src", self.URL)
-	writer.ForceCloseTag()
+	response.XML.Attrib("src", self.URL)
+	response.XML.ForceCloseTag()
 	return nil
 }

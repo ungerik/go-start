@@ -2,7 +2,6 @@ package view
 
 import (
 	"github.com/ungerik/go-start/errs"
-	"github.com/ungerik/go-start/utils"
 	"strings"
 )
 
@@ -33,8 +32,7 @@ func (self *Video) Render(response *Response) (err error) {
 	}
 
 	if youtubeId != "" {
-		writer := utils.NewXMLWriter(response)
-		writer.OpenTag("iframe").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+		response.XML.OpenTag("iframe").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 		width := self.Width
 		if width == 0 {
 			width = 640
@@ -43,12 +41,12 @@ func (self *Video) Render(response *Response) (err error) {
 		if height == 0 {
 			height = 390
 		}
-		writer.Attrib("src", "http://www.youtube.com/embed/", youtubeId)
-		writer.Attrib("width", width)
-		writer.Attrib("height", height)
-		writer.Attrib("frameborder", "0")
-		writer.Attrib("allowfullscreen", "allowfullscreen")
-		writer.CloseTag()
+		response.XML.Attrib("src", "http://www.youtube.com/embed/", youtubeId)
+		response.XML.Attrib("width", width)
+		response.XML.Attrib("height", height)
+		response.XML.Attrib("frameborder", "0")
+		response.XML.Attrib("allowfullscreen", "allowfullscreen")
+		response.XML.CloseTag()
 		return nil
 	}
 

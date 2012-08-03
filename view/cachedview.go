@@ -1,7 +1,6 @@
 package view
 
 import (
-	"github.com/ungerik/go-start/utils"
 	"time"
 )
 
@@ -63,16 +62,18 @@ func (self *CachedView) Render(response *Response) (err error) {
 	if self.Content == nil {
 		return nil
 	}
-	if Config.DisableCachedViews || len(response.Request.Params) > 0 || response.Request.Method != "GET" {
+	if true || Config.DisableCachedViews || len(response.Request.Params) > 0 || response.Request.Method != "GET" {
 		return self.Content.Render(response)
 	}
 	if self.data == nil || time.Now().After(self.validUntil) {
-		xmlBuffer := utils.NewXMLBuffer()
-		err = self.Content.Render(response)
+		// todo cache headers
+
+		r := response.New()
+		err = self.Content.Render(r)
 		if err != nil {
 			return err
 		}
-		self.data = xmlBuffer.Bytes()
+		self.data = r.Bytes()
 		self.validUntil = time.Now().Add(self.Duration)
 	}
 	_, err = response.Write(self.data)

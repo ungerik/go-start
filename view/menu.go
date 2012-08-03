@@ -1,7 +1,6 @@
 package view
 
 import (
-	"github.com/ungerik/go-start/utils"
 	"strings"
 	// "github.com/ungerik/go-start/debug"
 )
@@ -20,8 +19,7 @@ type Menu struct {
 }
 
 func (self *Menu) Render(response *Response) (err error) {
-	writer := utils.NewXMLWriter(response)
-	writer.OpenTag("ul").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("ul").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 
 	requestURL := response.Request.URLString()
 
@@ -65,16 +63,16 @@ func (self *Menu) Render(response *Response) (err error) {
 			itemClass += " " + self.ActiveItemClass
 		}
 
-		writer.OpenTag("li").Attrib("id", self.id, "_", index).AttribIfNotDefault("class", itemClass)
+		response.XML.OpenTag("li").Attrib("id", self.id, "_", index).AttribIfNotDefault("class", itemClass)
 
 		if i > 0 && self.BetweenItems != "" {
-			writer.Content(self.BetweenItems)
+			response.XML.Content(self.BetweenItems)
 		}
 
-		writer.OpenTag("a")
-		writer.Attrib("href", url)
-		writer.AttribIfNotDefault("title", linkModel.LinkTitle())
-		writer.AttribIfNotDefault("rel", linkModel.LinkRel())
+		response.XML.OpenTag("a")
+		response.XML.Attrib("href", url)
+		response.XML.AttribIfNotDefault("title", linkModel.LinkTitle())
+		response.XML.AttribIfNotDefault("rel", linkModel.LinkRel())
 		content := linkModel.LinkContent()
 		if content != nil {
 			err = content.Render(response)
@@ -82,11 +80,11 @@ func (self *Menu) Render(response *Response) (err error) {
 				return err
 			}
 		}
-		writer.ForceCloseTag() // a
+		response.XML.ForceCloseTag() // a
 
-		writer.ForceCloseTag() // li
+		response.XML.ForceCloseTag() // li
 	}
 
-	writer.ForceCloseTag() // ul
+	response.XML.ForceCloseTag() // ul
 	return nil
 }

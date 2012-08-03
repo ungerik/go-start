@@ -1,7 +1,6 @@
 package view
 
 import (
-	"github.com/ungerik/go-start/utils"
 	"unicode"
 )
 
@@ -17,9 +16,8 @@ type TextPreview struct {
 }
 
 func (self *TextPreview) Render(response *Response) (err error) {
-	writer := utils.NewXMLWriter(response)
 	if len(self.PlainText) < self.MaxLength {
-		writer.Content(self.PlainText)
+		response.XML.Content(self.PlainText)
 	} else {
 		shortLength := self.ShortLength
 		if shortLength == 0 {
@@ -36,17 +34,17 @@ func (self *TextPreview) Render(response *Response) (err error) {
 			shortLength--
 		}
 
-		writer.Content(self.PlainText[:shortLength])
-		writer.Content("... ")
+		response.XML.Content(self.PlainText[:shortLength])
+		response.XML.Content("... ")
 		if self.MoreLink != nil {
-			writer.OpenTag("a")
-			writer.Attrib("href", self.MoreLink.URL(response.Request.URLArgs...))
-			writer.AttribIfNotDefault("title", self.MoreLink.LinkTitle())
+			response.XML.OpenTag("a")
+			response.XML.Attrib("href", self.MoreLink.URL(response.Request.URLArgs...))
+			response.XML.AttribIfNotDefault("title", self.MoreLink.LinkTitle())
 			content := self.MoreLink.LinkContent()
 			if content != nil {
 				err = content.Render(response)
 			}
-			writer.ForceCloseTag() // a
+			response.XML.ForceCloseTag() // a
 		}
 	}
 	return err

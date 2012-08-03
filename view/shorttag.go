@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 ///////////////////////////////////////////////////////////////////////////////
 // ShortTag
 
@@ -21,14 +19,13 @@ func (self *ShortTag) IterateChildren(callback IterateChildrenCallback) {
 }
 
 func (self *ShortTag) Render(response *Response) (err error) {
-	writer := utils.NewXMLWriter(response)
-	writer.OpenTag(self.Tag).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag(self.Tag).AttribIfNotDefault("class", self.Class)
 	for key, value := range self.Attribs {
-		writer.Attrib(key, value)
+		response.XML.Attrib(key, value)
 	}
 	if self.Content != nil {
 		err = self.Content.Render(response)
 	}
-	writer.ForceCloseTag()
+	response.XML.ForceCloseTag()
 	return err
 }

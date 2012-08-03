@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 ///////////////////////////////////////////////////////////////////////////////
 // Select
 
@@ -19,11 +17,10 @@ func (self *Select) IterateChildren(callback IterateChildrenCallback) {
 }
 
 func (self *Select) Render(response *Response) (err error) {
-	writer := utils.NewXMLWriter(response)
-	writer.OpenTag("select").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
-	writer.Attrib("name", self.Name)
+	response.XML.OpenTag("select").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.Attrib("name", self.Name)
 	if self.Disabled {
-		writer.Attrib("disabled", "disabled")
+		response.XML.Attrib("disabled", "disabled")
 	}
 
 	size := self.Size
@@ -33,28 +30,28 @@ func (self *Select) Render(response *Response) (err error) {
 		if size == 0 {
 			size = numOptions
 		}
-		writer.Attrib("size", size)
+		response.XML.Attrib("size", size)
 
 		for i := 0; i < numOptions; i++ {
-			writer.OpenTag("option")
-			writer.AttribIfNotDefault("value", self.Model.Value(i))
+			response.XML.OpenTag("option")
+			response.XML.AttribIfNotDefault("value", self.Model.Value(i))
 			if self.Model.Selected(i) {
-				writer.Attrib("selected", "selected")
+				response.XML.Attrib("selected", "selected")
 			}
 			if self.Model.Disabled(i) {
-				writer.Attrib("disabled", "disabled")
+				response.XML.Attrib("disabled", "disabled")
 			}
 			err = self.Model.RenderItem(i, response)
 			if err != nil {
 				return err
 			}
-			writer.CloseTag() // option
+			response.XML.CloseTag() // option
 		}
 	} else {
-		writer.Attrib("size", size)
+		response.XML.Attrib("size", size)
 	}
 
-	writer.CloseTag() // select
+	response.XML.CloseTag() // select
 	return nil
 }
 

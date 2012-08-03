@@ -498,11 +498,10 @@ func (self *Form) Render(response *Response) (err error) {
 		action = utils.AddUrlParam(action, FormIDName, self.FormID)
 	}
 
-	writer := utils.NewXMLWriter(response)
-	writer.OpenTag("form").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
-	writer.Attrib("method", method)
-	writer.Attrib("action", action)
-	writer.AttribIfNotDefault("enctype", self.Enctype)
+	response.XML.OpenTag("form").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.Attrib("method", method)
+	response.XML.Attrib("action", action)
+	response.XML.AttribIfNotDefault("enctype", self.Enctype)
 	if len(content) > 0 {
 		content.Init(content)
 		err = content.Render(response)
@@ -510,7 +509,7 @@ func (self *Form) Render(response *Response) (err error) {
 			return err
 		}
 	}
-	writer.ForceCloseTag() // form
+	response.XML.ForceCloseTag() // form
 	return nil
 }
 

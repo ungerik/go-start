@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 ///////////////////////////////////////////////////////////////////////////////
 // Table
 
@@ -14,11 +12,10 @@ type Table struct {
 }
 
 func (self *Table) Render(response *Response) (err error) {
-	writer := utils.NewXMLWriter(response)
-	writer.OpenTag("table").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("table").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 
 	if self.Caption != "" {
-		writer.OpenTag("caption").EscapeContent(self.Caption).CloseTag()
+		response.XML.OpenTag("caption").EscapeContent(self.Caption).CloseTag()
 	}
 
 	if self.Model != nil {
@@ -26,23 +23,23 @@ func (self *Table) Render(response *Response) (err error) {
 		columns := self.Model.Columns()
 
 		for row := 0; row < rows; row++ {
-			writer.OpenTag("tr")
+			response.XML.OpenTag("tr")
 			if row&1 == 0 {
-				writer.Attrib("class", "row", row, " even")
+				response.XML.Attrib("class", "row", row, " even")
 			} else {
-				writer.Attrib("class", "row", row, " odd")
+				response.XML.Attrib("class", "row", row, " odd")
 			}
 
 			for col := 0; col < columns; col++ {
 				if self.HeaderRow && row == 0 {
-					writer.OpenTag("th")
+					response.XML.OpenTag("th")
 				} else {
-					writer.OpenTag("td")
+					response.XML.OpenTag("td")
 				}
 				if col&1 == 0 {
-					writer.Attrib("class", "col", col, " even")
+					response.XML.Attrib("class", "col", col, " even")
 				} else {
-					writer.Attrib("class", "col", col, " odd")
+					response.XML.Attrib("class", "col", col, " odd")
 				}
 				view, err := self.Model.CellView(row, col, response)
 				if view != nil && err == nil {
@@ -52,14 +49,14 @@ func (self *Table) Render(response *Response) (err error) {
 				if err != nil {
 					return err
 				}
-				writer.ForceCloseTag() // td/th
+				response.XML.ForceCloseTag() // td/th
 			}
 
-			writer.ForceCloseTag() // tr
+			response.XML.ForceCloseTag() // tr
 		}
 	}
 
-	writer.ForceCloseTag() // table
+	response.XML.ForceCloseTag() // table
 	return nil
 }
 

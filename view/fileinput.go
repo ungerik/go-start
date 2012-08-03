@@ -1,8 +1,6 @@
 package view
 
-import (
-	"github.com/ungerik/go-start/utils"
-)
+import ()
 
 type FileInput struct {
 	ViewBaseWithId
@@ -12,12 +10,11 @@ type FileInput struct {
 }
 
 func (self *FileInput) Render(response *Response) (err error) {
-	writer := utils.NewXMLWriter(response)
-	writer.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
-	writer.Attrib("type", "file").Attrib("name", self.Name)
+	response.XML.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.Attrib("type", "file").Attrib("name", self.Name)
 	if self.Disabled {
-		writer.Attrib("disabled", "disabled")
+		response.XML.Attrib("disabled", "disabled")
 	}
-	writer.CloseTag()
+	response.XML.CloseTag()
 	return err
 }

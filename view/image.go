@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 ///////////////////////////////////////////////////////////////////////////////
 // Image
 
@@ -15,13 +13,12 @@ type Image struct {
 }
 
 func (self *Image) Render(response *Response) (err error) {
-	writer := utils.NewXMLWriter(response)
-	writer.OpenTag("img").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
-	writer.Attrib("src", self.URL)
-	writer.AttribIfNotDefault("width", self.Width)
-	writer.AttribIfNotDefault("height", self.Height)
-	writer.AttribIfNotDefault("alt", self.Description)
-	writer.CloseTag()
+	response.XML.OpenTag("img").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.Attrib("src", self.URL)
+	response.XML.AttribIfNotDefault("width", self.Width)
+	response.XML.AttribIfNotDefault("height", self.Height)
+	response.XML.AttribIfNotDefault("alt", self.Description)
+	response.XML.CloseTag()
 	return nil
 }
 

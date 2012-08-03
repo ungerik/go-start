@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 ///////////////////////////////////////////////////////////////////////////////
 // Format
 
@@ -13,11 +11,10 @@ type Format struct {
 }
 
 func (self *Format) Render(response *Response) (err error) {
-	writer := utils.NewXMLWriter(response)
 	if self.Escape {
-		writer.PrintfEscape(self.Text, self.Args...)
+		response.XML.PrintfEscape(self.Text, self.Args...)
 	} else {
-		writer.Printf(self.Text, self.Args...)
+		response.XML.Printf(self.Text, self.Args...)
 	}
 	return nil
 }

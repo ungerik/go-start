@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 ///////////////////////////////////////////////////////////////////////////////
 // Span
 
@@ -19,11 +17,10 @@ func (self *Span) IterateChildren(callback IterateChildrenCallback) {
 }
 
 func (self *Span) Render(response *Response) (err error) {
-	writer := utils.NewXMLWriter(response)
-	writer.OpenTag("span").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("span").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	if self.Content != nil {
 		err = self.Content.Render(response)
 	}
-	writer.ForceCloseTag()
+	response.XML.ForceCloseTag()
 	return err
 }

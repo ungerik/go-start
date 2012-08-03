@@ -1,8 +1,6 @@
 package view
 
-import (
-	"github.com/ungerik/go-start/utils"
-)
+import ()
 
 ///////////////////////////////////////////////////////////////////////////////
 // Link
@@ -15,21 +13,20 @@ type Link struct {
 }
 
 func (self *Link) Render(response *Response) (err error) {
-	writer := utils.NewXMLWriter(response)
-	writer.OpenTag("a").AttribIfNotDefault("id", self.id)
-	writer.AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("a").AttribIfNotDefault("id", self.id)
+	response.XML.AttribIfNotDefault("class", self.Class)
 	if self.NewWindow {
-		writer.Attrib("target", "_blank")
+		response.XML.Attrib("target", "_blank")
 	}
 	if self.Model != nil {
-		writer.Attrib("href", self.Model.URL(response.Request.URLArgs...))
-		writer.AttribIfNotDefault("title", self.Model.LinkTitle())
-		writer.AttribIfNotDefault("rel", self.Model.LinkRel())
+		response.XML.Attrib("href", self.Model.URL(response.Request.URLArgs...))
+		response.XML.AttribIfNotDefault("title", self.Model.LinkTitle())
+		response.XML.AttribIfNotDefault("rel", self.Model.LinkRel())
 		content := self.Model.LinkContent()
 		if content != nil {
 			err = content.Render(response)
 		}
 	}
-	writer.ForceCloseTag() // a
+	response.XML.ForceCloseTag() // a
 	return err
 }

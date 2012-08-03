@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 ///////////////////////////////////////////////////////////////////////////////
 // Checkbox
 
@@ -16,21 +14,20 @@ type Checkbox struct {
 }
 
 func (self *Checkbox) Render(response *Response) (err error) {
-	writer := utils.NewXMLWriter(response)
-	writer.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
-	writer.Attrib("type", "checkbox")
-	writer.Attrib("name", self.Name)
-	writer.Attrib("value", "true")
+	response.XML.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.Attrib("type", "checkbox")
+	response.XML.Attrib("name", self.Name)
+	response.XML.Attrib("value", "true")
 	if self.Disabled {
-		writer.Attrib("disabled", "disabled")
+		response.XML.Attrib("disabled", "disabled")
 	}
 	if self.Checked {
-		writer.Attrib("checked", "checked")
+		response.XML.Attrib("checked", "checked")
 	}
-	writer.CloseTag()
+	response.XML.CloseTag()
 
 	if self.Label != "" {
-		writer.OpenTag("label").Attrib("for", self.id).Content(self.Label).CloseTag()
+		response.XML.OpenTag("label").Attrib("for", self.id).Content(self.Label).CloseTag()
 	}
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 	"hash/crc32"
 	"net/http"
 
+	"github.com/ungerik/go-start/utils"
 	"github.com/ungerik/web.go"
 )
 
@@ -18,7 +19,9 @@ import (
 // with a Renderer implementation to render an intermediate
 // string result without creating a real HTTP reponse.
 func NewDummyResponse() *Response {
-	return new(Response)
+	response := &Response{}
+	response.XML = utils.NewXMLWriter(&response.buffer)
+	return response
 }
 
 func newResponse(webContext *web.Context, respondingView View, urlArgs []string) *Response {
@@ -29,12 +32,15 @@ func newResponse(webContext *web.Context, respondingView View, urlArgs []string)
 		Session:        new(Session),
 	}
 	response.Session.init(response.Request, response)
+	response.XML = utils.NewXMLWriter(&response.buffer)
 	return response
 }
 
 type Response struct {
 	buffer     bytes.Buffer
 	webContext *web.Context
+
+	XML *utils.XMLWriter
 
 	Request *Request
 	Session *Session
@@ -53,37 +59,40 @@ type Response struct {
 // Used to render preliminary text.
 // See also NewDummyResponse().
 func (self *Response) New() *Response {
-	return &Response{
+	response := &Response{
 		webContext:     self.webContext,
 		Request:        self.Request,
 		Session:        self.Session,
 		RespondingView: self.RespondingView,
 		Data:           self.Data,
 	}
+	response.XML = utils.NewXMLWriter(&response.buffer)
+	return response
 }
 
 func (self *Response) Write(p []byte) (n int, err error) {
-	return self.buffer.Write(p)
+	return self.XML.Write(p)
 }
 
 func (self *Response) WriteByte(c byte) error {
-	return self.buffer.WriteByte(c)
-}
-
-func (self *Response) WriteRune(r rune) (n int, err error) {
-	return self.buffer.WriteRune(r)
+	_, err := self.XML.Write([]byte{c})
+	return err
 }
 
 func (self *Response) WriteString(s string) (n int, err error) {
-	return self.buffer.WriteString(s)
+	return self.XML.Write([]byte(s))
 }
 
 func (self *Response) Printf(format string, args ...interface{}) (n int, err error) {
-	return fmt.Fprintf(&self.buffer, format, args...)
+	return fmt.Fprintf(self.XML, format, args...)
 }
 
 func (self *Response) String() string {
 	return self.buffer.String()
+}
+
+func (self *Response) Bytes() []byte {
+	return self.buffer.Bytes()
 }
 
 func (self *Response) SetSecureCookie(name string, val string, age int64, path string) {

@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 ///////////////////////////////////////////////////////////////////////////////
 // HiddenInput
 
@@ -12,12 +10,11 @@ type HiddenInput struct {
 }
 
 func (self *HiddenInput) Render(response *Response) (err error) {
-	writer := utils.NewXMLWriter(response)
-	writer.OpenTag("input").Attrib("id", self.id)
-	writer.Attrib("type", "hidden")
-	writer.Attrib("name", self.Name)
-	writer.Attrib("value", self.Value)
-	writer.CloseTag()
+	response.XML.OpenTag("input").Attrib("id", self.id)
+	response.XML.Attrib("type", "hidden")
+	response.XML.Attrib("name", self.Name)
+	response.XML.Attrib("value", self.Value)
+	response.XML.CloseTag()
 	return nil
 }
 

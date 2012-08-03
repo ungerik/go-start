@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 ///////////////////////////////////////////////////////////////////////////////
 // List
 
@@ -15,18 +13,17 @@ type List struct {
 }
 
 func (self *List) Render(response *Response) (err error) {
-	writer := utils.NewXMLWriter(response)
 	if self.Ordered {
-		writer.OpenTag("ol").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
-		writer.Attrib("start", self.OrderOffset+1)
+		response.XML.OpenTag("ol").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+		response.XML.Attrib("start", self.OrderOffset+1)
 	} else {
-		writer.OpenTag("ul").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+		response.XML.OpenTag("ul").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	}
 
 	if self.Model != nil {
 		numItems := self.Model.NumItems()
 		for i := 0; i < numItems; i++ {
-			writer.OpenTag("li").Attrib("id", self.id, "_", i)
+			response.XML.OpenTag("li").Attrib("id", self.id, "_", i)
 			view, err := self.Model.ItemView(i, response)
 			if view != nil && err == nil {
 				view.Init(view)
@@ -35,11 +32,11 @@ func (self *List) Render(response *Response) (err error) {
 			if err != nil {
 				return err
 			}
-			writer.ForceCloseTag() // li
+			response.XML.ForceCloseTag() // li
 		}
 	}
 
-	writer.ForceCloseTag() // ol/ul
+	response.XML.ForceCloseTag() // ol/ul
 	return nil
 }
 

@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 const (
 	TextAreaDefaultCols = 80
 	TextAreaDefaultRows = 3
@@ -23,8 +21,7 @@ type TextArea struct {
 }
 
 func (self *TextArea) Render(response *Response) (err error) {
-	writer := utils.NewXMLWriter(response)
-	writer.OpenTag("textarea").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("textarea").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 
 	cols := self.Cols
 	if cols == 0 {
@@ -35,19 +32,19 @@ func (self *TextArea) Render(response *Response) (err error) {
 		rows = TextAreaDefaultRows
 	}
 
-	writer.Attrib("name", self.Name)
-	writer.Attrib("rows", rows)
-	writer.Attrib("cols", cols)
-	writer.AttribIfNotDefault("tabindex", self.TabIndex)
+	response.XML.Attrib("name", self.Name)
+	response.XML.Attrib("rows", rows)
+	response.XML.Attrib("cols", cols)
+	response.XML.AttribIfNotDefault("tabindex", self.TabIndex)
 	if self.Readonly {
-		writer.Attrib("readonly", "readonly")
+		response.XML.Attrib("readonly", "readonly")
 	}
 	if self.Disabled {
-		writer.Attrib("disabled", "disabled")
+		response.XML.Attrib("disabled", "disabled")
 	}
 
-	writer.EscapeContent(self.Text)
-	writer.CloseTag()
+	response.XML.EscapeContent(self.Text)
+	response.XML.CloseTag()
 	return nil
 }
 

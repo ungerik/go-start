@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 ///////////////////////////////////////////////////////////////////////////////
 // Button
 
@@ -26,41 +24,40 @@ func (self *Button) IterateChildren(callback IterateChildrenCallback) {
 }
 
 func (self *Button) Render(response *Response) (err error) {
-	writer := utils.NewXMLWriter(response)
-	writer.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	if self.Submit {
-		writer.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
-		writer.Attrib("type", "submit")
-		writer.AttribIfNotDefault("name", self.Name)
-		writer.AttribIfNotDefault("value", self.Value)
+		response.XML.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+		response.XML.Attrib("type", "submit")
+		response.XML.AttribIfNotDefault("name", self.Name)
+		response.XML.AttribIfNotDefault("value", self.Value)
 		if self.Disabled {
-			writer.Attrib("disabled", "disabled")
+			response.XML.Attrib("disabled", "disabled")
 		}
-		writer.AttribIfNotDefault("tabindex", self.TabIndex)
+		response.XML.AttribIfNotDefault("tabindex", self.TabIndex)
 		if self.OnClickConfirm != "" {
-			writer.Attrib("onclick", "return confirm('", self.OnClickConfirm, "');")
+			response.XML.Attrib("onclick", "return confirm('", self.OnClickConfirm, "');")
 		} else {
-			writer.AttribIfNotDefault("onclick", self.OnClick)
+			response.XML.AttribIfNotDefault("onclick", self.OnClick)
 		}
-		writer.CloseTag()
+		response.XML.CloseTag()
 	} else {
-		writer.OpenTag("button").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
-		writer.Attrib("type", "button")
-		writer.AttribIfNotDefault("name", self.Name)
-		writer.AttribIfNotDefault("value", self.Value)
+		response.XML.OpenTag("button").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+		response.XML.Attrib("type", "button")
+		response.XML.AttribIfNotDefault("name", self.Name)
+		response.XML.AttribIfNotDefault("value", self.Value)
 		if self.Disabled {
-			writer.Attrib("disabled", "disabled")
+			response.XML.Attrib("disabled", "disabled")
 		}
-		writer.AttribIfNotDefault("tabindex", self.TabIndex)
+		response.XML.AttribIfNotDefault("tabindex", self.TabIndex)
 		if self.OnClickConfirm != "" {
-			writer.Attrib("onclick", "return confirm('", self.OnClickConfirm, "');")
+			response.XML.Attrib("onclick", "return confirm('", self.OnClickConfirm, "');")
 		} else {
-			writer.AttribIfNotDefault("onclick", self.OnClick)
+			response.XML.AttribIfNotDefault("onclick", self.OnClick)
 		}
 		if self.Content != nil {
 			err = self.Content.Render(response)
 		}
-		writer.ForceCloseTag()
+		response.XML.ForceCloseTag()
 	}
 	return nil
 }

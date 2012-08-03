@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 ///////////////////////////////////////////////////////////////////////////////
 // Div
 
@@ -20,12 +18,11 @@ func (self *Div) IterateChildren(callback IterateChildrenCallback) {
 }
 
 func (self *Div) Render(response *Response) (err error) {
-	writer := utils.NewXMLWriter(response)
-	writer.OpenTag("div").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
-	writer.AttribIfNotDefault("style", self.Style)
+	response.XML.OpenTag("div").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.AttribIfNotDefault("style", self.Style)
 	if self.Content != nil {
 		err = self.Content.Render(response)
 	}
-	writer.ForceCloseTag()
+	response.XML.ForceCloseTag()
 	return err
 }

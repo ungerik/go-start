@@ -2,7 +2,6 @@ package view
 
 import (
 	"fmt"
-	"github.com/ungerik/go-start/utils"
 	"net/url"
 )
 
@@ -25,7 +24,6 @@ type DummyImage struct {
 }
 
 func (self *DummyImage) Render(response *Response) (err error) {
-	writer := utils.NewXMLWriter(response)
 	src := fmt.Sprintf("http://dummyimage.com/%dx%d", self.Width, self.Height)
 
 	if self.BackgroundColor != "" || self.ForegroundColor != "" {
@@ -46,12 +44,12 @@ func (self *DummyImage) Render(response *Response) (err error) {
 		src += "&text=" + url.QueryEscape(self.Text)
 	}
 
-	writer.OpenTag("img").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
-	writer.Attrib("src", src)
-	writer.AttribIfNotDefault("width", self.Width)
-	writer.AttribIfNotDefault("height", self.Height)
-	writer.AttribIfNotDefault("alt", self.Text)
-	writer.CloseTag()
+	response.XML.OpenTag("img").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.Attrib("src", src)
+	response.XML.AttribIfNotDefault("width", self.Width)
+	response.XML.AttribIfNotDefault("height", self.Height)
+	response.XML.AttribIfNotDefault("alt", self.Text)
+	response.XML.CloseTag()
 	return nil
 }
 

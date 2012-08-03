@@ -20,7 +20,7 @@ func NewXMLWriter(writer io.Writer) *XMLWriter {
 
 type XMLWriter struct {
 	writer    io.Writer
-	tagStack  []string // todo: make lower case in later go version
+	tagStack  []string
 	inOpenTag bool
 }
 

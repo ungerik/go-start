@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 type TextFieldType int
 
 const (
@@ -27,32 +25,31 @@ type TextField struct {
 }
 
 func (self *TextField) Render(response *Response) (err error) {
-	writer := utils.NewXMLWriter(response)
-	writer.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 
-	writer.Attrib("name", self.Name)
-	writer.AttribIfNotDefault("tabindex", self.TabIndex)
+	response.XML.Attrib("name", self.Name)
+	response.XML.AttribIfNotDefault("tabindex", self.TabIndex)
 	if self.Readonly {
-		writer.Attrib("readonly", "readonly")
+		response.XML.Attrib("readonly", "readonly")
 	}
 	if self.Disabled {
-		writer.Attrib("disabled", "disabled")
+		response.XML.Attrib("disabled", "disabled")
 	}
 
 	switch self.Type {
 	case PasswordTextField:
-		writer.Attrib("type", "password")
+		response.XML.Attrib("type", "password")
 	case EmailTextField:
-		writer.Attrib("type", "email")
+		response.XML.Attrib("type", "email")
 	default:
-		writer.Attrib("type", "text")
+		response.XML.Attrib("type", "text")
 	}
 
-	writer.AttribIfNotDefault("size", self.Size)
-	writer.AttribIfNotDefault("maxlength", self.MaxLength)
-	writer.Attrib("value", self.Text)
+	response.XML.AttribIfNotDefault("size", self.Size)
+	response.XML.AttribIfNotDefault("maxlength", self.MaxLength)
+	response.XML.Attrib("value", self.Text)
 
-	writer.CloseTag()
+	response.XML.CloseTag()
 	return nil
 }
 

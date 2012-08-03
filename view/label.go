@@ -1,7 +1,5 @@
 package view
 
-import "github.com/ungerik/go-start/utils"
-
 ///////////////////////////////////////////////////////////////////////////////
 // Label
 
@@ -17,12 +15,11 @@ func (self *Label) Render(response *Response) (err error) {
 	if self.For != nil {
 		forID = self.For.ID()
 	}
-	writer := utils.NewXMLWriter(response)
-	writer.OpenTag("label").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
-	writer.AttribIfNotDefault("for", forID)
+	response.XML.OpenTag("label").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.AttribIfNotDefault("for", forID)
 	if self.Content != nil {
 		err = self.Content.Render(response)
 	}
-	writer.CloseTag()
+	response.XML.CloseTag()
 	return err
 }
