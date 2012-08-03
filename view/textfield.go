@@ -13,15 +13,16 @@ const (
 
 type TextField struct {
 	ViewBaseWithId
-	Text      string
-	Name      string
-	Size      int
-	MaxLength int
-	Type      TextFieldType
-	Readonly  bool
-	Disabled  bool
-	TabIndex  int
-	Class     string
+	Text        string
+	Name        string
+	Size        int
+	MaxLength   int
+	Type        TextFieldType
+	Readonly    bool
+	Disabled    bool
+	TabIndex    int
+	Class       string
+	Placeholder string
 }
 
 func (self *TextField) Render(response *Response) (err error) {
@@ -48,6 +49,9 @@ func (self *TextField) Render(response *Response) (err error) {
 	response.XML.AttribIfNotDefault("size", self.Size)
 	response.XML.AttribIfNotDefault("maxlength", self.MaxLength)
 	response.XML.Attrib("value", self.Text)
+	if self.Placeholder != "" {
+		response.XML.Attrib("placeholder", self.Placeholder)
+	}
 
 	response.XML.CloseTag()
 	return nil

@@ -10,14 +10,15 @@ const (
 
 type TextArea struct {
 	ViewBaseWithId
-	Text     string
-	Name     string
-	Cols     int
-	Rows     int
-	Readonly bool
-	Disabled bool
-	TabIndex int
-	Class    string
+	Text        string
+	Name        string
+	Cols        int
+	Rows        int
+	Readonly    bool
+	Disabled    bool
+	TabIndex    int
+	Class       string
+	Placeholder string
 }
 
 func (self *TextArea) Render(response *Response) (err error) {
@@ -41,6 +42,9 @@ func (self *TextArea) Render(response *Response) (err error) {
 	}
 	if self.Disabled {
 		response.XML.Attrib("disabled", "disabled")
+	}
+	if self.Placeholder != "" {
+		response.XML.Attrib("placeholder", self.Placeholder)
 	}
 
 	response.XML.EscapeContent(self.Text)

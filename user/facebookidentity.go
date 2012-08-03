@@ -10,7 +10,7 @@ import (
 
 type FacebookIdentity struct {
 	ID          model.String
-	Name        model.String
+	Name        model.String `view:"placeholder=your facebook url"`
 	Confirmed   model.DateTime
 	AccessToken model.String
 }
