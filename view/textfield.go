@@ -24,6 +24,7 @@ type TextField struct {
 	Disabled  bool
 	TabIndex  int
 	Class     string
+	Placeholder string
 }
 
 func (self *TextField) Render(context *Context, writer *utils.XMLWriter) (err error) {
@@ -50,6 +51,9 @@ func (self *TextField) Render(context *Context, writer *utils.XMLWriter) (err er
 	writer.AttribIfNotDefault("size", self.Size)
 	writer.AttribIfNotDefault("maxlength", self.MaxLength)
 	writer.Attrib("value", self.Text)
+	if self.Placeholder != "" {
+		writer.Attrib("placeholder", self.Placeholder)	
+	}
 
 	writer.CloseTag()
 	return nil

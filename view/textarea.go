@@ -20,6 +20,7 @@ type TextArea struct {
 	Disabled bool
 	TabIndex int
 	Class    string
+	Placeholder string
 }
 
 func (self *TextArea) Render(context *Context, writer *utils.XMLWriter) (err error) {
@@ -43,6 +44,10 @@ func (self *TextArea) Render(context *Context, writer *utils.XMLWriter) (err err
 	}
 	if self.Disabled {
 		writer.Attrib("disabled", "disabled")
+	}
+
+	if self.Placeholder != "" {
+		writer.Attrib("placeholder", self.Placeholder)	
 	}
 
 	writer.EscapeContent(self.Text)

@@ -89,6 +89,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 				Text:     s.Get(),
 				Size:     len(model.DateFormat),
 				Disabled: form.IsFieldDisabled(metaData),
+				Placeholder: form.InputFieldPlaceholder(metaData),
 			},
 		}
 
@@ -101,6 +102,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 				Text:     s.Get(),
 				Size:     len(model.DateTimeFormat),
 				Disabled: form.IsFieldDisabled(metaData),
+				Placeholder: form.InputFieldPlaceholder(metaData),
 			},
 		}
 
@@ -112,6 +114,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 			Text:     s.Get(),
 			Size:     form.GetInputSize(metaData),
 			Disabled: form.IsFieldDisabled(metaData),
+			Placeholder: form.InputFieldPlaceholder(metaData),
 		}
 
 	case *model.Float:
@@ -120,6 +123,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 			Name:     metaData.Selector(),
 			Text:     s.String(),
 			Disabled: form.IsFieldDisabled(metaData),
+			Placeholder: form.InputFieldPlaceholder(metaData),
 		}
 
 	case *model.Int:
@@ -128,6 +132,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 			Name:     metaData.Selector(),
 			Text:     s.String(),
 			Disabled: form.IsFieldDisabled(metaData),
+			Placeholder: form.InputFieldPlaceholder(metaData),
 		}
 
 	case *model.Language:
@@ -146,6 +151,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 			Text:     s.Get(),
 			Size:     form.GetInputSize(metaData),
 			Disabled: form.IsFieldDisabled(metaData),
+			Placeholder: form.InputFieldPlaceholder(metaData),
 		}
 
 	case *model.Phone:
@@ -155,6 +161,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 			Text:     s.Get(),
 			Size:     form.GetInputSize(metaData),
 			Disabled: form.IsFieldDisabled(metaData),
+			Placeholder: form.InputFieldPlaceholder(metaData),
 		}
 
 	case model.Reference:
@@ -174,6 +181,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 			Text:     s.Get(),
 			Size:     form.GetInputSize(metaData),
 			Disabled: form.IsFieldDisabled(metaData),
+			Placeholder: form.InputFieldPlaceholder(metaData),
 		}
 		if maxlen, ok, _ := s.Maxlen(metaData); ok {
 			textField.Size = maxlen
@@ -203,6 +211,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 			Cols:     cols,
 			Rows:     rows,
 			Disabled: form.IsFieldDisabled(metaData),
+			Placeholder: form.InputFieldPlaceholder(metaData),
 		}
 
 	case *model.Url:
@@ -212,6 +221,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 			Text:     s.Get(),
 			Size:     form.GetInputSize(metaData),
 			Disabled: form.IsFieldDisabled(metaData),
+			Placeholder: form.InputFieldPlaceholder(metaData),
 		}
 
 	case *model.GeoLocation:
