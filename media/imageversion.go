@@ -33,8 +33,8 @@ type ImageVersion struct {
 	Grayscale    model.Bool
 }
 
-func (self *ImageVersion) URL() string {
-	return View.URL(self.ID.Get(), self.Filename.Get())
+func (self *ImageVersion) URL() view.URL {
+	return view.NewURLWithArgs(View, self.ID.Get(), self.Filename.Get())
 }
 
 // AspectRatio returns Width / Height

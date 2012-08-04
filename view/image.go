@@ -6,7 +6,8 @@ package view
 type Image struct {
 	ViewBaseWithId
 	Class       string
-	URL         string
+	URL         URL    // If URL is set, then Src will be ignored
+	Src         string // String URL of the image, used when URL is nil
 	Width       int
 	Height      int
 	Description string
@@ -14,7 +15,11 @@ type Image struct {
 
 func (self *Image) Render(response *Response) (err error) {
 	response.XML.OpenTag("img").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
-	response.XML.Attrib("src", self.URL)
+	src := self.Src
+	if self.URL != nil {
+		src = self.URL.URL(response)
+	}
+	response.XML.Attrib("src", src)
 	response.XML.AttribIfNotDefault("width", self.Width)
 	response.XML.AttribIfNotDefault("height", self.Height)
 	response.XML.AttribIfNotDefault("alt", self.Description)

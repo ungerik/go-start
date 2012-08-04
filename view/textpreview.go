@@ -38,9 +38,9 @@ func (self *TextPreview) Render(response *Response) (err error) {
 		response.XML.Content("... ")
 		if self.MoreLink != nil {
 			response.XML.OpenTag("a")
-			response.XML.Attrib("href", self.MoreLink.URL(response.Request.URLArgs...))
-			response.XML.AttribIfNotDefault("title", self.MoreLink.LinkTitle())
-			content := self.MoreLink.LinkContent()
+			response.XML.Attrib("href", self.MoreLink.URL(response))
+			response.XML.AttribIfNotDefault("title", self.MoreLink.LinkTitle(response))
+			content := self.MoreLink.LinkContent(response)
 			if content != nil {
 				err = content.Render(response)
 			}

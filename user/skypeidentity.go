@@ -20,18 +20,18 @@ func (self *SkypeIdentity) CallURL() string {
 	return "skype:" + self.ID.Get()
 }
 
-func (self *SkypeIdentity) URL(args ...string) string {
+func (self *SkypeIdentity) URL(response *view.Response) string {
 	return self.CallURL()
 }
 
-func (self *SkypeIdentity) LinkContent(urlArgs ...string) view.View {
-	return view.Escape(self.LinkTitle(urlArgs...))
+func (self *SkypeIdentity) LinkContent(response *view.Response) view.View {
+	return view.Escape(self.LinkTitle(response))
 }
 
-func (self *SkypeIdentity) LinkTitle(urlArgs ...string) string {
+func (self *SkypeIdentity) LinkTitle(response *view.Response) string {
 	return self.ID.Get()
 }
 
-func (self *SkypeIdentity) LinkRel() string {
+func (self *SkypeIdentity) LinkRel(response *view.Response) string {
 	return ""
 }

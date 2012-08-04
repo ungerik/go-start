@@ -2,5 +2,5 @@ package view
 
 // URL is an interface to return URL strings depending on the request path args.
 type URL interface {
-	URL(args ...string) string
+	URL(response *Response) string
 }

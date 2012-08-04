@@ -63,7 +63,7 @@ func ScriptLink(url string) HTML {
 func RSSLink(title string, url URL) View {
 	return RenderView(
 		func(response *Response) error {
-			href := url.URL(response.Request.URLArgs...)
+			href := url.URL(response)
 			response.Printf("<link rel='alternate' type='application/rss+xml' title='%s' href='%s'>", title, href)
 			return nil
 		},
@@ -82,7 +82,7 @@ func IMG(url string, dimensions ...int) *Image {
 			height = dimensions[1]
 		}
 	}
-	return &Image{URL: url, Width: width, Height: height}
+	return &Image{Src: url, Width: width, Height: height}
 }
 
 func SECTION(class string, content ...interface{}) View {

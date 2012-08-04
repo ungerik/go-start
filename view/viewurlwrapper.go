@@ -29,6 +29,6 @@ func (self *ViewURLWrapper) SetPath(path string) {
 	self.path = path
 }
 
-func (self *ViewURLWrapper) URL(args ...string) string {
-	return StringURL(self.path).URL(args...)
+func (self *ViewURLWrapper) URL(response *Response) string {
+	return StringURL(self.path).URL(response)
 }

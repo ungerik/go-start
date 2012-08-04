@@ -1,9 +1,10 @@
 package view
 
 import (
-	"github.com/ungerik/go-start/templatesystem"
-	// "github.com/ungerik/go-start/utils"
 	"html"
+
+	// "github.com/ungerik/go-start/debug"
+	"github.com/ungerik/go-start/templatesystem"
 )
 
 /*
@@ -129,31 +130,30 @@ func (self *Page) SetPath(path string) {
 }
 
 // Implements the URL and LinkModel interface
-func (self *Page) URL(args ...string) string {
-	return StringURL(self.path).URL(args...)
+func (self *Page) URL(response *Response) string {
+	return StringURL(self.path).URL(response)
 }
 
 // Implements the LinkModel interface
-func (self *Page) LinkContent(urlArgs ...string) View {
-	return HTML(self.LinkTitle(urlArgs...))
+func (self *Page) LinkContent(response *Response) View {
+	return HTML(self.LinkTitle(response))
 }
 
 // Implements the LinkModel interface
-func (self *Page) LinkTitle(urlArgs ...string) string {
+func (self *Page) LinkTitle(response *Response) string {
 	if self.Title == nil {
 		return ""
 	}
-	r := NewDummyResponse()
-	err := self.Title.Render(r)
+	oldBody := response.SwitchBody(nil)
+	err := self.Title.Render(response)
 	if err != nil {
-		//return err.String()
 		panic(err)
 	}
-	return r.String()
+	return string(response.SwitchBody(oldBody))
 }
 
 // Implements the LinkModel interface
-func (self *Page) LinkRel() string {
+func (self *Page) LinkRel(response *Response) string {
 	return ""
 }
 
@@ -186,21 +186,21 @@ func (self *Page) Render(response *Response) (err error) {
 		Content            string
 	}
 
+	originalBody := response.SwitchBody(nil)
+
 	if self.Title != nil {
-		r := response.New()
-		err := self.Title.Render(r)
+		err := self.Title.Render(response)
 		if err != nil {
 			return err
 		}
-		templateContext.Title = html.EscapeString(r.String())
+		templateContext.Title = html.EscapeString(string(response.SwitchBody(nil)))
 	}
 	if self.MetaDescription != nil {
-		r := response.New()
-		err := self.MetaDescription.Render(r)
+		err := self.MetaDescription.Render(response)
 		if err != nil {
 			return err
 		}
-		templateContext.MetaDescription = html.EscapeString(r.String())
+		templateContext.MetaDescription = html.EscapeString(string(response.SwitchBody(nil)))
 	}
 
 	metaViewport := self.MetaViewport
@@ -214,12 +214,11 @@ func (self *Page) Render(response *Response) (err error) {
 		additionalHead = Config.Page.DefaultAdditionalHead
 	}
 	if additionalHead != nil {
-		r := response.New()
-		err := additionalHead.Render(r)
+		err := additionalHead.Render(response)
 		if err != nil {
 			return err
 		}
-		templateContext.Head = r.String()
+		templateContext.Head = string(response.SwitchBody(nil))
 	}
 
 	//templateContext.Meta = self.Meta
@@ -230,23 +229,21 @@ func (self *Page) Render(response *Response) (err error) {
 	templateContext.Favicon129x129URL = self.Favicon129x129URL
 
 	if self.PreCSS != nil {
-		r := response.New()
-		if err = self.PreCSS.Render(r); err != nil {
+		if err = self.PreCSS.Render(response); err != nil {
 			return err
 		}
-		templateContext.PreCSS = r.String()
+		templateContext.PreCSS = string(response.SwitchBody(nil))
 	}
 	if self.CSS != nil {
-		templateContext.CSS = self.CSS.URL(response.Request.URLArgs...)
+		templateContext.CSS = self.CSS.URL(response)
 	} else {
 		templateContext.CSS = Config.Page.DefaultCSS
 	}
 	if self.PostCSS != nil {
-		r := response.New()
-		if err = self.PostCSS.Render(r); err != nil {
+		if err = self.PostCSS.Render(response); err != nil {
 			return err
 		}
-		templateContext.PostCSS = r.String()
+		templateContext.PostCSS = string(response.SwitchBody(nil))
 	}
 
 	headScripts := self.HeadScripts
@@ -254,11 +251,10 @@ func (self *Page) Render(response *Response) (err error) {
 		headScripts = Config.Page.DefaultHeadScripts
 	}
 	if headScripts != nil {
-		r := response.New()
-		if err = headScripts.Render(r); err != nil {
+		if err = headScripts.Render(response); err != nil {
 			return err
 		}
-		templateContext.HeadScripts = r.String()
+		templateContext.HeadScripts = string(response.SwitchBody(nil))
 	}
 
 	scripts := self.Scripts
@@ -266,25 +262,23 @@ func (self *Page) Render(response *Response) (err error) {
 		scripts = Config.Page.DefaultScripts
 	}
 	if scripts != nil {
-		r := response.New()
-		if err = scripts.Render(r); err != nil {
+		if err = scripts.Render(response); err != nil {
 			return err
 		}
 		if Config.Page.PostScripts != nil {
-			if err = Config.Page.PostScripts.Render(r); err != nil {
+			if err = Config.Page.PostScripts.Render(response); err != nil {
 				return err
 			}
 		}
-		templateContext.Scripts = r.String()
+		templateContext.Scripts = string(response.SwitchBody(nil))
 	}
 
 	if self.Content != nil {
-		r := response.New()
-		err = self.Content.Render(r)
+		err = self.Content.Render(response)
 		if err != nil {
 			return err
 		}
-		templateContext.Content = r.String()
+		templateContext.Content = string(response.SwitchBody(nil))
 	}
 
 	// Get dynamic style and scripts after self.Content.Render()
@@ -292,6 +286,8 @@ func (self *Page) Render(response *Response) (err error) {
 	templateContext.DynamicStyle = response.dynamicStyle.String()
 	templateContext.DynamicHeadScripts = response.dynamicHeadScripts.String()
 	templateContext.DynamicScripts = response.dynamicScripts.String()
+
+	response.SwitchBody(originalBody)
 
 	self.Template.GetContext = TemplateContext(templateContext)
 	return self.Template.Render(response)

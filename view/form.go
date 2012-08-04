@@ -470,7 +470,7 @@ func (self *Form) Render(response *Response) (err error) {
 				redirect = self.Redirect
 			}
 			if redirect != nil {
-				return Redirect(redirect.URL(response.Request.URLArgs...))
+				return Redirect(redirect.URL(response))
 			}
 			if message == "" {
 				message = self.SuccessMessage

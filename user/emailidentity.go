@@ -22,7 +22,7 @@ type EmailIdentity struct {
 
 // EmailIdentity has to be saved after a successful call because the confirmation code could have changed
 // confirmationPage needs to be a page with one URL parameter
-func (self *EmailIdentity) SendConfirmationEmail(urlArgs []string, confirmationURL view.URL) <-chan error {
+func (self *EmailIdentity) SendConfirmationEmail(response *view.Response, confirmationURL view.URL) <-chan error {
 	errChan := make(chan error, 1)
 
 	confirmationCode := self.ConfirmationCode.Get()
@@ -32,7 +32,7 @@ func (self *EmailIdentity) SendConfirmationEmail(urlArgs []string, confirmationU
 	}
 
 	subject := fmt.Sprintf(Config.ConfirmationEmailSubject, view.Config.SiteName)
-	confirm := confirmationURL.URL(urlArgs...) + "?code=" + url.QueryEscape(confirmationCode)
+	confirm := confirmationURL.URL(response) + "?code=" + url.QueryEscape(confirmationCode)
 	message := fmt.Sprintf(Config.ConfirmationEmailMessage, view.Config.SiteName, confirm)
 
 	go func() {
@@ -47,18 +47,18 @@ func (self *EmailIdentity) MailtoURL() string {
 	return "mailto:" + self.Address.Get()
 }
 
-func (self *EmailIdentity) URL(args ...string) string {
+func (self *EmailIdentity) URL(response *view.Response) string {
 	return self.MailtoURL()
 }
 
-func (self *EmailIdentity) LinkContent(urlArgs ...string) view.View {
+func (self *EmailIdentity) LinkContent(response *view.Response) view.View {
 	return view.Escape(self.Address.Get())
 }
 
-func (self *EmailIdentity) LinkTitle(urlArgs ...string) string {
+func (self *EmailIdentity) LinkTitle(response *view.Response) string {
 	return self.Address.Get()
 }
 
-func (self *EmailIdentity) LinkRel() string {
+func (self *EmailIdentity) LinkRel(response *view.Response) string {
 	return ""
 }

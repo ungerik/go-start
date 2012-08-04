@@ -25,6 +25,12 @@ type Request struct {
 	URLArgs []string
 }
 
+func (self *Request) cloneWithURLArgs(urlArgs []string) *Request {
+	clone := *self
+	clone.URLArgs = urlArgs
+	return &clone
+}
+
 // URL returns the complete URL of the request including protocol and host.
 func (self *Request) URLString() string {
 	url := self.RequestURI

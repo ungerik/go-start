@@ -9,24 +9,24 @@ type StringLink struct {
 	Rel     string
 }
 
-func (self *StringLink) URL(args ...string) string {
-	return StringURL(self.Url).URL(args...)
+func (self *StringLink) URL(response *Response) string {
+	return StringURL(self.Url).URL(response)
 }
 
-func (self *StringLink) LinkContent(urlArgs ...string) View {
+func (self *StringLink) LinkContent(response *Response) View {
 	if self.Content == nil {
-		return HTML(self.LinkTitle())
+		return HTML(self.LinkTitle(response))
 	}
 	return self.Content
 }
 
-func (self *StringLink) LinkTitle(urlArgs ...string) string {
+func (self *StringLink) LinkTitle(response *Response) string {
 	if self.Title == "" {
-		return self.URL(urlArgs...)
+		return self.URL(response)
 	}
 	return self.Title
 }
 
-func (self *StringLink) LinkRel() string {
+func (self *StringLink) LinkRel(response *Response) string {
 	return self.Rel
 }

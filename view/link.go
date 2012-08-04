@@ -19,10 +19,10 @@ func (self *Link) Render(response *Response) (err error) {
 		response.XML.Attrib("target", "_blank")
 	}
 	if self.Model != nil {
-		response.XML.Attrib("href", self.Model.URL(response.Request.URLArgs...))
-		response.XML.AttribIfNotDefault("title", self.Model.LinkTitle())
-		response.XML.AttribIfNotDefault("rel", self.Model.LinkRel())
-		content := self.Model.LinkContent()
+		response.XML.Attrib("href", self.Model.URL(response))
+		response.XML.AttribIfNotDefault("title", self.Model.LinkTitle(response))
+		response.XML.AttribIfNotDefault("rel", self.Model.LinkRel(response))
+		content := self.Model.LinkContent(response)
 		if content != nil {
 			err = content.Render(response)
 		}

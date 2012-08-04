@@ -6,29 +6,29 @@ func NewPageLink(page **Page, title string) *PageLink {
 
 type PageLink struct {
 	Page    **Page
-	Content View   // If nil, then self.LinkTitle() will be used
-	Title   string // If "", then self.Page.LinkTitle() will be used
+	Content View
+	Title   string
 	Rel     string
 }
 
-func (self *PageLink) URL(args ...string) string {
-	return self.Page.URL(args...)
+func (self *PageLink) URL(response *Response) string {
+	return self.Page.URL(response)
 }
 
-func (self *PageLink) LinkContent(urlArgs ...string) View {
+func (self *PageLink) LinkContent(response *Response) View {
 	if self.Content == nil {
-		return HTML(self.LinkTitle(urlArgs...))
+		return HTML(self.LinkTitle(response))
 	}
 	return self.Content
 }
 
-func (self *PageLink) LinkTitle(urlArgs ...string) string {
+func (self *PageLink) LinkTitle(response *Response) string {
 	if self.Title == "" {
-		return self.Page.LinkTitle(urlArgs...)
+		return self.URL(response)
 	}
 	return self.Title
 }
 
-func (self *PageLink) LinkRel() string {
+func (self *PageLink) LinkRel(response *Response) string {
 	return self.Rel
 }

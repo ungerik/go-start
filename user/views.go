@@ -81,7 +81,7 @@ func LogoutView(redirect view.URL) view.View {
 		func(response *view.Response) (err error) {
 			Logout(response.Session)
 			if redirect != nil {
-				return view.Redirect(redirect.URL(response.Request.URLArgs...))
+				return view.Redirect(redirect.URL(response))
 			}
 			return view.Redirect("/")
 		},
@@ -122,7 +122,7 @@ func NewSignupForm(buttonText, class, errorMessageClass, successMessageClass str
 					return "", nil, err
 				}
 			}
-			err = <-user.Email[0].SendConfirmationEmail(response.Request.URLArgs, confirmationURL)
+			err = <-user.Email[0].SendConfirmationEmail(response, confirmationURL)
 			if err != nil {
 				return "", nil, err
 			}

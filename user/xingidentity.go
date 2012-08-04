@@ -19,18 +19,18 @@ func (self *XingIdentity) ProfileURL() string {
 	return "http://www.xing.com/profile/" + self.ID.Get()
 }
 
-func (self *XingIdentity) URL(args ...string) string {
+func (self *XingIdentity) URL(response *view.Response) string {
 	return self.ProfileURL()
 }
 
-func (self *XingIdentity) LinkContent(urlArgs ...string) view.View {
-	return view.Escape(self.LinkTitle(urlArgs...))
+func (self *XingIdentity) LinkContent(response *view.Response) view.View {
+	return view.Escape(self.LinkTitle(response))
 }
 
-func (self *XingIdentity) LinkTitle(urlArgs ...string) string {
+func (self *XingIdentity) LinkTitle(response *view.Response) string {
 	return self.ID.Get()
 }
 
-func (self *XingIdentity) LinkRel() string {
+func (self *XingIdentity) LinkRel(response *view.Response) string {
 	return ""
 }

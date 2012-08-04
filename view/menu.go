@@ -29,7 +29,7 @@ func (self *Menu) Render(response *Response) (err error) {
 	if self.ActiveItemClass != "" {
 		// First try exact URL match
 		for i := range self.Items {
-			url := self.Items[i].URL(response.Request.URLArgs...)
+			url := self.Items[i].URL(response)
 			if url == requestURL {
 				activeIndex = i
 				break
@@ -39,7 +39,7 @@ func (self *Menu) Render(response *Response) (err error) {
 		// If no exact URL match is found, search for sub pages
 		if activeIndex == -1 {
 			for i := range self.Items {
-				url := self.Items[i].URL(response.Request.URLArgs...)
+				url := self.Items[i].URL(response)
 				if strings.HasPrefix(requestURL, url) {
 					activeIndex = i
 					// todo
@@ -56,7 +56,7 @@ func (self *Menu) Render(response *Response) (err error) {
 		}
 		itemClass := self.ItemClass
 		linkModel := self.Items[index]
-		url := linkModel.URL(response.Request.URLArgs...)
+		url := linkModel.URL(response)
 
 		// use i instead of index
 		if i == activeIndex {
@@ -71,9 +71,9 @@ func (self *Menu) Render(response *Response) (err error) {
 
 		response.XML.OpenTag("a")
 		response.XML.Attrib("href", url)
-		response.XML.AttribIfNotDefault("title", linkModel.LinkTitle())
-		response.XML.AttribIfNotDefault("rel", linkModel.LinkRel())
-		content := linkModel.LinkContent()
+		response.XML.AttribIfNotDefault("title", linkModel.LinkTitle(response))
+		response.XML.AttribIfNotDefault("rel", linkModel.LinkRel(response))
+		content := linkModel.LinkContent(response)
 		if content != nil {
 			err = content.Render(response)
 			if err != nil {

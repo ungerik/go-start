@@ -24,8 +24,8 @@ func (self *indirectViewWithURL) Render(response *Response) (err error) {
 	return (*self.viewWithURL).Render(response)
 }
 
-func (self *indirectViewWithURL) URL(args ...string) string {
-	return (*self.viewWithURL).URL(args...)
+func (self *indirectViewWithURL) URL(response *Response) string {
+	return (*self.viewWithURL).URL(response)
 }
 
 func (self *indirectViewWithURL) SetPath(path string) {

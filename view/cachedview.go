@@ -67,14 +67,13 @@ func (self *CachedView) Render(response *Response) (err error) {
 	}
 	if self.data == nil || time.Now().After(self.validUntil) {
 		// todo cache headers
-
-		r := response.New()
-		err = self.Content.Render(r)
-		if err != nil {
-			return err
-		}
-		self.data = r.Bytes()
-		self.validUntil = time.Now().Add(self.Duration)
+		// r := response.New()
+		// err = self.Content.Render(r)
+		// if err != nil {
+		// 	return err
+		// }
+		// self.data = r.Bytes()
+		// self.validUntil = time.Now().Add(self.Duration)
 	}
 	_, err = response.Write(self.data)
 	return err
@@ -84,11 +83,11 @@ func (self *CachedView) ClearCache() {
 	self.data = nil
 }
 
-func (self *CachedView) URL(args ...string) string {
+func (self *CachedView) URL(response *Response) string {
 	if viewWithURL, ok := self.Content.(ViewWithURL); ok {
-		return viewWithURL.URL(args...)
+		return viewWithURL.URL(response)
 	}
-	return StringURL(self.path).URL(args...)
+	return StringURL(self.path).URL(response)
 }
 
 func (self *CachedView) SetPath(path string) {
