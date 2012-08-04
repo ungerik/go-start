@@ -246,7 +246,6 @@ func (self *Form) IsFieldDisabled(field *model.MetaData) bool {
 	return field.BoolAttrib(StructTagKey, "disabled") || field.SelectorsMatch(self.DisabledFields)
 }
 
-
 // IsFieldHidden returns if a hidden input element will be created for a form field.
 // Hidden fields are not validated.
 func (self *Form) IsFieldHidden(field *model.MetaData) bool {

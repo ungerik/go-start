@@ -32,6 +32,97 @@ func (self *StandardFormFieldFactory) CanCreateInput(metaData *model.MetaData, f
 
 func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.MetaData, form *Form) (input View, err error) {
 	switch s := metaData.Value.Addr().Interface().(type) {
+	case *model.String:
+		textField := &TextField{
+			Class:       form.FieldInputClass(metaData),
+			Name:        metaData.Selector(),
+			Text:        s.Get(),
+			Size:        form.GetInputSize(metaData),
+			Disabled:    form.IsFieldDisabled(metaData),
+			Placeholder: form.InputFieldPlaceholder(metaData),
+		}
+		if maxlen, ok, _ := s.Maxlen(metaData); ok {
+			textField.MaxLength = maxlen
+			if maxlen < textField.Size {
+				textField.Size = maxlen
+			}
+		}
+		input = textField
+
+	case *model.Text:
+		var cols int // will be zero if not available, which is OK
+		if str, ok := metaData.Attrib(StructTagKey, "cols"); ok {
+			cols, err = strconv.Atoi(str)
+			if err != nil {
+				panic("Error in StandardFormFieldFactory.NewInput(): " + err.Error())
+			}
+		}
+		var rows int // will be zero if not available, which is OK
+		if str, ok := metaData.Attrib(StructTagKey, "rows"); ok {
+			rows, err = strconv.Atoi(str)
+			if err != nil {
+				panic("Error in StandardFormFieldFactory.NewInput(): " + err.Error())
+			}
+		}
+		input = &TextArea{
+			Class:       form.FieldInputClass(metaData),
+			Name:        metaData.Selector(),
+			Text:        s.Get(),
+			Cols:        cols,
+			Rows:        rows,
+			Disabled:    form.IsFieldDisabled(metaData),
+			Placeholder: form.InputFieldPlaceholder(metaData),
+		}
+
+	case *model.Url:
+		input = &TextField{
+			Class:       form.FieldInputClass(metaData),
+			Name:        metaData.Selector(),
+			Text:        s.Get(),
+			Size:        form.GetInputSize(metaData),
+			Disabled:    form.IsFieldDisabled(metaData),
+			Placeholder: form.InputFieldPlaceholder(metaData),
+		}
+
+	case *model.Email:
+		input = &TextField{
+			Class:       form.FieldInputClass(metaData),
+			Name:        metaData.Selector(),
+			Type:        EmailTextField,
+			Text:        s.Get(),
+			Size:        form.GetInputSize(metaData),
+			Disabled:    form.IsFieldDisabled(metaData),
+			Placeholder: form.InputFieldPlaceholder(metaData),
+		}
+
+	case *model.Password:
+		textField := &TextField{
+			Class:       form.FieldInputClass(metaData),
+			Name:        metaData.Selector(),
+			Type:        PasswordTextField,
+			Text:        s.Get(),
+			Size:        form.GetInputSize(metaData),
+			Disabled:    form.IsFieldDisabled(metaData),
+			Placeholder: form.InputFieldPlaceholder(metaData),
+		}
+		if maxlen, ok, _ := s.Maxlen(metaData); ok {
+			textField.MaxLength = maxlen
+			if maxlen < textField.Size {
+				textField.Size = maxlen
+			}
+		}
+		input = textField
+
+	case *model.Phone:
+		input = &TextField{
+			Class:       form.FieldInputClass(metaData),
+			Name:        metaData.Selector(),
+			Text:        s.Get(),
+			Size:        form.GetInputSize(metaData),
+			Disabled:    form.IsFieldDisabled(metaData),
+			Placeholder: form.InputFieldPlaceholder(metaData),
+		}
+
 	case *model.Bool:
 		checkbox := &Checkbox{
 			Class:    form.FieldInputClass(metaData),
@@ -106,17 +197,6 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 			},
 		}
 
-	case *model.Email:
-		input = &TextField{
-			Class:       form.FieldInputClass(metaData),
-			Name:        metaData.Selector(),
-			Type:        EmailTextField,
-			Text:        s.Get(),
-			Size:        form.GetInputSize(metaData),
-			Disabled:    form.IsFieldDisabled(metaData),
-			Placeholder: form.InputFieldPlaceholder(metaData),
-		}
-
 	case *model.Float:
 		input = &TextField{
 			Class:       form.FieldInputClass(metaData),
@@ -143,27 +223,6 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 		}
 		input = HTML(value)
 
-	case *model.Password:
-		input = &TextField{
-			Class:       form.FieldInputClass(metaData),
-			Name:        metaData.Selector(),
-			Type:        PasswordTextField,
-			Text:        s.Get(),
-			Size:        form.GetInputSize(metaData),
-			Disabled:    form.IsFieldDisabled(metaData),
-			Placeholder: form.InputFieldPlaceholder(metaData),
-		}
-
-	case *model.Phone:
-		input = &TextField{
-			Class:       form.FieldInputClass(metaData),
-			Name:        metaData.Selector(),
-			Text:        s.Get(),
-			Size:        form.GetInputSize(metaData),
-			Disabled:    form.IsFieldDisabled(metaData),
-			Placeholder: form.InputFieldPlaceholder(metaData),
-		}
-
 	case model.Reference:
 		if !form.ShowRefIDs {
 			return nil, nil
@@ -173,56 +232,6 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 			value = "[empty]"
 		}
 		input = HTML(value)
-
-	case *model.String:
-		textField := &TextField{
-			Class:       form.FieldInputClass(metaData),
-			Name:        metaData.Selector(),
-			Text:        s.Get(),
-			Size:        form.GetInputSize(metaData),
-			Disabled:    form.IsFieldDisabled(metaData),
-			Placeholder: form.InputFieldPlaceholder(metaData),
-		}
-		if maxlen, ok, _ := s.Maxlen(metaData); ok {
-			textField.Size = maxlen
-			textField.MaxLength = maxlen
-		}
-		input = textField
-
-	case *model.Text:
-		var cols int // will be zero if not available, which is OK
-		if str, ok := metaData.Attrib(StructTagKey, "cols"); ok {
-			cols, err = strconv.Atoi(str)
-			if err != nil {
-				panic("Error in StandardFormFieldFactory.NewInput(): " + err.Error())
-			}
-		}
-		var rows int // will be zero if not available, which is OK
-		if str, ok := metaData.Attrib(StructTagKey, "rows"); ok {
-			rows, err = strconv.Atoi(str)
-			if err != nil {
-				panic("Error in StandardFormFieldFactory.NewInput(): " + err.Error())
-			}
-		}
-		input = &TextArea{
-			Class:       form.FieldInputClass(metaData),
-			Name:        metaData.Selector(),
-			Text:        s.Get(),
-			Cols:        cols,
-			Rows:        rows,
-			Disabled:    form.IsFieldDisabled(metaData),
-			Placeholder: form.InputFieldPlaceholder(metaData),
-		}
-
-	case *model.Url:
-		input = &TextField{
-			Class:       form.FieldInputClass(metaData),
-			Name:        metaData.Selector(),
-			Text:        s.Get(),
-			Size:        form.GetInputSize(metaData),
-			Disabled:    form.IsFieldDisabled(metaData),
-			Placeholder: form.InputFieldPlaceholder(metaData),
-		}
 
 	case *model.GeoLocation:
 		input = HTML(s.String())
