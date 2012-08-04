@@ -3,7 +3,6 @@ package view
 type Button struct {
 	ViewBaseWithId
 	Name           string
-	Value          interface{}
 	Class          string
 	Disabled       bool
 	TabIndex       int
@@ -22,7 +21,6 @@ func (self *Button) Render(response *Response) (err error) {
 	response.XML.OpenTag("button").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
 	response.XML.Attrib("type", "button")
 	response.XML.AttribIfNotDefault("name", self.Name)
-	response.XML.AttribIfNotDefault("value", self.Value)
 	if self.Disabled {
 		response.XML.Attrib("disabled", "disabled")
 	}
@@ -36,5 +34,5 @@ func (self *Button) Render(response *Response) (err error) {
 		err = self.Content.Render(response)
 	}
 	response.XML.ForceCloseTag()
-	return nil
+	return err
 }
