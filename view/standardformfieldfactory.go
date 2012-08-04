@@ -84,11 +84,11 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 		input = Views{
 			HTML("(Format: " + model.DateFormat + ")<br/>"),
 			&TextField{
-				Class:    form.FieldInputClass(metaData),
-				Name:     metaData.Selector(),
-				Text:     s.Get(),
-				Size:     len(model.DateFormat),
-				Disabled: form.IsFieldDisabled(metaData),
+				Class:       form.FieldInputClass(metaData),
+				Name:        metaData.Selector(),
+				Text:        s.Get(),
+				Size:        len(model.DateFormat),
+				Disabled:    form.IsFieldDisabled(metaData),
 				Placeholder: form.InputFieldPlaceholder(metaData),
 			},
 		}
@@ -97,41 +97,41 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 		input = Views{
 			HTML("(Format: " + model.DateTimeFormat + ")<br/>"),
 			&TextField{
-				Class:    form.FieldInputClass(metaData),
-				Name:     metaData.Selector(),
-				Text:     s.Get(),
-				Size:     len(model.DateTimeFormat),
-				Disabled: form.IsFieldDisabled(metaData),
+				Class:       form.FieldInputClass(metaData),
+				Name:        metaData.Selector(),
+				Text:        s.Get(),
+				Size:        len(model.DateTimeFormat),
+				Disabled:    form.IsFieldDisabled(metaData),
 				Placeholder: form.InputFieldPlaceholder(metaData),
 			},
 		}
 
 	case *model.Email:
 		input = &TextField{
-			Class:    form.FieldInputClass(metaData),
-			Name:     metaData.Selector(),
-			Type:     EmailTextField,
-			Text:     s.Get(),
-			Size:     form.GetInputSize(metaData),
-			Disabled: form.IsFieldDisabled(metaData),
+			Class:       form.FieldInputClass(metaData),
+			Name:        metaData.Selector(),
+			Type:        EmailTextField,
+			Text:        s.Get(),
+			Size:        form.GetInputSize(metaData),
+			Disabled:    form.IsFieldDisabled(metaData),
 			Placeholder: form.InputFieldPlaceholder(metaData),
 		}
 
 	case *model.Float:
 		input = &TextField{
-			Class:    form.FieldInputClass(metaData),
-			Name:     metaData.Selector(),
-			Text:     s.String(),
-			Disabled: form.IsFieldDisabled(metaData),
+			Class:       form.FieldInputClass(metaData),
+			Name:        metaData.Selector(),
+			Text:        s.String(),
+			Disabled:    form.IsFieldDisabled(metaData),
 			Placeholder: form.InputFieldPlaceholder(metaData),
 		}
 
 	case *model.Int:
 		input = &TextField{
-			Class:    form.FieldInputClass(metaData),
-			Name:     metaData.Selector(),
-			Text:     s.String(),
-			Disabled: form.IsFieldDisabled(metaData),
+			Class:       form.FieldInputClass(metaData),
+			Name:        metaData.Selector(),
+			Text:        s.String(),
+			Disabled:    form.IsFieldDisabled(metaData),
 			Placeholder: form.InputFieldPlaceholder(metaData),
 		}
 
@@ -145,22 +145,22 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 
 	case *model.Password:
 		input = &TextField{
-			Class:    form.FieldInputClass(metaData),
-			Name:     metaData.Selector(),
-			Type:     PasswordTextField,
-			Text:     s.Get(),
-			Size:     form.GetInputSize(metaData),
-			Disabled: form.IsFieldDisabled(metaData),
+			Class:       form.FieldInputClass(metaData),
+			Name:        metaData.Selector(),
+			Type:        PasswordTextField,
+			Text:        s.Get(),
+			Size:        form.GetInputSize(metaData),
+			Disabled:    form.IsFieldDisabled(metaData),
 			Placeholder: form.InputFieldPlaceholder(metaData),
 		}
 
 	case *model.Phone:
 		input = &TextField{
-			Class:    form.FieldInputClass(metaData),
-			Name:     metaData.Selector(),
-			Text:     s.Get(),
-			Size:     form.GetInputSize(metaData),
-			Disabled: form.IsFieldDisabled(metaData),
+			Class:       form.FieldInputClass(metaData),
+			Name:        metaData.Selector(),
+			Text:        s.Get(),
+			Size:        form.GetInputSize(metaData),
+			Disabled:    form.IsFieldDisabled(metaData),
 			Placeholder: form.InputFieldPlaceholder(metaData),
 		}
 
@@ -176,11 +176,11 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 
 	case *model.String:
 		textField := &TextField{
-			Class:    form.FieldInputClass(metaData),
-			Name:     metaData.Selector(),
-			Text:     s.Get(),
-			Size:     form.GetInputSize(metaData),
-			Disabled: form.IsFieldDisabled(metaData),
+			Class:       form.FieldInputClass(metaData),
+			Name:        metaData.Selector(),
+			Text:        s.Get(),
+			Size:        form.GetInputSize(metaData),
+			Disabled:    form.IsFieldDisabled(metaData),
 			Placeholder: form.InputFieldPlaceholder(metaData),
 		}
 		if maxlen, ok, _ := s.Maxlen(metaData); ok {
@@ -205,22 +205,22 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 			}
 		}
 		input = &TextArea{
-			Class:    form.FieldInputClass(metaData),
-			Name:     metaData.Selector(),
-			Text:     s.Get(),
-			Cols:     cols,
-			Rows:     rows,
-			Disabled: form.IsFieldDisabled(metaData),
+			Class:       form.FieldInputClass(metaData),
+			Name:        metaData.Selector(),
+			Text:        s.Get(),
+			Cols:        cols,
+			Rows:        rows,
+			Disabled:    form.IsFieldDisabled(metaData),
 			Placeholder: form.InputFieldPlaceholder(metaData),
 		}
 
 	case *model.Url:
 		input = &TextField{
-			Class:    form.FieldInputClass(metaData),
-			Name:     metaData.Selector(),
-			Text:     s.Get(),
-			Size:     form.GetInputSize(metaData),
-			Disabled: form.IsFieldDisabled(metaData),
+			Class:       form.FieldInputClass(metaData),
+			Name:        metaData.Selector(),
+			Text:        s.Get(),
+			Size:        form.GetInputSize(metaData),
+			Disabled:    form.IsFieldDisabled(metaData),
 			Placeholder: form.InputFieldPlaceholder(metaData),
 		}
 
@@ -282,9 +282,8 @@ func (self *StandardFormFieldFactory) NewSuccessMessage(message string, form *Fo
 }
 
 func (self *StandardFormFieldFactory) NewSubmitButton(text, confirmationMessage string, form *Form) View {
-	return &Button{
+	return &SubmitButton{
 		Class:          form.GetSubmitButtonClass(),
-		Submit:         true,
 		Value:          text,
 		OnClickConfirm: confirmationMessage,
 	}

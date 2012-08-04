@@ -43,12 +43,11 @@ func (self *TextArea) Render(response *Response) (err error) {
 	if self.Disabled {
 		response.XML.Attrib("disabled", "disabled")
 	}
-	if self.Placeholder != "" {
-		response.XML.Attrib("placeholder", self.Placeholder)
-	}
+	response.XML.AttribIfNotDefault("placeholder", self.Placeholder)
 
 	response.XML.EscapeContent(self.Text)
-	response.XML.CloseTag()
+
+	response.XML.ForceCloseTag()
 	return nil
 }
 

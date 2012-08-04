@@ -1,6 +1,6 @@
 package view
 
-type Button struct {
+type SubmitButton struct {
 	ViewBaseWithId
 	Name           string
 	Value          interface{}
@@ -9,18 +9,11 @@ type Button struct {
 	TabIndex       int
 	OnClick        string
 	OnClickConfirm string // Will add a confirmation dialog for onclick
-	Content        View   // Only used when Submit is false
 }
 
-func (self *Button) IterateChildren(callback IterateChildrenCallback) {
-	if self.Content != nil {
-		callback(self, self.Content)
-	}
-}
-
-func (self *Button) Render(response *Response) (err error) {
-	response.XML.OpenTag("button").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
-	response.XML.Attrib("type", "button")
+func (self *SubmitButton) Render(response *Response) (err error) {
+	response.XML.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.Attrib("type", "submit")
 	response.XML.AttribIfNotDefault("name", self.Name)
 	response.XML.AttribIfNotDefault("value", self.Value)
 	if self.Disabled {
@@ -32,9 +25,6 @@ func (self *Button) Render(response *Response) (err error) {
 	} else {
 		response.XML.AttribIfNotDefault("onclick", self.OnClick)
 	}
-	if self.Content != nil {
-		err = self.Content.Render(response)
-	}
-	response.XML.ForceCloseTag()
+	response.XML.CloseTag()
 	return nil
 }
