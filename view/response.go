@@ -121,8 +121,15 @@ func (self *Response) Header() http.Header {
 	return self.webContext.Header()
 }
 
-func (self *Response) ContentType(ext string) {
+func (self *Response) ContentTypeByExt(ext string) {
 	self.webContext.ContentType(ext)
+}
+
+// ContentDispositionAttachment makes the webbrowser open a
+// "Save As.." dialog for the response.
+func (self *Response) ContentDispositionAttachment(filename string) {
+	self.Header().Add("Content-Type", "application/x-unknown")
+	self.Header().Add("Content-Disposition", "attachment;filename="+filename)
 }
 
 func (self *Response) AddStyle(css string, priority int) {

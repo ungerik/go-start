@@ -34,7 +34,7 @@ func (self *StaticFile) Render(response *Response) (err error) {
 		}
 	}
 
-	response.ContentType(self.ContentTypeExt)
+	response.ContentTypeByExt(self.ContentTypeExt)
 	response.Write(self.fileContent)
 	return nil
 }
