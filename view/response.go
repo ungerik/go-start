@@ -28,6 +28,7 @@ type Response struct {
 	buffer     *bytes.Buffer
 	webContext *web.Context
 
+	// XML allowes the Response to be used as utils.XMLWriter
 	XML *utils.XMLWriter
 
 	Request *Request
@@ -45,6 +46,8 @@ type Response struct {
 	dynamicScripts     dependencyHeap
 }
 
+// SwitchBody returns the current response body and replaces it with newBody.
+// nil is allowed for an empty newBody
 func (self *Response) SwitchBody(newBody []byte) (oldBody []byte) {
 	oldBody = self.buffer.Bytes()
 	self.buffer.Reset()
@@ -54,6 +57,18 @@ func (self *Response) SwitchBody(newBody []byte) (oldBody []byte) {
 	return oldBody
 }
 
+/*
+URLArgs returns an altered Response copy where
+Response.Request.URLArgs are set to urlArgs.
+Used when calling the the URL() method of a URL interface
+to get the URL of another view, defined by urlArgs.
+
+The following example gets the URL of MyPage with the first
+URL argument is that of the current page and the second
+URL argument is "second-arg":
+
+	MyPage.URL(response.URLArgs(response.Request.URLArgs[0], "second-arg"))
+*/
 func (self *Response) URLArgs(urlArgs ...string) *Response {
 	copy := *self
 	copy.Request = self.Request.cloneWithURLArgs(urlArgs)
@@ -132,6 +147,12 @@ func (self *Response) ContentDispositionAttachment(filename string) {
 	self.Header().Add("Content-Disposition", "attachment;filename="+filename)
 }
 
+// AddStyle adds dynamic CSS content to the page.
+// Multiple dynamic entries will be sorted by priority.
+// Dynamic CSS will be inserted after the regular CSS of the page.
+// 
+// Use this feature to dynamically add CSS to the page if the
+// HTML content requires it.
 func (self *Response) AddStyle(css string, priority int) {
 	if self.dynamicStyle == nil {
 		self.dynamicStyle = newDependencyHeap()
@@ -139,6 +160,12 @@ func (self *Response) AddStyle(css string, priority int) {
 	self.dynamicStyle.AddIfNew("<style>"+css+"</style>", priority)
 }
 
+// AddStyleURL adds a dynamic CSS link to the page.
+// Multiple dynamic entries will be sorted by priority.
+// Dynamic CSS will be inserted after the regular CSS of the page.
+// 
+// Use this feature to dynamically add CSS to the page if the
+// HTML content requires it.
 func (self *Response) AddStyleURL(url string, priority int) {
 	if self.dynamicStyle == nil {
 		self.dynamicStyle = newDependencyHeap()
@@ -146,6 +173,13 @@ func (self *Response) AddStyleURL(url string, priority int) {
 	self.dynamicStyle.AddIfNew("<link rel='stylesheet' href='"+url+"'>", priority)
 }
 
+// AddHeaderScript adds dynamic JavaScript to the page.
+// Multiple dynamic entries will be sorted by priority.
+// The dynamic JavaScript will be inserted after the regular
+// head-scripts of the page.
+// 
+// Use this feature to dynamically add JavaScript to
+// the page if the HTML content requires it.
 func (self *Response) AddHeaderScript(script string, priority int) {
 	if self.dynamicHeadScripts == nil {
 		self.dynamicHeadScripts = newDependencyHeap()
@@ -153,6 +187,13 @@ func (self *Response) AddHeaderScript(script string, priority int) {
 	self.dynamicHeadScripts.AddIfNew("<script>"+script+"</script>", priority)
 }
 
+// AddHeaderScriptURL adds a dynamic JavaScript link to the page.
+// Multiple dynamic entries will be sorted by priority.
+// The dynamic JavaScript will be inserted after the regular
+// head-scripts of the page.
+// 
+// Use this feature to dynamically add JavaScript to
+// the page if the HTML content requires it.
 func (self *Response) AddHeaderScriptURL(url string, priority int) {
 	if self.dynamicHeadScripts == nil {
 		self.dynamicHeadScripts = newDependencyHeap()
@@ -160,6 +201,13 @@ func (self *Response) AddHeaderScriptURL(url string, priority int) {
 	self.dynamicHeadScripts.AddIfNew("<script src='"+url+"'></script>", priority)
 }
 
+// AddScript adds dynamic JavaScript to the page.
+// Multiple dynamic entries will be sorted by priority.
+// The dynamic JavaScript will be inserted after the regular
+// scripts near the end of the page.
+// 
+// Use this feature to dynamically add JavaScript to
+// the page if the HTML content requires it.
 func (self *Response) AddScript(script string, priority int) {
 	if self.dynamicScripts == nil {
 		self.dynamicScripts = newDependencyHeap()
@@ -167,6 +215,13 @@ func (self *Response) AddScript(script string, priority int) {
 	self.dynamicScripts.AddIfNew("<script>"+script+"</script>", priority)
 }
 
+// AddScriptURL adds a dynamic JavaScript link to the page.
+// Multiple dynamic entries will be sorted by priority.
+// The dynamic JavaScript will be inserted after the regular
+// scripts near the end of the page.
+// 
+// Use this feature to dynamically add JavaScript to
+// the page if the HTML content requires it.
 func (self *Response) AddScriptURL(url string, priority int) {
 	if self.dynamicScripts == nil {
 		self.dynamicScripts = newDependencyHeap()
