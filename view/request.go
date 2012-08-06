@@ -31,13 +31,22 @@ func (self *Request) cloneWithURLArgs(urlArgs []string) *Request {
 	return &clone
 }
 
-// URL returns the complete URL of the request including protocol and host.
-func (self *Request) URLString() string {
-	url := self.RequestURI
-	if !strings.HasPrefix(url, "http") {
-		url = "http://" + self.webContext.Request.Host + url
+// AddProtocolAndHostToURL adds the protocol (http:// or https://)
+// and request host (domain or IP) to an URL if not present.
+func (self *Request) AddProtocolAndHostToURL(url string) string {
+	if len(url) > 0 && url[0] == '/' {
+		if self.TLS != nil {
+			url = "https://" + self.Host + url
+		} else {
+			url = "http://" + self.Host + url
+		}
 	}
 	return url
+}
+
+// URL returns the complete URL of the request including protocol and host.
+func (self *Request) URLString() string {
+	return self.AddProtocolAndHostToURL(self.RequestURI)
 }
 
 // todo: all browsers

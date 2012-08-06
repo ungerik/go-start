@@ -10,5 +10,5 @@ func (self StringURL) URL(response *Response) string {
 	for _, arg := range response.Request.URLArgs {
 		url = strings.Replace(url, PathFragmentPattern, arg, 1)
 	}
-	return url
+	return response.Request.AddProtocolAndHostToURL(url)
 }
