@@ -13,31 +13,35 @@ import (
 
 func newResponse(webContext *web.Context, respondingView View, urlArgs []string) *Response {
 	response := &Response{
-		buffer:         new(bytes.Buffer),
 		webContext:     webContext,
 		RespondingView: respondingView,
 		Request:        newRequest(webContext, urlArgs),
 		Session:        new(Session),
 	}
 	response.Session.init(response.Request, response)
-	response.XML = utils.NewXMLWriter(response.buffer)
+	response.PushBuffer()
 	return response
 }
 
-type Response struct {
-	buffer     *bytes.Buffer
-	webContext *web.Context
+type responseBuffer struct {
+	buffer *bytes.Buffer
+	xml    *utils.XMLWriter
+}
 
-	// XML allowes the Response to be used as utils.XMLWriter
-	XML *utils.XMLWriter
+type Response struct {
+	webContext *web.Context
 
 	Request *Request
 	Session *Session
 
 	// View that responds to the HTTP request
 	RespondingView View
-	// Custom response wide data that can be set by the application
 
+	bufferStack []responseBuffer
+	// XML allowes the Response to be used as utils.XMLWriter
+	XML *utils.XMLWriter
+
+	// Custom response wide data that can be set by the application
 	Data      interface{}
 	DebugData interface{}
 
@@ -46,15 +50,35 @@ type Response struct {
 	dynamicScripts     dependencyHeap
 }
 
-// SwitchBody returns the current response body and replaces it with newBody.
-// nil is allowed for an empty newBody
-func (self *Response) SwitchBody(newBody []byte) (oldBody []byte) {
-	oldBody = self.buffer.Bytes()
-	self.buffer.Reset()
-	if len(newBody) > 0 {
-		self.buffer.Write(newBody)
-	}
-	return oldBody
+// PushBuffer pushes the buffer of the response body on a stack
+// and sets a new empty buffer.
+// This can be used to render intermediate text results.
+// Note: Only the response body is pushed, all other state changes
+// like setting headers will affect the final response.
+func (self *Response) PushBuffer() {
+	var b responseBuffer
+	b.buffer = new(bytes.Buffer)
+	b.xml = utils.NewXMLWriter(b.buffer)
+	self.bufferStack = append(self.bufferStack, b)
+	self.XML = b.xml
+}
+
+// PopBuffer pops the buffer of the response body from the stack
+// and returns its content.
+// This can be used to render intermediate text results.
+func (self *Response) PopBuffer() (bufferData []byte) {
+	last := len(self.bufferStack) - 1
+	bufferData = self.bufferStack[last].buffer.Bytes()
+	self.bufferStack = self.bufferStack[0:last]
+	self.XML = self.bufferStack[last-1].xml
+	return bufferData
+}
+
+// PopBufferString pops the buffer of the response body from the stack
+// and returns its content as string.
+// This can be used to render intermediate text results.
+func (self *Response) PopBufferString() (bufferData string) {
+	return string(self.PopBuffer())
 }
 
 /*
@@ -93,11 +117,11 @@ func (self *Response) Printf(format string, args ...interface{}) (n int, err err
 }
 
 func (self *Response) String() string {
-	return self.buffer.String()
+	return self.bufferStack[len(self.bufferStack)-1].buffer.String()
 }
 
 func (self *Response) Bytes() []byte {
-	return self.buffer.Bytes()
+	return self.bufferStack[len(self.bufferStack)-1].buffer.Bytes()
 }
 
 func (self *Response) SetSecureCookie(name string, val string, age int64, path string) {

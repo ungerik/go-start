@@ -144,12 +144,12 @@ func (self *Page) LinkTitle(response *Response) string {
 	if self.Title == nil {
 		return ""
 	}
-	oldBody := response.SwitchBody(nil)
+	response.PushBuffer()
 	err := self.Title.Render(response)
 	if err != nil {
 		panic(err)
 	}
-	return string(response.SwitchBody(oldBody))
+	return response.PopBufferString()
 }
 
 // Implements the LinkModel interface
@@ -186,21 +186,21 @@ func (self *Page) Render(response *Response) (err error) {
 		Content            string
 	}
 
-	originalBody := response.SwitchBody(nil)
-
 	if self.Title != nil {
+		response.PushBuffer()
 		err := self.Title.Render(response)
 		if err != nil {
 			return err
 		}
-		templateContext.Title = html.EscapeString(string(response.SwitchBody(nil)))
+		templateContext.Title = html.EscapeString(response.PopBufferString())
 	}
 	if self.MetaDescription != nil {
+		response.PushBuffer()
 		err := self.MetaDescription.Render(response)
 		if err != nil {
 			return err
 		}
-		templateContext.MetaDescription = html.EscapeString(string(response.SwitchBody(nil)))
+		templateContext.MetaDescription = html.EscapeString(response.PopBufferString())
 	}
 
 	metaViewport := self.MetaViewport
@@ -214,11 +214,12 @@ func (self *Page) Render(response *Response) (err error) {
 		additionalHead = Config.Page.DefaultAdditionalHead
 	}
 	if additionalHead != nil {
+		response.PushBuffer()
 		err := additionalHead.Render(response)
 		if err != nil {
 			return err
 		}
-		templateContext.Head = string(response.SwitchBody(nil))
+		templateContext.Head = response.PopBufferString()
 	}
 
 	//templateContext.Meta = self.Meta
@@ -229,10 +230,11 @@ func (self *Page) Render(response *Response) (err error) {
 	templateContext.Favicon129x129URL = self.Favicon129x129URL
 
 	if self.PreCSS != nil {
+		response.PushBuffer()
 		if err = self.PreCSS.Render(response); err != nil {
 			return err
 		}
-		templateContext.PreCSS = string(response.SwitchBody(nil))
+		templateContext.PreCSS = response.PopBufferString()
 	}
 	if self.CSS != nil {
 		templateContext.CSS = self.CSS.URL(response)
@@ -240,10 +242,11 @@ func (self *Page) Render(response *Response) (err error) {
 		templateContext.CSS = Config.Page.DefaultCSS
 	}
 	if self.PostCSS != nil {
+		response.PushBuffer()
 		if err = self.PostCSS.Render(response); err != nil {
 			return err
 		}
-		templateContext.PostCSS = string(response.SwitchBody(nil))
+		templateContext.PostCSS = response.PopBufferString()
 	}
 
 	headScripts := self.HeadScripts
@@ -251,10 +254,11 @@ func (self *Page) Render(response *Response) (err error) {
 		headScripts = Config.Page.DefaultHeadScripts
 	}
 	if headScripts != nil {
+		response.PushBuffer()
 		if err = headScripts.Render(response); err != nil {
 			return err
 		}
-		templateContext.HeadScripts = string(response.SwitchBody(nil))
+		templateContext.HeadScripts = response.PopBufferString()
 	}
 
 	scripts := self.Scripts
@@ -262,6 +266,7 @@ func (self *Page) Render(response *Response) (err error) {
 		scripts = Config.Page.DefaultScripts
 	}
 	if scripts != nil {
+		response.PushBuffer()
 		if err = scripts.Render(response); err != nil {
 			return err
 		}
@@ -270,15 +275,16 @@ func (self *Page) Render(response *Response) (err error) {
 				return err
 			}
 		}
-		templateContext.Scripts = string(response.SwitchBody(nil))
+		templateContext.Scripts = response.PopBufferString()
 	}
 
 	if self.Content != nil {
+		response.PushBuffer()
 		err = self.Content.Render(response)
 		if err != nil {
 			return err
 		}
-		templateContext.Content = string(response.SwitchBody(nil))
+		templateContext.Content = response.PopBufferString()
 	}
 
 	// Get dynamic style and scripts after self.Content.Render()
@@ -286,8 +292,6 @@ func (self *Page) Render(response *Response) (err error) {
 	templateContext.DynamicStyle = response.dynamicStyle.String()
 	templateContext.DynamicHeadScripts = response.dynamicHeadScripts.String()
 	templateContext.DynamicScripts = response.dynamicScripts.String()
-
-	response.SwitchBody(originalBody)
 
 	self.Template.GetContext = TemplateContext(templateContext)
 	return self.Template.Render(response)

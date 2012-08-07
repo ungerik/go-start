@@ -1,7 +1,10 @@
 package view
 
 import (
+	"net/http"
 	"time"
+
+	// "github.com/ungerik/go-start/debug"
 )
 
 var cachedViews map[string]*CachedView
@@ -47,9 +50,10 @@ type CachedView struct {
 	ViewBaseWithId
 	Content    View
 	Duration   time.Duration
-	data       []byte
-	validUntil time.Time
 	path       string
+	header     http.Header
+	body       []byte
+	validUntil time.Time
 }
 
 func (self *CachedView) IterateChildren(callback IterateChildrenCallback) {
@@ -62,25 +66,31 @@ func (self *CachedView) Render(response *Response) (err error) {
 	if self.Content == nil {
 		return nil
 	}
-	if true || Config.DisableCachedViews || len(response.Request.Params) > 0 || response.Request.Method != "GET" {
+	if Config.DisableCachedViews || len(response.Request.Params) > 0 || response.Request.Method != "GET" {
 		return self.Content.Render(response)
 	}
-	if self.data == nil || time.Now().After(self.validUntil) {
-		// todo cache headers
-		// r := response.New()
-		// err = self.Content.Render(r)
-		// if err != nil {
-		// 	return err
-		// }
-		// self.data = r.Bytes()
-		// self.validUntil = time.Now().Add(self.Duration)
+	if self.body == nil || time.Now().After(self.validUntil) {
+		err = self.Content.Render(response)
+		if err != nil {
+			return err
+		}
+		self.header = response.Header()
+		self.body = response.Bytes()
+		self.validUntil = time.Now().Add(self.Duration)
+		return nil
 	}
-	_, err = response.Write(self.data)
+
+	// debug.Print("Responding with cached version of " + response.Request.URLString())
+	for key, value := range self.header {
+		response.Header()[key] = value
+	}
+	_, err = response.Write(self.body)
 	return err
 }
 
 func (self *CachedView) ClearCache() {
-	self.data = nil
+	self.header = nil
+	self.body = nil
 }
 
 func (self *CachedView) URL(response *Response) string {

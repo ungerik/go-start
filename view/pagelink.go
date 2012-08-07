@@ -24,7 +24,7 @@ func (self *PageLink) LinkContent(response *Response) View {
 
 func (self *PageLink) LinkTitle(response *Response) string {
 	if self.Title == "" {
-		//return self.Page.LinkTitle(response)
+		return self.Page.LinkTitle(response)
 	}
 	return self.Title
 }
