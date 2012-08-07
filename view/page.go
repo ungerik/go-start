@@ -144,12 +144,12 @@ func (self *Page) LinkTitle(response *Response) string {
 	if self.Title == nil {
 		return ""
 	}
-	response.PushBuffer()
+	response.PushBody()
 	err := self.Title.Render(response)
 	if err != nil {
 		panic(err)
 	}
-	return response.PopBufferString()
+	return response.PopBodyString()
 }
 
 // Implements the LinkModel interface
@@ -187,20 +187,20 @@ func (self *Page) Render(response *Response) (err error) {
 	}
 
 	if self.Title != nil {
-		response.PushBuffer()
+		response.PushBody()
 		err := self.Title.Render(response)
 		if err != nil {
 			return err
 		}
-		templateContext.Title = html.EscapeString(response.PopBufferString())
+		templateContext.Title = html.EscapeString(response.PopBodyString())
 	}
 	if self.MetaDescription != nil {
-		response.PushBuffer()
+		response.PushBody()
 		err := self.MetaDescription.Render(response)
 		if err != nil {
 			return err
 		}
-		templateContext.MetaDescription = html.EscapeString(response.PopBufferString())
+		templateContext.MetaDescription = html.EscapeString(response.PopBodyString())
 	}
 
 	metaViewport := self.MetaViewport
@@ -214,12 +214,12 @@ func (self *Page) Render(response *Response) (err error) {
 		additionalHead = Config.Page.DefaultAdditionalHead
 	}
 	if additionalHead != nil {
-		response.PushBuffer()
+		response.PushBody()
 		err := additionalHead.Render(response)
 		if err != nil {
 			return err
 		}
-		templateContext.Head = response.PopBufferString()
+		templateContext.Head = response.PopBodyString()
 	}
 
 	//templateContext.Meta = self.Meta
@@ -230,11 +230,11 @@ func (self *Page) Render(response *Response) (err error) {
 	templateContext.Favicon129x129URL = self.Favicon129x129URL
 
 	if self.PreCSS != nil {
-		response.PushBuffer()
+		response.PushBody()
 		if err = self.PreCSS.Render(response); err != nil {
 			return err
 		}
-		templateContext.PreCSS = response.PopBufferString()
+		templateContext.PreCSS = response.PopBodyString()
 	}
 	if self.CSS != nil {
 		templateContext.CSS = self.CSS.URL(response)
@@ -242,11 +242,11 @@ func (self *Page) Render(response *Response) (err error) {
 		templateContext.CSS = Config.Page.DefaultCSS
 	}
 	if self.PostCSS != nil {
-		response.PushBuffer()
+		response.PushBody()
 		if err = self.PostCSS.Render(response); err != nil {
 			return err
 		}
-		templateContext.PostCSS = response.PopBufferString()
+		templateContext.PostCSS = response.PopBodyString()
 	}
 
 	headScripts := self.HeadScripts
@@ -254,11 +254,11 @@ func (self *Page) Render(response *Response) (err error) {
 		headScripts = Config.Page.DefaultHeadScripts
 	}
 	if headScripts != nil {
-		response.PushBuffer()
+		response.PushBody()
 		if err = headScripts.Render(response); err != nil {
 			return err
 		}
-		templateContext.HeadScripts = response.PopBufferString()
+		templateContext.HeadScripts = response.PopBodyString()
 	}
 
 	scripts := self.Scripts
@@ -266,7 +266,7 @@ func (self *Page) Render(response *Response) (err error) {
 		scripts = Config.Page.DefaultScripts
 	}
 	if scripts != nil {
-		response.PushBuffer()
+		response.PushBody()
 		if err = scripts.Render(response); err != nil {
 			return err
 		}
@@ -275,16 +275,16 @@ func (self *Page) Render(response *Response) (err error) {
 				return err
 			}
 		}
-		templateContext.Scripts = response.PopBufferString()
+		templateContext.Scripts = response.PopBodyString()
 	}
 
 	if self.Content != nil {
-		response.PushBuffer()
+		response.PushBody()
 		err = self.Content.Render(response)
 		if err != nil {
 			return err
 		}
-		templateContext.Content = response.PopBufferString()
+		templateContext.Content = response.PopBodyString()
 	}
 
 	// Get dynamic style and scripts after self.Content.Render()

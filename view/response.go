@@ -19,11 +19,11 @@ func newResponse(webContext *web.Context, respondingView View, urlArgs []string)
 		Session:        new(Session),
 	}
 	response.Session.init(response.Request, response)
-	response.PushBuffer()
+	response.PushBody()
 	return response
 }
 
-type responseBuffer struct {
+type responseBody struct {
 	buffer *bytes.Buffer
 	xml    *utils.XMLWriter
 }
@@ -37,7 +37,7 @@ type Response struct {
 	// View that responds to the HTTP request
 	RespondingView View
 
-	bufferStack []responseBuffer
+	bodyStack []responseBody
 	// XML allowes the Response to be used as utils.XMLWriter
 	XML *utils.XMLWriter
 
@@ -50,35 +50,33 @@ type Response struct {
 	dynamicScripts     dependencyHeap
 }
 
-// PushBuffer pushes the buffer of the response body on a stack
+// PushBody pushes the buffer of the response body on a stack
 // and sets a new empty buffer.
 // This can be used to render intermediate text results.
 // Note: Only the response body is pushed, all other state changes
 // like setting headers will affect the final response.
-func (self *Response) PushBuffer() {
-	var b responseBuffer
+func (self *Response) PushBody() {
+	var b responseBody
 	b.buffer = new(bytes.Buffer)
 	b.xml = utils.NewXMLWriter(b.buffer)
-	self.bufferStack = append(self.bufferStack, b)
+	self.bodyStack = append(self.bodyStack, b)
 	self.XML = b.xml
 }
 
-// PopBuffer pops the buffer of the response body from the stack
+// PopBody pops the buffer of the response body from the stack
 // and returns its content.
-// This can be used to render intermediate text results.
-func (self *Response) PopBuffer() (bufferData []byte) {
-	last := len(self.bufferStack) - 1
-	bufferData = self.bufferStack[last].buffer.Bytes()
-	self.bufferStack = self.bufferStack[0:last]
-	self.XML = self.bufferStack[last-1].xml
+func (self *Response) PopBody() (bufferData []byte) {
+	last := len(self.bodyStack) - 1
+	bufferData = self.bodyStack[last].buffer.Bytes()
+	self.bodyStack = self.bodyStack[0:last]
+	self.XML = self.bodyStack[last-1].xml
 	return bufferData
 }
 
-// PopBufferString pops the buffer of the response body from the stack
+// PopBodyString pops the buffer of the response body from the stack
 // and returns its content as string.
-// This can be used to render intermediate text results.
-func (self *Response) PopBufferString() (bufferData string) {
-	return string(self.PopBuffer())
+func (self *Response) PopBodyString() (bufferData string) {
+	return string(self.PopBody())
 }
 
 /*
@@ -117,11 +115,11 @@ func (self *Response) Printf(format string, args ...interface{}) (n int, err err
 }
 
 func (self *Response) String() string {
-	return self.bufferStack[len(self.bufferStack)-1].buffer.String()
+	return self.bodyStack[len(self.bodyStack)-1].buffer.String()
 }
 
 func (self *Response) Bytes() []byte {
-	return self.bufferStack[len(self.bufferStack)-1].buffer.Bytes()
+	return self.bodyStack[len(self.bodyStack)-1].buffer.Bytes()
 }
 
 func (self *Response) SetSecureCookie(name string, val string, age int64, path string) {
