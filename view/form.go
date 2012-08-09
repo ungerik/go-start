@@ -19,7 +19,6 @@ const MultipartFormData = "multipart/form-data"
 const FormIDName = "gostart_form_id"
 
 type GetFormModelFunc func(form *Form, response *Response) (model interface{}, err error)
-type OnSubmitFormFunc func(form *Form, formModel interface{}, response *Response) (message string, redirect URL, err error)
 
 type FileUploadFormModel struct {
 	File model.File
@@ -132,15 +131,21 @@ type Form struct {
 	// Authenticator returns true.
 	ModelFieldAuth map[string]Authenticator
 
-	// OnSubmit is called after the form was submitted and did not produce any
-	// validation errors.
-	// If message is non empty, it will be displayed instead of
-	// Form.SuccessMessage or err.
-	// If err is not nil, err.Error() will be displayed and not processed
-	// any further (good idea?)
-	// If redirect result is not nil, it will be used instead of Form.Redirect.
-	// message or err will only be visible, if there is no redirect.
-	OnSubmit OnSubmitFormFunc
+	/*
+		OnSubmit is called after the form was submitted by the user
+		and did not contain any validation errors.
+		If the OnSubmit result err is nil and the redirect result or Form.Redirect
+		is not nil, then a HTTP redirect will be issued.
+		Else if the OnSubmit result message is not empty, it will be displayed
+		in the form regardless of the result err.
+		If the results message and err are nil, then Form.SuccessMessage
+		will be	displayed in the form.
+		If the result err is not nil and message is empty, then err will be
+		displayed in the form. Else message will be displayed.
+		This can be used to return a readable error message for the user
+		via message and an internal error for logging via err.
+	*/
+	OnSubmit func(form *Form, formModel interface{}, response *Response) (message string, redirect URL, err error)
 
 	ModelMaxDepth            int      // if zero, no depth limit
 	ExcludedFields           []string // Use point notation for nested fields. In case of arrays/slices use wildcards
