@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ungerik/go-start/errs"
 	"reflect"
+	"strconv"
 	"unicode"
 )
 
@@ -181,4 +182,104 @@ func CopyExportedStructFields(src, dst interface{}) (copied int) {
 		}
 	}
 	return copied
+}
+
+func StringToValueOfType(s string, t reflect.Type) (interface{}, error) {
+	switch t.Kind() {
+	case reflect.String:
+		return s, nil
+
+	case reflect.Bool:
+		b, err := strconv.ParseBool(s)
+		if err != nil {
+			return nil, err
+		}
+		return b, nil
+
+	case reflect.Float32:
+		f, err := strconv.ParseFloat(s, 32)
+		if err != nil {
+			return nil, err
+		}
+		return float32(f), nil
+
+	case reflect.Float64:
+		f, err := strconv.ParseFloat(s, 64)
+		if err != nil {
+			return nil, err
+		}
+		return f, nil
+
+	case reflect.Int:
+		i, err := strconv.ParseInt(s, 0, 0)
+		if err != nil {
+			return nil, err
+		}
+		return i, nil
+
+	case reflect.Int8:
+		i, err := strconv.ParseInt(s, 0, 8)
+		if err != nil {
+			return nil, err
+		}
+		return int8(i), nil
+
+	case reflect.Int16:
+		i, err := strconv.ParseInt(s, 0, 16)
+		if err != nil {
+			return nil, err
+		}
+		return int16(i), nil
+
+	case reflect.Int32:
+		i, err := strconv.ParseInt(s, 0, 32)
+		if err != nil {
+			return nil, err
+		}
+		return int32(i), nil
+
+	case reflect.Int64:
+		i, err := strconv.ParseInt(s, 0, 64)
+		if err != nil {
+			return nil, err
+		}
+		return int64(i), nil
+
+	case reflect.Uint:
+		i, err := strconv.ParseUint(s, 0, 0)
+		if err != nil {
+			return nil, err
+		}
+		return i, nil
+
+	case reflect.Uint8:
+		i, err := strconv.ParseUint(s, 0, 8)
+		if err != nil {
+			return nil, err
+		}
+		return uint8(i), nil
+
+	case reflect.Uint16:
+		i, err := strconv.ParseUint(s, 0, 16)
+		if err != nil {
+			return nil, err
+		}
+		return uint16(i), nil
+
+	case reflect.Uint32:
+		i, err := strconv.ParseUint(s, 0, 32)
+		if err != nil {
+			return nil, err
+		}
+		return uint32(i), nil
+
+	case reflect.Uint64:
+		i, err := strconv.ParseUint(s, 0, 64)
+		if err != nil {
+			return nil, err
+		}
+		return uint64(i), nil
+	}
+
+	return nil, fmt.Errorf("StringToValueOfType: can't convert string to type %s", t)
 }
