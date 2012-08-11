@@ -55,7 +55,7 @@ func Assert(condition bool, description string, args ...interface{}) {
 //}
 
 // Panic if any of the args is a non nil error
-func AsPanic(args ...interface{}) {
+func PanicOnError(args ...interface{}) {
 	for _, arg := range args {
 		if arg != nil {
 			if err, ok := arg.(error); ok {
@@ -66,7 +66,7 @@ func AsPanic(args ...interface{}) {
 }
 
 // Panic if the last element of args is a non nil error
-func LastAsPanic(args ...interface{}) {
+func LastPanicOnError(args ...interface{}) {
 	arg := args[len(args)-1]
 	if arg != nil {
 		if err, ok := arg.(error); ok {

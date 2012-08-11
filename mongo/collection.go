@@ -153,7 +153,7 @@ func (self *Collection) NewDocument(subDocSelectors ...string) interface{} {
 		for _, field := range strings.Split(selector, ".") {
 			var err error
 			docType, err = self.subDocumentType(docType, field, subDocSelectors)
-			errs.AsPanic(err)
+			errs.PanicOnError(err)
 		}
 	}
 	doc := reflect.New(docType).Interface()
