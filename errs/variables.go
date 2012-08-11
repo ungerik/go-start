@@ -4,6 +4,6 @@ type Configuration struct {
 	FormatWithCallStack bool
 }
 
-var Config Configuration = Configuration{
+var Config = Configuration{
 	FormatWithCallStack: true,
 }

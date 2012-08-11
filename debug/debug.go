@@ -21,7 +21,7 @@ func Nop(dummiesIn ...interface{}) (dummyOut interface{}) {
 }
 
 // Set Logger to nil to suppress debug output
-var Logger *log.Logger = log.New(os.Stdout, "", 0)
+var Logger = log.New(os.Stdout, "", 0)
 
 func CallStackInfo(skip int) (info string) {
 	if pc, file, line, ok := runtime.Caller(skip); ok {

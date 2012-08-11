@@ -15,7 +15,7 @@ import (
 
 const PathFragmentPattern = "([a-zA-Z0-9_\\-\\.]+)"
 
-var PathFragmentRegexp *regexp.Regexp = regexp.MustCompile(PathFragmentPattern)
+var PathFragmentRegexp = regexp.MustCompile(PathFragmentPattern)
 
 ///////////////////////////////////////////////////////////////////////////////
 // ViewPath

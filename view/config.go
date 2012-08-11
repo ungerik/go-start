@@ -63,7 +63,7 @@ type Configuration struct {
 }
 
 // Config holds the configuration of the view package.
-var Config Configuration = Configuration{
+var Config = Configuration{
 	TemplateSystem: &templatesystem.Mustache{},
 	Page: PageConfiguration{
 		Template:            "html5boilerplate.html",

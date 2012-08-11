@@ -7,7 +7,7 @@ import (
 
 var Database *mgo.Database
 
-var collections map[string]*Collection = map[string]*Collection{}
+var collections = map[string]*Collection{}
 
 type Configuration struct {
 	Host                string
@@ -18,7 +18,7 @@ type Configuration struct {
 	CheckQuerySelectors bool
 }
 
-var Config Configuration = Configuration{
+var Config = Configuration{
 	Safe:                mgo.Safe{FSync: true, J: true},
 	CheckQuerySelectors: true,
 }

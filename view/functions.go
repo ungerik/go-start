@@ -13,7 +13,7 @@ import (
 //	"github.com/ungerik/go-start/debug"
 )
 
-var viewIdChan chan string = make(chan string, 16)
+var viewIdChan = make(chan string, 16)
 var viewIdCounter int64
 
 func init() {
@@ -27,7 +27,7 @@ func init() {
 }
 
 // var viewsByID map[string]View = map[string]View{}
-var viewsByPath map[string]View = map[string]View{}
+var viewsByPath = map[string]View{}
 
 func NewViewID(view View) (id string) {
 	id = <-viewIdChan
