@@ -2,12 +2,13 @@ package view
 
 import (
 	"io"
+	"log"
 	"strconv"
 
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/templatesystem"
 	"github.com/ungerik/go-start/utils"
-	"github.com/ungerik/goconfig"
+	// "github.com/ungerik/goconfig"
 	"github.com/ungerik/web.go"
 
 //	"github.com/ungerik/go-start/debug"
@@ -53,47 +54,46 @@ func FindTemplateFile(filename string) (filePath string, found bool, modifiedTim
 //func ViewChanged(view View) {
 //}
 
-func Run(paths *ViewPath, address, baseURL string, recoverPanic bool) {
-	Config.BaseURL = baseURL
-
+func RunServer(paths *ViewPath) {
+	addr := Config.ListenAndServeAt
+	if !Config.IsProductionServer && Config.Debug.ListenAndServeAt != "" {
+		addr = Config.Debug.ListenAndServeAt
+	}
+	log.Print("IsProductionServer = ", Config.IsProductionServer)
+	log.Print("Debug.Mode = ", Config.Debug.Mode)
 	paths.initAndRegisterViewsRecursive("/")
-
-	staticDirs := utils.CombineDirs(Config.BaseDirs, Config.StaticDirs)
-	web.Config.StaticDirs = staticDirs
-	web.Config.RecoverPanic = recoverPanic
-	web.Config.CookieSecret = Config.CookieSecret
-	web.Run(address)
+	web.Run(addr)
 }
 
-func RunConfigFile(paths *ViewPath, filename string) {
-	config, err := config.ReadDefault(filename)
-	if err != nil {
-		panic(err)
-	}
+// func RunConfigFile(paths *ViewPath, filename string) {
+// 	config, err := config.ReadDefault(filename)
+// 	if err != nil {
+// 		panic(err)
+// 	}
 
-	var host string
-	host, err = config.String("server", "host")
-	if err != nil {
-		panic(err)
-	}
+// 	var host string
+// 	host, err = config.String("server", "host")
+// 	if err != nil {
+// 		panic(err)
+// 	}
 
-	var port string
-	port, err = config.String("server", "port")
-	if err != nil {
-		panic(err)
-	}
+// 	var port string
+// 	port, err = config.String("server", "port")
+// 	if err != nil {
+// 		panic(err)
+// 	}
 
-	var baseURL string
-	baseURL, err = config.String("server", "url")
-	if err != nil {
-		panic(err)
-	}
+// 	var baseURL string
+// 	baseURL, err = config.String("server", "url")
+// 	if err != nil {
+// 		panic(err)
+// 	}
 
-	var recoverPanic bool
-	recoverPanic, _ = config.Bool("server", "recoverPanic")
+// 	var recoverPanic bool
+// 	recoverPanic, _ = config.Bool("server", "recoverPanic")
 
-	Run(paths, host+":"+port, baseURL, recoverPanic)
-}
+// 	Run(paths, host+":"+port, baseURL, recoverPanic)
+// }
 
 func RenderTemplate(filename string, out io.Writer, context interface{}) (err error) {
 	filePath, found, _ := FindTemplateFile(filename)

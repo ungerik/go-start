@@ -1,15 +1,14 @@
 package view
 
 import (
-	"fmt"
 	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/utils"
 	"github.com/ungerik/web.go"
+	"log"
 	"net/http"
 	"net/url"
 	"regexp"
 	"runtime"
-	runtime_debug "runtime/debug"
 	"strings"
 )
 
@@ -93,8 +92,8 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 	}
 	viewsByPath[path] = self.View
 
-	if Config.Debug.PrintPaths {
-		debug.Print(path)
+	if Config.Debug.LogPaths {
+		log.Print(path)
 	}
 
 	//debug.Print(path)
@@ -133,23 +132,23 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 			case NotFound:
 				response.NotFound404(err.Error())
 			case Redirect:
-				if Config.Debug.PrintRedirects {
-					fmt.Printf("%d Redirect: %s\n", http.StatusFound, err.Error())
+				if Config.Debug.LogRedirects {
+					log.Printf("%d Redirect: %s\n", http.StatusFound, err.Error())
 				}
 				response.RedirectTemporary302(err.Error())
 			case PermanentRedirect:
-				if Config.Debug.PrintRedirects {
-					fmt.Printf("%d Permanent Redirect: %s\n", http.StatusMovedPermanently, err.Error())
+				if Config.Debug.LogRedirects {
+					log.Printf("%d Permanent Redirect: %s\n", http.StatusMovedPermanently, err.Error())
 				}
 				response.RedirectPermanently301(err.Error())
 			case Forbidden:
 				response.Forbidden403(err.Error())
 			default:
-				fmt.Println(err.Error())
-				runtime_debug.PrintStack()
+				log.Println(err.Error())
+				debug.LogCallStack()
 				msg := err.Error()
 				if Config.Debug.Mode {
-					msg += string(runtime_debug.Stack())
+					msg += debug.Stack()
 				}
 				response.Abort(http.StatusInternalServerError, msg)
 			}

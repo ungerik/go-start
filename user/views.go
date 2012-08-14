@@ -94,7 +94,7 @@ func NewSignupForm(buttonText, class, errorMessageClass, successMessageClass str
 		Class:               class,
 		ErrorMessageClass:   errorMessageClass,
 		SuccessMessageClass: successMessageClass,
-		SuccessMessage:      Config.ConfirmationSent,
+		SuccessMessage:      Config.ConfirmationMessage.Sent,
 		SubmitButtonText:    buttonText,
 		FormID:              "gostart_user_signup",
 		GetModel: func(form *view.Form, response *view.Response) (interface{}, error) {

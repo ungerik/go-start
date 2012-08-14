@@ -31,9 +31,9 @@ func (self *EmailIdentity) SendConfirmationEmail(response *view.Response, confir
 		self.ConfirmationCode.SetString(confirmationCode)
 	}
 
-	subject := fmt.Sprintf(Config.ConfirmationEmailSubject, view.Config.SiteName)
+	subject := fmt.Sprintf(Config.ConfirmationMessage.EmailSubject, view.Config.SiteName)
 	confirm := confirmationURL.URL(response) + "?code=" + url.QueryEscape(confirmationCode)
-	message := fmt.Sprintf(Config.ConfirmationEmailMessage, view.Config.SiteName, confirm)
+	message := fmt.Sprintf(Config.ConfirmationMessage.EmailMessage, view.Config.SiteName, confirm)
 
 	go func() {
 		errChan <- email.NewBriefMessage(subject, message, self.Address.Get()).Send()

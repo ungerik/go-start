@@ -35,7 +35,15 @@ func CallStackInfo(skip int) (info string) {
 }
 
 func PrintCallStack() {
-	fmt.Println(string(debug.Stack()))
+	debug.PrintStack()
+}
+
+func LogCallStack() {
+	log.Print(Stack())
+}
+
+func Stack() string {
+	return string(debug.Stack())
 }
 
 func FormatSkip(skip int, value interface{}) string {

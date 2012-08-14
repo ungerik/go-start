@@ -1,70 +1,19 @@
 package view
 
 import (
+	"net"
+	"path/filepath"
+
+	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/templatesystem"
 	"github.com/ungerik/go-start/utils"
 	"github.com/ungerik/web.go"
-	"path/filepath"
 )
 
-const StructTagKey = "view"
-
-type PageConfiguration struct {
-	Template              string
-	DefaultAdditionalHead Renderer // will be called after WriteTitle
-	DefaultCSS            string
-	DefaultMetaViewport   string
-	DefaultHeadScripts    Renderer      // write scripts as last element of the HTML head
-	DefaultScripts        Renderer      // will be called if Page.WriteScripts is nil
-	PostScripts           Renderer      // will always be called after Page.WriteScripts
-	DefaultAuth           Authenticator // Will be used for pages with Page.NeedsAuth == true
-}
-
-type FormConfiguration struct {
-	DefaultLayout                   FormLayout
-	DefaultFieldFactory             FormFieldFactory
-	DefaultCSRFProtector            CSRFProtector
-	DefaultErrorMessageClass        string
-	DefaultSuccessMessageClass      string
-	DefaultSubmitButtonClass        string
-	DefaultFieldDescriptionClass    string
-	StandardFormLayoutDivClass      string
-	DefaultSubmitButtonText         string
-	GeneralErrorMessageOnFieldError string
-	DefaultRequiredMarker           View
-}
-
-type Configuration struct {
-	TemplateSystem      templatesystem.Implementation
-	Page                PageConfiguration
-	Form                FormConfiguration
-	DisableCachedViews  bool
-	BaseDirs            []string
-	StaticDirs          []string
-	TemplateDirs        []string
-	RedirectSubdomains  []string // Exapmle: "www"
-	BaseURL             string
-	SiteName            string
-	CookieSecret        string
-	SessionTracker      SessionTracker
-	SessionDataStore    SessionDataStore
-	OnPreAuth           func(response *Response) error
-	GlobalAuth          Authenticator // Will allways be used before all other authenticators
-	FallbackAuth        Authenticator // Will be used when no other authenticator is defined for the view
-	NamedAuthenticators map[string]Authenticator
-	LoginSignupPage     **Page
-	// Middlewares               []Middleware
-	Debug struct {
-		Mode           bool
-		PrintPaths     bool
-		PrintRedirects bool
-	}
-}
-
-// Config holds the configuration of the view package.
 var Config = Configuration{
-	TemplateSystem: &templatesystem.Mustache{},
+	ListenAndServeAt: "0.0.0.0:80",
+	TemplateSystem:   &templatesystem.Mustache{},
 	Page: PageConfiguration{
 		Template:            "html5boilerplate.html",
 		DefaultCSS:          "/style.css",
@@ -93,30 +42,124 @@ var Config = Configuration{
 	NamedAuthenticators: make(map[string]Authenticator),
 }
 
-// Init updates Config with the site-name, cookie secret and base directories used for static and template file search.
-// For every directory of baseDirs, Config.StaticDirs are appended to create search paths for static files
-// and Config.TemplateDirs are appended to search for template files.
+var StructTagKey = "view"
+
+type Configuration struct {
+	ListenAndServeAt    string
+	IsProductionServer  bool // IsProductionServer will be set to true if localhost resolves to one of ProductionServerIPs
+	ProductionServerIPs []string
+	TemplateSystem      templatesystem.Implementation
+	Page                PageConfiguration
+	Form                FormConfiguration
+	DisableCachedViews  bool
+	BaseDirs            []string
+	StaticDirs          []string
+	TemplateDirs        []string
+	RedirectSubdomains  []string // Exapmle: "www"
+	SiteName            string
+	CookieSecret        string
+	SessionTracker      SessionTracker
+	SessionDataStore    SessionDataStore
+	OnPreAuth           func(response *Response) error
+	GlobalAuth          Authenticator // Will allways be used before all other authenticators
+	FallbackAuth        Authenticator // Will be used when no other authenticator is defined for the view
+	NamedAuthenticators map[string]Authenticator
+	LoginSignupPage     **Page
+	// Middlewares               []Middleware
+	Debug struct {
+		ListenAndServeAt string
+		Mode             bool // Will be set to true if IsProductionServer is false
+		LogPaths         bool
+		LogRedirects     bool
+	}
+}
+
+func (self *Configuration) Name() string {
+	return "view"
+}
+
+func (self *Configuration) Init() error {
+	if !self.IsProductionServer {
+		addrs, err := net.InterfaceAddrs()
+		if err != nil {
+			return err
+		}
+		for _, addr := range addrs {
+			if ipNet, ok := addr.(*net.IPNet); ok {
+				ip := ipNet.IP.String()
+				for _, prodIP := range Config.ProductionServerIPs {
+					if ip == prodIP {
+						self.IsProductionServer = true
+						break
+					}
+				}
+			}
+		}
+	}
+
+	if !self.IsProductionServer {
+		self.Debug.Mode = true
+	}
+
+	// Check if dir exists and make it absolute
+	for i := range Config.BaseDirs {
+		dir, err := filepath.Abs(Config.BaseDirs[i])
+		if err != nil {
+			return err
+		}
+		if !utils.DirExists(dir) {
+			return errs.Format("BaseDir does not exist: %s", dir)
+		}
+		Config.BaseDirs[i] = dir
+	}
+
+	web.Config.StaticDirs = utils.CombineDirs(Config.BaseDirs, Config.StaticDirs)
+	web.Config.RecoverPanic = Config.Debug.Mode
+	web.Config.CookieSecret = Config.CookieSecret
+
+	return nil
+}
+
+func (self *Configuration) Close() error {
+	web.Close()
+	return nil
+}
+
+type PageConfiguration struct {
+	Template              string
+	DefaultAdditionalHead Renderer // will be called after WriteTitle
+	DefaultCSS            string
+	DefaultMetaViewport   string
+	DefaultHeadScripts    Renderer      // write scripts as last element of the HTML head
+	DefaultScripts        Renderer      // will be called if Page.WriteScripts is nil
+	PostScripts           Renderer      // will always be called after Page.WriteScripts
+	DefaultAuth           Authenticator // Will be used for pages with Page.NeedsAuth == true
+}
+
+type FormConfiguration struct {
+	DefaultLayout                   FormLayout
+	DefaultFieldFactory             FormFieldFactory
+	DefaultCSRFProtector            CSRFProtector
+	DefaultErrorMessageClass        string
+	DefaultSuccessMessageClass      string
+	DefaultSubmitButtonClass        string
+	DefaultFieldDescriptionClass    string
+	StandardFormLayoutDivClass      string
+	DefaultSubmitButtonText         string
+	GeneralErrorMessageOnFieldError string
+	DefaultRequiredMarker           View
+}
+
+// Init updates Config with the site-name, cookie secret and base directories used
+// for static and template file search.
+// For every directory of baseDirs, Config.StaticDirs are appended to create
+// search paths for static files and Config.TemplateDirs are appended
+// to search for template files.
 func Init(siteName, cookieSecret string, baseDirs ...string) (err error) {
 	Config.SiteName = siteName
 	Config.CookieSecret = cookieSecret
 	if len(baseDirs) > 0 {
-		for i, dir := range baseDirs {
-			dir, err = filepath.Abs(dir)
-			if err != nil {
-				return err
-			}
-			if !utils.DirExists(dir) {
-				return errs.Format("BaseDir does not exist: %s", dir)
-			}
-			baseDirs[i] = dir
-		}
-
 		Config.BaseDirs = baseDirs
 	}
-	return nil
-}
-
-func Close() error {
-	web.Close()
-	return nil
+	return Config.Init()
 }

@@ -1,25 +1,12 @@
 package mongomedia
 
 import (
-	"io"
-	"errors"
+	"github.com/ungerik/go-start/media"
 	"github.com/ungerik/go-start/mgo"
 	"github.com/ungerik/go-start/mgo/bson"
 	"github.com/ungerik/go-start/mongo"
-	"github.com/ungerik/go-start/media"
+	"io"
 )
-
-// Init must be called after mongo.Init()
-func Init(name string) error {
-	if name == "" {
-		return errors.New("media.Init() called with empty name")
-	}
-	media.Config.Backend = &Backend{
-		gridFS: mongo.Database.GridFS(name),
-		images: mongo.NewCollection(name+".images", (*ImageDoc)(nil)),
-	}
-	return nil
-}
 
 type Backend struct {
 	gridFS *mgo.GridFS

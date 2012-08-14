@@ -5,6 +5,11 @@ import (
 	"github.com/ungerik/go-start/mgo"
 )
 
+var Config = Configuration{
+	Safe:                mgo.Safe{FSync: true, J: true},
+	CheckQuerySelectors: true,
+}
+
 var Database *mgo.Database
 
 var collections = map[string]*Collection{}
@@ -18,19 +23,11 @@ type Configuration struct {
 	CheckQuerySelectors bool
 }
 
-var Config = Configuration{
-	Safe:                mgo.Safe{FSync: true, J: true},
-	CheckQuerySelectors: true,
+func (self *Configuration) Name() string {
+	return "mongo"
 }
 
-func InitLocalhost(database, user, password string) (err error) {
-	Config.Database = database
-	Config.User = user
-	Config.Password = password
-	return Init()
-}
-
-func Init() (err error) {
+func (self *Configuration) Init() error {
 	login := ""
 	if Config.User != "" {
 		login = Config.User + ":" + Config.Password + "@"
@@ -60,9 +57,16 @@ func Init() (err error) {
 	return nil
 }
 
-func Close() error {
+func (self *Configuration) Close() error {
 	if Database.Session != nil {
 		Database.Session.Close()
 	}
 	return nil
+}
+
+func InitLocalhost(database, user, password string) (err error) {
+	Config.Database = database
+	Config.User = user
+	Config.Password = password
+	return Config.Init()
 }

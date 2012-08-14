@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -303,7 +304,7 @@ func (self *Form) IsFieldExcluded(field *model.MetaData, response *Response) boo
 						return false
 					}
 					if err != nil {
-						fmt.Println("Error in view.Form.IsFieldExcluded(): " + err.Error())
+						log.Println("Error in view.Form.IsFieldExcluded(): " + err.Error())
 					}
 				}
 				// }

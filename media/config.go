@@ -6,8 +6,20 @@ import (
 // "errors"
 )
 
+var Config Configuration
+
 type Configuration struct {
 	Backend Backend
 }
 
-var Config Configuration
+func (self *Configuration) Name() string {
+	return "media"
+}
+
+func (self *Configuration) Init() error {
+	return nil
+}
+
+func (self *Configuration) Close() error {
+	return nil
+}
