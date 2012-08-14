@@ -17,7 +17,9 @@ func (self *Select) IterateChildren(callback IterateChildrenCallback) {
 }
 
 func (self *Select) Render(response *Response) (err error) {
-	response.XML.OpenTag("select").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("select")
+	response.XML.AttribIfNotDefault("id", self.id)
+	response.XML.AttribIfNotDefault("class", self.Class)
 	response.XML.Attrib("name", self.Name)
 	if self.Disabled {
 		response.XML.Attrib("disabled", "disabled")

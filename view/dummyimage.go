@@ -44,7 +44,9 @@ func (self *DummyImage) Render(response *Response) (err error) {
 		src += "&text=" + url.QueryEscape(self.Text)
 	}
 
-	response.XML.OpenTag("img").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("img")
+	response.XML.AttribIfNotDefault("id", self.id)
+	response.XML.AttribIfNotDefault("class", self.Class)
 	response.XML.Attrib("src", src)
 	response.XML.AttribIfNotDefault("width", self.Width)
 	response.XML.AttribIfNotDefault("height", self.Height)

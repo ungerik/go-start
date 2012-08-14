@@ -17,7 +17,9 @@ type Iframe struct {
 }
 
 func (self *Iframe) Render(response *Response) (err error) {
-	response.XML.OpenTag("iframe").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("iframe")
+	response.XML.AttribIfNotDefault("id", self.id)
+	response.XML.AttribIfNotDefault("class", self.Class)
 	response.XML.Attrib("width", self.Width).Attrib("height", self.Height)
 	response.XML.Attrib("frameborder", self.Border)
 	response.XML.Attrib("marginwidth", self.MarginWidth).Attrib("marginheight", self.MarginHeight)

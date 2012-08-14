@@ -10,7 +10,8 @@ type HiddenInput struct {
 }
 
 func (self *HiddenInput) Render(response *Response) (err error) {
-	response.XML.OpenTag("input").Attrib("id", self.id)
+	response.XML.OpenTag("input")
+	response.XML.AttribIfNotDefault("id", self.id)
 	response.XML.Attrib("type", "hidden")
 	response.XML.Attrib("name", self.Name)
 	response.XML.Attrib("value", self.Value)

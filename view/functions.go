@@ -8,7 +8,6 @@ import (
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/templatesystem"
 	"github.com/ungerik/go-start/utils"
-	// "github.com/ungerik/goconfig"
 	"github.com/ungerik/web.go"
 
 //	"github.com/ungerik/go-start/debug"
@@ -20,9 +19,9 @@ var viewIdCounter int64
 func init() {
 	go func() {
 		for {
+			viewIdCounter++
 			// Use base32 encoding for ids to make them shorter
 			viewIdChan <- strconv.FormatInt(viewIdCounter, 32)
-			viewIdCounter++
 		}
 	}()
 }

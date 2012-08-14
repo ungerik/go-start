@@ -14,16 +14,21 @@ type List struct {
 
 func (self *List) Render(response *Response) (err error) {
 	if self.Ordered {
-		response.XML.OpenTag("ol").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+		response.XML.OpenTag("ol")
 		response.XML.Attrib("start", self.OrderOffset+1)
 	} else {
-		response.XML.OpenTag("ul").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+		response.XML.OpenTag("ul")
 	}
+	response.XML.AttribIfNotDefault("id", self.id)
+	response.XML.AttribIfNotDefault("class", self.Class)
 
 	if self.Model != nil {
 		numItems := self.Model.NumItems()
 		for i := 0; i < numItems; i++ {
-			response.XML.OpenTag("li").Attrib("id", self.id, "_", i)
+			response.XML.OpenTag("li")
+			if self.id != "" {
+				response.XML.Attrib("id", self.id, "_", i)
+			}
 			view, err := self.Model.ItemView(i, response)
 			if view != nil && err == nil {
 				view.Init(view)

@@ -19,7 +19,9 @@ type Menu struct {
 }
 
 func (self *Menu) Render(response *Response) (err error) {
-	response.XML.OpenTag("ul").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("ul")
+	response.XML.AttribIfNotDefault("id", self.id)
+	response.XML.AttribIfNotDefault("class", self.Class)
 
 	requestURL := response.Request.URLString()
 
@@ -63,7 +65,11 @@ func (self *Menu) Render(response *Response) (err error) {
 			itemClass += " " + self.ActiveItemClass
 		}
 
-		response.XML.OpenTag("li").Attrib("id", self.id, "_", index).AttribIfNotDefault("class", itemClass)
+		response.XML.OpenTag("li")
+		if self.id != "" {
+			response.XML.Attrib("id", self.id, "_", index)
+		}
+		response.XML.AttribIfNotDefault("class", itemClass)
 
 		if i > 0 && self.BetweenItems != "" {
 			response.XML.Content(self.BetweenItems)

@@ -12,7 +12,9 @@ type SubmitButton struct {
 }
 
 func (self *SubmitButton) Render(response *Response) (err error) {
-	response.XML.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("input")
+	response.XML.AttribIfNotDefault("id", self.id)
+	response.XML.AttribIfNotDefault("class", self.Class)
 	response.XML.Attrib("type", "submit")
 	response.XML.AttribIfNotDefault("name", self.Name)
 	response.XML.AttribIfNotDefault("value", self.Value)

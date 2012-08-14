@@ -511,7 +511,9 @@ func (self *Form) Render(response *Response) (err error) {
 		action = utils.AddUrlParam(action, FormIDName, self.FormID)
 	}
 
-	response.XML.OpenTag("form").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("form")
+	response.XML.AttribIfNotDefault("id", self.id)
+	response.XML.AttribIfNotDefault("class", self.Class)
 	response.XML.Attrib("method", method)
 	response.XML.Attrib("action", action)
 	response.XML.AttribIfNotDefault("enctype", self.Enctype)

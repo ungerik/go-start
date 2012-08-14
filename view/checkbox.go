@@ -14,7 +14,9 @@ type Checkbox struct {
 }
 
 func (self *Checkbox) Render(response *Response) (err error) {
-	response.XML.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("input")
+	response.XML.Attrib(self.ID(), self.id)
+	response.XML.AttribIfNotDefault("class", self.Class)
 	response.XML.Attrib("type", "checkbox")
 	response.XML.Attrib("name", self.Name)
 	response.XML.Attrib("value", "true")
@@ -27,7 +29,7 @@ func (self *Checkbox) Render(response *Response) (err error) {
 	response.XML.CloseTag()
 
 	if self.Label != "" {
-		response.XML.OpenTag("label").Attrib("for", self.id).Content(self.Label).CloseTag()
+		response.XML.OpenTag("label").Attrib("for", self.ID()).Content(self.Label).CloseTag()
 	}
 	return nil
 }

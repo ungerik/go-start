@@ -17,7 +17,9 @@ func (self *Span) IterateChildren(callback IterateChildrenCallback) {
 }
 
 func (self *Span) Render(response *Response) (err error) {
-	response.XML.OpenTag("span").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("span")
+	response.XML.AttribIfNotDefault("id", self.id)
+	response.XML.AttribIfNotDefault("class", self.Class)
 	if self.Content != nil {
 		err = self.Content.Render(response)
 	}

@@ -20,7 +20,9 @@ func (self *Tag) IterateChildren(callback IterateChildrenCallback) {
 }
 
 func (self *Tag) Render(response *Response) (err error) {
-	response.XML.OpenTag(self.Tag).Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag(self.Tag)
+	response.XML.AttribIfNotDefault("id", self.id)
+	response.XML.AttribIfNotDefault("class", self.Class)
 	for key, value := range self.Attribs {
 		response.XML.Attrib(key, value)
 	}

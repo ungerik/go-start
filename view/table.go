@@ -12,7 +12,9 @@ type Table struct {
 }
 
 func (self *Table) Render(response *Response) (err error) {
-	response.XML.OpenTag("table").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("table")
+	response.XML.AttribIfNotDefault("id", self.id)
+	response.XML.AttribIfNotDefault("class", self.Class)
 
 	if self.Caption != "" {
 		response.XML.OpenTag("caption").EscapeContent(self.Caption).CloseTag()

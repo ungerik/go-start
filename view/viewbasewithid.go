@@ -14,9 +14,11 @@ func (self *ViewBaseWithId) Init(thisView View) {
 		return // already initialized
 	}
 	self.ViewBase.Init(thisView)
-	self.id = NewViewID(thisView)
 }
 
 func (self *ViewBaseWithId) ID() string {
+	if self.id == "" {
+		self.id = NewViewID(self.thisView)
+	}
 	return self.id
 }

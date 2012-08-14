@@ -32,7 +32,9 @@ func (self *Video) Render(response *Response) (err error) {
 	}
 
 	if youtubeId != "" {
-		response.XML.OpenTag("iframe").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+		response.XML.OpenTag("iframe")
+		response.XML.Attrib("id", self.ID())
+		response.XML.AttribIfNotDefault("class", self.Class)
 		width := self.Width
 		if width == 0 {
 			width = 640

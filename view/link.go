@@ -13,7 +13,8 @@ type Link struct {
 }
 
 func (self *Link) Render(response *Response) (err error) {
-	response.XML.OpenTag("a").AttribIfNotDefault("id", self.id)
+	response.XML.OpenTag("a")
+	response.XML.AttribIfNotDefault("id", self.id)
 	response.XML.AttribIfNotDefault("class", self.Class)
 	if self.NewWindow {
 		response.XML.Attrib("target", "_blank")

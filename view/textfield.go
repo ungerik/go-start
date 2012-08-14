@@ -26,7 +26,9 @@ type TextField struct {
 }
 
 func (self *TextField) Render(response *Response) (err error) {
-	response.XML.OpenTag("input").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("input")
+	response.XML.AttribIfNotDefault("id", self.id)
+	response.XML.AttribIfNotDefault("class", self.Class)
 
 	response.XML.Attrib("name", self.Name)
 	response.XML.AttribIfNotDefault("tabindex", self.TabIndex)

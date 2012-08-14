@@ -22,7 +22,9 @@ type TextArea struct {
 }
 
 func (self *TextArea) Render(response *Response) (err error) {
-	response.XML.OpenTag("textarea").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("textarea")
+	response.XML.AttribIfNotDefault("id", self.id)
+	response.XML.AttribIfNotDefault("class", self.Class)
 
 	cols := self.Cols
 	if cols == 0 {

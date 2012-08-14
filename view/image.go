@@ -14,7 +14,9 @@ type Image struct {
 }
 
 func (self *Image) Render(response *Response) (err error) {
-	response.XML.OpenTag("img").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("img")
+	response.XML.AttribIfNotDefault("id", self.id)
+	response.XML.AttribIfNotDefault("class", self.Class)
 	src := self.Src
 	if self.URL != nil {
 		src = self.URL.URL(response)

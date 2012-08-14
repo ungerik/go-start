@@ -15,7 +15,9 @@ func (self *Label) Render(response *Response) (err error) {
 	if self.For != nil {
 		forID = self.For.ID()
 	}
-	response.XML.OpenTag("label").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("label")
+	response.XML.AttribIfNotDefault("id", self.id)
+	response.XML.AttribIfNotDefault("class", self.Class)
 	response.XML.AttribIfNotDefault("for", forID)
 	if self.Content != nil {
 		err = self.Content.Render(response)

@@ -18,7 +18,9 @@ func (self *Button) IterateChildren(callback IterateChildrenCallback) {
 }
 
 func (self *Button) Render(response *Response) (err error) {
-	response.XML.OpenTag("button").Attrib("id", self.id).AttribIfNotDefault("class", self.Class)
+	response.XML.OpenTag("button")
+	response.XML.AttribIfNotDefault("id", self.id)
+	response.XML.AttribIfNotDefault("class", self.Class)
 	response.XML.Attrib("type", "button")
 	response.XML.AttribIfNotDefault("name", self.Name)
 	if self.Disabled {
