@@ -672,7 +672,7 @@ func (self *validateAndFormLayoutStructVisitor) validateField(field *model.MetaD
 }
 
 func (self *validateAndFormLayoutStructVisitor) validateGeneral(data *model.MetaData) error {
-	if !self.isPost {
+	if !self.isPost || !self.form.IsFieldVisible(data, self.response) {
 		return nil
 	}
 	if validator, ok := data.ModelValidator(); ok {
