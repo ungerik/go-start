@@ -1,7 +1,8 @@
 /*
-Build and run example:
+Download, build and run example:
 
-cd examples/static/
+go get github.com/ungerik/go-start/examples/static
+cd github.com/ungerik/go-start/examples/static
 go install && static
 
 */
