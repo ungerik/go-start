@@ -29,6 +29,8 @@ func VisitMaxDepth(model interface{}, maxDepth int, visitor Visitor) error {
 	return utils.VisitStructDepth(model, &structVisitorWrapper{visitor: visitor}, maxDepth)
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 type structVisitorWrapper struct {
 	visitor  Visitor
 	metaData *MetaData
@@ -159,6 +161,8 @@ func (self *structVisitorWrapper) EndArray(depth int, v reflect.Value) error {
 	return self.visitor.EndArray(self.metaData)
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 // FieldOnlyVisitor calls its function for every struct, array and slice field.
 type FieldOnlyVisitor func(field *MetaData) error
 
@@ -197,6 +201,8 @@ func (self FieldOnlyVisitor) ArrayField(field *MetaData) error {
 func (self FieldOnlyVisitor) EndArray(array *MetaData) error {
 	return nil
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 // VisitorFunc calls its function for every Visitor method call,
 // thus mapping all Visitor methods on a single function.
