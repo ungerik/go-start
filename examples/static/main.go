@@ -1,3 +1,10 @@
+/*
+Build and run example:
+
+cd examples/static/
+go install && static
+
+*/
 package main
 
 import (
