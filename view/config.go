@@ -45,6 +45,7 @@ var Config = Configuration{
 var StructTagKey = "view"
 
 type Configuration struct {
+	initialized         bool
 	ListenAndServeAt    string
 	IsProductionServer  bool // IsProductionServer will be set to true if localhost resolves to one of ProductionServerIPs
 	ProductionServerIPs []string
@@ -79,6 +80,10 @@ func (self *Configuration) Name() string {
 }
 
 func (self *Configuration) Init() error {
+	if self.initialized {
+		panic("view.Config already initialized")
+	}
+
 	if !self.IsProductionServer {
 		addrs, err := net.InterfaceAddrs()
 		if err != nil {
@@ -113,10 +118,7 @@ func (self *Configuration) Init() error {
 		Config.BaseDirs[i] = dir
 	}
 
-	web.Config.StaticDirs = utils.CombineDirs(Config.BaseDirs, Config.StaticDirs)
-	web.Config.RecoverPanic = Config.Debug.Mode
-	web.Config.CookieSecret = Config.CookieSecret
-
+	self.initialized = true
 	return nil
 }
 
@@ -150,16 +152,16 @@ type FormConfiguration struct {
 	DefaultRequiredMarker           View
 }
 
-// Init updates Config with the site-name, cookie secret and base directories used
-// for static and template file search.
-// For every directory of baseDirs, Config.StaticDirs are appended to create
-// search paths for static files and Config.TemplateDirs are appended
-// to search for template files.
-func Init(siteName, cookieSecret string, baseDirs ...string) (err error) {
-	Config.SiteName = siteName
-	Config.CookieSecret = cookieSecret
-	if len(baseDirs) > 0 {
-		Config.BaseDirs = baseDirs
-	}
-	return Config.Init()
-}
+// // Init updates Config with the site-name, cookie secret and base directories used
+// // for static and template file search.
+// // For every directory of baseDirs, Config.StaticDirs are appended to create
+// // search paths for static files and Config.TemplateDirs are appended
+// // to search for template files.
+// func Init(siteName, cookieSecret string, baseDirs ...string) (err error) {
+// 	Config.SiteName = siteName
+// 	Config.CookieSecret = cookieSecret
+// 	if len(baseDirs) > 0 {
+// 		Config.BaseDirs = baseDirs
+// 	}
+// 	return Config.Init()
+// }

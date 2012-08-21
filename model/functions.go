@@ -1,58 +1,64 @@
 package model
 
-import (
-// "github.com/ungerik/go-start/errs"
-// "github.com/ungerik/go-start/utils"
-// "reflect"
-)
+// CopyFields copies matching struct/array/slice fields
+// that implement the Value interface from src to dst.
+// Matching is done by comparing the MetaData.Selector()
+// of the fields.
+// Copying is done by calling SetString() of dst with
+// the result from String() of src.
+// This way even not exactly matching models can be
+// copied by converting to and from strings if this
+// is possible without errors.
+func CopyFields(dst, src interface{}) (err error) {
+	dstFields := map[string]Value{}
+	Visit(dst, FieldOnlyVisitor(
+		func(field *MetaData) error {
+			if dstValue, ok := field.ModelValue(); ok {
+				dstFields[field.Selector()] = dstValue
+			}
+			return nil
+		},
+	))
+	return Visit(src, FieldOnlyVisitor(
+		func(field *MetaData) (err error) {
+			if srcValue, ok := field.ModelValue(); ok {
+				if dstValue, ok := dstFields[field.Selector()]; ok {
+					err = dstValue.SetString(srcValue.String())
+				}
+			}
+			return err
+		},
+	))
+}
 
-// todo: need a visitor that visits every value only once
-// (begin end functions on same value)
-// func Validate(data interface{}, maxDepth int) error {
-// 	var errors []error
-// 	VisitMaxDepth(data, maxDepth, VisitorFunc(
-// 		func(data *MetaData) error {
-// 			if validator, ok := data.ModelValidator(); ok {
-// 				errors = append(errors, validator.Validate(data))
-// 			}
-// 			return nil
-// 		},
-// 	))
-// 	return errs.Errors(errors...)
-// }
-
-// func AppendEmptySliceEnds(strct interface{}) {
-// 	utils.VisitStruct(strct, utils.ModifySliceStructVisitor(
-// 		func(depth int, v reflect.Value) (reflect.Value, error) {
-// 			field := reflect.Zero(v.Type().Elem())
-// 			return reflect.Append(v, field), nil
-// 		},
-// 	))
-// }
-
-// func RemoveEmptySliceEnds(strct interface{}) {
-// 	utils.VisitStruct(strct, utils.ModifySliceStructVisitor(
-// 		func(depth int, v reflect.Value) (reflect.Value, error) {
-// 			for v.Len() > 0 {
-// 				last := v.Index(v.Len() - 1)
-// 				if value, ok := last.Addr().Interface().(Value); ok {
-// 					if !value.IsEmpty() {
-// 						return v, nil
-// 					}
-// 					v = v.Slice(0, v.Len()-1)
-// 				} else if last.Kind() == reflect.Struct {
-// 					for i := 0; i < last.NumField(); i++ {
-// 						if value, ok := v.Field(i).Addr().Interface().(Value); ok {
-// 							if !value.IsEmpty() {
-// 								return v, nil
-// 							}
-// 						}
-// 						// ignore struct fields that that don't implement Value
-// 					}
-// 					v = v.Slice(0, v.Len()-1)
-// 				}
-// 			}
-// 			return v, nil
-// 		},
-// 	))
-// }
+// CopyFieldsIfNotEmpty copies matching struct/array/slice fields
+// that implement the Value interface from src to dst,
+// if IsEmpty() of src returns false.
+// Matching is done by comparing the MetaData.Selector()
+// of the fields.
+// Copying is done by calling SetString() of dst with
+// the result from String() of src.
+// This way even not exactly matching models can be
+// copied by converting to and from strings if this
+// is possible without errors.
+func CopyFieldsIfNotEmpty(dst, src interface{}) (err error) {
+	dstFields := map[string]Value{}
+	Visit(dst, FieldOnlyVisitor(
+		func(field *MetaData) error {
+			if dstValue, ok := field.ModelValue(); ok {
+				dstFields[field.Selector()] = dstValue
+			}
+			return nil
+		},
+	))
+	return Visit(src, FieldOnlyVisitor(
+		func(field *MetaData) (err error) {
+			if srcValue, ok := field.ModelValue(); ok && !srcValue.IsEmpty() {
+				if dstValue, ok := dstFields[field.Selector()]; ok {
+					err = dstValue.SetString(srcValue.String())
+				}
+			}
+			return err
+		},
+	))
+}

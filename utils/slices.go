@@ -8,6 +8,29 @@ import (
 	"strings"
 )
 
+func StringSliceUnion(a, b []string) []string {
+	if len(b) == 0 {
+		return a
+	}
+	if len(a) == 0 {
+		return b
+	}
+	result := a
+	for _, sb := range b {
+		found := false
+		for _, sa := range a {
+			if sa == sb {
+				found = true
+				break
+			}
+		}
+		if !found {
+			result = append(result, sb)
+		}
+	}
+	return result
+}
+
 func AppendEmptySliceField(slice reflect.Value) reflect.Value {
 	newField := reflect.Zero(slice.Type().Elem())
 	return reflect.Append(slice, newField)

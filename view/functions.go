@@ -53,46 +53,44 @@ func FindTemplateFile(filename string) (filePath string, found bool, modifiedTim
 //func ViewChanged(view View) {
 //}
 
+// RunServer starts a webserver with the given paths.
+// If paths is nil, only static files will be served.
 func RunServer(paths *ViewPath) {
+	if !Config.initialized {
+		err := Config.Init()
+		if err != nil {
+			panic(err)
+		}
+	}
 	addr := Config.ListenAndServeAt
 	if !Config.IsProductionServer && Config.Debug.ListenAndServeAt != "" {
 		addr = Config.Debug.ListenAndServeAt
 	}
-	log.Print("IsProductionServer = ", Config.IsProductionServer)
-	log.Print("Debug.Mode = ", Config.Debug.Mode)
-	paths.initAndRegisterViewsRecursive("/")
-	web.Run(addr)
+	RunServerAddr(addr, paths)
 }
 
-// func RunConfigFile(paths *ViewPath, filename string) {
-// 	config, err := config.ReadDefault(filename)
-// 	if err != nil {
-// 		panic(err)
-// 	}
+// RunServerAddr starts a webserver with the given paths and address.
+// If paths is nil, only static files will be served.
+func RunServerAddr(addr string, paths *ViewPath) {
+	if !Config.initialized {
+		err := Config.Init()
+		if err != nil {
+			panic(err)
+		}
+	}
+	log.Print("IsProductionServer = ", Config.IsProductionServer)
+	log.Print("Debug.Mode = ", Config.Debug.Mode)
 
-// 	var host string
-// 	host, err = config.String("server", "host")
-// 	if err != nil {
-// 		panic(err)
-// 	}
+	if paths != nil {
+		paths.initAndRegisterViewsRecursive("/")
+	}
 
-// 	var port string
-// 	port, err = config.String("server", "port")
-// 	if err != nil {
-// 		panic(err)
-// 	}
+	web.Config.StaticDirs = utils.CombineDirs(Config.BaseDirs, Config.StaticDirs)
+	web.Config.RecoverPanic = Config.Debug.Mode
+	web.Config.CookieSecret = Config.CookieSecret
 
-// 	var baseURL string
-// 	baseURL, err = config.String("server", "url")
-// 	if err != nil {
-// 		panic(err)
-// 	}
-
-// 	var recoverPanic bool
-// 	recoverPanic, _ = config.Bool("server", "recoverPanic")
-
-// 	Run(paths, host+":"+port, baseURL, recoverPanic)
-// }
+	web.Run(addr)
+}
 
 func RenderTemplate(filename string, out io.Writer, context interface{}) (err error) {
 	filePath, found, _ := FindTemplateFile(filename)
