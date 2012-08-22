@@ -78,8 +78,8 @@ func RunServerAddr(addr string, paths *ViewPath) {
 			panic(err)
 		}
 	}
-	log.Print("IsProductionServer = ", Config.IsProductionServer)
-	log.Print("Debug.Mode = ", Config.Debug.Mode)
+	log.Print("view.Config.IsProductionServer = ", Config.IsProductionServer)
+	log.Print("view.Config.Debug.Mode = ", Config.Debug.Mode)
 
 	if paths != nil {
 		paths.initAndRegisterViewsRecursive("/")
