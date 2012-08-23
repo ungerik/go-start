@@ -258,11 +258,17 @@ func (self *Form) IsFieldHidden(field *model.MetaData) bool {
 	return field.BoolAttrib(StructTagKey, "hidden") || field.SelectorsMatch(self.HiddenFields)
 }
 
-// IsFieldExcluded returns wether a field will be excluded from the form.
+// IsFieldExcluded returns weather a field will be excluded from the form.
 // Fields will be excluded, if their selector matches one in Form.ExcludedFields
-// or if a matching Authenticator from Form.ModelFieldAuth returns false
+// or if a matching Authenticator from Form.ModelFieldAuth returns false.
+// A field is also excluded when its parent field is excluded.
+// This function is not restricted to model.Value, it works with all struct fields.
+// This way a whole sub struct an be excluded by adding its selector to Form.ExcludedFields.
 func (self *Form) IsFieldExcluded(field *model.MetaData, response *Response) bool {
-	if field.SelectorsMatch(self.ExcludedFields) {
+	if field.Parent == nil {
+		return false // can't exclude root
+	}
+	if self.IsFieldExcluded(field.Parent, response) || field.SelectorsMatch(self.ExcludedFields) {
 		return true
 	}
 	if len(self.ModelFieldAuth) > 0 {
@@ -316,7 +322,7 @@ func (self *Form) IsFieldExcluded(field *model.MetaData, response *Response) boo
 	return false
 }
 
-// IsFieldVisible returns if the FieldFactory can create an input widget
+// IsFieldVisible returns if the FormFieldFactory can create an input widget
 // for the field, and if the field neither hidden or excluded.
 // Only visible fields are validated.
 // IsFieldExcluded and IsFieldHidden have different semantics.
@@ -672,7 +678,7 @@ func (self *validateAndFormLayoutStructVisitor) validateField(field *model.MetaD
 }
 
 func (self *validateAndFormLayoutStructVisitor) validateGeneral(data *model.MetaData) error {
-	if !self.isPost || !self.form.IsFieldVisible(data, self.response) {
+	if !self.isPost || !self.form.IsFieldExcluded(data, self.response) {
 		return nil
 	}
 	if validator, ok := data.ModelValidator(); ok {
@@ -700,6 +706,9 @@ func (self *validateAndFormLayoutStructVisitor) BeginStruct(strct *model.MetaDat
 }
 
 func (self *validateAndFormLayoutStructVisitor) StructField(field *model.MetaData) error {
+	if self.form.IsFieldExcluded(field, self.response) {
+		return nil
+	}
 	return self.formLayout.StructField(field, self.validateField(field), self.form, self.response, self.formContent)
 }
 
@@ -718,8 +727,11 @@ func (self *validateAndFormLayoutStructVisitor) BeginSlice(slice *model.MetaData
 			return err
 		}
 	}
+	if self.form.IsFieldExcluded(slice, self.response) {
+		return nil
+	}
 	// Add an empty slice field to generate one extra input row for slices
-	if !self.isPost && slice.Value.CanSet() && !self.form.IsFieldExcluded(slice, self.response) {
+	if !self.isPost && slice.Value.CanSet() {
 		slice.Value.Set(utils.AppendEmptySliceField(slice.Value))
 		mongo.InitRefs(self.formModel)
 	}
@@ -727,10 +739,16 @@ func (self *validateAndFormLayoutStructVisitor) BeginSlice(slice *model.MetaData
 }
 
 func (self *validateAndFormLayoutStructVisitor) SliceField(field *model.MetaData) error {
+	if self.form.IsFieldExcluded(field, self.response) {
+		return nil
+	}
 	return self.formLayout.SliceField(field, self.validateField(field), self.form, self.response, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) EndSlice(slice *model.MetaData) error {
+	if self.form.IsFieldExcluded(slice, self.response) {
+		return nil
+	}
 	err := self.formLayout.EndSlice(slice, self.validateGeneral(slice), self.form, self.response, self.formContent)
 	if slice.Parent == nil && err == nil {
 		return self.endForm(slice)
@@ -745,14 +763,23 @@ func (self *validateAndFormLayoutStructVisitor) BeginArray(array *model.MetaData
 			return err
 		}
 	}
+	if self.form.IsFieldExcluded(array, self.response) {
+		return nil
+	}
 	return self.formLayout.BeginArray(array, self.form, self.response, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) ArrayField(field *model.MetaData) error {
+	if self.form.IsFieldExcluded(field, self.response) {
+		return nil
+	}
 	return self.formLayout.ArrayField(field, self.validateField(field), self.form, self.response, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) EndArray(array *model.MetaData) error {
+	if self.form.IsFieldExcluded(array, self.response) {
+		return nil
+	}
 	err := self.formLayout.EndArray(array, self.validateGeneral(array), self.form, self.response, self.formContent)
 	if array.Parent == nil && err == nil {
 		return self.endForm(array)
