@@ -661,9 +661,6 @@ type validateAndFormLayoutStructVisitor struct {
 }
 
 func (self *validateAndFormLayoutStructVisitor) validateField(field *model.MetaData) error {
-	if !self.isPost || !self.form.IsFieldVisible(field, self.response) {
-		return nil
-	}
 	if value, ok := field.ModelValue(); ok {
 		err := value.Validate(field)
 		if err == nil && value.IsEmpty() && self.form.IsFieldRequired(field) {
@@ -678,9 +675,6 @@ func (self *validateAndFormLayoutStructVisitor) validateField(field *model.MetaD
 }
 
 func (self *validateAndFormLayoutStructVisitor) validateGeneral(data *model.MetaData) error {
-	if !self.isPost || !self.form.IsFieldExcluded(data, self.response) {
-		return nil
-	}
 	if validator, ok := data.ModelValidator(); ok {
 		err := validator.Validate(data)
 		if err != nil {
@@ -709,11 +703,19 @@ func (self *validateAndFormLayoutStructVisitor) StructField(field *model.MetaDat
 	if self.form.IsFieldExcluded(field, self.response) {
 		return nil
 	}
-	return self.formLayout.StructField(field, self.validateField(field), self.form, self.response, self.formContent)
+	var validationErr error
+	if self.isPost && self.form.IsFieldVisible(field, self.response) {
+		validationErr = self.validateField(field)
+	}
+	return self.formLayout.StructField(field, validationErr, self.form, self.response, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) EndStruct(strct *model.MetaData) error {
-	err := self.formLayout.EndStruct(strct, self.validateGeneral(strct), self.form, self.response, self.formContent)
+	var validationErr error
+	if self.isPost {
+		validationErr = self.validateGeneral(strct)
+	}
+	err := self.formLayout.EndStruct(strct, validationErr, self.form, self.response, self.formContent)
 	if strct.Parent == nil && err == nil {
 		return self.endForm(strct)
 	}
@@ -742,14 +744,22 @@ func (self *validateAndFormLayoutStructVisitor) SliceField(field *model.MetaData
 	if self.form.IsFieldExcluded(field, self.response) {
 		return nil
 	}
-	return self.formLayout.SliceField(field, self.validateField(field), self.form, self.response, self.formContent)
+	var validationErr error
+	if self.isPost && self.form.IsFieldVisible(field, self.response) {
+		validationErr = self.validateField(field)
+	}
+	return self.formLayout.SliceField(field, validationErr, self.form, self.response, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) EndSlice(slice *model.MetaData) error {
 	if self.form.IsFieldExcluded(slice, self.response) {
 		return nil
 	}
-	err := self.formLayout.EndSlice(slice, self.validateGeneral(slice), self.form, self.response, self.formContent)
+	var validationErr error
+	if self.isPost {
+		validationErr = self.validateGeneral(slice)
+	}
+	err := self.formLayout.EndSlice(slice, validationErr, self.form, self.response, self.formContent)
 	if slice.Parent == nil && err == nil {
 		return self.endForm(slice)
 	}
@@ -773,14 +783,22 @@ func (self *validateAndFormLayoutStructVisitor) ArrayField(field *model.MetaData
 	if self.form.IsFieldExcluded(field, self.response) {
 		return nil
 	}
-	return self.formLayout.ArrayField(field, self.validateField(field), self.form, self.response, self.formContent)
+	var validationErr error
+	if self.isPost && self.form.IsFieldVisible(field, self.response) {
+		validationErr = self.validateField(field)
+	}
+	return self.formLayout.ArrayField(field, validationErr, self.form, self.response, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) EndArray(array *model.MetaData) error {
 	if self.form.IsFieldExcluded(array, self.response) {
 		return nil
 	}
-	err := self.formLayout.EndArray(array, self.validateGeneral(array), self.form, self.response, self.formContent)
+	var validationErr error
+	if self.isPost {
+		validationErr = self.validateGeneral(array)
+	}
+	err := self.formLayout.EndArray(array, validationErr, self.form, self.response, self.formContent)
 	if array.Parent == nil && err == nil {
 		return self.endForm(array)
 	}
