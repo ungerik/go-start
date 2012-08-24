@@ -85,15 +85,12 @@ func (self *StandardFormLayout) BeginStruct(strct *model.MetaData, form *Form, r
 
 func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
 	fieldFactory := form.GetFieldFactory()
-	if !fieldFactory.CanCreateInput(field, form) || form.IsFieldExcluded(field, response) {
+	if !fieldFactory.CanCreateInput(field, form) {
 		return nil
 	}
 
 	grandParent := field.Parent.Parent
 	if grandParent != nil && (grandParent.Kind == model.ArrayKind || grandParent.Kind == model.SliceKind) {
-		if form.IsFieldExcluded(grandParent, response) {
-			return nil
-		}
 		return self.structFieldInArrayOrSlice(grandParent, field, validationErr, form, response, formContent)
 	}
 
@@ -126,7 +123,7 @@ func (self *StandardFormLayout) BeginArray(array *model.MetaData, form *Form, re
 }
 
 func (self *StandardFormLayout) ArrayField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
-	if field.Kind == model.ValueKind && !form.IsFieldExcluded(field.Parent, response) && form.GetFieldFactory().CanCreateInput(field, form) {
+	if field.Kind == model.ValueKind && form.GetFieldFactory().CanCreateInput(field, form) {
 		return self.arrayOrSliceFieldValue(field, validationErr, form, response, formContent)
 	}
 	return nil
@@ -141,7 +138,7 @@ func (self *StandardFormLayout) BeginSlice(slice *model.MetaData, form *Form, re
 }
 
 func (self *StandardFormLayout) SliceField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
-	if field.Kind == model.ValueKind && !form.IsFieldExcluded(field.Parent, response) && form.GetFieldFactory().CanCreateInput(field, form) {
+	if field.Kind == model.ValueKind && form.GetFieldFactory().CanCreateInput(field, form) {
 		return self.arrayOrSliceFieldValue(field, validationErr, form, response, formContent)
 	}
 	return nil
