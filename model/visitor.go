@@ -132,6 +132,9 @@ func (self *structVisitorWrapper) EndStruct(depth int, v reflect.Value) error {
 }
 
 func (self *structVisitorWrapper) BeginSlice(depth int, v reflect.Value) error {
+	if v.Type().Elem() == typeOfDynamicValue {
+
+	}
 	self.onBegin(depth, v, SliceKind)
 	return self.visitor.BeginSlice(self.metaData)
 }
@@ -159,6 +162,18 @@ func (self *structVisitorWrapper) ArrayField(depth int, v reflect.Value, index i
 func (self *structVisitorWrapper) EndArray(depth int, v reflect.Value) error {
 	self.onEnd(depth, ArrayKind)
 	return self.visitor.EndArray(self.metaData)
+}
+
+func (self structVisitorWrapper) BeginMap(depth int, v reflect.Value) error {
+	return nil
+}
+
+func (self structVisitorWrapper) MapField(depth int, v reflect.Value, key string) error {
+	return nil
+}
+
+func (self structVisitorWrapper) EndMap(depth int, v reflect.Value) error {
+	return nil
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -26,6 +26,10 @@ func (self MetaDataKind) String() string {
 		return "Slice"
 	case ValueKind:
 		return "Value"
+	case DynamicValueKind:
+		return "DynamicValueKind"
+	case DynamicValuesKind:
+		return "DynamicValuesKind"
 	}
 	panic("Unknown MetaDataKind!")
 }
@@ -35,16 +39,30 @@ const (
 	ArrayKind
 	SliceKind
 	ValueKind // everything else, no children
+	DynamicValueKind
+	DynamicValuesKind
 )
 
 func GetMetaDataKind(v reflect.Value) MetaDataKind {
 	switch v.Kind() {
 	case reflect.Struct:
 		return StructKind
+
 	case reflect.Array:
+		if v.Type().Elem() == typeOfDynamicValue {
+			return DynamicValuesKind
+		}
 		return ArrayKind
+
 	case reflect.Slice:
+		if v.Type().Elem() == typeOfDynamicValue {
+			return DynamicValuesKind
+		}
 		return SliceKind
+	}
+
+	if v.Type() == typeOfDynamicValue {
+		return DynamicValueKind
 	}
 	return ValueKind
 }
@@ -89,6 +107,9 @@ func (self *MetaData) RootParent() *MetaData {
 // always be a struct.
 func (self *MetaData) ParentKind() MetaDataKind {
 	if self.Parent == nil {
+		if self.Kind == DynamicValueKind {
+			return DynamicValueKind
+		}
 		return StructKind
 	}
 	return self.Parent.Kind
@@ -163,10 +184,20 @@ Example:
 */
 func (self *MetaData) Attrib(tagKey, name string) (value string, ok bool) {
 	if self.attribs == nil {
-		self.attribs = make(map[string]map[string]string)
+		if self.Kind == DynamicValueKind {
+			self.attribs = self.Value.Interface().(DynamicValue).Attribs
+			if self.attribs == nil {
+				return "", false
+			}
+		} else {
+			self.attribs = make(map[string]map[string]string)
+		}
 	}
 	keyAttribs, ok := self.attribs[tagKey]
 	if !ok {
+		if self.Kind == DynamicValueKind {
+			return "", false
+		}
 		structField := self
 		for !structField.IsStructField() {
 			structField = structField.Parent

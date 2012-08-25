@@ -16,14 +16,14 @@ func ExampleVisitStruct_simpleFlatStruct() {
 	VisitStruct(exampleStruct{Y: 2}, NewStdLogStructVisitor())
 	// Output:
 	// BeginStruct(utils.exampleStruct)
-	//   StructField(0, X int = 1)
-	//   StructField(1, Y float32 = 0)
-	//   StructField(2, Z string = "")
+	//   StructField(0: X int = 1)
+	//   StructField(1: Y float32 = 0)
+	//   StructField(2: Z string = "")
 	// EndStruct(utils.exampleStruct)	
 	// BeginStruct(utils.exampleStruct)
-	//   StructField(0, X int = 0)
-	//   StructField(1, Y float32 = 2)
-	//   StructField(2, Z string = "")
+	//   StructField(0: X int = 0)
+	//   StructField(1: Y float32 = 2)
+	//   StructField(2: Z string = "")
 	// EndStruct(utils.exampleStruct)	
 }
 
@@ -48,9 +48,9 @@ func ExampleVisitStruct_simpleFlatPtrsStruct() {
 	VisitStruct(val, NewStdLogStructVisitor())
 	// Output:
 	// BeginStruct(utils.exampleStruct)
-	//   StructField(0, X int = 1)
-	//   StructField(1, Y float32 = 2)
-	//   StructField(2, I int = 0)
+	//   StructField(0: X int = 1)
+	//   StructField(1: Y float32 = 2)
+	//   StructField(2: I int = 0)
 	// EndStruct(utils.exampleStruct)	
 }
 
@@ -69,18 +69,46 @@ func ExampleVisitStruct_flatStructWithSliceAndArray() {
 	VisitStruct(val, NewStdLogStructVisitor())
 	// Output:
 	// BeginStruct(utils.exampleStruct)
-	//   StructField(0, X int = 9)
-	//   StructField(1, Slice []int)
+	//   StructField(0: X int = 9)
+	//   StructField(1: Slice []int)
 	//   BeginSlice([]int)
-	//     SliceField(0, int = 1)
-	//     SliceField(1, int = 2)
+	//     SliceField(0: int = 1)
+	//     SliceField(1: int = 2)
 	//   EndSlice([]int)
-	//   StructField(2, Array [3]int)
+	//   StructField(2: Array [3]int)
 	//   BeginArray([3]int)
-	//     ArrayField(0, int = 1)
-	//     ArrayField(1, int = 2)
-	//     ArrayField(2, int = 3)
+	//     ArrayField(0: int = 1)
+	//     ArrayField(1: int = 2)
+	//     ArrayField(2: int = 3)
 	//   EndArray([3]int)
+	// EndStruct(utils.exampleStruct)
+}
+
+func ExampleVisitStruct_flatStructWithMap() {
+	type exampleStruct struct {
+		X         int
+		IntMap    map[string]int
+		StringMap map[string]string
+	}
+	val := &exampleStruct{
+		X:         9,
+		IntMap:    map[string]int{"1": 1, "2": 2},
+		StringMap: map[string]string{"1": "Hello", "2": "World"},
+	}
+	VisitStruct(val, NewStdLogStructVisitor())
+	// Output:
+	// BeginStruct(utils.exampleStruct)
+	//   StructField(0: X int = 9)
+	//   StructField(1: IntMap map[string]int = map[string]int{"1":1, "2":2})
+	//   BeginMap(map[string]int)
+	//     MapField("1": int = 1)
+	//     MapField("2": int = 2)
+	//   EndMap(map[string]int)
+	//   StructField(2: StringMap map[string]string = map[string]string{"1":"Hello", "2":"World"})
+	//   BeginMap(map[string]string)
+	//     MapField("1": string = "Hello")
+	//     MapField("2": string = "World")
+	//   EndMap(map[string]string)
 	// EndStruct(utils.exampleStruct)
 }
 
@@ -105,11 +133,11 @@ func ExampleVisitStruct_flatAnonymousStructFields() {
 	VisitStruct(val, NewStdLogStructVisitor())
 	// Output:
 	// BeginStruct(utils.exampleStruct)
-	//   StructField(0, A0 int = 0)
-	//   StructField(1, A1 int = 1)
-	//   StructField(2, A2 int = 2)
-	//   StructField(3, B0 bool = false)
-	//   StructField(4, B1 bool = true)
+	//   StructField(0: A0 int = 0)
+	//   StructField(1: A1 int = 1)
+	//   StructField(2: A2 int = 2)
+	//   StructField(3: B0 bool = false)
+	//   StructField(4: B1 bool = true)
 	// EndStruct(utils.exampleStruct)
 }
 
@@ -147,14 +175,14 @@ func ExampleVisitStruct_deepAnonymousStructFields() {
 	VisitStruct(val, NewStdLogStructVisitor())
 	// Output:
 	// BeginStruct(utils.exampleStruct)
-	//   StructField(0, A0 int = 0)
-	//   StructField(1, A1 int = 1)
-	//   StructField(2, C0 string = "C0")
-	//   StructField(3, B0 bool = false)
-	//   StructField(4, A0 int = 0)
-	//   StructField(5, A1 int = 1)
-	//   StructField(6, B1 bool = true)
-	//   StructField(7, C1 string = "C1")
+	//   StructField(0: A0 int = 0)
+	//   StructField(1: A1 int = 1)
+	//   StructField(2: C0 string = "C0")
+	//   StructField(3: B0 bool = false)
+	//   StructField(4: A0 int = 0)
+	//   StructField(5: A1 int = 1)
+	//   StructField(6: B1 bool = true)
+	//   StructField(7: C1 string = "C1")
 	// EndStruct(utils.exampleStruct)
 }
 
@@ -192,25 +220,25 @@ func ExampleVisitStruct_deepStructFields() {
 	VisitStruct(val, NewStdLogStructVisitor())
 	// Output:
 	// BeginStruct(utils.exampleStruct)
-	//   StructField(0, C utils.C)
+	//   StructField(0: C utils.C)
 	//   BeginStruct(utils.C)
-	//     StructField(0, A utils.A)
+	//     StructField(0: A utils.A)
 	//     BeginStruct(utils.A)
-	//       StructField(0, A0 int = 0)
-	//       StructField(1, A1 int = 1)
+	//       StructField(0: A0 int = 0)
+	//       StructField(1: A1 int = 1)
 	//     EndStruct(utils.A)
-	//     StructField(1, C0 string = "C0")
-	//     StructField(2, B utils.B)
+	//     StructField(1: C0 string = "C0")
+	//     StructField(2: B utils.B)
 	//     BeginStruct(utils.B)
-	//       StructField(0, B0 bool = false)
-	//       StructField(1, A utils.A)
+	//       StructField(0: B0 bool = false)
+	//       StructField(1: A utils.A)
 	//       BeginStruct(utils.A)
-	//         StructField(0, A0 int = 0)
-	//         StructField(1, A1 int = 1)
+	//         StructField(0: A0 int = 0)
+	//         StructField(1: A1 int = 1)
 	//       EndStruct(utils.A)
-	//       StructField(2, B1 bool = true)
+	//       StructField(2: B1 bool = true)
 	//     EndStruct(utils.B)
-	//     StructField(3, C1 string = "C1")
+	//     StructField(3: C1 string = "C1")
 	//   EndStruct(utils.C)
 	// EndStruct(utils.exampleStruct)
 }
@@ -249,16 +277,16 @@ func ExampleVisitStruct_limitDepth() {
 	VisitStructDepth(val, NewStdLogStructVisitor(), 2)
 	// Output:
 	// BeginStruct(utils.exampleStruct)
-	//   StructField(0, C utils.C)
+	//   StructField(0: C utils.C)
 	//   BeginStruct(utils.C)
-	//     StructField(0, A utils.A)
+	//     StructField(0: A utils.A)
 	//     BeginStruct(utils.A)
 	//     EndStruct(utils.A)
-	//     StructField(1, C0 string = "C0")
-	//     StructField(2, B utils.B)
+	//     StructField(1: C0 string = "C0")
+	//     StructField(2: B utils.B)
 	//     BeginStruct(utils.B)
 	//     EndStruct(utils.B)
-	//     StructField(3, C1 string = "C1")
+	//     StructField(3: C1 string = "C1")
 	//   EndStruct(utils.C)
 	// EndStruct(utils.exampleStruct)
 }
@@ -288,15 +316,15 @@ func ExampleVisitStruct_sliceOfStructInAnonymousStruct() {
 	VisitStruct(val, NewStdLogStructVisitor())
 	// Output:
 	// BeginStruct(utils.person)
-	//   StructField(0, Name string = "Erik Unger")
-	//   StructField(1, Email []utils.emailIdentity)
+	//   StructField(0: Name string = "Erik Unger")
+	//   StructField(1: Email []utils.emailIdentity)
 	//   BeginSlice([]utils.emailIdentity)
-	//     SliceField(0, utils.emailIdentity)
+	//     SliceField(0: utils.emailIdentity)
 	//     BeginStruct(utils.emailIdentity)
-	//       StructField(0, Address string = "erik@erikunger.com")
-	//       StructField(1, Description string = "Test")
+	//       StructField(0: Address string = "erik@erikunger.com")
+	//       StructField(1: Description string = "Test")
 	//     EndStruct(utils.emailIdentity)
 	//   EndSlice([]utils.emailIdentity)
-	//   StructField(2, ExtraInfo string = "info")
+	//   StructField(2: ExtraInfo string = "info")
 	// EndStruct(utils.person)
 }
