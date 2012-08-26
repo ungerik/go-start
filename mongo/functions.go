@@ -1,14 +1,15 @@
 package mongo
 
 import (
-	"github.com/ungerik/go-start/errs"
-	"github.com/ungerik/go-start/model"
-	"github.com/ungerik/go-start/utils"
-	"github.com/ungerik/go-start/mgo/bson"
 	"reflect"
 	"sort"
 	"strings"
 
+	"github.com/ungerik/go-start/errs"
+	"github.com/ungerik/go-start/mgo/bson"
+	"github.com/ungerik/go-start/model"
+	"github.com/ungerik/go-start/utils"
+	"github.com/ungerik/go-start/reflection"
 //	"github.com/ungerik/go-start/debug"
 )
 
@@ -69,7 +70,7 @@ func checkQuery(query Query) Query {
 	return query
 }
 
-func MatchBsonField(bsonName string) utils.MatchStructFieldFunc {
+func MatchBsonField(bsonName string) reflection.MatchStructFieldFunc {
 	return func(field *reflect.StructField) bool {
 		var name string
 		bsonTag := field.Tag.Get("bson")

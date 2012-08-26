@@ -79,11 +79,11 @@ func (self *StandardFormLayout) EndFormContent(fieldValidationErrs, generalValid
 	return nil
 }
 
-func (self *StandardFormLayout) BeginStruct(strct *model.MetaData, form *Form, response *Response, formContent *Views) error {
+func (self *StandardFormLayout) BeginNamedFields(namedFields *model.MetaData, form *Form, response *Response, formContent *Views) error {
 	return nil
 }
 
-func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
+func (self *StandardFormLayout) NamedField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
 	fieldFactory := form.GetFieldFactory()
 	if !fieldFactory.CanCreateInput(field, form) {
 		return nil
@@ -114,7 +114,7 @@ func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr
 	return nil
 }
 
-func (self *StandardFormLayout) EndStruct(strct *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
+func (self *StandardFormLayout) EndNamedFields(namedFields *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
 	return nil
 }
 

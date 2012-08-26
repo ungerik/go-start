@@ -1,4 +1,4 @@
-package utils
+package reflection
 
 import (
 	"log"
@@ -92,7 +92,7 @@ func (self *LogStructVisitor) BeginMap(depth int, v reflect.Value) error {
 	return nil
 }
 
-func (self *LogStructVisitor) MapField(depth int, v reflect.Value, key string) error {
+func (self *LogStructVisitor) MapField(depth int, v reflect.Value, key string, index int) error {
 	indent := strings.Repeat("  ", depth)
 	switch v.Kind() {
 	case reflect.Struct, reflect.Slice, reflect.Array:

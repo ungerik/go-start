@@ -18,64 +18,55 @@ type MetaDataKind int
 
 func (self MetaDataKind) String() string {
 	switch self {
-	case StructKind:
-		return "Struct"
+	case NamedFieldsKind:
+		return "NamedFieldsKind"
 	case ArrayKind:
 		return "Array"
 	case SliceKind:
 		return "Slice"
 	case ValueKind:
 		return "Value"
-	case DynamicValueKind:
-		return "DynamicValueKind"
-	case DynamicValuesKind:
-		return "DynamicValuesKind"
 	}
 	panic("Unknown MetaDataKind!")
 }
 
 const (
-	StructKind MetaDataKind = iota
+	NamedFieldsKind MetaDataKind = iota
 	ArrayKind
 	SliceKind
 	ValueKind // everything else, no children
-	DynamicValueKind
-	DynamicValuesKind
 )
 
 func GetMetaDataKind(v reflect.Value) MetaDataKind {
 	switch v.Kind() {
 	case reflect.Struct:
-		return StructKind
+		return NamedFieldsKind
+
+	case reflect.Map:
+		if v.Type().Key().Kind() == reflect.String {
+			return NamedFieldsKind
+		}
 
 	case reflect.Array:
-		if v.Type().Elem() == typeOfDynamicValue {
-			return DynamicValuesKind
-		}
 		return ArrayKind
 
 	case reflect.Slice:
-		if v.Type().Elem() == typeOfDynamicValue {
-			return DynamicValuesKind
-		}
 		return SliceKind
 	}
 
-	if v.Type() == typeOfDynamicValue {
-		return DynamicValueKind
-	}
 	return ValueKind
 }
 
 // MetaData holds meta data about an model data item.
 type MetaData struct {
-	Kind   MetaDataKind
-	Value  reflect.Value
-	Depth  int    // number of steps up to the root parent
-	Name   string // empty for array and slice fields
-	Index  int    // will also be set for struct fields
-	Parent *MetaData
-	tag    reflect.StructTag
+	Kind    MetaDataKind
+	Value   reflect.Value
+	Depth   int    // number of steps up to the root parent
+	Name    string // empty for array and slice fields
+	Index   int    // will also be set for struct fields
+	Parent  *MetaData
+	Dynamic bool
+	tag     reflect.StructTag
 	// cached tag attributes, by package
 	attribs map[string]map[string]string
 	path    []*MetaData
@@ -107,10 +98,7 @@ func (self *MetaData) RootParent() *MetaData {
 // always be a struct.
 func (self *MetaData) ParentKind() MetaDataKind {
 	if self.Parent == nil {
-		if self.Kind == DynamicValueKind {
-			return DynamicValueKind
-		}
-		return StructKind
+		return NamedFieldsKind
 	}
 	return self.Parent.Kind
 }
@@ -184,20 +172,20 @@ Example:
 */
 func (self *MetaData) Attrib(tagKey, name string) (value string, ok bool) {
 	if self.attribs == nil {
-		if self.Kind == DynamicValueKind {
-			self.attribs = self.Value.Interface().(DynamicValue).Attribs
-			if self.attribs == nil {
-				return "", false
-			}
-		} else {
-			self.attribs = make(map[string]map[string]string)
-		}
+		// if self.Kind == DynamicValueKind {
+		// 	self.attribs = self.Value.Interface().(DynamicValue).Attribs
+		// 	if self.attribs == nil {
+		// 		return "", false
+		// 	}
+		// } else {
+		self.attribs = make(map[string]map[string]string)
+		// }
 	}
 	keyAttribs, ok := self.attribs[tagKey]
 	if !ok {
-		if self.Kind == DynamicValueKind {
-			return "", false
-		}
+		// if self.Kind == DynamicValueKind {
+		// 	return "", false
+		// }
 		structField := self
 		for !structField.IsStructField() {
 			structField = structField.Parent

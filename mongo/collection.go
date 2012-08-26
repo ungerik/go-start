@@ -2,14 +2,15 @@ package mongo
 
 import (
 	"fmt"
+	"reflect"
+	"strconv"
+	"strings"
+
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/mgo"
 	"github.com/ungerik/go-start/mgo/bson"
 	"github.com/ungerik/go-start/model"
-	"github.com/ungerik/go-start/utils"
-	"reflect"
-	"strconv"
-	"strings"
+	"github.com/ungerik/go-start/reflection"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -101,7 +102,7 @@ func (self *Collection) subDocumentType(docType reflect.Type, fieldName string, 
 	switch docType.Kind() {
 	case reflect.Struct:
 		bsonName := strings.ToLower(fieldName)
-		field := utils.FindFlattenedStructField(docType, MatchBsonField(bsonName))
+		field := reflection.FindFlattenedStructField(docType, MatchBsonField(bsonName))
 		if field != nil {
 			return field.Type, nil
 		}

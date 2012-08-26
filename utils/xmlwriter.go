@@ -2,9 +2,11 @@ package utils
 
 import (
 	"fmt"
-	"github.com/ungerik/go-start/errs"
 	"html"
 	"io"
+
+	"github.com/ungerik/go-start/errs"
+	"github.com/ungerik/go-start/reflection"
 	//	"github.com/ungerik/go-start/debug"
 )
 
@@ -51,7 +53,7 @@ func (self *XMLWriter) Attrib(name string, value ...interface{}) *XMLWriter {
 }
 
 func (self *XMLWriter) AttribIfNotDefault(name string, value interface{}) *XMLWriter {
-	if IsDefaultValue(value) {
+	if reflection.IsDefaultValue(value) {
 		return self
 	}
 	return self.Attrib(name, value)

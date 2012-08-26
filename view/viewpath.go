@@ -1,15 +1,16 @@
 package view
 
 import (
-	"github.com/ungerik/go-start/debug"
-	"github.com/ungerik/go-start/utils"
-	"github.com/ungerik/web.go"
 	"log"
 	"net/http"
 	"net/url"
 	"regexp"
 	"runtime"
 	"strings"
+
+	"github.com/ungerik/go-start/debug"
+	"github.com/ungerik/go-start/reflection"
+	"github.com/ungerik/web.go"
 )
 
 const PathFragmentPattern = "([a-zA-Z0-9_\\-\\.]+)"
@@ -45,7 +46,7 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 	if self.Name != "" && !PathFragmentRegexp.MatchString(self.Name) {
 		panic("Invalid characters in view.ViewPath.Name: " + self.Name)
 	}
-	if self.View != nil && utils.IsDeepNil(self.View) {
+	if self.View != nil && reflection.IsDeepNil(self.View) {
 		panic("Nil value wrapped with non nil view.View under parentPath: " + parentPath)
 	}
 

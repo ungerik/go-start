@@ -1,4 +1,4 @@
-package utils
+package reflection
 
 import (
 // "fmt"
@@ -15,16 +15,16 @@ func ExampleVisitStruct_simpleFlatStruct() {
 	VisitStruct(&exampleStruct{X: 1}, NewStdLogStructVisitor())
 	VisitStruct(exampleStruct{Y: 2}, NewStdLogStructVisitor())
 	// Output:
-	// BeginStruct(utils.exampleStruct)
+	// BeginStruct(reflection.exampleStruct)
 	//   StructField(0: X int = 1)
 	//   StructField(1: Y float32 = 0)
 	//   StructField(2: Z string = "")
-	// EndStruct(utils.exampleStruct)	
-	// BeginStruct(utils.exampleStruct)
+	// EndStruct(reflection.exampleStruct)	
+	// BeginStruct(reflection.exampleStruct)
 	//   StructField(0: X int = 0)
 	//   StructField(1: Y float32 = 2)
 	//   StructField(2: Z string = "")
-	// EndStruct(utils.exampleStruct)	
+	// EndStruct(reflection.exampleStruct)	
 }
 
 func ExampleVisitStruct_simpleFlatPtrsStruct() {
@@ -47,11 +47,11 @@ func ExampleVisitStruct_simpleFlatPtrsStruct() {
 	**val.Y = 2
 	VisitStruct(val, NewStdLogStructVisitor())
 	// Output:
-	// BeginStruct(utils.exampleStruct)
+	// BeginStruct(reflection.exampleStruct)
 	//   StructField(0: X int = 1)
 	//   StructField(1: Y float32 = 2)
 	//   StructField(2: I int = 0)
-	// EndStruct(utils.exampleStruct)	
+	// EndStruct(reflection.exampleStruct)	
 }
 
 func ExampleVisitStruct_flatStructWithSliceAndArray() {
@@ -68,7 +68,7 @@ func ExampleVisitStruct_flatStructWithSliceAndArray() {
 	}
 	VisitStruct(val, NewStdLogStructVisitor())
 	// Output:
-	// BeginStruct(utils.exampleStruct)
+	// BeginStruct(reflection.exampleStruct)
 	//   StructField(0: X int = 9)
 	//   StructField(1: Slice []int)
 	//   BeginSlice([]int)
@@ -81,7 +81,7 @@ func ExampleVisitStruct_flatStructWithSliceAndArray() {
 	//     ArrayField(1: int = 2)
 	//     ArrayField(2: int = 3)
 	//   EndArray([3]int)
-	// EndStruct(utils.exampleStruct)
+	// EndStruct(reflection.exampleStruct)
 }
 
 func ExampleVisitStruct_flatStructWithMap() {
@@ -97,7 +97,7 @@ func ExampleVisitStruct_flatStructWithMap() {
 	}
 	VisitStruct(val, NewStdLogStructVisitor())
 	// Output:
-	// BeginStruct(utils.exampleStruct)
+	// BeginStruct(reflection.exampleStruct)
 	//   StructField(0: X int = 9)
 	//   StructField(1: IntMap map[string]int = map[string]int{"1":1, "2":2})
 	//   BeginMap(map[string]int)
@@ -109,7 +109,7 @@ func ExampleVisitStruct_flatStructWithMap() {
 	//     MapField("1": string = "Hello")
 	//     MapField("2": string = "World")
 	//   EndMap(map[string]string)
-	// EndStruct(utils.exampleStruct)
+	// EndStruct(reflection.exampleStruct)
 }
 
 func ExampleVisitStruct_flatAnonymousStructFields() {
@@ -132,13 +132,13 @@ func ExampleVisitStruct_flatAnonymousStructFields() {
 	}
 	VisitStruct(val, NewStdLogStructVisitor())
 	// Output:
-	// BeginStruct(utils.exampleStruct)
+	// BeginStruct(reflection.exampleStruct)
 	//   StructField(0: A0 int = 0)
 	//   StructField(1: A1 int = 1)
 	//   StructField(2: A2 int = 2)
 	//   StructField(3: B0 bool = false)
 	//   StructField(4: B1 bool = true)
-	// EndStruct(utils.exampleStruct)
+	// EndStruct(reflection.exampleStruct)
 }
 
 func ExampleVisitStruct_deepAnonymousStructFields() {
@@ -174,7 +174,7 @@ func ExampleVisitStruct_deepAnonymousStructFields() {
 	}
 	VisitStruct(val, NewStdLogStructVisitor())
 	// Output:
-	// BeginStruct(utils.exampleStruct)
+	// BeginStruct(reflection.exampleStruct)
 	//   StructField(0: A0 int = 0)
 	//   StructField(1: A1 int = 1)
 	//   StructField(2: C0 string = "C0")
@@ -183,7 +183,7 @@ func ExampleVisitStruct_deepAnonymousStructFields() {
 	//   StructField(5: A1 int = 1)
 	//   StructField(6: B1 bool = true)
 	//   StructField(7: C1 string = "C1")
-	// EndStruct(utils.exampleStruct)
+	// EndStruct(reflection.exampleStruct)
 }
 
 func ExampleVisitStruct_deepStructFields() {
@@ -219,28 +219,28 @@ func ExampleVisitStruct_deepStructFields() {
 	}
 	VisitStruct(val, NewStdLogStructVisitor())
 	// Output:
-	// BeginStruct(utils.exampleStruct)
-	//   StructField(0: C utils.C)
-	//   BeginStruct(utils.C)
-	//     StructField(0: A utils.A)
-	//     BeginStruct(utils.A)
+	// BeginStruct(reflection.exampleStruct)
+	//   StructField(0: C reflection.C)
+	//   BeginStruct(reflection.C)
+	//     StructField(0: A reflection.A)
+	//     BeginStruct(reflection.A)
 	//       StructField(0: A0 int = 0)
 	//       StructField(1: A1 int = 1)
-	//     EndStruct(utils.A)
+	//     EndStruct(reflection.A)
 	//     StructField(1: C0 string = "C0")
-	//     StructField(2: B utils.B)
-	//     BeginStruct(utils.B)
+	//     StructField(2: B reflection.B)
+	//     BeginStruct(reflection.B)
 	//       StructField(0: B0 bool = false)
-	//       StructField(1: A utils.A)
-	//       BeginStruct(utils.A)
+	//       StructField(1: A reflection.A)
+	//       BeginStruct(reflection.A)
 	//         StructField(0: A0 int = 0)
 	//         StructField(1: A1 int = 1)
-	//       EndStruct(utils.A)
+	//       EndStruct(reflection.A)
 	//       StructField(2: B1 bool = true)
-	//     EndStruct(utils.B)
+	//     EndStruct(reflection.B)
 	//     StructField(3: C1 string = "C1")
-	//   EndStruct(utils.C)
-	// EndStruct(utils.exampleStruct)
+	//   EndStruct(reflection.C)
+	// EndStruct(reflection.exampleStruct)
 }
 
 func ExampleVisitStruct_limitDepth() {
@@ -276,19 +276,19 @@ func ExampleVisitStruct_limitDepth() {
 	}
 	VisitStructDepth(val, NewStdLogStructVisitor(), 2)
 	// Output:
-	// BeginStruct(utils.exampleStruct)
-	//   StructField(0: C utils.C)
-	//   BeginStruct(utils.C)
-	//     StructField(0: A utils.A)
-	//     BeginStruct(utils.A)
-	//     EndStruct(utils.A)
+	// BeginStruct(reflection.exampleStruct)
+	//   StructField(0: C reflection.C)
+	//   BeginStruct(reflection.C)
+	//     StructField(0: A reflection.A)
+	//     BeginStruct(reflection.A)
+	//     EndStruct(reflection.A)
 	//     StructField(1: C0 string = "C0")
-	//     StructField(2: B utils.B)
-	//     BeginStruct(utils.B)
-	//     EndStruct(utils.B)
+	//     StructField(2: B reflection.B)
+	//     BeginStruct(reflection.B)
+	//     EndStruct(reflection.B)
 	//     StructField(3: C1 string = "C1")
-	//   EndStruct(utils.C)
-	// EndStruct(utils.exampleStruct)
+	//   EndStruct(reflection.C)
+	// EndStruct(reflection.exampleStruct)
 }
 
 func ExampleVisitStruct_sliceOfStructInAnonymousStruct() {
@@ -315,16 +315,16 @@ func ExampleVisitStruct_sliceOfStructInAnonymousStruct() {
 	}
 	VisitStruct(val, NewStdLogStructVisitor())
 	// Output:
-	// BeginStruct(utils.person)
+	// BeginStruct(reflection.person)
 	//   StructField(0: Name string = "Erik Unger")
-	//   StructField(1: Email []utils.emailIdentity)
-	//   BeginSlice([]utils.emailIdentity)
-	//     SliceField(0: utils.emailIdentity)
-	//     BeginStruct(utils.emailIdentity)
+	//   StructField(1: Email []reflection.emailIdentity)
+	//   BeginSlice([]reflection.emailIdentity)
+	//     SliceField(0: reflection.emailIdentity)
+	//     BeginStruct(reflection.emailIdentity)
 	//       StructField(0: Address string = "erik@erikunger.com")
 	//       StructField(1: Description string = "Test")
-	//     EndStruct(utils.emailIdentity)
-	//   EndSlice([]utils.emailIdentity)
+	//     EndStruct(reflection.emailIdentity)
+	//   EndSlice([]reflection.emailIdentity)
 	//   StructField(2: ExtraInfo string = "info")
-	// EndStruct(utils.person)
+	// EndStruct(reflection.person)
 }

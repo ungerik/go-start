@@ -63,9 +63,9 @@ type FormLayout interface {
 	SubmitError(message string, form *Form, response *Response, formContent *Views) error
 	EndFormContent(fieldValidationErrs, generalValidationErrs []error, form *Form, response *Response, formContent *Views) error
 
-	BeginStruct(strct *model.MetaData, form *Form, response *Response, formContent *Views) error
-	StructField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error
-	EndStruct(strct *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error
+	BeginNamedFields(namedFields *model.MetaData, form *Form, response *Response, formContent *Views) error
+	NamedField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error
+	EndNamedFields(namedFields *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error
 
 	BeginArray(array *model.MetaData, form *Form, response *Response, formContent *Views) error
 	ArrayField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error
@@ -591,15 +591,15 @@ func (self *setPostValuesStructVisitor) trySetFieldValue(field *model.MetaData) 
 	return nil
 }
 
-func (self *setPostValuesStructVisitor) BeginStruct(strct *model.MetaData) error {
+func (self *setPostValuesStructVisitor) BeginNamedFields(namedFields *model.MetaData) error {
 	return nil
 }
 
-func (self *setPostValuesStructVisitor) StructField(field *model.MetaData) error {
+func (self *setPostValuesStructVisitor) NamedField(field *model.MetaData) error {
 	return self.trySetFieldValue(field)
 }
 
-func (self *setPostValuesStructVisitor) EndStruct(strct *model.MetaData) error {
+func (self *setPostValuesStructVisitor) EndNamedFields(namedFields *model.MetaData) error {
 	return nil
 }
 
@@ -689,17 +689,17 @@ func (self *validateAndFormLayoutStructVisitor) endForm(data *model.MetaData) (e
 	return self.formLayout.EndFormContent(self.fieldValidationErrors, self.generalValidationErrors, self.form, self.response, self.formContent)
 }
 
-func (self *validateAndFormLayoutStructVisitor) BeginStruct(strct *model.MetaData) error {
-	if strct.Parent == nil {
+func (self *validateAndFormLayoutStructVisitor) BeginNamedFields(namedFields *model.MetaData) error {
+	if namedFields.Parent == nil {
 		err := self.formLayout.BeginFormContent(self.form, self.response, self.formContent)
 		if err != nil {
 			return err
 		}
 	}
-	return self.formLayout.BeginStruct(strct, self.form, self.response, self.formContent)
+	return self.formLayout.BeginNamedFields(namedFields, self.form, self.response, self.formContent)
 }
 
-func (self *validateAndFormLayoutStructVisitor) StructField(field *model.MetaData) error {
+func (self *validateAndFormLayoutStructVisitor) NamedField(field *model.MetaData) error {
 	if self.form.IsFieldExcluded(field, self.response) {
 		return nil
 	}
@@ -707,17 +707,17 @@ func (self *validateAndFormLayoutStructVisitor) StructField(field *model.MetaDat
 	if self.isPost && self.form.IsFieldVisible(field, self.response) {
 		validationErr = self.validateField(field)
 	}
-	return self.formLayout.StructField(field, validationErr, self.form, self.response, self.formContent)
+	return self.formLayout.NamedField(field, validationErr, self.form, self.response, self.formContent)
 }
 
-func (self *validateAndFormLayoutStructVisitor) EndStruct(strct *model.MetaData) error {
+func (self *validateAndFormLayoutStructVisitor) EndNamedFields(namedFields *model.MetaData) error {
 	var validationErr error
 	if self.isPost {
-		validationErr = self.validateGeneral(strct)
+		validationErr = self.validateGeneral(namedFields)
 	}
-	err := self.formLayout.EndStruct(strct, validationErr, self.form, self.response, self.formContent)
-	if strct.Parent == nil && err == nil {
-		return self.endForm(strct)
+	err := self.formLayout.EndNamedFields(namedFields, validationErr, self.form, self.response, self.formContent)
+	if namedFields.Parent == nil && err == nil {
+		return self.endForm(namedFields)
 	}
 	return err
 }

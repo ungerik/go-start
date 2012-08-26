@@ -2,15 +2,16 @@ package model
 
 import (
 	"fmt"
-	"github.com/ungerik/go-start/utils"
-	// "github.com/ungerik/go-start/debug"
 	"reflect"
+
+	"github.com/ungerik/go-start/debug"
+	"github.com/ungerik/go-start/reflection"
 )
 
 type Visitor interface {
-	BeginStruct(strct *MetaData) error
-	StructField(field *MetaData) error
-	EndStruct(strct *MetaData) error
+	BeginNamedFields(namedFields *MetaData) error
+	NamedField(field *MetaData) error
+	EndNamedFields(namedFields *MetaData) error
 
 	BeginSlice(slice *MetaData) error
 	SliceField(field *MetaData) error
@@ -22,11 +23,11 @@ type Visitor interface {
 }
 
 func Visit(model interface{}, visitor Visitor) error {
-	return utils.VisitStruct(model, &structVisitorWrapper{visitor: visitor})
+	return reflection.VisitStruct(model, &structVisitorWrapper{visitor: visitor})
 }
 
 func VisitMaxDepth(model interface{}, maxDepth int, visitor Visitor) error {
-	return utils.VisitStructDepth(model, &structVisitorWrapper{visitor: visitor}, maxDepth)
+	return reflection.VisitStructDepth(model, &structVisitorWrapper{visitor: visitor}, maxDepth)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -36,33 +37,41 @@ type structVisitorWrapper struct {
 	metaData *MetaData
 }
 
-func (self *structVisitorWrapper) onBegin(depth int, v reflect.Value, kind MetaDataKind) {
+func (self *structVisitorWrapper) begin(depth int, v reflect.Value, kind MetaDataKind) (metaData *MetaData) {
+	// debug.Print("begin")
 	if depth == 0 {
 		// no parent
 		if self.metaData != nil {
 			panic(fmt.Sprintf("Begin%s at depth 0 must not have a parent (self.metaData)", kind))
 		}
-		self.metaData = &MetaData{Value: v, Kind: kind}
-	} else {
-		if self.metaData.Depth != depth {
-			panic(fmt.Sprintf("Begin%s: If not the root, there must be some self.MetaData from StructField before", kind))
-		}
+		return &MetaData{Value: v, Kind: kind}
 	}
+
+	if self.metaData.Depth != depth {
+		panic(fmt.Sprintf("Begin%s: If not the root, there must be some self.MetaData from NamedFields before", kind))
+	}
+	return self.metaData
 }
 
-func (self *structVisitorWrapper) onEnd(depth int, kind MetaDataKind) {
-	if depth != self.metaData.Depth {
+func (self *structVisitorWrapper) end(depth int, kind MetaDataKind) (metaData *MetaData) {
+	// debug.Print("end")
+	if depth == self.metaData.Depth {
+		metaData = self.metaData
+	} else {
+		// Non empty parent, current self.metaData.Depth must be depth+1
 		if depth+1 != self.metaData.Depth {
 			panic(fmt.Sprintf("End%s: self.metaData.Depth (%d) must be depth or depth+1 (%d or %d)", kind, self.metaData.Depth, depth, depth+1))
 		}
-		self.metaData = self.metaData.Parent
+		metaData = self.metaData.Parent
 	}
-	if self.metaData.Kind != kind {
-		panic(fmt.Sprintf("End%s called for %s", kind, self.metaData.Kind))
+	if metaData.Kind != kind {
+		panic(fmt.Sprintf("End%s called for %s", kind, metaData.Kind))
 	}
+	return metaData
 }
 
-func (self *structVisitorWrapper) onArrayOrSliceField(depth int, v reflect.Value, index int, parentKind MetaDataKind) {
+func (self *structVisitorWrapper) arrayOrSliceFieldMetaData(depth int, v reflect.Value, index int, parentKind MetaDataKind) *MetaData {
+	// debug.Print("onArrayOrSliceField")
 	var parent *MetaData
 	if index == 0 {
 		// first field of array or struct
@@ -81,7 +90,7 @@ func (self *structVisitorWrapper) onArrayOrSliceField(depth int, v reflect.Value
 	if parent.Kind != parentKind {
 		panic(fmt.Sprintf("%sField called for %s parent", parentKind, parent.Kind))
 	}
-	self.metaData = &MetaData{
+	return &MetaData{
 		Value:  v,
 		Kind:   GetMetaDataKind(v),
 		Parent: parent,
@@ -90,171 +99,99 @@ func (self *structVisitorWrapper) onArrayOrSliceField(depth int, v reflect.Value
 	}
 }
 
-func (self *structVisitorWrapper) BeginStruct(depth int, v reflect.Value) error {
-	self.onBegin(depth, v, StructKind)
-	return self.visitor.BeginStruct(self.metaData)
-}
-
-func (self *structVisitorWrapper) StructField(depth int, v reflect.Value, f reflect.StructField, index int) error {
+func (self *structVisitorWrapper) namedFieldMetaData(depth int, v reflect.Value, name string, index int) *MetaData {
+	// debug.Print("onNamedField")
 	var parent *MetaData
 	if index == 0 {
 		// first field of struct
 		if depth != self.metaData.Depth+1 {
-			panic("Depth of first field of a struct must be its parent struct's depth plus one")
+			panic("Depth of first field of NamedFields must be its parent NamedFields' depth plus one")
 		}
 		// no previous sibling available, parent ist current self.metaData
 		parent = self.metaData
 	} else {
 		if depth != self.metaData.Depth {
-			panic("If not the first field of a struct, there must already be MetaData of the same depth from the previous sibling")
+			panic("If not the first field of NamedFields, there must already be MetaData of the same depth from the previous sibling")
 		}
 		// parent is the same of previous sibling which is current self.metaData
 		parent = self.metaData.Parent
 	}
-	if parent.Kind != StructKind {
-		panic(fmt.Sprintf("StructField called for %s parent", parent.Kind))
+	if parent.Kind != NamedFieldsKind {
+		panic(fmt.Sprintf("StructField/MapField called for %s parent", parent.Kind))
 	}
-	self.metaData = &MetaData{
+	return &MetaData{
 		Value:  v,
 		Kind:   GetMetaDataKind(v),
 		Parent: parent,
 		Depth:  depth,
-		Name:   f.Name,
+		Name:   name,
 		Index:  index,
-		tag:    f.Tag,
 	}
-	return self.visitor.StructField(self.metaData)
+}
+
+func (self *structVisitorWrapper) BeginStruct(depth int, v reflect.Value) error {
+	self.metaData = self.begin(depth, v, NamedFieldsKind)
+	return self.visitor.BeginNamedFields(self.metaData)
+}
+
+func (self *structVisitorWrapper) StructField(depth int, v reflect.Value, f reflect.StructField, index int) error {
+	self.metaData = self.namedFieldMetaData(depth, v, f.Name, index)
+	self.metaData.tag = f.Tag
+	return self.visitor.NamedField(self.metaData)
 }
 
 func (self *structVisitorWrapper) EndStruct(depth int, v reflect.Value) error {
-	self.onEnd(depth, StructKind)
-	return self.visitor.EndStruct(self.metaData)
+	self.metaData = self.end(depth, NamedFieldsKind)
+	return self.visitor.EndNamedFields(self.metaData)
+}
+
+func (self *structVisitorWrapper) BeginMap(depth int, v reflect.Value) error {
+	debug.Print("BeginMap")
+	self.metaData = self.begin(depth, v, NamedFieldsKind)
+	return self.visitor.BeginNamedFields(self.metaData)
+}
+
+func (self *structVisitorWrapper) MapField(depth int, v reflect.Value, key string, index int) error {
+	debug.Print("MapField")
+	self.metaData = self.namedFieldMetaData(depth, v, key, index)
+	return self.visitor.NamedField(self.metaData)
+}
+
+func (self *structVisitorWrapper) EndMap(depth int, v reflect.Value) error {
+	debug.Print("EndMap")
+	self.metaData = self.end(depth, NamedFieldsKind)
+	return self.visitor.EndNamedFields(self.metaData)
 }
 
 func (self *structVisitorWrapper) BeginSlice(depth int, v reflect.Value) error {
-	if v.Type().Elem() == typeOfDynamicValue {
+	// if v.Type().Elem() == typeOfDynamicValue {
 
-	}
-	self.onBegin(depth, v, SliceKind)
+	// }
+	self.metaData = self.begin(depth, v, SliceKind)
 	return self.visitor.BeginSlice(self.metaData)
 }
 
 func (self *structVisitorWrapper) SliceField(depth int, v reflect.Value, index int) error {
-	self.onArrayOrSliceField(depth, v, index, SliceKind)
+	self.metaData = self.arrayOrSliceFieldMetaData(depth, v, index, SliceKind)
 	return self.visitor.SliceField(self.metaData)
 }
 
 func (self *structVisitorWrapper) EndSlice(depth int, v reflect.Value) error {
-	self.onEnd(depth, SliceKind)
+	self.metaData = self.end(depth, SliceKind)
 	return self.visitor.EndSlice(self.metaData)
 }
 
 func (self *structVisitorWrapper) BeginArray(depth int, v reflect.Value) error {
-	self.onBegin(depth, v, ArrayKind)
+	self.metaData = self.begin(depth, v, ArrayKind)
 	return self.visitor.BeginArray(self.metaData)
 }
 
 func (self *structVisitorWrapper) ArrayField(depth int, v reflect.Value, index int) error {
-	self.onArrayOrSliceField(depth, v, index, ArrayKind)
+	self.metaData = self.arrayOrSliceFieldMetaData(depth, v, index, ArrayKind)
 	return self.visitor.ArrayField(self.metaData)
 }
 
 func (self *structVisitorWrapper) EndArray(depth int, v reflect.Value) error {
-	self.onEnd(depth, ArrayKind)
+	self.metaData = self.end(depth, ArrayKind)
 	return self.visitor.EndArray(self.metaData)
-}
-
-func (self structVisitorWrapper) BeginMap(depth int, v reflect.Value) error {
-	return nil
-}
-
-func (self structVisitorWrapper) MapField(depth int, v reflect.Value, key string) error {
-	return nil
-}
-
-func (self structVisitorWrapper) EndMap(depth int, v reflect.Value) error {
-	return nil
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-// FieldOnlyVisitor calls its function for every struct, array and slice field.
-type FieldOnlyVisitor func(field *MetaData) error
-
-func (self FieldOnlyVisitor) BeginStruct(strct *MetaData) error {
-	return nil
-}
-
-func (self FieldOnlyVisitor) StructField(field *MetaData) error {
-	return self(field)
-}
-
-func (self FieldOnlyVisitor) EndStruct(strct *MetaData) error {
-	return nil
-}
-
-func (self FieldOnlyVisitor) BeginSlice(slice *MetaData) error {
-	return nil
-}
-
-func (self FieldOnlyVisitor) SliceField(field *MetaData) error {
-	return self(field)
-}
-
-func (self FieldOnlyVisitor) EndSlice(slice *MetaData) error {
-	return nil
-}
-
-func (self FieldOnlyVisitor) BeginArray(array *MetaData) error {
-	return nil
-}
-
-func (self FieldOnlyVisitor) ArrayField(field *MetaData) error {
-	return self(field)
-}
-
-func (self FieldOnlyVisitor) EndArray(array *MetaData) error {
-	return nil
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-// VisitorFunc calls its function for every Visitor method call,
-// thus mapping all Visitor methods on a single function.
-type VisitorFunc func(data *MetaData) error
-
-func (self VisitorFunc) BeginStruct(strct *MetaData) error {
-	return self(strct)
-}
-
-func (self VisitorFunc) StructField(field *MetaData) error {
-	return self(field)
-}
-
-func (self VisitorFunc) EndStruct(strct *MetaData) error {
-	return self(strct)
-}
-
-func (self VisitorFunc) BeginSlice(slice *MetaData) error {
-	return self(slice)
-}
-
-func (self VisitorFunc) SliceField(field *MetaData) error {
-	return self(field)
-}
-
-func (self VisitorFunc) EndSlice(slice *MetaData) error {
-	return self(slice)
-}
-
-func (self VisitorFunc) BeginArray(array *MetaData) error {
-	return self(array)
-}
-
-func (self VisitorFunc) ArrayField(field *MetaData) error {
-	return self(field)
-}
-
-func (self VisitorFunc) EndArray(array *MetaData) error {
-	return self(array)
 }

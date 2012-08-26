@@ -1,4 +1,4 @@
-package utils
+package reflection
 
 import "reflect"
 
@@ -51,7 +51,7 @@ func (self ModifySliceStructVisitor) BeginMap(depth int, v reflect.Value) error 
 	return nil
 }
 
-func (self ModifySliceStructVisitor) MapField(depth int, v reflect.Value, key string) error {
+func (self ModifySliceStructVisitor) MapField(depth int, v reflect.Value, key string, index int) error {
 	return nil
 }
 
