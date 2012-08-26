@@ -13,13 +13,9 @@ type Visitor interface {
 	NamedField(field *MetaData) error
 	EndNamedFields(namedFields *MetaData) error
 
-	BeginSlice(slice *MetaData) error
-	SliceField(field *MetaData) error
-	EndSlice(slice *MetaData) error
-
-	BeginArray(array *MetaData) error
-	ArrayField(field *MetaData) error
-	EndArray(array *MetaData) error
+	BeginIndexedFields(indexedFields *MetaData) error
+	IndexedField(field *MetaData) error
+	EndIndexedFields(indexedFields *MetaData) error
 }
 
 func Visit(model interface{}, visitor Visitor) error {
@@ -70,7 +66,7 @@ func (self *structVisitorWrapper) end(depth int, kind MetaDataKind) (metaData *M
 	return metaData
 }
 
-func (self *structVisitorWrapper) arrayOrSliceFieldMetaData(depth int, v reflect.Value, index int, parentKind MetaDataKind) *MetaData {
+func (self *structVisitorWrapper) indexedFieldMetaData(depth int, v reflect.Value, index int, parentKind MetaDataKind) *MetaData {
 	// debug.Print("onArrayOrSliceField")
 	var parent *MetaData
 	if index == 0 {
@@ -116,8 +112,8 @@ func (self *structVisitorWrapper) namedFieldMetaData(depth int, v reflect.Value,
 		// parent is the same of previous sibling which is current self.metaData
 		parent = self.metaData.Parent
 	}
-	if parent.Kind != NamedFieldsKind {
-		panic(fmt.Sprintf("StructField/MapField called for %s parent", parent.Kind))
+	if !parent.Kind.HasNamedFields() {
+		panic(fmt.Sprintf("namedFieldMetaData called for %s parent", parent.Kind))
 	}
 	return &MetaData{
 		Value:  v,
@@ -130,7 +126,7 @@ func (self *structVisitorWrapper) namedFieldMetaData(depth int, v reflect.Value,
 }
 
 func (self *structVisitorWrapper) BeginStruct(depth int, v reflect.Value) error {
-	self.metaData = self.begin(depth, v, NamedFieldsKind)
+	self.metaData = self.begin(depth, v, StructKind)
 	return self.visitor.BeginNamedFields(self.metaData)
 }
 
@@ -141,13 +137,13 @@ func (self *structVisitorWrapper) StructField(depth int, v reflect.Value, f refl
 }
 
 func (self *structVisitorWrapper) EndStruct(depth int, v reflect.Value) error {
-	self.metaData = self.end(depth, NamedFieldsKind)
+	self.metaData = self.end(depth, StructKind)
 	return self.visitor.EndNamedFields(self.metaData)
 }
 
 func (self *structVisitorWrapper) BeginMap(depth int, v reflect.Value) error {
 	debug.Print("BeginMap")
-	self.metaData = self.begin(depth, v, NamedFieldsKind)
+	self.metaData = self.begin(depth, v, MapKind)
 	return self.visitor.BeginNamedFields(self.metaData)
 }
 
@@ -159,7 +155,7 @@ func (self *structVisitorWrapper) MapField(depth int, v reflect.Value, key strin
 
 func (self *structVisitorWrapper) EndMap(depth int, v reflect.Value) error {
 	debug.Print("EndMap")
-	self.metaData = self.end(depth, NamedFieldsKind)
+	self.metaData = self.end(depth, MapKind)
 	return self.visitor.EndNamedFields(self.metaData)
 }
 
@@ -168,30 +164,30 @@ func (self *structVisitorWrapper) BeginSlice(depth int, v reflect.Value) error {
 
 	// }
 	self.metaData = self.begin(depth, v, SliceKind)
-	return self.visitor.BeginSlice(self.metaData)
+	return self.visitor.BeginIndexedFields(self.metaData)
 }
 
 func (self *structVisitorWrapper) SliceField(depth int, v reflect.Value, index int) error {
-	self.metaData = self.arrayOrSliceFieldMetaData(depth, v, index, SliceKind)
-	return self.visitor.SliceField(self.metaData)
+	self.metaData = self.indexedFieldMetaData(depth, v, index, SliceKind)
+	return self.visitor.IndexedField(self.metaData)
 }
 
 func (self *structVisitorWrapper) EndSlice(depth int, v reflect.Value) error {
 	self.metaData = self.end(depth, SliceKind)
-	return self.visitor.EndSlice(self.metaData)
+	return self.visitor.EndIndexedFields(self.metaData)
 }
 
 func (self *structVisitorWrapper) BeginArray(depth int, v reflect.Value) error {
 	self.metaData = self.begin(depth, v, ArrayKind)
-	return self.visitor.BeginArray(self.metaData)
+	return self.visitor.BeginIndexedFields(self.metaData)
 }
 
 func (self *structVisitorWrapper) ArrayField(depth int, v reflect.Value, index int) error {
-	self.metaData = self.arrayOrSliceFieldMetaData(depth, v, index, ArrayKind)
-	return self.visitor.ArrayField(self.metaData)
+	self.metaData = self.indexedFieldMetaData(depth, v, index, ArrayKind)
+	return self.visitor.IndexedField(self.metaData)
 }
 
 func (self *structVisitorWrapper) EndArray(depth int, v reflect.Value) error {
 	self.metaData = self.end(depth, ArrayKind)
-	return self.visitor.EndArray(self.metaData)
+	return self.visitor.EndIndexedFields(self.metaData)
 }

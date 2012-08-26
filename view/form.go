@@ -67,13 +67,9 @@ type FormLayout interface {
 	NamedField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error
 	EndNamedFields(namedFields *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error
 
-	BeginArray(array *model.MetaData, form *Form, response *Response, formContent *Views) error
-	ArrayField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error
-	EndArray(array *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error
-
-	BeginSlice(slice *model.MetaData, form *Form, response *Response, formContent *Views) error
-	SliceField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error
-	EndSlice(slice *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error
+	BeginIndexedFields(indexedFields *model.MetaData, form *Form, response *Response, formContent *Views) error
+	IndexedField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error
+	EndIndexedFields(indexedFields *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error
 }
 
 type FormFieldFactory interface {
@@ -603,15 +599,15 @@ func (self *setPostValuesStructVisitor) EndNamedFields(namedFields *model.MetaDa
 	return nil
 }
 
-func (self *setPostValuesStructVisitor) BeginSlice(slice *model.MetaData) error {
-	if slice.Value.CanSet() && !self.form.IsFieldExcluded(slice, self.response) {
-		if lengthStr := self.response.Request.FormValue(slice.Selector() + ".length"); lengthStr != "" {
+func (self *setPostValuesStructVisitor) BeginIndexedFields(indexedFields *model.MetaData) error {
+	if indexedFields.Kind == model.SliceKind && indexedFields.Value.CanSet() && !self.form.IsFieldExcluded(indexedFields, self.response) {
+		if lengthStr := self.response.Request.FormValue(indexedFields.Selector() + ".length"); lengthStr != "" {
 			length, err := strconv.Atoi(lengthStr)
 			if err != nil {
 				panic(err.Error())
 			}
-			if length != slice.Value.Len() {
-				slice.Value.Set(utils.SetSliceLengh(slice.Value, length))
+			if length != indexedFields.Value.Len() {
+				indexedFields.Value.Set(utils.SetSliceLengh(indexedFields.Value, length))
 				mongo.InitRefs(self.formModel)
 			}
 		}
@@ -619,26 +615,14 @@ func (self *setPostValuesStructVisitor) BeginSlice(slice *model.MetaData) error 
 	return nil
 }
 
-func (self *setPostValuesStructVisitor) SliceField(field *model.MetaData) error {
+func (self *setPostValuesStructVisitor) IndexedField(field *model.MetaData) error {
 	return self.trySetFieldValue(field)
 }
 
-func (self *setPostValuesStructVisitor) EndSlice(slice *model.MetaData) error {
-	if slice.Value.CanSet() && !self.form.IsFieldExcluded(slice, self.response) {
-		slice.Value.Set(utils.DeleteEmptySliceElementsVal(slice.Value))
+func (self *setPostValuesStructVisitor) EndIndexedFields(indexedFields *model.MetaData) error {
+	if indexedFields.Kind == model.SliceKind && indexedFields.Value.CanSet() && !self.form.IsFieldExcluded(indexedFields, self.response) {
+		indexedFields.Value.Set(utils.DeleteEmptySliceElementsVal(indexedFields.Value))
 	}
-	return nil
-}
-
-func (self *setPostValuesStructVisitor) BeginArray(array *model.MetaData) error {
-	return nil
-}
-
-func (self *setPostValuesStructVisitor) ArrayField(field *model.MetaData) error {
-	return self.trySetFieldValue(field)
-}
-
-func (self *setPostValuesStructVisitor) EndArray(array *model.MetaData) error {
 	return nil
 }
 
@@ -722,25 +706,25 @@ func (self *validateAndFormLayoutStructVisitor) EndNamedFields(namedFields *mode
 	return err
 }
 
-func (self *validateAndFormLayoutStructVisitor) BeginSlice(slice *model.MetaData) error {
-	if slice.Parent == nil {
+func (self *validateAndFormLayoutStructVisitor) BeginIndexedFields(indexedFields *model.MetaData) error {
+	if indexedFields.Parent == nil {
 		err := self.formLayout.BeginFormContent(self.form, self.response, self.formContent)
 		if err != nil {
 			return err
 		}
 	}
-	if self.form.IsFieldExcluded(slice, self.response) {
+	if self.form.IsFieldExcluded(indexedFields, self.response) {
 		return nil
 	}
-	// Add an empty slice field to generate one extra input row for slices
-	if !self.isPost && slice.Value.CanSet() {
-		slice.Value.Set(utils.AppendEmptySliceField(slice.Value))
+	// Add an empty indexedFields field to generate one extra input row for indexedFieldss
+	if indexedFields.Kind == model.SliceKind && !self.isPost && indexedFields.Value.CanSet() {
+		indexedFields.Value.Set(utils.AppendEmptySliceField(indexedFields.Value))
 		mongo.InitRefs(self.formModel)
 	}
-	return self.formLayout.BeginSlice(slice, self.form, self.response, self.formContent)
+	return self.formLayout.BeginIndexedFields(indexedFields, self.form, self.response, self.formContent)
 }
 
-func (self *validateAndFormLayoutStructVisitor) SliceField(field *model.MetaData) error {
+func (self *validateAndFormLayoutStructVisitor) IndexedField(field *model.MetaData) error {
 	if self.form.IsFieldExcluded(field, self.response) {
 		return nil
 	}
@@ -748,59 +732,20 @@ func (self *validateAndFormLayoutStructVisitor) SliceField(field *model.MetaData
 	if self.isPost && self.form.IsFieldVisible(field, self.response) {
 		validationErr = self.validateField(field)
 	}
-	return self.formLayout.SliceField(field, validationErr, self.form, self.response, self.formContent)
+	return self.formLayout.IndexedField(field, validationErr, self.form, self.response, self.formContent)
 }
 
-func (self *validateAndFormLayoutStructVisitor) EndSlice(slice *model.MetaData) error {
-	if self.form.IsFieldExcluded(slice, self.response) {
+func (self *validateAndFormLayoutStructVisitor) EndIndexedFields(indexedFields *model.MetaData) error {
+	if self.form.IsFieldExcluded(indexedFields, self.response) {
 		return nil
 	}
 	var validationErr error
 	if self.isPost {
-		validationErr = self.validateGeneral(slice)
+		validationErr = self.validateGeneral(indexedFields)
 	}
-	err := self.formLayout.EndSlice(slice, validationErr, self.form, self.response, self.formContent)
-	if slice.Parent == nil && err == nil {
-		return self.endForm(slice)
-	}
-	return err
-}
-
-func (self *validateAndFormLayoutStructVisitor) BeginArray(array *model.MetaData) error {
-	if array.Parent == nil {
-		err := self.formLayout.BeginFormContent(self.form, self.response, self.formContent)
-		if err != nil {
-			return err
-		}
-	}
-	if self.form.IsFieldExcluded(array, self.response) {
-		return nil
-	}
-	return self.formLayout.BeginArray(array, self.form, self.response, self.formContent)
-}
-
-func (self *validateAndFormLayoutStructVisitor) ArrayField(field *model.MetaData) error {
-	if self.form.IsFieldExcluded(field, self.response) {
-		return nil
-	}
-	var validationErr error
-	if self.isPost && self.form.IsFieldVisible(field, self.response) {
-		validationErr = self.validateField(field)
-	}
-	return self.formLayout.ArrayField(field, validationErr, self.form, self.response, self.formContent)
-}
-
-func (self *validateAndFormLayoutStructVisitor) EndArray(array *model.MetaData) error {
-	if self.form.IsFieldExcluded(array, self.response) {
-		return nil
-	}
-	var validationErr error
-	if self.isPost {
-		validationErr = self.validateGeneral(array)
-	}
-	err := self.formLayout.EndArray(array, validationErr, self.form, self.response, self.formContent)
-	if array.Parent == nil && err == nil {
-		return self.endForm(array)
+	err := self.formLayout.EndIndexedFields(indexedFields, validationErr, self.form, self.response, self.formContent)
+	if indexedFields.Parent == nil && err == nil {
+		return self.endForm(indexedFields)
 	}
 	return err
 }

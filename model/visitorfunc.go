@@ -16,26 +16,14 @@ func (self VisitorFunc) EndNamedFields(namedFields *MetaData) error {
 	return self(namedFields)
 }
 
-func (self VisitorFunc) BeginSlice(slice *MetaData) error {
-	return self(slice)
+func (self VisitorFunc) BeginIndexedFields(indexedFields *MetaData) error {
+	return self(indexedFields)
 }
 
-func (self VisitorFunc) SliceField(field *MetaData) error {
+func (self VisitorFunc) IndexedField(field *MetaData) error {
 	return self(field)
 }
 
-func (self VisitorFunc) EndSlice(slice *MetaData) error {
-	return self(slice)
-}
-
-func (self VisitorFunc) BeginArray(array *MetaData) error {
-	return self(array)
-}
-
-func (self VisitorFunc) ArrayField(field *MetaData) error {
-	return self(field)
-}
-
-func (self VisitorFunc) EndArray(array *MetaData) error {
-	return self(array)
+func (self VisitorFunc) EndIndexedFields(indexedFields *MetaData) error {
+	return self(indexedFields)
 }

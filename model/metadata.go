@@ -16,10 +16,22 @@ import (
 // MetaDataKind is the kind of a data item described by MetaData.
 type MetaDataKind int
 
+func (self MetaDataKind) HasNamedFields() bool {
+	return self == StructKind || self == MapKind || self == DynamicKind
+}
+
+func (self MetaDataKind) HasIndexedFields() bool {
+	return self == ArrayKind || self == SliceKind
+}
+
 func (self MetaDataKind) String() string {
 	switch self {
-	case NamedFieldsKind:
-		return "NamedFieldsKind"
+	case StructKind:
+		return "Struct"
+	case MapKind:
+		return "Map"
+	case DynamicKind:
+		return "Dynamic"
 	case ArrayKind:
 		return "Array"
 	case SliceKind:
@@ -31,7 +43,9 @@ func (self MetaDataKind) String() string {
 }
 
 const (
-	NamedFieldsKind MetaDataKind = iota
+	StructKind MetaDataKind = iota
+	MapKind
+	DynamicKind
 	ArrayKind
 	SliceKind
 	ValueKind // everything else, no children
@@ -40,17 +54,23 @@ const (
 func GetMetaDataKind(v reflect.Value) MetaDataKind {
 	switch v.Kind() {
 	case reflect.Struct:
-		return NamedFieldsKind
+		return StructKind
 
 	case reflect.Map:
 		if v.Type().Key().Kind() == reflect.String {
-			return NamedFieldsKind
+			return MapKind
 		}
 
 	case reflect.Array:
+		if v.Type().Elem() == typeOfDynamicValue {
+			return DynamicKind
+		}
 		return ArrayKind
 
 	case reflect.Slice:
+		if v.Type().Elem() == typeOfDynamicValue {
+			return DynamicKind
+		}
 		return SliceKind
 	}
 
@@ -93,21 +113,25 @@ func (self *MetaData) RootParent() *MetaData {
 	return root
 }
 
-// ParentKind returns the parent's MetaDataKind.
-// It returns StructKind if Parent is nil because the root parent will
-// always be a struct.
-func (self *MetaData) ParentKind() MetaDataKind {
-	if self.Parent == nil {
-		return NamedFieldsKind
-	}
-	return self.Parent.Kind
-}
+// // ParentKind returns the parent's MetaDataKind.
+// // It returns StructKind if Parent is nil because the root parent will
+// // always be a struct.
+// func (self *MetaData) ParentKind() MetaDataKind {
+// 	if self.Parent == nil {
+// 		return NamedFieldsKind
+// 	}
+// 	return self.Parent.Kind
+// }
 
-func (self *MetaData) IsArrayOrSliceField() bool {
+func (self *MetaData) IsIndexedValue() bool {
 	return self.Kind == ValueKind && self.Name == ""
 }
 
-func (self *MetaData) IsStructField() bool {
+func (self *MetaData) IsNamedValue() bool {
+	return self.Kind == ValueKind && self.Name != ""
+}
+
+func (self *MetaData) IsNamed() bool {
 	return self.Name != ""
 }
 
@@ -186,8 +210,9 @@ func (self *MetaData) Attrib(tagKey, name string) (value string, ok bool) {
 		// if self.Kind == DynamicValueKind {
 		// 	return "", false
 		// }
+		// Find struct field with tag
 		structField := self
-		for !structField.IsStructField() {
+		for !structField.IsNamed() {
 			structField = structField.Parent
 			if structField == nil {
 				return "", false
