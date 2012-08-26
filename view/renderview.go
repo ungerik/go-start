@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/ungerik/go-start/utils"
+	"github.com/ungerik/go-start/reflection"
 )
 
 /*
@@ -50,7 +50,7 @@ func RenderViewBindURLArgs(renderFunc interface{}) RenderView {
 	if t.NumOut() != 1 {
 		panic(fmt.Errorf("RenderViewBindURLArgs: renderFunc must have one result, got %d", t.NumOut()))
 	}
-	if !utils.IsErrorType(t.Out(0)) {
+	if !reflection.IsErrorType(t.Out(0)) {
 		panic(fmt.Errorf("RenderViewBindURLArgs: renderFunc's result must be of type error, got %s", t.Out(0)))
 	}
 	return RenderView(
@@ -61,7 +61,7 @@ func RenderViewBindURLArgs(renderFunc interface{}) RenderView {
 			args := make([]reflect.Value, t.NumIn())
 			args[0] = reflect.ValueOf(response)
 			for i, urlArg := range response.Request.URLArgs {
-				val, err := utils.StringToValueOfType(urlArg, t.In(i+1))
+				val, err := reflection.StringToValueOfType(urlArg, t.In(i+1))
 				if err != nil {
 					return err
 				}

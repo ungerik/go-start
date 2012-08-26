@@ -1,7 +1,8 @@
-package utils
+package reflection
 
 import (
 	"reflect"
+
 	// "github.com/ungerik/go-start/debug"
 )
 
@@ -20,6 +21,10 @@ type StructVisitor interface {
 	BeginArray(depth int, v reflect.Value) error
 	ArrayField(depth int, v reflect.Value, index int) error
 	EndArray(depth int, v reflect.Value) error
+
+	BeginMap(depth int, v reflect.Value) error
+	MapField(depth int, v reflect.Value, key string, index int) error
+	EndMap(depth int, v reflect.Value) error
 }
 
 /*
@@ -123,6 +128,30 @@ func visitStructRecursive(v reflect.Value, visitor StructVisitor, maxDepth, dept
 			}
 		}
 		return visitor.EndStruct(depth, v)
+
+	case reflect.Map:
+		if v.Type().Key().Kind() == reflect.String && v.Len() > 0 {
+			err = visitor.BeginMap(depth, v)
+			if err != nil {
+				return err
+			}
+			depth1 := depth + 1
+			if maxDepth == -1 || depth1 <= maxDepth {
+				for i, key := range v.MapKeys() {
+					if vi, ok := DereferenceValue(v.MapIndex(key)); ok {
+						err = visitor.MapField(depth1, vi, key.String(), i)
+						if err != nil {
+							return err
+						}
+						err = visitStructRecursive(vi, visitor, maxDepth, depth1)
+						if err != nil {
+							return err
+						}
+					}
+				}
+			}
+			return visitor.EndMap(depth, v)
+		}
 
 	case reflect.Slice:
 		err = visitor.BeginSlice(depth, v)

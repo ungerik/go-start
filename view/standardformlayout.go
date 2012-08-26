@@ -79,18 +79,18 @@ func (self *StandardFormLayout) EndFormContent(fieldValidationErrs, generalValid
 	return nil
 }
 
-func (self *StandardFormLayout) BeginStruct(strct *model.MetaData, form *Form, response *Response, formContent *Views) error {
+func (self *StandardFormLayout) BeginNamedFields(namedFields *model.MetaData, form *Form, response *Response, formContent *Views) error {
 	return nil
 }
 
-func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
+func (self *StandardFormLayout) NamedField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
 	fieldFactory := form.GetFieldFactory()
 	if !fieldFactory.CanCreateInput(field, form) {
 		return nil
 	}
 
 	grandParent := field.Parent.Parent
-	if grandParent != nil && (grandParent.Kind == model.ArrayKind || grandParent.Kind == model.SliceKind) {
+	if grandParent != nil && grandParent.Kind.HasIndexedFields() {
 		return self.structFieldInArrayOrSlice(grandParent, field, validationErr, form, response, formContent)
 	}
 
@@ -114,38 +114,94 @@ func (self *StandardFormLayout) StructField(field *model.MetaData, validationErr
 	return nil
 }
 
-func (self *StandardFormLayout) EndStruct(strct *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
+func (self *StandardFormLayout) EndNamedFields(namedFields *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
 	return nil
 }
 
-func (self *StandardFormLayout) BeginArray(array *model.MetaData, form *Form, response *Response, formContent *Views) error {
+func (self *StandardFormLayout) BeginIndexedFields(indexedFields *model.MetaData, form *Form, response *Response, formContent *Views) error {
 	return nil
 }
 
-func (self *StandardFormLayout) ArrayField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
-	if field.Kind == model.ValueKind && form.GetFieldFactory().CanCreateInput(field, form) {
-		return self.arrayOrSliceFieldValue(field, validationErr, form, response, formContent)
+func (self *StandardFormLayout) IndexedField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
+	if field.Kind != model.ValueKind {
+		return nil
+	}
+	arrayOrSlice := field.Parent
+	fieldFactory := form.GetFieldFactory()
+	// We expect a Table as last form content field.
+	// If it doesn't exist yet because this is the first visible
+	// struct field in the first array field, then create it
+	var table *Table
+	if len(*formContent) > 0 {
+		table, _ = (*formContent)[len(*formContent)-1].(*Table)
+	}
+	if table == nil {
+		// First array/slice field, create table and table model.
+		header, err := fieldFactory.NewTableHeader(arrayOrSlice, form)
+		if err != nil {
+			return err
+		}
+		table = &Table{
+			HeaderRow: true,
+			Model:     ViewsTableModel{Views{header}},
+		}
+		table.Init(table) // get an ID now
+		*formContent = append(*formContent, table)
+		// Add script for manipulating table rows
+		response.AddScript(EditFormSliceTableScript, 0)
+	}
+	td, err := fieldFactory.NewInput(false, field, form)
+	if err != nil {
+		return err
+	}
+	if validationErr != nil {
+		td = Views{
+			td,
+			fieldFactory.NewFieldErrorMessage(validationErr.Error(), field, form),
+		}
+	}
+	table.Model = append(table.Model.(ViewsTableModel), Views{td})
+	return nil
+}
+
+func (self *StandardFormLayout) EndIndexedFields(indexedFields *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
+	if len(*formContent) > 0 {
+		// Add "Actions" column with buttons to table with slice or array values
+		if table, ok := (*formContent)[len(*formContent)-1].(*Table); ok {
+			fieldFactory := form.GetFieldFactory()
+			tableModel := table.Model.(ViewsTableModel)
+			tableModel[0] = append(tableModel[0], HTML("Actions"))
+			rows := tableModel.Rows()
+			for i := 1; i < rows; i++ {
+				// todo: script depends on buttons being HTML buttons,
+				// but buttons are created by form field factory that doesn't
+				// guarantee that. needs decoupling via css classes.
+				firstRow := (i == 1)
+				lastRow := (i == rows-1)
+				buttons := Views{
+					fieldFactory.NewUpButton(firstRow, "gostart_form.moveRowUp(this);", form),
+					fieldFactory.NewDownButton(lastRow, "gostart_form.moveRowDown(this);", form),
+				}
+				if indexedFields.Kind == model.SliceKind {
+					if lastRow {
+						buttons = append(buttons, fieldFactory.NewAddButton("gostart_form.addRow(this);", form))
+					} else {
+						buttons = append(buttons, fieldFactory.NewRemoveButton("gostart_form.removeRow(this)", form))
+					}
+				}
+				tableModel[i] = append(tableModel[i], buttons)
+			}
+			// Add a hidden input to get back the changed length of the table
+			// if the user changes it via javascript in the client
+			*formContent = append(*formContent,
+				&HiddenInput{
+					Name:  indexedFields.Selector() + ".length",
+					Value: strconv.Itoa(indexedFields.Value.Len()),
+				},
+			)
+		}
 	}
 	return nil
-}
-
-func (self *StandardFormLayout) EndArray(array *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
-	return self.endArrayOrSlice(array, form, formContent)
-}
-
-func (self *StandardFormLayout) BeginSlice(slice *model.MetaData, form *Form, response *Response, formContent *Views) error {
-	return nil
-}
-
-func (self *StandardFormLayout) SliceField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
-	if field.Kind == model.ValueKind && form.GetFieldFactory().CanCreateInput(field, form) {
-		return self.arrayOrSliceFieldValue(field, validationErr, form, response, formContent)
-	}
-	return nil
-}
-
-func (self *StandardFormLayout) EndSlice(slice *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
-	return self.endArrayOrSlice(slice, form, formContent)
 }
 
 func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
@@ -198,85 +254,6 @@ func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *m
 		}
 	}
 	*row = append(*row, td)
-	return nil
-}
-
-func (self *StandardFormLayout) arrayOrSliceFieldValue(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
-	arrayOrSlice := field.Parent
-	fieldFactory := form.GetFieldFactory()
-	// We expect a Table as last form content field.
-	// If it doesn't exist yet because this is the first visible
-	// struct field in the first array field, then create it
-	var table *Table
-	if len(*formContent) > 0 {
-		table, _ = (*formContent)[len(*formContent)-1].(*Table)
-	}
-	if table == nil {
-		// First array/slice field, create table and table model.
-		header, err := fieldFactory.NewTableHeader(arrayOrSlice, form)
-		if err != nil {
-			return err
-		}
-		table = &Table{
-			HeaderRow: true,
-			Model:     ViewsTableModel{Views{header}},
-		}
-		table.Init(table) // get an ID now
-		*formContent = append(*formContent, table)
-		// Add script for manipulating table rows
-		response.AddScript(EditFormSliceTableScript, 0)
-	}
-	td, err := fieldFactory.NewInput(false, field, form)
-	if err != nil {
-		return err
-	}
-	if validationErr != nil {
-		td = Views{
-			td,
-			fieldFactory.NewFieldErrorMessage(validationErr.Error(), field, form),
-		}
-	}
-	table.Model = append(table.Model.(ViewsTableModel), Views{td})
-	return nil
-}
-
-func (self *StandardFormLayout) endArrayOrSlice(arrayOrSlice *model.MetaData, form *Form, formContent *Views) error {
-	if len(*formContent) > 0 {
-		// Add "Actions" column with buttons to table with slice or array values
-		if table, ok := (*formContent)[len(*formContent)-1].(*Table); ok {
-			fieldFactory := form.GetFieldFactory()
-			tableModel := table.Model.(ViewsTableModel)
-			tableModel[0] = append(tableModel[0], HTML("Actions"))
-			rows := tableModel.Rows()
-			for i := 1; i < rows; i++ {
-				// todo: script depends on buttons being HTML buttons,
-				// but buttons are created by form field factory that doesn't
-				// guarantee that. needs decoupling via css classes.
-				firstRow := (i == 1)
-				lastRow := (i == rows-1)
-				buttons := Views{
-					fieldFactory.NewUpButton(firstRow, "gostart_form.moveRowUp(this);", form),
-					fieldFactory.NewDownButton(lastRow, "gostart_form.moveRowDown(this);", form),
-				}
-				if arrayOrSlice.Kind == model.SliceKind {
-					if lastRow {
-						buttons = append(buttons, fieldFactory.NewAddButton("gostart_form.addRow(this);", form))
-					} else {
-						buttons = append(buttons, fieldFactory.NewRemoveButton("gostart_form.removeRow(this)", form))
-					}
-				}
-				tableModel[i] = append(tableModel[i], buttons)
-			}
-			// Add a hidden input to get back the changed length of the table
-			// if the user changes it via javascript in the client
-			*formContent = append(*formContent,
-				&HiddenInput{
-					Name:  arrayOrSlice.Selector() + ".length",
-					Value: strconv.Itoa(arrayOrSlice.Value.Len()),
-				},
-			)
-		}
-	}
 	return nil
 }
 

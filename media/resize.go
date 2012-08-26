@@ -4,6 +4,8 @@
 
 package media
 
+// An alternative would be: code.google.com/p/graphics-go/graphics
+
 import (
 	"image"
 	"image/color"
