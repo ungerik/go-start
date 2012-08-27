@@ -58,7 +58,7 @@ func DynamicViewBindURLArgs(viewFunc interface{}) DynamicView {
 	if t.Out(0) != reflect.TypeOf((*View)(nil)).Elem() {
 		panic(fmt.Errorf("RenderViewBindURLArgs: renderFunc's first result must be of type view.View, got %s", t.Out(0)))
 	}
-	if !reflection.IsErrorType(t.Out(1)) {
+	if t.Out(1) != reflection.TypeOfError {
 		panic(fmt.Errorf("RenderViewBindURLArgs: renderFunc's second result must be of type error, got %s", t.Out(1)))
 	}
 	return DynamicView(

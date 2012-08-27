@@ -4,6 +4,10 @@ import "time"
 
 const DateFormat = "2006-01-02"
 
+func NewDate(value string) *Date {
+	return (*Date)(&value)
+}
+
 type Date string
 
 func (self *Date) Get() string {

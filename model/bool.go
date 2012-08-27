@@ -2,6 +2,10 @@ package model
 
 import "strconv"
 
+func NewBool(value bool) *Bool {
+	return (*Bool)(&value)
+}
+
 /*
 Bool model value.
 Struct tag attributes:

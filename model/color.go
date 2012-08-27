@@ -1,11 +1,17 @@
 package model
 
 import (
-	"errors"
-	"strings"
-	"image/color"
 	"encoding/hex"
+	"errors"
+	"image/color"
+	"strings"
 )
+
+func NewColor(value string) *Color {
+	c := new(Color)
+	c.Set(value)
+	return c
+}
 
 /*
 Color holds a hex web-color with the # prefix.

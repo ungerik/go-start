@@ -23,8 +23,10 @@ type FormFieldFactory struct {
 
 func (self *FormFieldFactory) CanCreateInput(metaData *model.MetaData, form *view.Form) bool {
 	debug.Nop()
-	if _, ok := metaData.Value.Addr().Interface().(*ImageRef); ok {
-		return true
+	if metaData.Value.CanAddr() {
+		if _, ok := metaData.Value.Addr().Interface().(*ImageRef); ok {
+			return true
+		}
 	}
 	return self.FormFieldFactoryWrapper.Wrapped.CanCreateInput(metaData, form)
 }

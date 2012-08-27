@@ -6,6 +6,10 @@ import (
 	"strings"
 )
 
+func NewChoice(value string) *Choice {
+	return (*Choice)(&value)
+}
+
 /*
 Choice can hold one of several string options.
 The options are defined by the struct tag attribute "options"

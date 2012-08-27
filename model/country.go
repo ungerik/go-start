@@ -5,6 +5,10 @@ import (
 	"github.com/ungerik/go-start/i18n"
 )
 
+func NewCountry(value string) *Country {
+	return (*Country)(&value)
+}
+
 type Country string
 
 func (self *Country) Get() string {

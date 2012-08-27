@@ -6,6 +6,10 @@ import (
 	"strconv"
 )
 
+func NewFloat(value float64) *Float {
+	return (*Float)(&value)
+}
+
 // Attributes:
 // * label
 // * min

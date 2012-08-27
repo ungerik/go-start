@@ -62,13 +62,13 @@ func GetMetaDataKind(v reflect.Value) MetaDataKind {
 		}
 
 	case reflect.Array:
-		if v.Type().Elem() == typeOfDynamicValue {
+		if v.Type().Elem() == DynamicValueType {
 			return DynamicKind
 		}
 		return ArrayKind
 
 	case reflect.Slice:
-		if v.Type().Elem() == typeOfDynamicValue {
+		if v.Type().Elem() == DynamicValueType {
 			return DynamicKind
 		}
 		return SliceKind
@@ -264,5 +264,5 @@ func (self *MetaData) SelectorsMatch(list []string) bool {
 }
 
 func (self *MetaData) String() string {
-	return fmt.Sprintf("%s: %T", self.Selector(), self.Value.Interface())
+	return fmt.Sprintf("Selector: %s, Kind: %s, Type: %T", self.Selector(), self.Kind, self.Value.Interface())
 }

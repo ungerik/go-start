@@ -442,8 +442,10 @@ func (self *Form) Render(response *Response) (err error) {
 			return err
 		}
 		v := reflect.ValueOf(formModel)
-		if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
-			panic("Form model must be a pointer to a struct")
+		if !(v.Kind() == reflect.Ptr && v.Elem().Kind() == reflect.Struct) &&
+			!(v.Kind() == reflect.Map && v.Type().Key().Kind() == reflect.String) &&
+			!(v.Type() == model.DynamicValueType) {
+			panic(fmt.Errorf("Invalid form model type: %T", formModel))
 		}
 		if isPost {
 			setPostValues := &setPostValuesStructVisitor{
@@ -540,6 +542,7 @@ type setPostValuesStructVisitor struct {
 }
 
 func (self *setPostValuesStructVisitor) trySetFieldValue(field *model.MetaData) error {
+	debug.Print(field)
 	if self.form.IsFieldDisabled(field) || self.form.IsFieldExcluded(field, self.response) {
 		return nil
 	}

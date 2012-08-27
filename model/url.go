@@ -2,6 +2,10 @@ package model
 
 import "net/url"
 
+func NewUrl(value string) *Url {
+	return (*Url)(&value)
+}
+
 type Url string
 
 func (self *Url) Get() string {

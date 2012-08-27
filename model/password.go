@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+func NewPassword(value string) *Password {
+	return (*Password)(&value)
+}
+
 type Password string
 
 func (self *Password) Get() string {

@@ -5,6 +5,10 @@ import "time"
 const DateTimeFormat = "2006-01-02 15:04:05"
 const ShortDateTimeFormat = "2006-01-02 15:04"
 
+func NewDateTime(value string) *DateTime {
+	return (*DateTime)(&value)
+}
+
 // DateTime 
 type DateTime string
 

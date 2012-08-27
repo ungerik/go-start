@@ -5,6 +5,10 @@ import (
 	"github.com/ungerik/go-start/i18n"
 )
 
+func NewLanguage(value string) *Language {
+	return (*Language)(&value)
+}
+
 /*
 Attributes:
 	label
