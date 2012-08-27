@@ -6,6 +6,8 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"crypto/rand"
+	"io"
 )
 
 type Password string
@@ -101,8 +103,36 @@ func (self *Password) Maxlen(metaData *MetaData) (maxlen int, ok bool, err error
 	return maxlen, ok, err
 }
 
-func PasswordHash(password string) (hash string) {
+func PasswordHash(password string) (string) {
 	sha := sha256.New()
 	sha.Write([]byte(password))
 	return base64.StdEncoding.EncodeToString(sha.Sum(nil))
 }
+
+func GenerateRandomPassword(length int) (string, error) {
+	validChars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+	
+	b := make([]byte, length)
+	r := make([]byte, length+(length/4))
+	clen := byte(len(validChars))
+	maxrb := byte(256 - (256 % len(validChars)))
+	i := 0
+	for {
+		if _, err := io.ReadFull(rand.Reader, r); err != nil {
+			return "", errors.New("error reading from random source: " + err.Error())
+		}
+		for _, c := range r {
+			if c >= maxrb {
+				continue
+			}
+			b[i] = validChars[c%clen]
+			i++
+			if i == length {
+				return string(b), nil
+			}
+		}
+	}
+	return "",errors.New("password generation unreachable")
+
+}
+
