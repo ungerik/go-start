@@ -2,6 +2,10 @@ package model
 
 import "strconv"
 
+func NewText(value string) *Text {
+	return (*Text)(&value)
+}
+
 type Text string
 
 func (self *Text) Get() string {

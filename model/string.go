@@ -7,6 +7,12 @@ import (
 	"strings"
 )
 
+func NewString(value string) *String {
+	s := new(String)
+	s.Set(value)
+	return s
+}
+
 type String string
 
 func (self *String) Get() string {

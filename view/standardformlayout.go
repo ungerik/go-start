@@ -1,9 +1,10 @@
 package view
 
 import (
+	"strconv"
+
 	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
-	"strconv"
 )
 
 /*
@@ -258,9 +259,11 @@ func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *m
 }
 
 func (self *StandardFormLayout) fieldNeedsLabel(field *model.MetaData) bool {
-	switch field.Value.Addr().Interface().(type) {
-	case *model.Bool:
-		return false
+	if field.Value.CanAddr() {
+		switch field.Value.Addr().Interface().(type) {
+		case *model.Bool:
+			return false
+		}
 	}
 	return true
 }

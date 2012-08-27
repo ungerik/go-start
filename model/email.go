@@ -2,6 +2,10 @@ package model
 
 import "github.com/ungerik/go-mail"
 
+func NewEmail(value string) *Email {
+	return (*Email)(&value)
+}
+
 type Email string
 
 func (self *Email) Get() string {

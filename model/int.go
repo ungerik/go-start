@@ -5,6 +5,10 @@ import (
 	"strconv"
 )
 
+func NewInt(value int64) *Int {
+	return (*Int)(&value)
+}
+
 // Attributes:
 // * min
 // * max

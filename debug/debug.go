@@ -56,19 +56,23 @@ func Format(value interface{}) string {
 }
 
 func Dump(values ...interface{}) {
-	if Logger == nil {
-		return
-	}
-	for _, value := range values {
-		Logger.Println(FormatSkip(2, value))
+	if Logger != nil {
+		for _, value := range values {
+			Logger.Println(FormatSkip(2, value))
+		}
 	}
 }
 
 func Print(values ...interface{}) {
-	if Logger == nil {
-		return
+	if Logger != nil {
+		Logger.Print(values...)
 	}
-	Logger.Print(values...)
+}
+
+func Printf(format string, values ...interface{}) {
+	if Logger != nil {
+		Logger.Printf(format, values...)
+	}
 }
 
 func Quit() {

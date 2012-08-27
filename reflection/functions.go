@@ -8,10 +8,8 @@ import (
 	"unicode"
 )
 
-// IsErrorType checks if t is the built-in type error.
-func IsErrorType(t reflect.Type) bool {
-	return t == reflect.TypeOf(func(error) {}).In(0)
-}
+// TypeOfError is the built-in error type
+var TypeOfError = reflect.TypeOf(func(error) {}).In(0)
 
 /*
 DereferenceValue recursively dereferences v if it is a pointer or interface.

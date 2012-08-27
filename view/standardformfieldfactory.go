@@ -21,11 +21,13 @@ type StandardFormFieldFactory struct {
 }
 
 func (self *StandardFormFieldFactory) CanCreateInput(metaData *model.MetaData, form *Form) bool {
-	switch metaData.Value.Addr().Interface().(type) {
-	case model.Reference:
-		return false
-	case model.Value:
-		return true
+	if metaData.Value.CanAddr() {
+		switch metaData.Value.Addr().Interface().(type) {
+		case model.Reference:
+			return false
+		case model.Value:
+			return true
+		}
 	}
 	return false
 }

@@ -19,6 +19,7 @@ type Visitor interface {
 }
 
 func Visit(model interface{}, visitor Visitor) error {
+	debug.Nop()
 	return reflection.VisitStruct(model, &structVisitorWrapper{visitor: visitor})
 }
 
@@ -126,68 +127,103 @@ func (self *structVisitorWrapper) namedFieldMetaData(depth int, v reflect.Value,
 }
 
 func (self *structVisitorWrapper) BeginStruct(depth int, v reflect.Value) error {
+	if v.Type() == DynamicValueType {
+		// Ignore struct fields of DynamicValue
+		return nil
+	}
 	self.metaData = self.begin(depth, v, StructKind)
 	return self.visitor.BeginNamedFields(self.metaData)
 }
 
 func (self *structVisitorWrapper) StructField(depth int, v reflect.Value, f reflect.StructField, index int) error {
+	if self.metaData.Parent != nil && self.metaData.Parent.Kind == DynamicKind {
+		// Ignore struct fields of DynamicValue
+		return nil
+	}
 	self.metaData = self.namedFieldMetaData(depth, v, f.Name, index)
 	self.metaData.tag = f.Tag
 	return self.visitor.NamedField(self.metaData)
 }
 
 func (self *structVisitorWrapper) EndStruct(depth int, v reflect.Value) error {
+	if v.Type() == DynamicValueType {
+		// Ignore struct fields of DynamicValue
+		return nil
+	}
 	self.metaData = self.end(depth, StructKind)
 	return self.visitor.EndNamedFields(self.metaData)
 }
 
 func (self *structVisitorWrapper) BeginMap(depth int, v reflect.Value) error {
-	debug.Print("BeginMap")
 	self.metaData = self.begin(depth, v, MapKind)
 	return self.visitor.BeginNamedFields(self.metaData)
 }
 
 func (self *structVisitorWrapper) MapField(depth int, v reflect.Value, key string, index int) error {
-	debug.Print("MapField")
 	self.metaData = self.namedFieldMetaData(depth, v, key, index)
 	return self.visitor.NamedField(self.metaData)
 }
 
 func (self *structVisitorWrapper) EndMap(depth int, v reflect.Value) error {
-	debug.Print("EndMap")
 	self.metaData = self.end(depth, MapKind)
 	return self.visitor.EndNamedFields(self.metaData)
 }
 
 func (self *structVisitorWrapper) BeginSlice(depth int, v reflect.Value) error {
-	// if v.Type().Elem() == typeOfDynamicValue {
-
-	// }
+	if v.Type().Elem() == DynamicValueType {
+		// A slice of DynamicValues is treated as NamedFields
+		self.metaData = self.begin(depth, v, DynamicKind)
+		return self.visitor.BeginNamedFields(self.metaData)
+	}
 	self.metaData = self.begin(depth, v, SliceKind)
 	return self.visitor.BeginIndexedFields(self.metaData)
 }
 
 func (self *structVisitorWrapper) SliceField(depth int, v reflect.Value, index int) error {
+	if dynamicValue, ok := v.Interface().(DynamicValue); ok {
+		// A slice of DynamicValues is treated as NamedFields
+		self.metaData = self.namedFieldMetaData(depth, reflect.ValueOf(dynamicValue.Value).Elem(), dynamicValue.Name, index)
+		self.metaData.attribs = dynamicValue.Attribs
+		return self.visitor.NamedField(self.metaData)
+	}
 	self.metaData = self.indexedFieldMetaData(depth, v, index, SliceKind)
 	return self.visitor.IndexedField(self.metaData)
 }
 
 func (self *structVisitorWrapper) EndSlice(depth int, v reflect.Value) error {
+	if v.Type().Elem() == DynamicValueType {
+		// A slice of DynamicValues is treated as NamedFields
+		self.metaData = self.end(depth, DynamicKind)
+		return self.visitor.EndNamedFields(self.metaData)
+	}
 	self.metaData = self.end(depth, SliceKind)
 	return self.visitor.EndIndexedFields(self.metaData)
 }
 
 func (self *structVisitorWrapper) BeginArray(depth int, v reflect.Value) error {
+	if v.Type().Elem() == DynamicValueType {
+		self.metaData = self.begin(depth, v, DynamicKind)
+		return self.visitor.BeginNamedFields(self.metaData)
+	}
 	self.metaData = self.begin(depth, v, ArrayKind)
 	return self.visitor.BeginIndexedFields(self.metaData)
 }
 
 func (self *structVisitorWrapper) ArrayField(depth int, v reflect.Value, index int) error {
+	if dynamicValue, ok := v.Interface().(DynamicValue); ok {
+		self.metaData = self.namedFieldMetaData(depth, reflect.ValueOf(dynamicValue.Value), dynamicValue.Name, index)
+		self.metaData.attribs = dynamicValue.Attribs
+		return self.visitor.NamedField(self.metaData)
+	}
 	self.metaData = self.indexedFieldMetaData(depth, v, index, ArrayKind)
 	return self.visitor.IndexedField(self.metaData)
 }
 
 func (self *structVisitorWrapper) EndArray(depth int, v reflect.Value) error {
+	if v.Type().Elem() == DynamicValueType {
+		self.metaData = self.end(depth, DynamicKind)
+		return self.visitor.EndNamedFields(self.metaData)
+	}
 	self.metaData = self.end(depth, ArrayKind)
 	return self.visitor.EndIndexedFields(self.metaData)
 }

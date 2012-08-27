@@ -4,6 +4,10 @@ import "time"
 
 const unixDateSec int64 = (1969*365 + 1969/4 - 1969/100 + 1969/400) * (24 * 60 * 60)
 
+func NewTime(value int64) *Time {
+	return (*Time)(&value)
+}
+
 // Time in milliseconds since January 1, year 1 00:00:00 UTC.
 // Time values are always in UTC.
 type Time int64

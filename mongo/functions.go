@@ -8,8 +8,9 @@ import (
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/mgo/bson"
 	"github.com/ungerik/go-start/model"
-	"github.com/ungerik/go-start/utils"
 	"github.com/ungerik/go-start/reflection"
+	"github.com/ungerik/go-start/utils"
+
 //	"github.com/ungerik/go-start/debug"
 )
 
@@ -154,10 +155,12 @@ func SortRefs(refs []Ref, lessFunc func(a, b *Ref) bool) {
 func InitRefs(document interface{}) {
 	model.Visit(document, model.FieldOnlyVisitor(
 		func(data *model.MetaData) error {
-			if ref, ok := data.Value.Addr().Interface().(*Ref); ok && ref.CollectionName == "" {
-				ref.CollectionName, ok = data.Attrib(model.StructTagKey, "to")
-				if !ok {
-					panic(data.Selector() + " is missing the 'to' meta-data tag")
+			if data.Value.CanAddr() {
+				if ref, ok := data.Value.Addr().Interface().(*Ref); ok && ref.CollectionName == "" {
+					ref.CollectionName, ok = data.Attrib(model.StructTagKey, "to")
+					if !ok {
+						panic(data.Selector() + " is missing the 'to' meta-data tag")
+					}
 				}
 			}
 			return nil

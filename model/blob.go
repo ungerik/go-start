@@ -4,6 +4,10 @@ import (
 // "io/ioutil"
 )
 
+func NewBlob(value []byte) *Blob {
+	return (*Blob)(&value)
+}
+
 /*
 Blob is just a bunch of bytes.
 Struct tag attributes:

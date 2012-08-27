@@ -4,6 +4,12 @@ import (
 	"strings"
 )
 
+func NewPhone(value string) *Phone {
+	p := new(Phone)
+	p.Set(value)
+	return p
+}
+
 type Phone string
 
 func (self *Phone) Get() string {

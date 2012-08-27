@@ -50,7 +50,7 @@ func RenderViewBindURLArgs(renderFunc interface{}) RenderView {
 	if t.NumOut() != 1 {
 		panic(fmt.Errorf("RenderViewBindURLArgs: renderFunc must have one result, got %d", t.NumOut()))
 	}
-	if !reflection.IsErrorType(t.Out(0)) {
+	if t.Out(0) != reflection.TypeOfError {
 		panic(fmt.Errorf("RenderViewBindURLArgs: renderFunc's result must be of type error, got %s", t.Out(0)))
 	}
 	return RenderView(
