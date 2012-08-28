@@ -2,8 +2,8 @@
 # Example executables:
 
 examples/login/login
-examples/static/static
-
+examples/combine-static-dirs/combine-static-dirs
+examples/servestatic/servestatic
 
 #############################
 # OS generated files:
