@@ -16,13 +16,13 @@ func (self *Select) IterateChildren(callback IterateChildrenCallback) {
 	self.Model.IterateChildren(self, callback)
 }
 
-func (self *Select) Render(response *Response) (err error) {
-	response.XML.OpenTag("select")
-	response.XML.AttribIfNotDefault("id", self.id)
-	response.XML.AttribIfNotDefault("class", self.Class)
-	response.XML.Attrib("name", self.Name)
+func (self *Select) Render(ctx *Context) (err error) {
+	ctx.Response.XML.OpenTag("select")
+	ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
+	ctx.Response.XML.Attrib("name", self.Name)
 	if self.Disabled {
-		response.XML.Attrib("disabled", "disabled")
+		ctx.Response.XML.Attrib("disabled", "disabled")
 	}
 
 	size := self.Size
@@ -32,28 +32,28 @@ func (self *Select) Render(response *Response) (err error) {
 		if size == 0 {
 			size = numOptions
 		}
-		response.XML.Attrib("size", size)
+		ctx.Response.XML.Attrib("size", size)
 
 		for i := 0; i < numOptions; i++ {
-			response.XML.OpenTag("option")
-			response.XML.AttribIfNotDefault("value", self.Model.Value(i))
+			ctx.Response.XML.OpenTag("option")
+			ctx.Response.XML.AttribIfNotDefault("value", self.Model.Value(i))
 			if self.Model.Selected(i) {
-				response.XML.Attrib("selected", "selected")
+				ctx.Response.XML.Attrib("selected", "selected")
 			}
 			if self.Model.Disabled(i) {
-				response.XML.Attrib("disabled", "disabled")
+				ctx.Response.XML.Attrib("disabled", "disabled")
 			}
-			err = self.Model.RenderItem(i, response)
+			err = self.Model.RenderItem(i, ctx)
 			if err != nil {
 				return err
 			}
-			response.XML.CloseTag() // option
+			ctx.Response.XML.CloseTag() // option
 		}
 	} else {
-		response.XML.Attrib("size", size)
+		ctx.Response.XML.Attrib("size", size)
 	}
 
-	response.XML.CloseTag() // select
+	ctx.Response.XML.CloseTag() // select
 	return nil
 }
 
@@ -65,7 +65,7 @@ type SelectModel interface {
 	Value(index int) string
 	Selected(index int) bool
 	Disabled(index int) bool
-	RenderItem(index int, response *Response) (err error)
+	RenderItem(index int, ctx *Context) (err error)
 	IterateChildren(parent *Select, callback func(parent View, child View) (next bool))
 }
 
@@ -93,8 +93,8 @@ func (self *StringsSelectModel) Disabled(index int) bool {
 	return false
 }
 
-func (self *StringsSelectModel) RenderItem(index int, response *Response) (err error) {
-	response.WriteString(self.Options[index])
+func (self *StringsSelectModel) RenderItem(index int, ctx *Context) (err error) {
+	ctx.Response.WriteString(self.Options[index])
 	return nil
 }
 
@@ -125,8 +125,8 @@ func (self *IndexedStringsSelectModel) Disabled(index int) bool {
 	return false
 }
 
-func (self *IndexedStringsSelectModel) RenderItem(index int, response *Response) (err error) {
-	response.WriteString(self.Options[index])
+func (self *IndexedStringsSelectModel) RenderItem(index int, ctx *Context) (err error) {
+	ctx.Response.WriteString(self.Options[index])
 	return nil
 }
 

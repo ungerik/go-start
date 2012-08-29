@@ -11,22 +11,22 @@ type SubmitButton struct {
 	OnClickConfirm string // Will add a confirmation dialog for onclick
 }
 
-func (self *SubmitButton) Render(response *Response) (err error) {
-	response.XML.OpenTag("input")
-	response.XML.AttribIfNotDefault("id", self.id)
-	response.XML.AttribIfNotDefault("class", self.Class)
-	response.XML.Attrib("type", "submit")
-	response.XML.AttribIfNotDefault("name", self.Name)
-	response.XML.AttribIfNotDefault("value", self.Value)
+func (self *SubmitButton) Render(ctx *Context) (err error) {
+	ctx.Response.XML.OpenTag("input")
+	ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
+	ctx.Response.XML.Attrib("type", "submit")
+	ctx.Response.XML.AttribIfNotDefault("name", self.Name)
+	ctx.Response.XML.AttribIfNotDefault("value", self.Value)
 	if self.Disabled {
-		response.XML.Attrib("disabled", "disabled")
+		ctx.Response.XML.Attrib("disabled", "disabled")
 	}
-	response.XML.AttribIfNotDefault("tabindex", self.TabIndex)
+	ctx.Response.XML.AttribIfNotDefault("tabindex", self.TabIndex)
 	if self.OnClickConfirm != "" {
-		response.XML.Attrib("onclick", "return confirm('", self.OnClickConfirm, "');")
+		ctx.Response.XML.Attrib("onclick", "return confirm('", self.OnClickConfirm, "');")
 	} else {
-		response.XML.AttribIfNotDefault("onclick", self.OnClick)
+		ctx.Response.XML.AttribIfNotDefault("onclick", self.OnClick)
 	}
-	response.XML.CloseTag()
+	ctx.Response.XML.CloseTag()
 	return nil
 }

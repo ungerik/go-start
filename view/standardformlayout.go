@@ -50,21 +50,21 @@ func (self *StandardFormLayout) GetDefaultInputSize(metaData *model.MetaData) in
 	return self.DefaultInputSize
 }
 
-func (self *StandardFormLayout) BeginFormContent(form *Form, response *Response, formContent *Views) error {
+func (self *StandardFormLayout) BeginFormContent(form *Form, ctx *Context, formContent *Views) error {
 	return nil
 }
 
-func (self *StandardFormLayout) SubmitSuccess(message string, form *Form, response *Response, formContent *Views) error {
+func (self *StandardFormLayout) SubmitSuccess(message string, form *Form, ctx *Context, formContent *Views) error {
 	*formContent = append(*formContent, form.GetFieldFactory().NewSuccessMessage(message, form))
 	return nil
 }
 
-func (self *StandardFormLayout) SubmitError(message string, form *Form, response *Response, formContent *Views) error {
+func (self *StandardFormLayout) SubmitError(message string, form *Form, ctx *Context, formContent *Views) error {
 	*formContent = append(*formContent, form.GetFieldFactory().NewGeneralErrorMessage(message, form))
 	return nil
 }
 
-func (self *StandardFormLayout) EndFormContent(fieldValidationErrs, generalValidationErrs []error, form *Form, response *Response, formContent *Views) error {
+func (self *StandardFormLayout) EndFormContent(fieldValidationErrs, generalValidationErrs []error, form *Form, ctx *Context, formContent *Views) error {
 	fieldFactory := form.GetFieldFactory()
 	for _, err := range generalValidationErrs {
 		*formContent = append(*formContent, fieldFactory.NewGeneralErrorMessage(err.Error(), form))
@@ -80,11 +80,11 @@ func (self *StandardFormLayout) EndFormContent(fieldValidationErrs, generalValid
 	return nil
 }
 
-func (self *StandardFormLayout) BeginNamedFields(namedFields *model.MetaData, form *Form, response *Response, formContent *Views) error {
+func (self *StandardFormLayout) BeginNamedFields(namedFields *model.MetaData, form *Form, ctx *Context, formContent *Views) error {
 	return nil
 }
 
-func (self *StandardFormLayout) NamedField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
+func (self *StandardFormLayout) NamedField(field *model.MetaData, validationErr error, form *Form, ctx *Context, formContent *Views) error {
 	fieldFactory := form.GetFieldFactory()
 	if !fieldFactory.CanCreateInput(field, form) {
 		return nil
@@ -92,7 +92,7 @@ func (self *StandardFormLayout) NamedField(field *model.MetaData, validationErr 
 
 	grandParent := field.Parent.Parent
 	if grandParent != nil && grandParent.Kind.HasIndexedFields() {
-		return self.structFieldInArrayOrSlice(grandParent, field, validationErr, form, response, formContent)
+		return self.structFieldInArrayOrSlice(grandParent, field, validationErr, form, ctx, formContent)
 	}
 
 	if form.IsFieldHidden(field) {
@@ -115,15 +115,15 @@ func (self *StandardFormLayout) NamedField(field *model.MetaData, validationErr 
 	return nil
 }
 
-func (self *StandardFormLayout) EndNamedFields(namedFields *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
+func (self *StandardFormLayout) EndNamedFields(namedFields *model.MetaData, validationErr error, form *Form, ctx *Context, formContent *Views) error {
 	return nil
 }
 
-func (self *StandardFormLayout) BeginIndexedFields(indexedFields *model.MetaData, form *Form, response *Response, formContent *Views) error {
+func (self *StandardFormLayout) BeginIndexedFields(indexedFields *model.MetaData, form *Form, ctx *Context, formContent *Views) error {
 	return nil
 }
 
-func (self *StandardFormLayout) IndexedField(field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
+func (self *StandardFormLayout) IndexedField(field *model.MetaData, validationErr error, form *Form, ctx *Context, formContent *Views) error {
 	if field.Kind != model.ValueKind {
 		return nil
 	}
@@ -149,7 +149,7 @@ func (self *StandardFormLayout) IndexedField(field *model.MetaData, validationEr
 		table.Init(table) // get an ID now
 		*formContent = append(*formContent, table)
 		// Add script for manipulating table rows
-		response.AddScript(EditFormSliceTableScript, 0)
+		ctx.Response.AddScript(EditFormSliceTableScript, 0)
 	}
 	td, err := fieldFactory.NewInput(false, field, form)
 	if err != nil {
@@ -165,7 +165,7 @@ func (self *StandardFormLayout) IndexedField(field *model.MetaData, validationEr
 	return nil
 }
 
-func (self *StandardFormLayout) EndIndexedFields(indexedFields *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
+func (self *StandardFormLayout) EndIndexedFields(indexedFields *model.MetaData, validationErr error, form *Form, ctx *Context, formContent *Views) error {
 	if len(*formContent) > 0 {
 		// Add "Actions" column with buttons to table with slice or array values
 		if table, ok := (*formContent)[len(*formContent)-1].(*Table); ok {
@@ -205,7 +205,7 @@ func (self *StandardFormLayout) EndIndexedFields(indexedFields *model.MetaData, 
 	return nil
 }
 
-func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *model.MetaData, validationErr error, form *Form, response *Response, formContent *Views) error {
+func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *model.MetaData, validationErr error, form *Form, ctx *Context, formContent *Views) error {
 	fieldFactory := form.GetFieldFactory()
 	// We expect a Table as last form content field.
 	// If it doesn't exist yet because this is the first visible
@@ -225,7 +225,7 @@ func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *m
 		table.Init(table) // get an ID now
 		*formContent = append(*formContent, table)
 		// Add script for manipulating table rows
-		response.AddScript(EditFormSliceTableScript, 0)
+		ctx.Response.AddScript(EditFormSliceTableScript, 0)
 	}
 	tableModel := table.Model.(ViewsTableModel)
 	if field.Parent.Index == 0 {

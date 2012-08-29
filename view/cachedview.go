@@ -62,29 +62,29 @@ func (self *CachedView) IterateChildren(callback IterateChildrenCallback) {
 	}
 }
 
-func (self *CachedView) Render(response *Response) (err error) {
+func (self *CachedView) Render(ctx *Context) (err error) {
 	if self.Content == nil {
 		return nil
 	}
-	if Config.DisableCachedViews || len(response.Request.Params) > 0 || response.Request.Method != "GET" {
-		return self.Content.Render(response)
+	if Config.DisableCachedViews || len(ctx.Request.Params) > 0 || ctx.Request.Method != "GET" {
+		return self.Content.Render(ctx)
 	}
 	if self.body == nil || time.Now().After(self.validUntil) {
-		err = self.Content.Render(response)
+		err = self.Content.Render(ctx)
 		if err != nil {
 			return err
 		}
-		self.header = response.Header()
-		self.body = response.Bytes()
+		self.header = ctx.Response.Header()
+		self.body = ctx.Response.Bytes()
 		self.validUntil = time.Now().Add(self.Duration)
 		return nil
 	}
 
-	// debug.Print("Responding with cached version of " + response.Request.URLString())
+	// debug.Print("Responding with cached version of " + ctx.Request.URLString())
 	for key, value := range self.header {
-		response.Header()[key] = value
+		ctx.Response.Header()[key] = value
 	}
-	_, err = response.Write(self.body)
+	_, err = ctx.Response.Write(self.body)
 	return err
 }
 
@@ -93,11 +93,11 @@ func (self *CachedView) ClearCache() {
 	self.body = nil
 }
 
-func (self *CachedView) URL(response *Response) string {
+func (self *CachedView) URL(ctx *Context) string {
 	if viewWithURL, ok := self.Content.(ViewWithURL); ok {
-		return viewWithURL.URL(response)
+		return viewWithURL.URL(ctx)
 	}
-	return StringURL(self.path).URL(response)
+	return StringURL(self.path).URL(ctx)
 }
 
 func (self *CachedView) SetPath(path string) {

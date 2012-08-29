@@ -8,6 +8,6 @@ type NotFoundView struct {
 	Message string
 }
 
-func (self *NotFoundView) Render(response *Response) (err error) {
+func (self *NotFoundView) Render(ctx *Context) (err error) {
 	return NotFound(self.Message)
 }

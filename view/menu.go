@@ -18,12 +18,12 @@ type Menu struct {
 	Reverse         bool
 }
 
-func (self *Menu) Render(response *Response) (err error) {
-	response.XML.OpenTag("ul")
-	response.XML.AttribIfNotDefault("id", self.id)
-	response.XML.AttribIfNotDefault("class", self.Class)
+func (self *Menu) Render(ctx *Context) (err error) {
+	ctx.Response.XML.OpenTag("ul")
+	ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
 
-	requestURL := response.Request.URLString()
+	requestURL := ctx.Request.URLString()
 
 	// Find active item
 	activeIndex := -1
@@ -31,7 +31,7 @@ func (self *Menu) Render(response *Response) (err error) {
 	if self.ActiveItemClass != "" {
 		// First try exact URL match
 		for i := range self.Items {
-			url := self.Items[i].URL(response)
+			url := self.Items[i].URL(ctx)
 			if url == requestURL {
 				activeIndex = i
 				break
@@ -41,7 +41,7 @@ func (self *Menu) Render(response *Response) (err error) {
 		// If no exact URL match is found, search for sub pages
 		if activeIndex == -1 {
 			for i := range self.Items {
-				url := self.Items[i].URL(response)
+				url := self.Items[i].URL(ctx)
 				if strings.HasPrefix(requestURL, url) {
 					activeIndex = i
 					// todo
@@ -58,39 +58,39 @@ func (self *Menu) Render(response *Response) (err error) {
 		}
 		itemClass := self.ItemClass
 		linkModel := self.Items[index]
-		url := linkModel.URL(response)
+		url := linkModel.URL(ctx)
 
 		// use i instead of index
 		if i == activeIndex {
 			itemClass += " " + self.ActiveItemClass
 		}
 
-		response.XML.OpenTag("li")
+		ctx.Response.XML.OpenTag("li")
 		if self.id != "" {
-			response.XML.Attrib("id", self.id, "_", index)
+			ctx.Response.XML.Attrib("id", self.id, "_", index)
 		}
-		response.XML.AttribIfNotDefault("class", itemClass)
+		ctx.Response.XML.AttribIfNotDefault("class", itemClass)
 
 		if i > 0 && self.BetweenItems != "" {
-			response.XML.Content(self.BetweenItems)
+			ctx.Response.XML.Content(self.BetweenItems)
 		}
 
-		response.XML.OpenTag("a")
-		response.XML.Attrib("href", url)
-		response.XML.AttribIfNotDefault("title", linkModel.LinkTitle(response))
-		response.XML.AttribIfNotDefault("rel", linkModel.LinkRel(response))
-		content := linkModel.LinkContent(response)
+		ctx.Response.XML.OpenTag("a")
+		ctx.Response.XML.Attrib("href", url)
+		ctx.Response.XML.AttribIfNotDefault("title", linkModel.LinkTitle(ctx))
+		ctx.Response.XML.AttribIfNotDefault("rel", linkModel.LinkRel(ctx))
+		content := linkModel.LinkContent(ctx)
 		if content != nil {
-			err = content.Render(response)
+			err = content.Render(ctx)
 			if err != nil {
 				return err
 			}
 		}
-		response.XML.ForceCloseTag() // a
+		ctx.Response.XML.ForceCloseTag() // a
 
-		response.XML.ForceCloseTag() // li
+		ctx.Response.XML.ForceCloseTag() // li
 	}
 
-	response.XML.ForceCloseTag() // ul
+	ctx.Response.XML.ForceCloseTag() // ul
 	return nil
 }

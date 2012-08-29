@@ -21,10 +21,10 @@ type TextArea struct {
 	Placeholder string
 }
 
-func (self *TextArea) Render(response *Response) (err error) {
-	response.XML.OpenTag("textarea")
-	response.XML.AttribIfNotDefault("id", self.id)
-	response.XML.AttribIfNotDefault("class", self.Class)
+func (self *TextArea) Render(ctx *Context) (err error) {
+	ctx.Response.XML.OpenTag("textarea")
+	ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
 
 	cols := self.Cols
 	if cols == 0 {
@@ -35,21 +35,21 @@ func (self *TextArea) Render(response *Response) (err error) {
 		rows = TextAreaDefaultRows
 	}
 
-	response.XML.Attrib("name", self.Name)
-	response.XML.Attrib("rows", rows)
-	response.XML.Attrib("cols", cols)
-	response.XML.AttribIfNotDefault("tabindex", self.TabIndex)
+	ctx.Response.XML.Attrib("name", self.Name)
+	ctx.Response.XML.Attrib("rows", rows)
+	ctx.Response.XML.Attrib("cols", cols)
+	ctx.Response.XML.AttribIfNotDefault("tabindex", self.TabIndex)
 	if self.Readonly {
-		response.XML.Attrib("readonly", "readonly")
+		ctx.Response.XML.Attrib("readonly", "readonly")
 	}
 	if self.Disabled {
-		response.XML.Attrib("disabled", "disabled")
+		ctx.Response.XML.Attrib("disabled", "disabled")
 	}
-	response.XML.AttribIfNotDefault("placeholder", self.Placeholder)
+	ctx.Response.XML.AttribIfNotDefault("placeholder", self.Placeholder)
 
-	response.XML.EscapeContent(self.Text)
+	ctx.Response.XML.EscapeContent(self.Text)
 
-	response.XML.ForceCloseTag()
+	ctx.Response.XML.ForceCloseTag()
 	return nil
 }
 

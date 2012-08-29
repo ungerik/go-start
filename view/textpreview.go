@@ -15,9 +15,9 @@ type TextPreview struct {
 	MoreLink    LinkModel
 }
 
-func (self *TextPreview) Render(response *Response) (err error) {
+func (self *TextPreview) Render(ctx *Context) (err error) {
 	if len(self.PlainText) < self.MaxLength {
-		response.XML.Content(self.PlainText)
+		ctx.Response.XML.Content(self.PlainText)
 	} else {
 		shortLength := self.ShortLength
 		if shortLength == 0 {
@@ -34,17 +34,17 @@ func (self *TextPreview) Render(response *Response) (err error) {
 			shortLength--
 		}
 
-		response.XML.Content(self.PlainText[:shortLength])
-		response.XML.Content("... ")
+		ctx.Response.XML.Content(self.PlainText[:shortLength])
+		ctx.Response.XML.Content("... ")
 		if self.MoreLink != nil {
-			response.XML.OpenTag("a")
-			response.XML.Attrib("href", self.MoreLink.URL(response))
-			response.XML.AttribIfNotDefault("title", self.MoreLink.LinkTitle(response))
-			content := self.MoreLink.LinkContent(response)
+			ctx.Response.XML.OpenTag("a")
+			ctx.Response.XML.Attrib("href", self.MoreLink.URL(ctx))
+			ctx.Response.XML.AttribIfNotDefault("title", self.MoreLink.LinkTitle(ctx))
+			content := self.MoreLink.LinkContent(ctx)
 			if content != nil {
-				err = content.Render(response)
+				err = content.Render(ctx)
 			}
-			response.XML.ForceCloseTag() // a
+			ctx.Response.XML.ForceCloseTag() // a
 		}
 	}
 	return err

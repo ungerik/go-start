@@ -12,22 +12,22 @@ type Link struct {
 	NewWindow bool
 }
 
-func (self *Link) Render(response *Response) (err error) {
-	response.XML.OpenTag("a")
-	response.XML.AttribIfNotDefault("id", self.id)
-	response.XML.AttribIfNotDefault("class", self.Class)
+func (self *Link) Render(ctx *Context) (err error) {
+	ctx.Response.XML.OpenTag("a")
+	ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
 	if self.NewWindow {
-		response.XML.Attrib("target", "_blank")
+		ctx.Response.XML.Attrib("target", "_blank")
 	}
 	if self.Model != nil {
-		response.XML.Attrib("href", self.Model.URL(response))
-		response.XML.AttribIfNotDefault("title", self.Model.LinkTitle(response))
-		response.XML.AttribIfNotDefault("rel", self.Model.LinkRel(response))
-		content := self.Model.LinkContent(response)
+		ctx.Response.XML.Attrib("href", self.Model.URL(ctx))
+		ctx.Response.XML.AttribIfNotDefault("title", self.Model.LinkTitle(ctx))
+		ctx.Response.XML.AttribIfNotDefault("rel", self.Model.LinkRel(ctx))
+		content := self.Model.LinkContent(ctx)
 		if content != nil {
-			err = content.Render(response)
+			err = content.Render(ctx)
 		}
 	}
-	response.XML.ForceCloseTag() // a
+	ctx.Response.XML.ForceCloseTag() // a
 	return err
 }

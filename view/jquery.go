@@ -7,9 +7,9 @@ var (
 
 func JQueryUIAutocompleteFromURL(domSelector string, dataURL URL, minLength int) View {
 	return RenderView(
-		func(response *Response) (err error) {
-			url := dataURL.URL(response)
-			response.Printf("<script>$('%s').autocomplete({source:'%s',minLength:%d});</script>", domSelector, url, minLength)
+		func(ctx *Context) (err error) {
+			url := dataURL.URL(ctx)
+			ctx.Response.Printf("<script>$('%s').autocomplete({source:'%s',minLength:%d});</script>", domSelector, url, minLength)
 			return nil
 		},
 	)
@@ -17,17 +17,17 @@ func JQueryUIAutocompleteFromURL(domSelector string, dataURL URL, minLength int)
 
 func JQueryUIAutocomplete(domSelector string, options []string, minLength int) View {
 	return RenderView(
-		func(response *Response) (err error) {
-			response.Printf("<script>$('%s').autocomplete({source:[", domSelector)
+		func(ctx *Context) (err error) {
+			ctx.Response.Printf("<script>$('%s').autocomplete({source:[", domSelector)
 			for i := range options {
 				if i > 0 {
-					response.WriteByte(',')
+					ctx.Response.WriteByte(',')
 				}
-				response.WriteByte('"')
-				response.WriteString(options[i])
-				response.WriteByte('"')
+				ctx.Response.WriteByte('"')
+				ctx.Response.WriteString(options[i])
+				ctx.Response.WriteByte('"')
 			}
-			response.Printf("],minLength:%d});</script>", minLength)
+			ctx.Response.Printf("],minLength:%d});</script>", minLength)
 			return nil
 		},
 	)

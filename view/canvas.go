@@ -7,11 +7,11 @@ type Canvas struct {
 	Height int
 }
 
-func (self *Canvas) Render(response *Response) (err error) {
-	response.XML.OpenTag("label")
-	response.XML.AttribIfNotDefault("id", self.id)
-	response.XML.AttribIfNotDefault("class", self.Class)
-	response.XML.Attrib("width", self.Width).Attrib("height", self.Height)
-	response.XML.ForceCloseTag()
+func (self *Canvas) Render(ctx *Context) (err error) {
+	ctx.Response.XML.OpenTag("label")
+	ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
+	ctx.Response.XML.Attrib("width", self.Width).Attrib("height", self.Height)
+	ctx.Response.XML.ForceCloseTag()
 	return err
 }

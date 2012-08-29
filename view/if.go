@@ -41,7 +41,7 @@ func (self *If) IterateChildren(callback IterateChildrenCallback) {
 	}
 }
 
-func (self *If) Render(response *Response) (err error) {
+func (self *If) Render(ctx *Context) (err error) {
 	content := self.Content
 	if !self.Condition {
 		content = self.ElseContent
@@ -49,5 +49,5 @@ func (self *If) Render(response *Response) (err error) {
 	if content == nil {
 		return nil
 	}
-	return content.Render(response)
+	return content.Render(ctx)
 }

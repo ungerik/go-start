@@ -6,6 +6,13 @@ import (
 // "errors"
 )
 
+/*
+Check out:
+
+https://github.com/valums/file-uploader
+http://deepliquid.com/content/Jcrop.html
+*/
+
 var Config Configuration
 
 type Configuration struct {

@@ -24,14 +24,14 @@ type indirectURL struct {
 	url *URL
 }
 
-func (self *indirectURL) URL(response *Response) string {
-	return (*self.url).URL(response)
+func (self *indirectURL) URL(ctx *Context) string {
+	return (*self.url).URL(ctx)
 }
 
 type indirectPageURL struct {
 	page **Page
 }
 
-func (self *indirectPageURL) URL(response *Response) string {
-	return self.page.URL(response)
+func (self *indirectPageURL) URL(ctx *Context) string {
+	return self.page.URL(ctx)
 }

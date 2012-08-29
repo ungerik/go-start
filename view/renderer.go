@@ -1,15 +1,15 @@
 package view
 
 type Renderer interface {
-	Render(response *Response) error
+	Render(ctx *Context) error
 }
 
 type Renderers []Renderer
 
-func (self Renderers) Render(response *Response) error {
+func (self Renderers) Render(ctx *Context) error {
 	for _, r := range self {
 		if r != nil {
-			if err := r.Render(response); err != nil {
+			if err := r.Render(ctx); err != nil {
 				return err
 			}
 		}
@@ -17,16 +17,16 @@ func (self Renderers) Render(response *Response) error {
 	return nil
 }
 
-type Render func(response *Response) error
+type Render func(ctx *Context) error
 
-func (self Render) Render(response *Response) error {
-	return self(response)
+func (self Render) Render(ctx *Context) error {
+	return self(ctx)
 }
 
-// type ResponseRenderFunc func(response *Response) error
+// type ResponseRenderFunc func(ctx *Context) error
 
-// func (self ResponseRenderFunc) Render(response *Response) error {
-// 	return self(response)
+// func (self ResponseRenderFunc) Render(ctx *Context) error {
+// 	return self(ctx)
 // }
 
 // IndirectRenderer takes the pointer to a Renderer variable
@@ -35,8 +35,8 @@ func (self Render) Render(response *Response) error {
 // using a pointer to a variable instead of its value.
 func IndirectRenderer(rendererPtr *Renderer) Renderer {
 	return Render(
-		func(response *Response) (err error) {
-			return (*rendererPtr).Render(response)
+		func(ctx *Context) (err error) {
+			return (*rendererPtr).Render(ctx)
 		},
 	)
 }
@@ -48,11 +48,11 @@ func FilterPortRenderer(port uint16, renderer Renderer) Renderer {
 		return nil
 	}
 	return Render(
-		func(response *Response) (err error) {
-			if response.Request.Port() != port {
+		func(ctx *Context) (err error) {
+			if ctx.Request.Port() != port {
 				return nil
 			}
-			return renderer.Render(response)
+			return renderer.Render(ctx)
 		},
 	)
 }

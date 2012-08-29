@@ -9,14 +9,14 @@ type FileInput struct {
 	Disabled bool
 }
 
-func (self *FileInput) Render(response *Response) (err error) {
-	response.XML.OpenTag("input")
-	response.XML.AttribIfNotDefault("id", self.id)
-	response.XML.AttribIfNotDefault("class", self.Class)
-	response.XML.Attrib("type", "file").Attrib("name", self.Name)
+func (self *FileInput) Render(ctx *Context) (err error) {
+	ctx.Response.XML.OpenTag("input")
+	ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
+	ctx.Response.XML.Attrib("type", "file").Attrib("name", self.Name)
 	if self.Disabled {
-		response.XML.Attrib("disabled", "disabled")
+		ctx.Response.XML.Attrib("disabled", "disabled")
 	}
-	response.XML.CloseTag()
+	ctx.Response.XML.CloseTag()
 	return err
 }

@@ -18,14 +18,14 @@ func (self *ShortTag) IterateChildren(callback IterateChildrenCallback) {
 	}
 }
 
-func (self *ShortTag) Render(response *Response) (err error) {
-	response.XML.OpenTag(self.Tag).AttribIfNotDefault("class", self.Class)
+func (self *ShortTag) Render(ctx *Context) (err error) {
+	ctx.Response.XML.OpenTag(self.Tag).AttribIfNotDefault("class", self.Class)
 	for key, value := range self.Attribs {
-		response.XML.Attrib(key, value)
+		ctx.Response.XML.Attrib(key, value)
 	}
 	if self.Content != nil {
-		err = self.Content.Render(response)
+		err = self.Content.Render(ctx)
 	}
-	response.XML.ForceCloseTag()
+	ctx.Response.XML.ForceCloseTag()
 	return err
 }

@@ -7,15 +7,15 @@ import (
 )
 
 var View = view.NewViewURLWrapper(view.RenderView(
-	func(response *view.Response) error {
-		reader, contentType, err := Config.Backend.ImageVersionReader(response.Request.URLArgs[0])
+	func(ctx *view.Context) error {
+		reader, contentType, err := Config.Backend.ImageVersionReader(ctx.URLArgs[0])
 		if err != nil {
 			if _, ok := err.(ErrInvalidImageID); ok {
-				return view.NotFound(response.Request.URLArgs[0] + "/" + response.Request.URLArgs[1] + " not found")
+				return view.NotFound(ctx.URLArgs[0] + "/" + ctx.URLArgs[1] + " not found")
 			}
 			return err
 		}
-		_, err = io.Copy(response, reader)
+		_, err = io.Copy(ctx.Response, reader)
 		if err != nil {
 			return err
 		}
@@ -23,7 +23,7 @@ var View = view.NewViewURLWrapper(view.RenderView(
 		if err != nil {
 			return err
 		}
-		response.Header().Set("Content-Type", contentType)
+		ctx.Response.Header().Set("Content-Type", contentType)
 		return nil
 	},
 ))

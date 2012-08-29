@@ -11,5 +11,5 @@ type View interface {
 	IterateChildren(callback IterateChildrenCallback)
 	// Everything written to out will be discarded if there was an error
 	// out.Write() is not expected to return errors like bytes.Buffer 
-	Render(response *Response) (err error)
+	Render(ctx *Context) (err error)
 }
