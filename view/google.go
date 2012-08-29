@@ -50,6 +50,6 @@ func GoogleMapsIframe(width, height int, location string) *Iframe {
 //	Zoom      float64
 //}
 //
-//func (self *GoogleMap) Render(response *Response) (err error) {
+//func (self *GoogleMap) Render(ctx *Context) (err error) {
 //	return nil
 //}

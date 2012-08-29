@@ -62,9 +62,9 @@ func ScriptLink(url string) HTML {
 
 func RSSLink(title string, url URL) View {
 	return RenderView(
-		func(response *Response) error {
-			href := url.URL(response)
-			response.Printf("<link rel='alternate' type='application/rss+xml' title='%s' href='%s'>", title, href)
+		func(ctx *Context) error {
+			href := url.URL(ctx)
+			ctx.Response.Printf("<link rel='alternate' type='application/rss+xml' title='%s' href='%s'>", title, href)
 			return nil
 		},
 	)

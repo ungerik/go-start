@@ -13,23 +13,23 @@ type Checkbox struct {
 	Class    string
 }
 
-func (self *Checkbox) Render(response *Response) (err error) {
-	response.XML.OpenTag("input")
-	response.XML.Attrib(self.ID(), self.id)
-	response.XML.AttribIfNotDefault("class", self.Class)
-	response.XML.Attrib("type", "checkbox")
-	response.XML.Attrib("name", self.Name)
-	response.XML.Attrib("value", "true")
+func (self *Checkbox) Render(ctx *Context) (err error) {
+	ctx.Response.XML.OpenTag("input")
+	ctx.Response.XML.Attrib(self.ID(), self.id)
+	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
+	ctx.Response.XML.Attrib("type", "checkbox")
+	ctx.Response.XML.Attrib("name", self.Name)
+	ctx.Response.XML.Attrib("value", "true")
 	if self.Disabled {
-		response.XML.Attrib("disabled", "disabled")
+		ctx.Response.XML.Attrib("disabled", "disabled")
 	}
 	if self.Checked {
-		response.XML.Attrib("checked", "checked")
+		ctx.Response.XML.Attrib("checked", "checked")
 	}
-	response.XML.CloseTag()
+	ctx.Response.XML.CloseTag()
 
 	if self.Label != "" {
-		response.XML.OpenTag("label").Attrib("for", self.ID()).Content(self.Label).CloseTag()
+		ctx.Response.XML.OpenTag("label").Attrib("for", self.ID()).Content(self.Label).CloseTag()
 	}
 	return nil
 }

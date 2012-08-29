@@ -11,14 +11,11 @@ import (
 	"github.com/ungerik/web.go"
 )
 
-func newResponse(webContext *web.Context, respondingView View, urlArgs []string) *Response {
+func newResponse(webContext *web.Context, respondingView View) *Response {
 	response := &Response{
 		webContext:     webContext,
 		RespondingView: respondingView,
-		Request:        newRequest(webContext, urlArgs),
-		Session:        new(Session),
 	}
-	response.Session.init(response.Request, response)
 	response.PushBody()
 	return response
 }
@@ -31,7 +28,6 @@ type responseBody struct {
 type Response struct {
 	webContext *web.Context
 
-	Request *Request
 	Session *Session
 
 	// View that responds to the HTTP request
@@ -40,10 +36,6 @@ type Response struct {
 	bodyStack []responseBody
 	// XML allowes the Response to be used as utils.XMLWriter
 	XML *utils.XMLWriter
-
-	// Custom response wide data that can be set by the application
-	Data      interface{}
-	DebugData interface{}
 
 	dynamicStyle       dependencyHeap
 	dynamicHeadScripts dependencyHeap
@@ -77,24 +69,6 @@ func (self *Response) PopBody() (bufferData []byte) {
 // and returns its content as string.
 func (self *Response) PopBodyString() (bufferData string) {
 	return string(self.PopBody())
-}
-
-/*
-URLArgs returns an altered Response copy where
-Response.Request.URLArgs are set to urlArgs.
-Used when calling the the URL() method of a URL interface
-to get the URL of another view, defined by urlArgs.
-
-The following example gets the URL of MyPage with the first
-URL argument is that of the current page and the second
-URL argument is "second-arg":
-
-	MyPage.URL(response.URLArgs(response.Request.URLArgs[0], "second-arg"))
-*/
-func (self *Response) URLArgs(urlArgs ...string) *Response {
-	copy := *self
-	copy.Request = self.Request.cloneWithURLArgs(urlArgs)
-	return &copy
 }
 
 func (self *Response) Write(p []byte) (n int, err error) {

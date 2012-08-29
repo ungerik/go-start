@@ -10,18 +10,18 @@ type Label struct {
 	Content View
 }
 
-func (self *Label) Render(response *Response) (err error) {
+func (self *Label) Render(ctx *Context) (err error) {
 	var forID string
 	if self.For != nil {
 		forID = self.For.ID()
 	}
-	response.XML.OpenTag("label")
-	response.XML.AttribIfNotDefault("id", self.id)
-	response.XML.AttribIfNotDefault("class", self.Class)
-	response.XML.AttribIfNotDefault("for", forID)
+	ctx.Response.XML.OpenTag("label")
+	ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
+	ctx.Response.XML.AttribIfNotDefault("for", forID)
 	if self.Content != nil {
-		err = self.Content.Render(response)
+		err = self.Content.Render(ctx)
 	}
-	response.XML.CloseTag()
+	ctx.Response.XML.CloseTag()
 	return err
 }

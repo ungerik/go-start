@@ -21,14 +21,14 @@ func (self *ViewURLWrapper) IterateChildren(callback IterateChildrenCallback) {
 	self.View.IterateChildren(callback)
 }
 
-func (self *ViewURLWrapper) Render(response *Response) (err error) {
-	return self.View.Render(response)
+func (self *ViewURLWrapper) Render(ctx *Context) (err error) {
+	return self.View.Render(ctx)
 }
 
 func (self *ViewURLWrapper) SetPath(path string) {
 	self.path = path
 }
 
-func (self *ViewURLWrapper) URL(response *Response) string {
-	return StringURL(self.path).URL(response)
+func (self *ViewURLWrapper) URL(ctx *Context) string {
+	return StringURL(self.path).URL(ctx)
 }

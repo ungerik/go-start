@@ -13,19 +13,19 @@ type Image struct {
 	Description string
 }
 
-func (self *Image) Render(response *Response) (err error) {
-	response.XML.OpenTag("img")
-	response.XML.AttribIfNotDefault("id", self.id)
-	response.XML.AttribIfNotDefault("class", self.Class)
+func (self *Image) Render(ctx *Context) (err error) {
+	ctx.Response.XML.OpenTag("img")
+	ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
 	src := self.Src
 	if self.URL != nil {
-		src = self.URL.URL(response)
+		src = self.URL.URL(ctx)
 	}
-	response.XML.Attrib("src", src)
-	response.XML.AttribIfNotDefault("width", self.Width)
-	response.XML.AttribIfNotDefault("height", self.Height)
-	response.XML.AttribIfNotDefault("alt", self.Description)
-	response.XML.CloseTag()
+	ctx.Response.XML.Attrib("src", src)
+	ctx.Response.XML.AttribIfNotDefault("width", self.Width)
+	ctx.Response.XML.AttribIfNotDefault("height", self.Height)
+	ctx.Response.XML.AttribIfNotDefault("alt", self.Description)
+	ctx.Response.XML.CloseTag()
 	return nil
 }
 

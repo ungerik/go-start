@@ -13,13 +13,13 @@ RenderView implements all View methods for a View.Render compatible function.
 Example:
 
 	renderView := RenderView(
-		func(response *Response) error {
+		func(ctx *Context) error {
 			writer.Write([]byte("<html><body>Any Content</body></html>"))
 			return nil
 		},
 	)
 */
-type RenderView func(response *Response) error
+type RenderView func(ctx *Context) error
 
 func (self RenderView) Init(thisView View) {
 }
@@ -31,8 +31,8 @@ func (self RenderView) ID() string {
 func (self RenderView) IterateChildren(callback IterateChildrenCallback) {
 }
 
-func (self RenderView) Render(response *Response) error {
-	return self(response)
+func (self RenderView) Render(ctx *Context) error {
+	return self(ctx)
 }
 
 func RenderViewBindURLArgs(renderFunc interface{}) RenderView {
@@ -54,13 +54,13 @@ func RenderViewBindURLArgs(renderFunc interface{}) RenderView {
 		panic(fmt.Errorf("RenderViewBindURLArgs: renderFunc's result must be of type error, got %s", t.Out(0)))
 	}
 	return RenderView(
-		func(response *Response) error {
-			if len(response.Request.URLArgs) != t.NumIn()-1 {
+		func(ctx *Context) error {
+			if len(ctx.URLArgs) != t.NumIn()-1 {
 				panic(fmt.Errorf("RenderViewBindURLArgs: number of response URL args does not match renderFunc's arg count"))
 			}
 			args := make([]reflect.Value, t.NumIn())
-			args[0] = reflect.ValueOf(response)
-			for i, urlArg := range response.Request.URLArgs {
+			args[0] = reflect.ValueOf(ctx)
+			for i, urlArg := range ctx.URLArgs {
 				val, err := reflection.StringToValueOfType(urlArg, t.In(i+1))
 				if err != nil {
 					return err

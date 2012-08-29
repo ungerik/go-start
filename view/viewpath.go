@@ -111,18 +111,18 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 			go runtime.GC()
 		}()
 
-		response := newResponse(webContext, self.View, args)
+		ctx := newContext(webContext, self.View, args)
 
 		for _, subdomain := range Config.RedirectSubdomains {
 			if len(subdomain) > 0 {
 				if subdomain[len(subdomain)-1] != '.' {
 					subdomain += "."
 				}
-				host := response.Request.Host
+				host := ctx.Request.Host
 				if strings.Index(host, subdomain) == 0 {
 					host = host[len(subdomain):]
-					url := "http://" + host + response.Request.URL.Path
-					response.RedirectPermanently301(url)
+					url := "http://" + host + ctx.Request.URL.Path
+					ctx.Response.RedirectPermanently301(url)
 					return ""
 				}
 			}
@@ -131,19 +131,19 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 		handleErr := func(err error) string {
 			switch err.(type) {
 			case NotFound:
-				response.NotFound404(err.Error())
+				ctx.Response.NotFound404(err.Error())
 			case Redirect:
 				if Config.Debug.LogRedirects {
 					log.Printf("%d Redirect: %s\n", http.StatusFound, err.Error())
 				}
-				response.RedirectTemporary302(err.Error())
+				ctx.Response.RedirectTemporary302(err.Error())
 			case PermanentRedirect:
 				if Config.Debug.LogRedirects {
 					log.Printf("%d Permanent Redirect: %s\n", http.StatusMovedPermanently, err.Error())
 				}
-				response.RedirectPermanently301(err.Error())
+				ctx.Response.RedirectPermanently301(err.Error())
 			case Forbidden:
-				response.Forbidden403(err.Error())
+				ctx.Response.Forbidden403(err.Error())
 			default:
 				log.Println(err.Error())
 				debug.LogCallStack()
@@ -151,7 +151,7 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 				if Config.Debug.Mode {
 					msg += debug.Stack()
 				}
-				response.Abort(http.StatusInternalServerError, msg)
+				ctx.Response.Abort(http.StatusInternalServerError, msg)
 			}
 			return ""
 		}
@@ -161,21 +161,21 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 			case err != nil:
 				return handleErr(err)
 			case self.NoAuth != nil:
-				from := url.QueryEscape(response.Request.RequestURI)
-				to := self.NoAuth.URL(response) + "?from=" + from
+				from := url.QueryEscape(ctx.Request.RequestURI)
+				to := self.NoAuth.URL(ctx) + "?from=" + from
 				return handleErr(Redirect(to))
 			}
 			return handleErr(Forbidden("403 Forbidden: authentication required"))
 		}
 
 		if Config.OnPreAuth != nil {
-			if err := Config.OnPreAuth(response); err != nil {
+			if err := Config.OnPreAuth(ctx); err != nil {
 				return handleErr(err)
 			}
 		}
 
 		if Config.GlobalAuth != nil {
-			if ok, err := Config.GlobalAuth.Authenticate(response); !ok {
+			if ok, err := Config.GlobalAuth.Authenticate(ctx); !ok {
 				return handleNoAuth(err)
 			}
 		}
@@ -184,7 +184,7 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 			self.Auth = Config.FallbackAuth
 		}
 		if self.Auth != nil {
-			if ok, err := self.Auth.Authenticate(response); !ok {
+			if ok, err := self.Auth.Authenticate(ctx); !ok {
 				return handleNoAuth(err)
 			}
 		}
@@ -196,7 +196,7 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 		//			}
 		//		}
 
-		err := self.View.Render(response)
+		err := self.View.Render(ctx)
 
 		//		for i := numMiddlewares - 1; i >= 0; i-- {
 		//			html, err = Config.Middlewares[i].PostRender(context, html, err)
@@ -205,7 +205,7 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 		if err != nil {
 			return handleErr(err)
 		}
-		return response.String()
+		return ctx.Response.String()
 	}
 
 	web.Get(path, htmlFunc)

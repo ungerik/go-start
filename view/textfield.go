@@ -25,36 +25,36 @@ type TextField struct {
 	Placeholder string
 }
 
-func (self *TextField) Render(response *Response) (err error) {
-	response.XML.OpenTag("input")
-	response.XML.AttribIfNotDefault("id", self.id)
-	response.XML.AttribIfNotDefault("class", self.Class)
+func (self *TextField) Render(ctx *Context) (err error) {
+	ctx.Response.XML.OpenTag("input")
+	ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
 
-	response.XML.Attrib("name", self.Name)
-	response.XML.AttribIfNotDefault("tabindex", self.TabIndex)
+	ctx.Response.XML.Attrib("name", self.Name)
+	ctx.Response.XML.AttribIfNotDefault("tabindex", self.TabIndex)
 	if self.Readonly {
-		response.XML.Attrib("readonly", "readonly")
+		ctx.Response.XML.Attrib("readonly", "readonly")
 	}
 	if self.Disabled {
-		response.XML.Attrib("disabled", "disabled")
+		ctx.Response.XML.Attrib("disabled", "disabled")
 	}
 
 	switch self.Type {
 	case PasswordTextField:
-		response.XML.Attrib("type", "password")
+		ctx.Response.XML.Attrib("type", "password")
 	case EmailTextField:
-		response.XML.Attrib("type", "email")
+		ctx.Response.XML.Attrib("type", "email")
 	default:
-		response.XML.Attrib("type", "text")
+		ctx.Response.XML.Attrib("type", "text")
 	}
 
-	response.XML.AttribIfNotDefault("size", self.Size)
-	response.XML.AttribIfNotDefault("maxlength", self.MaxLength)
-	response.XML.AttribIfNotDefault("placeholder", self.Placeholder)
+	ctx.Response.XML.AttribIfNotDefault("size", self.Size)
+	ctx.Response.XML.AttribIfNotDefault("maxlength", self.MaxLength)
+	ctx.Response.XML.AttribIfNotDefault("placeholder", self.Placeholder)
 
-	response.XML.Attrib("value", self.Text)
+	ctx.Response.XML.Attrib("value", self.Text)
 
-	response.XML.CloseTag()
+	ctx.Response.XML.CloseTag()
 	return nil
 }
 

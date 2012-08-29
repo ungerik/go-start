@@ -14,12 +14,12 @@ child-view in the Render method.
 Example:
 
 	dynamicView := DynamicView(
-		func(response *Response) (view View, err error) {
+		func(ctx *Context) (view View, err error) {
 			return HTML("return dynamic created views here"), nil
 		},
 	)
 */
-type DynamicView func(response *Response) (view View, err error)
+type DynamicView func(ctx *Context) (view View, err error)
 
 func (self DynamicView) Init(thisView View) {
 }
@@ -31,13 +31,13 @@ func (self DynamicView) ID() string {
 func (self DynamicView) IterateChildren(callback IterateChildrenCallback) {
 }
 
-func (self DynamicView) Render(response *Response) error {
-	child, err := self(response)
+func (self DynamicView) Render(ctx *Context) error {
+	child, err := self(ctx)
 	if err != nil || child == nil {
 		return err
 	}
 	child.Init(child)
-	return child.Render(response)
+	return child.Render(ctx)
 }
 
 func DynamicViewBindURLArgs(viewFunc interface{}) DynamicView {
@@ -62,13 +62,13 @@ func DynamicViewBindURLArgs(viewFunc interface{}) DynamicView {
 		panic(fmt.Errorf("RenderViewBindURLArgs: renderFunc's second result must be of type error, got %s", t.Out(1)))
 	}
 	return DynamicView(
-		func(response *Response) (view View, err error) {
-			if len(response.Request.URLArgs) != t.NumIn()-1 {
+		func(ctx *Context) (view View, err error) {
+			if len(ctx.URLArgs) != t.NumIn()-1 {
 				panic(fmt.Errorf("DynamicViewBindURLArgs: number of response URL args does not match viewFunc's arg count"))
 			}
 			args := make([]reflect.Value, t.NumIn())
-			args[0] = reflect.ValueOf(response)
-			for i, urlArg := range response.Request.URLArgs {
+			args[0] = reflect.ValueOf(ctx)
+			for i, urlArg := range ctx.URLArgs {
 				val, err := reflection.StringToValueOfType(urlArg, t.In(i+1))
 				if err != nil {
 					return nil, err

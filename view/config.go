@@ -61,7 +61,7 @@ type Configuration struct {
 	CookieSecret        string
 	SessionTracker      SessionTracker
 	SessionDataStore    SessionDataStore
-	OnPreAuth           func(response *Response) error
+	OnPreAuth           func(ctx *Context) error
 	GlobalAuth          Authenticator // Will allways be used before all other authenticators
 	FallbackAuth        Authenticator // Will be used when no other authenticator is defined for the view
 	NamedAuthenticators map[string]Authenticator

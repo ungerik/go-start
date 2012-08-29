@@ -76,7 +76,7 @@ Example of a static view:
 Example of a dynamic view:
 
 	view := DynamicView(
-		func(response *Response) (view View, err error) {
+		func(ctx *Context) (view View, err error) {
 			var names []string
 			i := models.Users.Sort("Name.First").Sort("Name.Last").Iterator();
 			for doc := i.Next(); doc != nil; doc = i.Next() {
@@ -97,10 +97,10 @@ Beside DynamicView there is also a ModelIteratorView. It takes a model.Iterator
 and creates a dynamic view for every iterated data item:
 
 	view := &ModelIteratorView{
-		GetModelIterator: func(response *Response) model.Iterator {
+		GetModelIterator: func(ctx *Context) model.Iterator {
 			return models.Users.Sort("Name.First").Sort("Name.Last").Iterator()
 		},
-		GetModelIteratorView: func(model interface{}, response *Response) (view View, err error) {
+		GetModelIteratorView: func(model interface{}, ctx *Context) (view View, err error) {
 			user := model.(*models.User)
 			return PrintfEscape("%s, ", user.Name), nil
 		},
@@ -110,7 +110,7 @@ and creates a dynamic view for every iterated data item:
 ## Pages and URLs:
 
 	Homepage := &Page{
-		OnPreRender: func(page *Page, response *Response) (err error) {
+		OnPreRender: func(page *Page, ctx *Context) (err error) {
 			context.Data = &PerPageData{...} // Set global page data at request context
 		},
 		WriteTitle: func(response *Response, writer io.Writer) (err error) {
@@ -184,7 +184,7 @@ Here is how a HTML form is created that displays input fields for the SignupForm
 	form := &Form{
 		ButtonText: "Signup",
 		FormID:     "user_signup",
-		GetModel: func(form *Form, response *Response) (interface{}, error) {
+		GetModel: func(form *Form, ctx *Context) (interface{}, error) {
 			return &SignupFormModel{}, nil
 		},
 		OnSubmit: func(form *Form, formModel interface{}, response *Response) (err error) {
