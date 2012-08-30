@@ -108,7 +108,20 @@ func RenderTemplate(filename string, out io.Writer, context interface{}) (err er
 	return templ.Render(out, context)
 }
 
+func RenderTemplateString(tmplString string, name string, out io.Writer, context interface{}) (err error) {
+
+	var templ templatesystem.Template
+	templ, err = Config.TemplateSystem.ParseString(tmplString, name)
+	if err != nil {
+		return
+	}
+
+	// context = append(context, Config)
+	return templ.Render(out, context)
+}
+
 func RenderChildViewsHTML(parent View, ctx *Context) (err error) {
+
 	parent.IterateChildren(func(parent View, child View) (next bool) {
 		if child != nil {
 			err = child.Render(ctx)

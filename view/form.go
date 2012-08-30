@@ -101,6 +101,7 @@ Rules for form fields:
 type Form struct {
 	ViewBaseWithId
 	Class  string
+	Style  string
 	Action string // Default is "." plus any URL params
 	Method string
 	// FormID must be unique on a page to identify the form for the case
@@ -518,9 +519,11 @@ func (self *Form) Render(ctx *Context) (err error) {
 	ctx.Response.XML.OpenTag("form")
 	ctx.Response.XML.AttribIfNotDefault("id", self.id)
 	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
+	ctx.Response.XML.AttribIfNotDefault("style", self.Style)
 	ctx.Response.XML.Attrib("method", method)
 	ctx.Response.XML.Attrib("action", action)
 	ctx.Response.XML.AttribIfNotDefault("enctype", self.Enctype)
+
 	if len(content) > 0 {
 		content.Init(content)
 		err = content.Render(ctx)
