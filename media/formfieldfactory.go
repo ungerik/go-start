@@ -63,7 +63,7 @@ func (self *FormFieldFactory) NewInput(withLabel bool, metaData *model.MetaData,
 		if imageRef.IsEmpty() {
 			removeButton.Disabled = true
 		} else {
-			image, err := imageRef.Image()
+			image, err := imageRef.GetImage()
 			if err != nil {
 				return nil, err
 			}

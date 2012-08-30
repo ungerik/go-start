@@ -1,10 +1,7 @@
 package media
 
 import (
-	"errors"
-
 	"github.com/ungerik/go-start/model"
-	"github.com/ungerik/go-start/view"
 )
 
 type ImageRef string
@@ -18,12 +15,29 @@ func (self *ImageRef) SetString(str string) error {
 	return nil
 }
 
+// SetImage sets the ID of image, or an empty reference if image is nil.
+func (self *ImageRef) SetImage(image *Image) {
+	if image != nil {
+		self.SetString(image.ID.String())
+	} else {
+		*self = ""
+	}
+}
+
+// GetImage loads the referenced image, or returns nil if the reference is empty.
+func (self *ImageRef) GetImage() (*Image, error) {
+	if self.IsEmpty() {
+		return nil, nil
+	}
+	return Config.Backend.LoadImage(self.String())
+}
+
 func (self *ImageRef) IsEmpty() bool {
 	return *self == ""
 }
 
 func (self *ImageRef) Required(metaData *model.MetaData) bool {
-	return metaData.BoolAttrib(view.StructTagKey, "required")
+	return metaData.BoolAttrib(model.StructTagKey, "required")
 }
 
 func (self *ImageRef) Validate(metaData *model.MetaData) error {
@@ -31,11 +45,4 @@ func (self *ImageRef) Validate(metaData *model.MetaData) error {
 		return model.NewRequiredError(metaData)
 	}
 	return nil
-}
-
-func (self *ImageRef) Image() (*Image, error) {
-	if self.IsEmpty() {
-		return nil, errors.New("Can't get Image from empty ImageRef")
-	}
-	return Config.Backend.LoadImage(self.String())
 }

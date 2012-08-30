@@ -2,15 +2,19 @@ package media
 
 import (
 	"bytes"
-	_ "code.google.com/p/go.image/bmp"
-	_ "code.google.com/p/go.image/tiff"
-	"github.com/ungerik/go-start/model"
 	"image"
 	"image/color"
 	"image/draw"
 	_ "image/gif"
 	"image/png"
-	// "github.com/ungerik/go-start/view"
+	"io"
+	"io/ioutil"
+	"net/http"
+
+	_ "code.google.com/p/go.image/bmp"
+	_ "code.google.com/p/go.image/tiff"
+
+	"github.com/ungerik/go-start/model"
 )
 
 type HorAlignment int
@@ -29,12 +33,35 @@ const (
 	Bottom
 )
 
+// LoadImage loads an existing image from Config.Backend.
 func LoadImage(id string) (*Image, error) {
 	return Config.Backend.LoadImage(id)
 }
 
+// NewImageFromURL creates a new Image by downloading it from url.
+// GIF, TIFF, BMP images will be read, but saved as PNG.
+func NewImageFromURL(url string) (*Image, error) {
+	response, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	filename := ""
+	defer response.Body.Close()
+	return NewImageFromReader(filename, response.Body)
+}
+
+// NewImageFromReader creates a new Image and saves the original version to Config.Backend.
+// GIF, TIFF, BMP images will be read, but saved as PNG.
+func NewImageFromReader(filename string, reader io.Reader) (*Image, error) {
+	data, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
+	return NewImage(filename, data)
+}
+
 // NewImage creates a new Image and saves the original version to Config.Backend.
-// GIF, TIFF, BMP images will be read, but written as PNG.
+// GIF, TIFF, BMP images will be read, but saved as PNG.
 func NewImage(filename string, data []byte) (*Image, error) {
 	i, t, err := image.Decode(bytes.NewReader(data))
 	if err != nil {
