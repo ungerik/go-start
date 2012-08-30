@@ -25,7 +25,7 @@ func ProductionServerView(view View) View {
 
 // NotProductionServerView returns view if view.Config.IsProductionServer
 // is false, else nil which is a valid value for a View.
-func NotProductionServerView(view View) View {
+func NonProductionServerView(view View) View {
 	if Config.IsProductionServer {
 		return nil
 	}
