@@ -14,6 +14,6 @@ type URLWithArgs struct {
 	Args []string
 }
 
-func (self *URLWithArgs) URL(response *Response) string {
-	return self.Url.URL(response.URLArgs(self.Args...))
+func (self *URLWithArgs) URL(ctx *Context) string {
+	return self.Url.URL(ctx.ForURLArgs(self.Args...))
 }

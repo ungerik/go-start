@@ -11,24 +11,24 @@ type PageLink struct {
 	Rel     string
 }
 
-func (self *PageLink) URL(response *Response) string {
-	return self.Page.URL(response)
+func (self *PageLink) URL(ctx *Context) string {
+	return self.Page.URL(ctx)
 }
 
-func (self *PageLink) LinkContent(response *Response) View {
+func (self *PageLink) LinkContent(ctx *Context) View {
 	if self.Content == nil {
-		return HTML(self.LinkTitle(response))
+		return HTML(self.LinkTitle(ctx))
 	}
 	return self.Content
 }
 
-func (self *PageLink) LinkTitle(response *Response) string {
+func (self *PageLink) LinkTitle(ctx *Context) string {
 	if self.Title == "" {
-		return self.Page.LinkTitle(response)
+		return self.Page.LinkTitle(ctx)
 	}
 	return self.Title
 }
 
-func (self *PageLink) LinkRel(response *Response) string {
+func (self *PageLink) LinkRel(ctx *Context) string {
 	return self.Rel
 }

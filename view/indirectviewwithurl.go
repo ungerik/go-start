@@ -20,12 +20,12 @@ func (self *indirectViewWithURL) IterateChildren(callback IterateChildrenCallbac
 	(*self.viewWithURL).IterateChildren(callback)
 }
 
-func (self *indirectViewWithURL) Render(response *Response) (err error) {
-	return (*self.viewWithURL).Render(response)
+func (self *indirectViewWithURL) Render(ctx *Context) (err error) {
+	return (*self.viewWithURL).Render(ctx)
 }
 
-func (self *indirectViewWithURL) URL(response *Response) string {
-	return (*self.viewWithURL).URL(response)
+func (self *indirectViewWithURL) URL(ctx *Context) string {
+	return (*self.viewWithURL).URL(ctx)
 }
 
 func (self *indirectViewWithURL) SetPath(path string) {

@@ -19,20 +19,20 @@ func (self *Tag) IterateChildren(callback IterateChildrenCallback) {
 	}
 }
 
-func (self *Tag) Render(response *Response) (err error) {
-	response.XML.OpenTag(self.Tag)
-	response.XML.AttribIfNotDefault("id", self.id)
-	response.XML.AttribIfNotDefault("class", self.Class)
+func (self *Tag) Render(ctx *Context) (err error) {
+	ctx.Response.XML.OpenTag(self.Tag)
+	ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
 	for key, value := range self.Attribs {
-		response.XML.Attrib(key, value)
+		ctx.Response.XML.Attrib(key, value)
 	}
 	if self.Content != nil {
-		err = self.Content.Render(response)
+		err = self.Content.Render(ctx)
 	}
 	if self.ExtraClose {
-		response.XML.ForceCloseTag()
+		ctx.Response.XML.ForceCloseTag()
 	} else {
-		response.XML.CloseTag()
+		ctx.Response.XML.CloseTag()
 	}
 	return err
 }

@@ -6,7 +6,7 @@ import (
 	"path"
 )
 
-type GetTemplateContextFunc func(response *Response) (context interface{}, err error)
+type GetTemplateContextFunc func(ctx *Context) (context interface{}, err error)
 
 func NewTemplate(filename string, getContext GetTemplateContextFunc) *Template {
 	return &Template{Filename: filename, GetContext: getContext}
@@ -23,7 +23,7 @@ func NewHTML5BoilerplateCSSTemplate(getContext GetTemplateContextFunc, filenames
 }
 
 func TemplateContext(context interface{}) GetTemplateContextFunc {
-	return func(response *Response) (interface{}, error) {
+	return func(ctx *Context) (interface{}, error) {
 		return context, nil
 	}
 }
@@ -66,7 +66,7 @@ func (self *Template) parseTemplate() (templ templatesystem.Template, err error)
 	return templateSystem.ParseFile(filePath)
 }
 
-func (self *Template) Render(response *Response) (err error) {
+func (self *Template) Render(ctx *Context) (err error) {
 	if self.template != nil && self.Filename != "" {
 		_, found, modified := FindTemplateFile(self.Filename)
 		if !found {
@@ -86,21 +86,21 @@ func (self *Template) Render(response *Response) (err error) {
 	}
 
 	if self.ContentTypeExt != "" {
-		response.ContentTypeByExt(self.ContentTypeExt)
+		ctx.Response.ContentTypeByExt(self.ContentTypeExt)
 	}
 
 	var context interface{}
 	if self.GetContext != nil {
-		context, err = self.GetContext(response)
+		context, err = self.GetContext(ctx)
 		if err != nil {
 			return err
 		}
 	}
 
 	// todo: how to add config data to context if it's not a slice?
-	// map[string][]string{"args": response.Request.URLArgs}
+	// map[string][]string{"args": ctx.Request.URLArgs}
 	// Config, context.Web
-	return self.template.Render(response, context)
+	return self.template.Render(ctx.Response, context)
 }
 
 //func (self *Template) SetFilename(filename string) {

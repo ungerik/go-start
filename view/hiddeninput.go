@@ -9,13 +9,13 @@ type HiddenInput struct {
 	Value string
 }
 
-func (self *HiddenInput) Render(response *Response) (err error) {
-	response.XML.OpenTag("input")
-	response.XML.AttribIfNotDefault("id", self.id)
-	response.XML.Attrib("type", "hidden")
-	response.XML.Attrib("name", self.Name)
-	response.XML.Attrib("value", self.Value)
-	response.XML.CloseTag()
+func (self *HiddenInput) Render(ctx *Context) (err error) {
+	ctx.Response.XML.OpenTag("input")
+	ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	ctx.Response.XML.Attrib("type", "hidden")
+	ctx.Response.XML.Attrib("name", self.Name)
+	ctx.Response.XML.Attrib("value", self.Value)
+	ctx.Response.XML.CloseTag()
 	return nil
 }
 

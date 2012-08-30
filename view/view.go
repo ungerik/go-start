@@ -11,5 +11,23 @@ type View interface {
 	IterateChildren(callback IterateChildrenCallback)
 	// Everything written to out will be discarded if there was an error
 	// out.Write() is not expected to return errors like bytes.Buffer 
-	Render(response *Response) (err error)
+	Render(ctx *Context) (err error)
+}
+
+// ProductionServerView returns view if view.Config.IsProductionServer
+// is true, else nil which is a valid value for a View.
+func ProductionServerView(view View) View {
+	if !Config.IsProductionServer {
+		return nil
+	}
+	return view
+}
+
+// NotProductionServerView returns view if view.Config.IsProductionServer
+// is false, else nil which is a valid value for a View.
+func NonProductionServerView(view View) View {
+	if Config.IsProductionServer {
+		return nil
+	}
+	return view
 }

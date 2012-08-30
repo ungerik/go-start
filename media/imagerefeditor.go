@@ -17,9 +17,6 @@ func ImageRefEditor(imageRef *ImageRef, name, class string, thumbnailSize int) (
 			SubmitButtonText: "Upload",
 			// GetModel: func(form *Form, response *Response) (interface{}, error) {
 			// },
-			OnSubmit: func(form *view.Form, formModel interface{}, response *view.Response) (string, view.URL, error) {
-				return "success!!", nil, nil
-			},
 		},
 	)
 	// &view.Button{Content: view.HTML("Change")},
@@ -40,9 +37,6 @@ func ImageRefEditor(imageRef *ImageRef, name, class string, thumbnailSize int) (
 			&view.Form{
 				FormID:           "media-remove-image-" + name,
 				SubmitButtonText: "Remove",
-				OnSubmit: func(form *view.Form, formModel interface{}, response *view.Response) (string, view.URL, error) {
-					return "", nil, nil
-				},
 			},
 		}
 	}

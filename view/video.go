@@ -18,7 +18,7 @@ type Video struct {
 	//Description string
 }
 
-func (self *Video) Render(response *Response) (err error) {
+func (self *Video) Render(ctx *Context) (err error) {
 	youtubeId := ""
 
 	switch {
@@ -32,9 +32,9 @@ func (self *Video) Render(response *Response) (err error) {
 	}
 
 	if youtubeId != "" {
-		response.XML.OpenTag("iframe")
-		response.XML.Attrib("id", self.ID())
-		response.XML.AttribIfNotDefault("class", self.Class)
+		ctx.Response.XML.OpenTag("iframe")
+		ctx.Response.XML.Attrib("id", self.ID())
+		ctx.Response.XML.AttribIfNotDefault("class", self.Class)
 		width := self.Width
 		if width == 0 {
 			width = 640
@@ -43,12 +43,12 @@ func (self *Video) Render(response *Response) (err error) {
 		if height == 0 {
 			height = 390
 		}
-		response.XML.Attrib("src", "http://www.youtube.com/embed/", youtubeId)
-		response.XML.Attrib("width", width)
-		response.XML.Attrib("height", height)
-		response.XML.Attrib("frameborder", "0")
-		response.XML.Attrib("allowfullscreen", "allowfullscreen")
-		response.XML.CloseTag()
+		ctx.Response.XML.Attrib("src", "http://www.youtube.com/embed/", youtubeId)
+		ctx.Response.XML.Attrib("width", width)
+		ctx.Response.XML.Attrib("height", height)
+		ctx.Response.XML.Attrib("frameborder", "0")
+		ctx.Response.XML.Attrib("allowfullscreen", "allowfullscreen")
+		ctx.Response.XML.CloseTag()
 		return nil
 	}
 

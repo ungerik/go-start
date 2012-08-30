@@ -8,12 +8,11 @@ import (
 	"strings"
 )
 
-func newRequest(webContext *web.Context, urlArgs []string) *Request {
+func newRequest(webContext *web.Context) *Request {
 	return &Request{
 		Request:    webContext.Request,
 		webContext: webContext,
 		Params:     webContext.Params,
-		URLArgs:    urlArgs,
 	}
 }
 
@@ -21,14 +20,6 @@ type Request struct {
 	*http.Request
 	webContext *web.Context
 	Params     map[string]string
-	// Arguments parsed from the URL path
-	URLArgs []string
-}
-
-func (self *Request) cloneWithURLArgs(urlArgs []string) *Request {
-	clone := *self
-	clone.URLArgs = urlArgs
-	return &clone
 }
 
 // AddProtocolAndHostToURL adds the protocol (http:// or https://)

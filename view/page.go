@@ -44,11 +44,11 @@ query and set page wide data only once at the request context.Data.
 Example:
 
 	&Page{
-		OnPreRender: func(page *Page, response *Response) (err error) {
+		OnPreRender: func(page *Page, ctx *Context) (err error) {
 			context.Data = &MyPerPageData{SomeText: "Hello World!"}
 		},
 		Content: DynamicView(
-			func(response *Response) (view View, err error) {
+			func(ctx *Context) (view View, err error) {
 				myPerPageData := context.Data.(*MyPerPageData)
 				return HTML(myPerPageData.SomeText), nil
 			},
@@ -60,7 +60,7 @@ type Page struct {
 	Template
 
 	// Called before any other function when rendering the page
-	OnPreRender func(page *Page, response *Response) (err error)
+	OnPreRender func(page *Page, ctx *Context) (err error)
 
 	// Writes the head title tag
 	Title Renderer
@@ -130,36 +130,36 @@ func (self *Page) SetPath(path string) {
 }
 
 // Implements the URL and LinkModel interface
-func (self *Page) URL(response *Response) string {
-	return StringURL(self.path).URL(response)
+func (self *Page) URL(ctx *Context) string {
+	return StringURL(self.path).URL(ctx)
 }
 
 // Implements the LinkModel interface
-func (self *Page) LinkContent(response *Response) View {
-	return HTML(self.LinkTitle(response))
+func (self *Page) LinkContent(ctx *Context) View {
+	return HTML(self.LinkTitle(ctx))
 }
 
 // Implements the LinkModel interface
-func (self *Page) LinkTitle(response *Response) string {
+func (self *Page) LinkTitle(ctx *Context) string {
 	if self.Title == nil {
 		return ""
 	}
-	response.PushBody()
-	err := self.Title.Render(response)
+	ctx.Response.PushBody()
+	err := self.Title.Render(ctx)
 	if err != nil {
 		panic(err)
 	}
-	return response.PopBodyString()
+	return ctx.Response.PopBodyString()
 }
 
 // Implements the LinkModel interface
-func (self *Page) LinkRel(response *Response) string {
+func (self *Page) LinkRel(ctx *Context) string {
 	return ""
 }
 
-func (self *Page) Render(response *Response) (err error) {
+func (self *Page) Render(ctx *Context) (err error) {
 	if self.OnPreRender != nil {
-		err = self.OnPreRender(self, response)
+		err = self.OnPreRender(self, ctx)
 		if err != nil {
 			return err
 		}
@@ -187,20 +187,20 @@ func (self *Page) Render(response *Response) (err error) {
 	}
 
 	if self.Title != nil {
-		response.PushBody()
-		err := self.Title.Render(response)
+		ctx.Response.PushBody()
+		err := self.Title.Render(ctx)
 		if err != nil {
 			return err
 		}
-		templateContext.Title = html.EscapeString(response.PopBodyString())
+		templateContext.Title = html.EscapeString(ctx.Response.PopBodyString())
 	}
 	if self.MetaDescription != nil {
-		response.PushBody()
-		err := self.MetaDescription.Render(response)
+		ctx.Response.PushBody()
+		err := self.MetaDescription.Render(ctx)
 		if err != nil {
 			return err
 		}
-		templateContext.MetaDescription = html.EscapeString(response.PopBodyString())
+		templateContext.MetaDescription = html.EscapeString(ctx.Response.PopBodyString())
 	}
 
 	metaViewport := self.MetaViewport
@@ -214,12 +214,12 @@ func (self *Page) Render(response *Response) (err error) {
 		additionalHead = Config.Page.DefaultAdditionalHead
 	}
 	if additionalHead != nil {
-		response.PushBody()
-		err := additionalHead.Render(response)
+		ctx.Response.PushBody()
+		err := additionalHead.Render(ctx)
 		if err != nil {
 			return err
 		}
-		templateContext.Head = response.PopBodyString()
+		templateContext.Head = ctx.Response.PopBodyString()
 	}
 
 	//templateContext.Meta = self.Meta
@@ -230,23 +230,23 @@ func (self *Page) Render(response *Response) (err error) {
 	templateContext.Favicon129x129URL = self.Favicon129x129URL
 
 	if self.PreCSS != nil {
-		response.PushBody()
-		if err = self.PreCSS.Render(response); err != nil {
+		ctx.Response.PushBody()
+		if err = self.PreCSS.Render(ctx); err != nil {
 			return err
 		}
-		templateContext.PreCSS = response.PopBodyString()
+		templateContext.PreCSS = ctx.Response.PopBodyString()
 	}
 	if self.CSS != nil {
-		templateContext.CSS = self.CSS.URL(response)
+		templateContext.CSS = self.CSS.URL(ctx)
 	} else {
 		templateContext.CSS = Config.Page.DefaultCSS
 	}
 	if self.PostCSS != nil {
-		response.PushBody()
-		if err = self.PostCSS.Render(response); err != nil {
+		ctx.Response.PushBody()
+		if err = self.PostCSS.Render(ctx); err != nil {
 			return err
 		}
-		templateContext.PostCSS = response.PopBodyString()
+		templateContext.PostCSS = ctx.Response.PopBodyString()
 	}
 
 	headScripts := self.HeadScripts
@@ -254,11 +254,11 @@ func (self *Page) Render(response *Response) (err error) {
 		headScripts = Config.Page.DefaultHeadScripts
 	}
 	if headScripts != nil {
-		response.PushBody()
-		if err = headScripts.Render(response); err != nil {
+		ctx.Response.PushBody()
+		if err = headScripts.Render(ctx); err != nil {
 			return err
 		}
-		templateContext.HeadScripts = response.PopBodyString()
+		templateContext.HeadScripts = ctx.Response.PopBodyString()
 	}
 
 	scripts := self.Scripts
@@ -266,33 +266,33 @@ func (self *Page) Render(response *Response) (err error) {
 		scripts = Config.Page.DefaultScripts
 	}
 	if scripts != nil {
-		response.PushBody()
-		if err = scripts.Render(response); err != nil {
+		ctx.Response.PushBody()
+		if err = scripts.Render(ctx); err != nil {
 			return err
 		}
 		if Config.Page.PostScripts != nil {
-			if err = Config.Page.PostScripts.Render(response); err != nil {
+			if err = Config.Page.PostScripts.Render(ctx); err != nil {
 				return err
 			}
 		}
-		templateContext.Scripts = response.PopBodyString()
+		templateContext.Scripts = ctx.Response.PopBodyString()
 	}
 
 	if self.Content != nil {
-		response.PushBody()
-		err = self.Content.Render(response)
+		ctx.Response.PushBody()
+		err = self.Content.Render(ctx)
 		if err != nil {
 			return err
 		}
-		templateContext.Content = response.PopBodyString()
+		templateContext.Content = ctx.Response.PopBodyString()
 	}
 
 	// Get dynamic style and scripts after self.Content.Render()
 	// because they are added in Render()
-	templateContext.DynamicStyle = response.dynamicStyle.String()
-	templateContext.DynamicHeadScripts = response.dynamicHeadScripts.String()
-	templateContext.DynamicScripts = response.dynamicScripts.String()
+	templateContext.DynamicStyle = ctx.Response.dynamicStyle.String()
+	templateContext.DynamicHeadScripts = ctx.Response.dynamicHeadScripts.String()
+	templateContext.DynamicScripts = ctx.Response.dynamicScripts.String()
 
 	self.Template.GetContext = TemplateContext(templateContext)
-	return self.Template.Render(response)
+	return self.Template.Render(ctx)
 }

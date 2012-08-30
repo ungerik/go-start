@@ -15,7 +15,7 @@ func (self HTML) ID() string {
 func (self HTML) IterateChildren(callback IterateChildrenCallback) {
 }
 
-func (self HTML) Render(response *Response) (err error) {
-	response.WriteString(string(self))
+func (self HTML) Render(ctx *Context) (err error) {
+	ctx.Response.WriteString(string(self))
 	return nil
 }

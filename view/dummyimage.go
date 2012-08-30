@@ -23,7 +23,7 @@ type DummyImage struct {
 	Text            string
 }
 
-func (self *DummyImage) Render(response *Response) (err error) {
+func (self *DummyImage) Render(ctx *Context) (err error) {
 	src := fmt.Sprintf("http://dummyimage.com/%dx%d", self.Width, self.Height)
 
 	if self.BackgroundColor != "" || self.ForegroundColor != "" {
@@ -44,14 +44,14 @@ func (self *DummyImage) Render(response *Response) (err error) {
 		src += "&text=" + url.QueryEscape(self.Text)
 	}
 
-	response.XML.OpenTag("img")
-	response.XML.AttribIfNotDefault("id", self.id)
-	response.XML.AttribIfNotDefault("class", self.Class)
-	response.XML.Attrib("src", src)
-	response.XML.AttribIfNotDefault("width", self.Width)
-	response.XML.AttribIfNotDefault("height", self.Height)
-	response.XML.AttribIfNotDefault("alt", self.Text)
-	response.XML.CloseTag()
+	ctx.Response.XML.OpenTag("img")
+	ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
+	ctx.Response.XML.Attrib("src", src)
+	ctx.Response.XML.AttribIfNotDefault("width", self.Width)
+	ctx.Response.XML.AttribIfNotDefault("height", self.Height)
+	ctx.Response.XML.AttribIfNotDefault("alt", self.Text)
+	ctx.Response.XML.CloseTag()
 	return nil
 }
 

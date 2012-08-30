@@ -11,13 +11,13 @@ type Table struct {
 	HeaderRow bool
 }
 
-func (self *Table) Render(response *Response) (err error) {
-	response.XML.OpenTag("table")
-	response.XML.AttribIfNotDefault("id", self.id)
-	response.XML.AttribIfNotDefault("class", self.Class)
+func (self *Table) Render(ctx *Context) (err error) {
+	ctx.Response.XML.OpenTag("table")
+	ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
 
 	if self.Caption != "" {
-		response.XML.OpenTag("caption").EscapeContent(self.Caption).CloseTag()
+		ctx.Response.XML.OpenTag("caption").EscapeContent(self.Caption).CloseTag()
 	}
 
 	if self.Model != nil {
@@ -25,40 +25,40 @@ func (self *Table) Render(response *Response) (err error) {
 		columns := self.Model.Columns()
 
 		for row := 0; row < rows; row++ {
-			response.XML.OpenTag("tr")
+			ctx.Response.XML.OpenTag("tr")
 			if row&1 == 0 {
-				response.XML.Attrib("class", "row", row, " even")
+				ctx.Response.XML.Attrib("class", "row", row, " even")
 			} else {
-				response.XML.Attrib("class", "row", row, " odd")
+				ctx.Response.XML.Attrib("class", "row", row, " odd")
 			}
 
 			for col := 0; col < columns; col++ {
 				if self.HeaderRow && row == 0 {
-					response.XML.OpenTag("th")
+					ctx.Response.XML.OpenTag("th")
 				} else {
-					response.XML.OpenTag("td")
+					ctx.Response.XML.OpenTag("td")
 				}
 				if col&1 == 0 {
-					response.XML.Attrib("class", "col", col, " even")
+					ctx.Response.XML.Attrib("class", "col", col, " even")
 				} else {
-					response.XML.Attrib("class", "col", col, " odd")
+					ctx.Response.XML.Attrib("class", "col", col, " odd")
 				}
-				view, err := self.Model.CellView(row, col, response)
+				view, err := self.Model.CellView(row, col, ctx)
 				if view != nil && err == nil {
 					view.Init(view)
-					err = view.Render(response)
+					err = view.Render(ctx)
 				}
 				if err != nil {
 					return err
 				}
-				response.XML.ForceCloseTag() // td/th
+				ctx.Response.XML.ForceCloseTag() // td/th
 			}
 
-			response.XML.ForceCloseTag() // tr
+			ctx.Response.XML.ForceCloseTag() // tr
 		}
 	}
 
-	response.XML.ForceCloseTag() // table
+	ctx.Response.XML.ForceCloseTag() // table
 	return nil
 }
 
@@ -68,7 +68,7 @@ func (self *Table) Render(response *Response) (err error) {
 type TableModel interface {
 	Rows() int
 	Columns() int
-	CellView(row int, column int, response *Response) (view View, err error)
+	CellView(row int, column int, ctx *Context) (view View, err error)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -91,7 +91,7 @@ func (self ViewsTableModel) Columns() int {
 	return columns
 }
 
-func (self ViewsTableModel) CellView(row int, column int, response *Response) (view View, err error) {
+func (self ViewsTableModel) CellView(row int, column int, ctx *Context) (view View, err error) {
 	if column >= len(self[row]) {
 		return nil, nil
 	}
@@ -118,7 +118,7 @@ func (self HTMLStringsTableModel) Columns() int {
 	return columns
 }
 
-func (self HTMLStringsTableModel) CellView(row int, column int, response *Response) (view View, err error) {
+func (self HTMLStringsTableModel) CellView(row int, column int, ctx *Context) (view View, err error) {
 	return HTML(self[row][column]), nil
 }
 
@@ -142,6 +142,6 @@ func (self EscapeStringsTableModel) Columns() int {
 	return columns
 }
 
-func (self EscapeStringsTableModel) CellView(row int, column int, response *Response) (view View, err error) {
+func (self EscapeStringsTableModel) CellView(row int, column int, ctx *Context) (view View, err error) {
 	return Escape(self[row][column]), nil
 }

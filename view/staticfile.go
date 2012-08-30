@@ -17,7 +17,7 @@ type StaticFile struct {
 	fileContent    []byte
 }
 
-func (self *StaticFile) Render(response *Response) (err error) {
+func (self *StaticFile) Render(ctx *Context) (err error) {
 	filePath, found, modified := FindStaticFile(self.Filename)
 	if !found {
 		return errs.Format("Static file not found: %s", self.Filename)
@@ -34,7 +34,7 @@ func (self *StaticFile) Render(response *Response) (err error) {
 		}
 	}
 
-	response.ContentTypeByExt(self.ContentTypeExt)
-	response.Write(self.fileContent)
+	ctx.Response.ContentTypeByExt(self.ContentTypeExt)
+	ctx.Response.Write(self.fileContent)
 	return nil
 }

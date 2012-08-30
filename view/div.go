@@ -17,14 +17,14 @@ func (self *Div) IterateChildren(callback IterateChildrenCallback) {
 	}
 }
 
-func (self *Div) Render(response *Response) (err error) {
-	response.XML.OpenTag("div")
-	response.XML.AttribIfNotDefault("id", self.id)
-	response.XML.AttribIfNotDefault("class", self.Class)
-	response.XML.AttribIfNotDefault("style", self.Style)
+func (self *Div) Render(ctx *Context) (err error) {
+	ctx.Response.XML.OpenTag("div")
+	ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
+	ctx.Response.XML.AttribIfNotDefault("style", self.Style)
 	if self.Content != nil {
-		err = self.Content.Render(response)
+		err = self.Content.Render(ctx)
 	}
-	response.XML.ForceCloseTag()
+	ctx.Response.XML.ForceCloseTag()
 	return err
 }

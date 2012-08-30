@@ -17,24 +17,24 @@ func (self *Button) IterateChildren(callback IterateChildrenCallback) {
 	}
 }
 
-func (self *Button) Render(response *Response) (err error) {
-	response.XML.OpenTag("button")
-	response.XML.AttribIfNotDefault("id", self.id)
-	response.XML.AttribIfNotDefault("class", self.Class)
-	response.XML.Attrib("type", "button")
-	response.XML.AttribIfNotDefault("name", self.Name)
+func (self *Button) Render(ctx *Context) (err error) {
+	ctx.Response.XML.OpenTag("button")
+	ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
+	ctx.Response.XML.Attrib("type", "button")
+	ctx.Response.XML.AttribIfNotDefault("name", self.Name)
 	if self.Disabled {
-		response.XML.Attrib("disabled", "disabled")
+		ctx.Response.XML.Attrib("disabled", "disabled")
 	}
-	response.XML.AttribIfNotDefault("tabindex", self.TabIndex)
+	ctx.Response.XML.AttribIfNotDefault("tabindex", self.TabIndex)
 	if self.OnClickConfirm != "" {
-		response.XML.Attrib("onclick", "return confirm('", self.OnClickConfirm, "');")
+		ctx.Response.XML.Attrib("onclick", "return confirm('", self.OnClickConfirm, "');")
 	} else {
-		response.XML.AttribIfNotDefault("onclick", self.OnClick)
+		ctx.Response.XML.AttribIfNotDefault("onclick", self.OnClick)
 	}
 	if self.Content != nil {
-		err = self.Content.Render(response)
+		err = self.Content.Render(ctx)
 	}
-	response.XML.ForceCloseTag()
+	ctx.Response.XML.ForceCloseTag()
 	return err
 }

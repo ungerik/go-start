@@ -10,11 +10,11 @@ type Format struct {
 	Escape bool
 }
 
-func (self *Format) Render(response *Response) (err error) {
+func (self *Format) Render(ctx *Context) (err error) {
 	if self.Escape {
-		response.XML.PrintfEscape(self.Text, self.Args...)
+		ctx.Response.XML.PrintfEscape(self.Text, self.Args...)
 	} else {
-		response.XML.Printf(self.Text, self.Args...)
+		ctx.Response.XML.Printf(self.Text, self.Args...)
 	}
 	return nil
 }

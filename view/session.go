@@ -8,12 +8,18 @@ import (
 	// "strings"
 )
 
+func newSession(ctx *Context) *Session {
+	return &Session{
+		Tracker:   Config.SessionTracker,
+		DataStore: Config.SessionDataStore,
+		Ctx:       ctx,
+	}
+}
+
 type Session struct {
 	Tracker   SessionTracker
 	DataStore SessionDataStore
-
-	Request  *Request
-	Response *Response
+	Ctx       *Context
 
 	/*
 		Cached user object of the session.
@@ -23,7 +29,7 @@ type Session struct {
 
 			import "github.com/ungerik/go-start/user"
 
-			Config.OnPreAuth = func(response *Response) error {
+			Config.OnPreAuth = func(ctx *Context) error {
 				user.OfSession(context) // Sets context.User
 				return nil
 			}
@@ -31,13 +37,6 @@ type Session struct {
 	User interface{}
 
 	cachedID string
-}
-
-func (self *Session) init(request *Request, response *Response) {
-	self.Tracker = Config.SessionTracker
-	self.DataStore = Config.SessionDataStore
-	self.Request = request
-	self.Response = response
 }
 
 // ID returns the id of the session and if there is a session active.
@@ -52,13 +51,13 @@ func (self *Session) ID() (id string, ok bool) {
 	if Config.SessionTracker == nil {
 		return "", false
 	}
-	self.cachedID, ok = self.Tracker.ID(self)
+	self.cachedID, ok = self.Tracker.ID(self.Ctx)
 	return self.cachedID, ok
 }
 
 func (self *Session) SetID(id string) {
 	if self.Tracker != nil {
-		self.Tracker.SetID(self, id)
+		self.Tracker.SetID(self.Ctx, id)
 		self.cachedID = id
 	}
 }
@@ -68,7 +67,7 @@ func (self *Session) DeleteID() {
 	if self.Tracker == nil {
 		return
 	}
-	self.Tracker.DeleteID(self)
+	self.Tracker.DeleteID(self.Ctx)
 }
 
 // SessionData returns all session data in out.
@@ -76,7 +75,7 @@ func (self *Session) Data(out interface{}) (ok bool, err error) {
 	if self.DataStore == nil {
 		return false, errs.Format("Can't get session data without gostart/views.Config.SessionDataStore")
 	}
-	return self.DataStore.Get(self, out)
+	return self.DataStore.Get(self.Ctx, out)
 }
 
 // SetSessionData sets all session data.
@@ -84,7 +83,7 @@ func (self *Session) SetData(data interface{}) (err error) {
 	if self.DataStore == nil {
 		return errs.Format("Can't set session data without gostart/views.Config.SessionDataStore")
 	}
-	return self.DataStore.Set(self, data)
+	return self.DataStore.Set(self.Ctx, data)
 }
 
 // DeleteSessionData deletes all session data.
@@ -92,7 +91,7 @@ func (self *Session) DeleteData() (err error) {
 	if self.DataStore == nil {
 		return errs.Format("Can't delete session data without gostart/views.Config.SessionDataStore")
 	}
-	return self.DataStore.Delete(self)
+	return self.DataStore.Delete(self.Ctx)
 }
 
 func EncryptCookie(data []byte) (result []byte, err error) {

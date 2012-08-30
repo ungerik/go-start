@@ -15,13 +15,13 @@ func (self *Paragraph) IterateChildren(callback IterateChildrenCallback) {
 	}
 }
 
-func (self *Paragraph) Render(response *Response) (err error) {
-	response.XML.OpenTag("p")
-	response.XML.AttribIfNotDefault("id", self.id)
-	response.XML.AttribIfNotDefault("class", self.Class)
+func (self *Paragraph) Render(ctx *Context) (err error) {
+	ctx.Response.XML.OpenTag("p")
+	ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
 	if self.Content != nil {
-		err = self.Content.Render(response)
+		err = self.Content.Render(ctx)
 	}
-	response.XML.ForceCloseTag()
+	ctx.Response.XML.ForceCloseTag()
 	return err
 }
