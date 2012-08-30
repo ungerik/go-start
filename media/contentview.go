@@ -6,7 +6,7 @@ import (
 	"github.com/ungerik/go-start/view"
 )
 
-var View = view.NewViewURLWrapper(view.RenderView(
+var ContentView = view.NewViewURLWrapper(view.RenderView(
 	func(response *view.Response) error {
 		reader, contentType, err := Config.Backend.ImageVersionReader(response.Request.URLArgs[0])
 		if err != nil {
@@ -28,6 +28,6 @@ var View = view.NewViewURLWrapper(view.RenderView(
 	},
 ))
 
-func ViewPath(name string) view.ViewPath {
-	return view.ViewPath{Name: name, Args: 2, View: View}
+func ContentViewPath(name string) view.ViewPath {
+	return view.ViewPath{Name: name, Args: 2, View: ContentView}
 }

@@ -1,7 +1,6 @@
 package media
 
 import (
-	"fmt"
 	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/view"
@@ -33,33 +32,14 @@ func (self *FormFieldFactory) CanCreateInput(metaData *model.MetaData, form *vie
 
 func (self *FormFieldFactory) NewInput(withLabel bool, metaData *model.MetaData, form *view.Form) (view.View, error) {
 	if imageRef, ok := metaData.Value.Addr().Interface().(*ImageRef); ok {
-		thumbnailFrame := &view.Div{
-			Class: "thumbnail-frame",
-			Style: fmt.Sprintf("width:%dpx;height:%dpx;", self.ThumbnailSize, self.ThumbnailSize),
+		editor, err := ImageRefEditor(imageRef, metaData.Selector(), self.ImageWidgetClass, self.ThumbnailSize)
+		if err != nil {
+			return nil, err
 		}
-		if !imageRef.IsEmpty() {
-			image, err := imageRef.Image()
-			if err != nil {
-				return nil, err
-			}
-			version, err := image.Thumbnail(self.ThumbnailSize)
-			if err != nil {
-				return nil, err
-			}
-			thumbnailFrame.Content = version.ViewImage("")
-		}
-		result := view.DIV(self.ImageWidgetClass,
-			thumbnailFrame,
-			&view.Button{Content: view.HTML("Change")},
-			&view.Button{Content: view.HTML("Remove")},
-			// description
-			// link
-			view.DivClearBoth(),
-		)
 		if withLabel {
-			return view.AddStandardLabel(form, result, metaData), nil
+			return view.AddStandardLabel(form, editor, metaData), nil
 		}
-		return result, nil
+		return editor, nil
 	}
 	return self.FormFieldFactoryWrapper.Wrapped.NewInput(withLabel, metaData, form)
 }

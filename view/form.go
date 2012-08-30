@@ -542,7 +542,6 @@ type setPostValuesStructVisitor struct {
 }
 
 func (self *setPostValuesStructVisitor) trySetFieldValue(field *model.MetaData) error {
-	debug.Print(field)
 	if self.form.IsFieldDisabled(field) || self.form.IsFieldExcluded(field, self.response) {
 		return nil
 	}
