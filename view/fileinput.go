@@ -1,7 +1,5 @@
 package view
 
-import ()
-
 type FileInput struct {
 	ViewBaseWithId
 	Class    string

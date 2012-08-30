@@ -34,7 +34,7 @@ type ImageVersion struct {
 }
 
 func (self *ImageVersion) URL() view.URL {
-	return view.NewURLWithArgs(ContentView, self.ID.Get(), self.Filename.Get())
+	return view.NewURLWithArgs(ImageView, self.ID.Get(), self.Filename.Get())
 }
 
 // AspectRatio returns Width / Height

@@ -3,7 +3,16 @@ package media
 import (
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/ungerik/go-start/view"
 )
+
+func ViewPath(name string) view.ViewPath {
+	return view.ViewPath{Name: name, Sub: []view.ViewPath{
+		{Name: "image", Args: 2, View: ImageView},
+		{Name: "upload-image", Args: 1, View: UploadImage},
+	}}
+}
 
 func MakeValidUrlFilename(filename string) string {
 	result := make([]byte, utf8.RuneCountInString(filename))

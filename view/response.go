@@ -228,16 +228,16 @@ func (self *Response) RequireScriptURL(url string, priority int) {
 ///////////////////////////////////////////////////////////////////////////////
 // dependencyHeap
 
-type dependencyHeapItem struct {
-	text     string
-	hash     uint32
-	priority int
-}
-
 func newDependencyHeap() dependencyHeap {
 	dh := make(dependencyHeap, 0, 1)
 	heap.Init(&dh)
 	return dh
+}
+
+type dependencyHeapItem struct {
+	text     string
+	hash     uint32
+	priority int
 }
 
 type dependencyHeap []dependencyHeapItem

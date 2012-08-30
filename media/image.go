@@ -29,6 +29,10 @@ const (
 	Bottom
 )
 
+func LoadImage(id string) (*Image, error) {
+	return Config.Backend.LoadImage(id)
+}
+
 // NewImage creates a new Image and saves the original version to Config.Backend.
 // GIF, TIFF, BMP images will be read, but written as PNG.
 func NewImage(filename string, data []byte) (*Image, error) {
