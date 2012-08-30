@@ -13,3 +13,21 @@ type View interface {
 	// out.Write() is not expected to return errors like bytes.Buffer 
 	Render(ctx *Context) (err error)
 }
+
+// ProductionServerView returns view if view.Config.IsProductionServer
+// is true, else nil which is a valid value for a View.
+func ProductionServerView(view View) View {
+	if !Config.IsProductionServer {
+		return nil
+	}
+	return view
+}
+
+// NotProductionServerView returns view if view.Config.IsProductionServer
+// is false, else nil which is a valid value for a View.
+func NotProductionServerView(view View) View {
+	if Config.IsProductionServer {
+		return nil
+	}
+	return view
+}

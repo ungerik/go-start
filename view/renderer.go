@@ -56,3 +56,21 @@ func FilterPortRenderer(port uint16, renderer Renderer) Renderer {
 		},
 	)
 }
+
+// ProductionServerRenderer returns renderer if view.Config.IsProductionServer
+// is true, else nil which is a valid value for a Renderer.
+func ProductionServerRenderer(renderer Renderer) Renderer {
+	if !Config.IsProductionServer {
+		return nil
+	}
+	return renderer
+}
+
+// NotProductionServerRenderer returns renderer if view.Config.IsProductionServer
+// is false, else nil which is a valid value for a Renderer.
+func NotProductionServerRenderer(renderer Renderer) Renderer {
+	if Config.IsProductionServer {
+		return nil
+	}
+	return renderer
+}
