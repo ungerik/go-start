@@ -149,7 +149,7 @@ func (self *StandardFormLayout) IndexedField(field *model.MetaData, validationEr
 		table.Init(table) // get an ID now
 		*formContent = append(*formContent, table)
 		// Add script for manipulating table rows
-		ctx.Response.AddScript(EditFormSliceTableScript, 0)
+		ctx.Response.RequireScript(EditFormSliceTableScript, 0)
 	}
 	td, err := fieldFactory.NewInput(false, field, form)
 	if err != nil {
@@ -225,7 +225,7 @@ func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *m
 		table.Init(table) // get an ID now
 		*formContent = append(*formContent, table)
 		// Add script for manipulating table rows
-		ctx.Response.AddScript(EditFormSliceTableScript, 0)
+		ctx.Response.RequireScript(EditFormSliceTableScript, 0)
 	}
 	tableModel := table.Model.(ViewsTableModel)
 	if field.Parent.Index == 0 {

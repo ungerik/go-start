@@ -6,8 +6,8 @@
 
 Download, build and run example:
 
-	go get github.com/ungerik/go-start/examples/servestatic
-	go install github.com/ungerik/go-start/examples/servestatic && servestatic
+	go get github.com/ungerik/go-start/examples/ServeStatic
+	go install github.com/ungerik/go-start/examples/ServeStatic && ServeStatic
 
 */
 package main

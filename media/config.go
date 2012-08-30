@@ -16,7 +16,8 @@ http://deepliquid.com/content/Jcrop.html
 var Config Configuration
 
 type Configuration struct {
-	Backend Backend
+	Backend                 Backend
+	NoDynamicStyleAndScript bool
 }
 
 func (self *Configuration) Name() string {

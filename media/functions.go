@@ -1,11 +1,11 @@
 package media
 
 import (
-	"unicode/utf8"
 	"unicode"
+	"unicode/utf8"
 )
 
-func ValidUrlFilename(filename string) string {
+func MakeValidUrlFilename(filename string) string {
 	result := make([]byte, utf8.RuneCountInString(filename))
 	i := 0
 	for _, c := range filename {

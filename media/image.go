@@ -36,6 +36,7 @@ func NewImage(filename string, data []byte) (*Image, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	if t == "gif" || t == "bmp" || t == "tiff" {
 		var buf bytes.Buffer
 		err = png.Encode(&buf, i)
@@ -49,20 +50,20 @@ func NewImage(filename string, data []byte) (*Image, error) {
 			return nil, err
 		}
 	}
-	width := i.Bounds().Dx()
-	height := i.Bounds().Dy()
+
 	version := newImageVersion(
-		ValidUrlFilename(filename),
+		MakeValidUrlFilename(filename),
 		"image/"+t,
-		image.Rect(0, 0, width, height),
-		width,
-		height,
+		i.Bounds(),
+		i.Bounds().Dx(),
+		i.Bounds().Dy(),
 		i.ColorModel() == color.GrayModel || i.ColorModel() == color.Gray16Model,
 	)
 	err = version.SaveImageData(data)
 	if err != nil {
 		return nil, err
 	}
+
 	image := &Image{Versions: []ImageVersion{version}}
 	image.Init()
 	return image, nil

@@ -143,82 +143,82 @@ func (self *Response) ContentDispositionAttachment(filename string) {
 	self.Header().Add("Content-Disposition", "attachment;filename="+filename)
 }
 
-// AddStyle adds dynamic CSS content to the page.
+// RequireStyle adds dynamic CSS content to the page.
 // Multiple dynamic entries will be sorted by priority.
 // Dynamic CSS will be inserted after the regular CSS of the page.
 // 
 // Use this feature to dynamically add CSS to the page if the
 // HTML content requires it.
-func (self *Response) AddStyle(css string, priority int) {
+func (self *Response) RequireStyle(css string, priority int) {
 	if self.dynamicStyle == nil {
 		self.dynamicStyle = newDependencyHeap()
 	}
 	self.dynamicStyle.AddIfNew("<style>"+css+"</style>", priority)
 }
 
-// AddStyleURL adds a dynamic CSS link to the page.
+// RequireStyleURL adds a dynamic CSS link to the page.
 // Multiple dynamic entries will be sorted by priority.
 // Dynamic CSS will be inserted after the regular CSS of the page.
 // 
 // Use this feature to dynamically add CSS to the page if the
 // HTML content requires it.
-func (self *Response) AddStyleURL(url string, priority int) {
+func (self *Response) RequireStyleURL(url string, priority int) {
 	if self.dynamicStyle == nil {
 		self.dynamicStyle = newDependencyHeap()
 	}
 	self.dynamicStyle.AddIfNew("<link rel='stylesheet' href='"+url+"'>", priority)
 }
 
-// AddHeaderScript adds dynamic JavaScript to the page.
+// RequireHeadScript adds dynamic JavaScript to the page.
 // Multiple dynamic entries will be sorted by priority.
 // The dynamic JavaScript will be inserted after the regular
 // head-scripts of the page.
 // 
 // Use this feature to dynamically add JavaScript to
 // the page if the HTML content requires it.
-func (self *Response) AddHeaderScript(script string, priority int) {
+func (self *Response) RequireHeadScript(script string, priority int) {
 	if self.dynamicHeadScripts == nil {
 		self.dynamicHeadScripts = newDependencyHeap()
 	}
 	self.dynamicHeadScripts.AddIfNew("<script>"+script+"</script>", priority)
 }
 
-// AddHeaderScriptURL adds a dynamic JavaScript link to the page.
+// RequireHeadScriptURL adds a dynamic JavaScript link to the page.
 // Multiple dynamic entries will be sorted by priority.
 // The dynamic JavaScript will be inserted after the regular
 // head-scripts of the page.
 // 
 // Use this feature to dynamically add JavaScript to
 // the page if the HTML content requires it.
-func (self *Response) AddHeaderScriptURL(url string, priority int) {
+func (self *Response) RequireHeadScriptURL(url string, priority int) {
 	if self.dynamicHeadScripts == nil {
 		self.dynamicHeadScripts = newDependencyHeap()
 	}
 	self.dynamicHeadScripts.AddIfNew("<script src='"+url+"'></script>", priority)
 }
 
-// AddScript adds dynamic JavaScript to the page.
+// RequireScript adds dynamic JavaScript to the page.
 // Multiple dynamic entries will be sorted by priority.
 // The dynamic JavaScript will be inserted after the regular
 // scripts near the end of the page.
 // 
 // Use this feature to dynamically add JavaScript to
 // the page if the HTML content requires it.
-func (self *Response) AddScript(script string, priority int) {
+func (self *Response) RequireScript(script string, priority int) {
 	if self.dynamicScripts == nil {
 		self.dynamicScripts = newDependencyHeap()
 	}
 	self.dynamicScripts.AddIfNew("<script>"+script+"</script>", priority)
 }
 
-// AddScriptURL adds a dynamic JavaScript link to the page.
+// RequireScriptURL adds a dynamic JavaScript link to the page.
 // Multiple dynamic entries will be sorted by priority.
 // The dynamic JavaScript will be inserted after the regular
 // scripts near the end of the page.
 // 
 // Use this feature to dynamically add JavaScript to
 // the page if the HTML content requires it.
-func (self *Response) AddScriptURL(url string, priority int) {
+func (self *Response) RequireScriptURL(url string, priority int) {
 	if self.dynamicScripts == nil {
 		self.dynamicScripts = newDependencyHeap()
 	}
