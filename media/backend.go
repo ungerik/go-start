@@ -6,13 +6,14 @@ import (
 
 type Backend interface {
 	LoadImage(id string) (*Image, error)
-	// image.ID will be updated if empty
+
+	// SaveImage saves image and updates its ID if it is empty.
 	SaveImage(image *Image) error
 
 	// ImageVersionReader returns an io.ReadCloser to read the image-data
-	// with the given id from the backend
+	// with the given id from the backend.
 	// If there is no image with the given id,
-	// err will be of type ErrInvalidImageID
+	// an error of type ErrInvalidImageID will be returned.
 	ImageVersionReader(id string) (reader io.ReadCloser, ctype string, err error)
 
 	// ImageVersionWriter returns an io.WriteCloser to write the image-data

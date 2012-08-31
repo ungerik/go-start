@@ -9,7 +9,7 @@ import (
 
 func NewColor(value string) *Color {
 	c := new(Color)
-	c.Set(value)
+	c.SetString(value)
 	return c
 }
 
@@ -22,11 +22,11 @@ Struct tag attributes:
 */
 type Color string
 
-func (self *Color) Get() string {
+func (self *Color) String() string {
 	return string(*self)
 }
 
-func (self *Color) Set(s string) {
+func (self *Color) SetString(s string) {
 	s = strings.ToLower(s)
 	switch len(s) {
 	case 0, 9:
@@ -63,16 +63,7 @@ func (self *Color) GetOrDefault(defaultColor string) string {
 	if self.IsEmpty() {
 		return defaultColor
 	}
-	return self.Get()
-}
-
-func (self *Color) String() string {
-	return self.Get()
-}
-
-func (self *Color) SetString(str string) error {
-	self.Set(str)
-	return nil
+	return self.String()
 }
 
 func (self *Color) Required(metaData *MetaData) bool {

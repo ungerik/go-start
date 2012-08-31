@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"strconv"
 
 	"github.com/ungerik/go-start/view"
 )
@@ -12,6 +13,11 @@ var UploadImage = view.NewViewURLWrapper(view.RenderView(
 	func(ctx *view.Context) error {
 		formatError := func(err error) error {
 			return fmt.Errorf(`{success: false, error: "%s"}`, err.Error())
+		}
+
+		thumbnailSize, err := strconv.Atoi(ctx.URLArgs[0])
+		if err != nil {
+			return formatError(err)
 		}
 
 		filename := ctx.Request.Header.Get("X-File-Name")
@@ -35,8 +41,12 @@ var UploadImage = view.NewViewURLWrapper(view.RenderView(
 		if err != nil {
 			return formatError(err)
 		}
+		v, err := i.Thumbnail(thumbnailSize)
+		if err != nil {
+			return formatError(err)
+		}
 
-		ctx.Response.Printf(`{success: true, id: "%s"}`, i.ID)
+		ctx.Response.Printf(`{success: true, imageID: "%s", thumbnailID: "%s"}`, i.ID, v.ID)
 		return nil
 	},
 ))

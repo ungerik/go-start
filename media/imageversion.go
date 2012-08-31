@@ -2,11 +2,12 @@ package media
 
 import (
 	"errors"
-	"github.com/ungerik/go-start/model"
-	"github.com/ungerik/go-start/view"
 	"image"
 	"image/jpeg"
 	"image/png"
+
+	"github.com/ungerik/go-start/model"
+	"github.com/ungerik/go-start/view"
 )
 
 func newImageVersion(filename, contentType string, sourceRect image.Rectangle, width, height int, grayscale bool) ImageVersion {

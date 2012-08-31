@@ -1,11 +1,12 @@
 package mongomedia
 
 import (
+	"io"
+
 	"github.com/ungerik/go-start/media"
 	"github.com/ungerik/go-start/mgo"
 	"github.com/ungerik/go-start/mgo/bson"
 	"github.com/ungerik/go-start/mongo"
-	"io"
 )
 
 type Backend struct {

@@ -1,6 +1,12 @@
 package media
 
 import (
+	"bytes"
+	"encoding/base64"
+	"image"
+	"image/color"
+	"image/draw"
+	"image/png"
 	"unicode"
 	"unicode/utf8"
 
@@ -28,4 +34,15 @@ func MakeValidUrlFilename(filename string) string {
 		i++
 	}
 	return string(result)
+}
+
+func ColoredImageDataURL(c color.Color) string {
+	i := image.NewRGBA(image.Rect(0, 0, 1, 1))
+	draw.Draw(i, i.Bounds(), image.NewUniform(c), image.ZP, draw.Src)
+	buf := bytes.NewBufferString("data:image/png;base64,")
+	err := png.Encode(buf, i)
+	if err != nil {
+		panic(err)
+	}
+	return base64.URLEncoding.EncodeToString(buf.Bytes())
 }

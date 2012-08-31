@@ -1,9 +1,7 @@
 package media
 
 import (
-// "github.com/ungerik/go-start/mongo"
-// "github.com/ungerik/go-start/mgo"
-// "errors"
+	"github.com/ungerik/go-start/model"
 )
 
 /*
@@ -18,6 +16,8 @@ var Config Configuration
 type Configuration struct {
 	Backend                 Backend
 	NoDynamicStyleAndScript bool
+	DummyImageColor         string // web color
+	dummyImageURL           string
 }
 
 func (self *Configuration) Name() string {
@@ -25,6 +25,11 @@ func (self *Configuration) Name() string {
 }
 
 func (self *Configuration) Init() error {
+	if self.DummyImageColor == "" {
+		self.DummyImageColor = "#a8a8a8"
+	}
+	c := model.NewColor(self.DummyImageColor)
+	self.dummyImageURL = ColoredImageDataURL(c.RGBA())
 	return nil
 }
 

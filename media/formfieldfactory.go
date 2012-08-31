@@ -34,7 +34,10 @@ func (self *FormFieldFactory) CanCreateInput(metaData *model.MetaData, form *vie
 
 func (self *FormFieldFactory) NewInput(withLabel bool, metaData *model.MetaData, form *view.Form) (view.View, error) {
 	if imageRef, ok := metaData.Value.Addr().Interface().(*ImageRef); ok {
+		var img view.View
+		var removeButton = &view.Button{Content: view.HTML("Remove"), OnClick: ""}
 		var requires view.View
+
 		if !Config.NoDynamicStyleAndScript {
 			requires = view.Views{
 				view.RequireStyleURL("/media/fileuploader.css", 0),
@@ -42,26 +45,10 @@ func (self *FormFieldFactory) NewInput(withLabel bool, metaData *model.MetaData,
 				view.RequireScriptURL("/media/media.js", 10),
 			}
 		}
-		thumbnailFrame := &view.Div{
-			Class: "media-thumbnail-frame",
-			Style: fmt.Sprintf("width:%dpx;height:%dpx;", self.ThumbnailSize, self.ThumbnailSize),
-		}
-		removeButton := &view.Button{
-			Content: view.HTML("Remove"),
-			OnClick: "",
-		}
-		actionsFrame := view.DIV("media-actions-frame",
-			view.HTML("&larr; drag &amp; drop files here"),
-			view.BR(),
-			&view.Button{
-				Content: view.HTML("Upload"),
-				OnClick: "",
-			},
-			view.BR(),
-			removeButton,
-		)
+
 		if imageRef.IsEmpty() {
 			removeButton.Disabled = true
+			img = view.IMG(Config.dummyImageURL, self.ThumbnailSize, self.ThumbnailSize)
 		} else {
 			image, err := imageRef.GetImage()
 			if err != nil {
@@ -71,13 +58,27 @@ func (self *FormFieldFactory) NewInput(withLabel bool, metaData *model.MetaData,
 			if err != nil {
 				return nil, err
 			}
-			thumbnailFrame.Content = version.ViewImage("")
+			img = version.ViewImage("")
 		}
+
 		editor := view.DIV(self.ImageWidgetClass,
-			&view.HiddenInput{Name: metaData.Selector(), Value: imageRef.String()},
 			requires,
-			thumbnailFrame,
-			actionsFrame,
+			&view.HiddenInput{Name: metaData.Selector(), Value: imageRef.String()},
+			&view.Div{
+				Class:   "media-thumbnail-frame",
+				Style:   fmt.Sprintf("width:%dpx;height:%dpx;", self.ThumbnailSize, self.ThumbnailSize),
+				Content: img,
+			},
+			view.DIV("media-actions-frame",
+				view.HTML("&larr; drag &amp; drop files here"),
+				view.BR(),
+				&view.Button{
+					Content: view.HTML("Upload"),
+					OnClick: "",
+				},
+				view.BR(),
+				removeButton,
+			),
 			view.DivClearBoth(),
 		)
 
