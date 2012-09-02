@@ -36,7 +36,7 @@ func Load(configFile string, packages ...Package) {
 		}
 		data = buf.Bytes()
 
-		// Unmarshal and init packages in given order
+		// Unmarshal packages in given order
 		for _, pkg := range packages {
 			// Extract JSON only for this package
 			key := []byte(`"` + pkg.Name() + `":{`)
@@ -64,14 +64,17 @@ func Load(configFile string, packages ...Package) {
 			if err != nil {
 				log.Panicf("Error while unmarshalling JSON from config file %s: %s", configFile, err)
 			}
-			err := pkg.Init()
-			if err != nil {
-				log.Panicf("Error while initializing package %s: %s", pkg.Name(), err)
-			}
 		}
 
 	default:
 		panic("Unsupported config file: " + configFile)
+	}
+
+	for _, pkg := range packages {
+		err := pkg.Init()
+		if err != nil {
+			log.Panicf("Error while initializing package %s: %s", pkg.Name(), err)
+		}
 	}
 }
 

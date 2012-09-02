@@ -15,6 +15,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/view"
 )
 
@@ -53,7 +54,7 @@ func ColoredImageDataURL(c color.Color) string {
 	if err != nil {
 		panic(err)
 	}
-	return "data:image/png;base64," + base64.URLEncoding.EncodeToString(buf.Bytes())
+	return "data:image/png;base64," + base64.StdEncoding.EncodeToString(buf.Bytes())
 }
 
 // ImageDataURL downloads an image and encodes it as a data URL.
@@ -80,5 +81,5 @@ func ImageDataURL(imageURL string) (dataURL string, err error) {
 		return "", err
 	}
 
-	return prefix + base64.URLEncoding.EncodeToString(data), nil
+	return prefix + base64.StdEncoding.EncodeToString(data), nil
 }
