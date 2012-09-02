@@ -83,7 +83,7 @@ func NewImage(filename string, data []byte) (*Image, error) {
 	}
 
 	version := newImageVersion(
-		MakeValidUrlFilename(filename),
+		MakePrettyUrlFilename(filename),
 		"image/"+t,
 		i.Bounds(),
 		i.Bounds().Dx(),

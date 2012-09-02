@@ -18,6 +18,7 @@ import (
 	"github.com/ungerik/go-start/view"
 )
 
+// ViewPath returns the view.ViewPath for all media URLs.
 func ViewPath(name string) view.ViewPath {
 	return view.ViewPath{Name: name, Sub: []view.ViewPath{
 		{Name: "image", Args: 2, View: ImageView},
@@ -25,7 +26,8 @@ func ViewPath(name string) view.ViewPath {
 	}}
 }
 
-func MakeValidUrlFilename(filename string) string {
+// MakePrettyUrlFilename modifies a filename so it looks good as part on an URL.
+func MakePrettyUrlFilename(filename string) string {
 	result := make([]byte, utf8.RuneCountInString(filename))
 	i := 0
 	for _, c := range filename {
@@ -41,6 +43,8 @@ func MakeValidUrlFilename(filename string) string {
 	return string(result)
 }
 
+// ColoredImageDataURL creates a 1 pixel image with the given color
+// and encodes it as data URL.
 func ColoredImageDataURL(c color.Color) string {
 	i := image.NewRGBA(image.Rect(0, 0, 1, 1))
 	draw.Draw(i, i.Bounds(), image.NewUniform(c), image.ZP, draw.Src)
@@ -52,6 +56,7 @@ func ColoredImageDataURL(c color.Color) string {
 	return "data:image/png;base64," + base64.URLEncoding.EncodeToString(buf.Bytes())
 }
 
+// ImageDataURL downloads an image and encodes it as a data URL.
 func ImageDataURL(imageURL string) (dataURL string, err error) {
 	var prefix string
 	switch strings.ToLower(path.Ext(imageURL)) {
