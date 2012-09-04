@@ -214,7 +214,7 @@ func StringToValueOfType(s string, t reflect.Type) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		return i, nil
+		return int(i), nil
 
 	case reflect.Int8:
 		i, err := strconv.ParseInt(s, 0, 8)
@@ -249,7 +249,7 @@ func StringToValueOfType(s string, t reflect.Type) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		return i, nil
+		return uint(i), nil
 
 	case reflect.Uint8:
 		i, err := strconv.ParseUint(s, 0, 8)

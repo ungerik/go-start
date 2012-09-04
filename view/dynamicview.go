@@ -74,8 +74,8 @@ func DynamicViewBindURLArgs(getViewFunc interface{}) DynamicView {
 		}
 	}
 	for i := 1; i < t.NumIn(); i++ {
-		if !reflection.CanStringToValueOfType(t.In(0)) {
-			panic(fmt.Errorf("DynamicViewBindURLArgs: getViewFunc's argument #%d must type must be convertible from string, got %s", i, t.In(0)))
+		if !reflection.CanStringToValueOfType(t.In(i)) {
+			panic(fmt.Errorf("DynamicViewBindURLArgs: getViewFunc's argument #%d must type must be convertible from string, got %s", i, t.In(i)))
 		}
 	}
 	switch t.NumOut() {

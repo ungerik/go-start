@@ -68,8 +68,8 @@ func RenderViewBindURLArgs(renderFunc interface{}) RenderView {
 		}
 	}
 	for i := 1; i < t.NumIn(); i++ {
-		if !reflection.CanStringToValueOfType(t.In(0)) {
-			panic(fmt.Errorf("RenderViewBindURLArgs: renderFunc's argument #%d must type must be convertible from string, got %s", i, t.In(0)))
+		if !reflection.CanStringToValueOfType(t.In(i)) {
+			panic(fmt.Errorf("RenderViewBindURLArgs: renderFunc's argument #%d must type must be convertible from string, got %s", i, t.In(i)))
 		}
 	}
 	switch t.NumOut() {
