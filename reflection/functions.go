@@ -2,10 +2,11 @@ package reflection
 
 import (
 	"fmt"
-	"github.com/ungerik/go-start/errs"
 	"reflect"
 	"strconv"
 	"unicode"
+
+	// "github.com/ungerik/go-start/errs"
 )
 
 // TypeOfError is the built-in error type
@@ -64,41 +65,41 @@ func NewInstance(prototype interface{}) interface{} {
 	return reflect.New(t).Interface()
 }
 
-func CallMethod(object interface{}, method string, args ...interface{}) (results []interface{}, err error) {
-	m := reflect.ValueOf(object).MethodByName(method)
-	if !m.IsValid() {
-		return nil, fmt.Errorf("%T has no method %s", object, method)
-	}
+// func CallMethod(object interface{}, method string, args ...interface{}) (results []interface{}, err error) {
+// 	m := reflect.ValueOf(object).MethodByName(method)
+// 	if !m.IsValid() {
+// 		return nil, fmt.Errorf("%T has no method %s", object, method)
+// 	}
 
-	a := make([]reflect.Value, len(args))
-	for i, arg := range args {
-		a[i] = reflect.ValueOf(arg)
-	}
+// 	a := make([]reflect.Value, len(args))
+// 	for i, arg := range args {
+// 		a[i] = reflect.ValueOf(arg)
+// 	}
 
-	defer func() {
-		if r := recover(); r != nil {
-			err = errs.Format("utils.CallMethod() recovered from: %v", r)
-		}
-	}()
-	r := m.Call(a)
+// 	defer func() {
+// 		if r := recover(); r != nil {
+// 			err = errs.Format("utils.CallMethod() recovered from: %v", r)
+// 		}
+// 	}()
+// 	r := m.Call(a)
 
-	results = make([]interface{}, len(r))
-	for i, result := range r {
-		results[i] = result.Interface()
-	}
-	return results, nil
-}
+// 	results = make([]interface{}, len(r))
+// 	for i, result := range r {
+// 		results[i] = result.Interface()
+// 	}
+// 	return results, nil
+// }
 
-func CallMethod1(object interface{}, method string, args ...interface{}) (result interface{}, err error) {
-	results, err := CallMethod(object, method, args...)
-	if err != nil {
-		return
-	}
-	if len(results) != 1 {
-		return nil, fmt.Errorf("One result expected from method %s of %T, %d returned", method, object, len(results))
-	}
-	return results[0], nil
-}
+// func CallMethod1(object interface{}, method string, args ...interface{}) (result interface{}, err error) {
+// 	results, err := CallMethod(object, method, args...)
+// 	if err != nil {
+// 		return
+// 	}
+// 	if len(results) != 1 {
+// 		return nil, fmt.Errorf("One result expected from method %s of %T, %d returned", method, object, len(results))
+// 	}
+// 	return results[0], nil
+// }
 
 func IsDefaultValue(value interface{}) bool {
 	if value == nil {
@@ -280,4 +281,25 @@ func StringToValueOfType(s string, t reflect.Type) (interface{}, error) {
 	}
 
 	return nil, fmt.Errorf("StringToValueOfType: can't convert string to type %s", t)
+}
+
+func CanStringToValueOfType(t reflect.Type) bool {
+	switch t.Kind() {
+	case reflect.String,
+		reflect.Bool,
+		reflect.Float32,
+		reflect.Float64,
+		reflect.Int,
+		reflect.Int8,
+		reflect.Int16,
+		reflect.Int32,
+		reflect.Int64,
+		reflect.Uint,
+		reflect.Uint8,
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Uint64:
+		return true
+	}
+	return false
 }
