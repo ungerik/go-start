@@ -105,7 +105,8 @@ func RenderViewBindURLArgs(renderFunc interface{}) RenderView {
 			}
 			results := v.Call(args)
 			if t.NumOut() == 1 {
-				return results[0].Interface().(error)
+				err, _ := results[0].Interface().(error)
+				return err
 			}
 			return nil
 		},

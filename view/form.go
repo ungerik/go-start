@@ -115,10 +115,10 @@ func OnFormSubmit(onSubmitFunc interface{}) OnFormSubmitFunc {
 			message = results[iMessage].Interface().(string)
 		}
 		if iRedirect != -1 {
-			redirect = results[iRedirect].Interface().(URL)
+			redirect, _ = results[iRedirect].Interface().(URL)
 		}
 		if iError != -1 {
-			err = results[iError].Interface().(error)
+			err, _ = results[iError].Interface().(error)
 		}
 		return message, redirect, err
 	}
@@ -146,64 +146,6 @@ Example:
 */
 func _OnFormSubmitBindURLArgs(onSubmitFunc interface{}) OnFormSubmitFunc {
 	panic("todo")
-
-	v := reflect.ValueOf(onSubmitFunc)
-	t := v.Type()
-	if t.Kind() != reflect.Func {
-		panic(fmt.Errorf("OnFormSubmitBindURLArgs: onSubmitFunc must be a function, got %T", onSubmitFunc))
-	}
-	passContext := false
-	if t.NumIn() > 0 {
-		passContext = t.In(0) == reflect.TypeOf((*Context)(nil))
-		if !passContext && !reflection.CanStringToValueOfType(t.In(0)) {
-			panic(fmt.Errorf("OnFormSubmitBindURLArgs: onSubmitFunc's first argument must type must be of type *view.Context or convertible from string, got %s", t.In(0)))
-		}
-	}
-	for i := 1; i < t.NumIn(); i++ {
-		if !reflection.CanStringToValueOfType(t.In(i)) {
-			panic(fmt.Errorf("OnFormSubmitBindURLArgs: onSubmitFunc's argument #%d must type must be convertible from string, got %s", i, t.In(i)))
-		}
-	}
-	switch t.NumOut() {
-	case 2:
-		if t.Out(1) != reflection.TypeOfError {
-			panic(fmt.Errorf("OnFormSubmitBindURLArgs: onSubmitFunc's second result must be of type error, got %s", t.Out(1)))
-		}
-		fallthrough
-	case 1:
-		if t.Out(0) != reflect.TypeOf((*View)(nil)).Elem() {
-			panic(fmt.Errorf("OnFormSubmitBindURLArgs: onSubmitFunc's first result must be of type view.View, got %s", t.Out(0)))
-		}
-	default:
-		panic(fmt.Errorf("OnFormSubmitBindURLArgs: onSubmitFunc must have one or two results, got %d", t.NumOut()))
-	}
-	return func(form *Form, formModel interface{}, ctx *Context) (message string, redirect URL, err error) {
-		args := make([]reflect.Value, t.NumIn())
-		for i := 0; i < t.NumIn(); i++ {
-			if i == 0 && passContext {
-				args[0] = reflect.ValueOf(ctx)
-			} else {
-				iu := i
-				if passContext {
-					iu--
-				}
-				if iu < len(ctx.URLArgs) {
-					val, err := reflection.StringToValueOfType(ctx.URLArgs[iu], t.In(i))
-					if err != nil {
-						return "", nil, err
-					}
-					args[i] = reflect.ValueOf(val)
-				} else {
-					args[i] = reflect.Zero(t.In(i))
-				}
-			}
-		}
-		results := v.Call(args)
-		if t.NumOut() == 2 {
-			err = results[1].Interface().(error)
-		}
-		return message, redirect, err
-	}
 }
 
 /*

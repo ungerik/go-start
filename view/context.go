@@ -1,6 +1,8 @@
 package view
 
 import (
+	"fmt"
+
 	"github.com/ungerik/web.go"
 )
 
@@ -43,4 +45,12 @@ func (self *Context) ForURLArgs(urlArgs ...string) *Context {
 	clone := *self
 	clone.URLArgs = urlArgs
 	return &clone
+}
+
+func (self *Context) ForURLArgsConvert(urlArgs ...interface{}) *Context {
+	stringArgs := make([]string, len(urlArgs))
+	for i := range urlArgs {
+		stringArgs[i] = fmt.Sprint(urlArgs[i])
+	}
+	return self.ForURLArgs(stringArgs...)
 }

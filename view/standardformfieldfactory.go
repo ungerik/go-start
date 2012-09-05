@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strconv"
 
-	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 )
 
@@ -258,7 +257,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 func (self *StandardFormFieldFactory) NewHiddenInput(metaData *model.MetaData, form *Form) (View, error) {
 	return &HiddenInput{
 		Name:  metaData.Selector(),
-		Value: fmt.Sprintf("%v", metaData.Value.Interface()),
+		Value: fmt.Sprint(metaData.Value.Interface()),
 	}, nil
 }
 

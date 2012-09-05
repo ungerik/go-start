@@ -13,7 +13,7 @@ import (
 
 // Resize returns a scaled copy of the image slice r of m.
 // The returned image has width w and height h.
-func ResizeImage(m image.Image, r image.Rectangle, w, h int) image.Image {
+func _ResizeImage(m image.Image, r image.Rectangle, w, h int) image.Image {
 	if w < 0 || h < 0 {
 		return nil
 	}

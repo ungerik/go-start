@@ -115,9 +115,10 @@ func DynamicViewBindURLArgs(getViewFunc interface{}) DynamicView {
 			}
 			results := v.Call(args)
 			if t.NumOut() == 2 {
-				err = results[1].Interface().(error)
+				err, _ = results[1].Interface().(error)
 			}
-			return results[0].Interface().(View), err
+			view, _ = results[0].Interface().(View)
+			return view, err
 		},
 	)
 }

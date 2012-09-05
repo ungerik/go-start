@@ -32,6 +32,16 @@ func (self *FormFieldFactory) CanCreateInput(metaData *model.MetaData, form *vie
 	return self.FormFieldFactoryWrapper.Wrapped.CanCreateInput(metaData, form)
 }
 
+const registerUploaderScript = `jQuery(function() {
+	var uploader = new qq.FileUploader({
+	    element: document.getElementById("%s"),
+	    action: "%s",
+	    allowedExtensions: ["png", "jpg", "jpeg", "gif", "bmp", "tif", "tiff"],
+	    acceptFiles: ["image/png", "image/jpeg", "image/gif", "image/bmp", "image/tiff"],
+	    multiple: false
+	});
+})`
+
 func (self *FormFieldFactory) NewInput(withLabel bool, metaData *model.MetaData, form *view.Form) (view.View, error) {
 	if imageRef, ok := metaData.Value.Addr().Interface().(*ImageRef); ok {
 		var img view.View
@@ -39,6 +49,7 @@ func (self *FormFieldFactory) NewInput(withLabel bool, metaData *model.MetaData,
 		var requires view.View
 
 		if !Config.NoDynamicStyleAndScript {
+			// Uses https://github.com/valums/file-uploader
 			requires = view.Views{
 				view.RequireStyleURL("/media/fileuploader.css", 0),
 				view.RequireScriptURL("/media/fileuploader.js", 0),
@@ -61,23 +72,34 @@ func (self *FormFieldFactory) NewInput(withLabel bool, metaData *model.MetaData,
 			img = version.ViewImage("")
 		}
 
+		thumbnailFrame := &view.Div{
+			Class:   "media-thumbnail-frame",
+			Style:   fmt.Sprintf("width:%dpx;height:%dpx;", self.ThumbnailSize, self.ThumbnailSize),
+			Content: img,
+		}
+
+		uploader := view.DIV("uploader")
+		uploaderID := uploader.ID()
+		uploaderScript := view.RenderView(
+			func(ctx *view.Context) error {
+				uploadURL := UploadImage.URL(ctx.ForURLArgsConvert(self.ThumbnailSize))
+				script := fmt.Sprintf(registerUploaderScript, uploaderID, uploadURL)
+				ctx.Response.RequireScript(script, 20)
+				return nil
+			},
+		)
+
 		editor := view.DIV(self.ImageWidgetClass,
 			requires,
 			&view.HiddenInput{Name: metaData.Selector(), Value: imageRef.String()},
-			&view.Div{
-				Class:   "media-thumbnail-frame",
-				Style:   fmt.Sprintf("width:%dpx;height:%dpx;", self.ThumbnailSize, self.ThumbnailSize),
-				Content: img,
-			},
+			thumbnailFrame,
 			view.DIV("media-actions-frame",
 				view.HTML("&larr; drag &amp; drop files here"),
 				view.BR(),
-				&view.Button{
-					Content: view.HTML("Upload"),
-					OnClick: "",
-				},
-				view.BR(),
 				removeButton,
+				view.BR(),
+				uploader,
+				uploaderScript,
 			),
 			view.DivClearBoth(),
 		)

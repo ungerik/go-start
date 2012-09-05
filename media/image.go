@@ -14,6 +14,7 @@ import (
 	_ "code.google.com/p/go.image/bmp"
 	_ "code.google.com/p/go.image/tiff"
 
+	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 )
 
@@ -232,7 +233,7 @@ func (self *Image) VersionSourceRect(sourceRect image.Rectangle, width, height i
 
 	var versionImage image.Image
 	if sourceRect.In(self.Rectangle()) {
-		versionImage = ResizeImage(origImage, sourceRect, width, height)
+		versionImage = ResampleImage(origImage, sourceRect, width, height)
 		if grayscale && !self.Grayscale() {
 			var grayVersion image.Image = image.NewGray(versionImage.Bounds())
 			draw.Draw(grayVersion.(draw.Image), versionImage.Bounds(), versionImage, image.ZP, draw.Src)
@@ -257,7 +258,7 @@ func (self *Image) VersionSourceRect(sourceRect image.Rectangle, width, height i
 		destRect.Min.Y = int(float64(-sourceRect.Min.Y) / sourceH * float64(height))
 		destRect.Max.X = destRect.Min.X + int(float64(self.Width())/sourceW*float64(width))
 		destRect.Max.Y = destRect.Min.Y + int(float64(self.Height())/sourceH*float64(height))
-		destImage := ResizeImage(origImage, origImage.Bounds(), destRect.Dx(), destRect.Dy())
+		destImage := ResampleImage(origImage, origImage.Bounds(), destRect.Dx(), destRect.Dy())
 		draw.Draw(versionImage.(draw.Image), destRect, destImage, image.ZP, draw.Src)
 	}
 
