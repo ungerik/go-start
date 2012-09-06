@@ -230,7 +230,7 @@ func (self *Collection) DocumentWithIDIterator(id bson.ObjectId, subDocSelectors
 	if len(subDocSelectors) > 0 {
 		panic("Sub document selectors are not implemented")
 	}
-	return model.NewObjectOrErrorIterator(self.DocumentWithID(id, subDocSelectors...))
+	return model.NewObjectOrErrorOnlyIterator(self.DocumentWithID(id, subDocSelectors...))
 }
 
 func (self *Collection) TryDocumentWithIDIterator(id bson.ObjectId, subDocSelectors ...string) model.Iterator {
@@ -239,7 +239,7 @@ func (self *Collection) TryDocumentWithIDIterator(id bson.ObjectId, subDocSelect
 	}
 	document, ok, err := self.TryDocumentWithID(id, subDocSelectors...)
 	if err != nil {
-		return model.NewErrorIterator(err)
+		return model.NewErrorOnlyIterator(err)
 	}
 	if !ok {
 		return model.NewObjectIterator()

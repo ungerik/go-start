@@ -57,6 +57,7 @@ func (self *FormFieldFactory) NewInput(withLabel bool, metaData *model.MetaData,
 			}
 		}
 
+		debug.Dump(imageRef)
 		if imageRef.IsEmpty() {
 			removeButton.Disabled = true
 			img = view.IMG(Config.dummyImageURL, self.ThumbnailSize, self.ThumbnailSize)

@@ -187,7 +187,7 @@ func (self *QueryError) GetOrCreateOne() (document interface{}, found bool, err 
 }
 
 func (self *QueryError) Iterator() model.Iterator {
-	return model.NewErrorIterator(self.Err)
+	return model.NewErrorOnlyIterator(self.Err)
 }
 
 func (self *QueryError) OneID() (id bson.ObjectId, err error) {

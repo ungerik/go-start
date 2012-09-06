@@ -6,25 +6,24 @@ import (
 	"github.com/ungerik/go-start/media"
 	"github.com/ungerik/go-start/mgo"
 	"github.com/ungerik/go-start/mgo/bson"
+	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/mongo"
 )
 
-type Backend struct {
+type backend struct {
 	gridFS *mgo.GridFS
 	images *mongo.Collection
 }
 
-func (self *Backend) LoadImage(id string) (*media.Image, error) {
+func (self *backend) LoadImage(id string) (*media.Image, error) {
 	doc, err := self.images.DocumentWithID(bson.ObjectIdHex(id))
 	if err != nil {
 		return nil, err
 	}
-	image := &doc.(*ImageDoc).Image
-	image.Init()
-	return image, nil
+	return doc.(*ImageDoc).GetAndInitImage(), nil
 }
 
-func (self *Backend) SaveImage(image *media.Image) error {
+func (self *backend) SaveImage(image *media.Image) error {
 	if image.ID == "" {
 		doc := self.images.NewDocument().(*ImageDoc)
 		doc.Image = *image
@@ -44,7 +43,7 @@ func (self *Backend) SaveImage(image *media.Image) error {
 	return self.images.Update(id, doc)
 }
 
-func (self *Backend) ImageVersionReader(id string) (reader io.ReadCloser, ctype string, err error) {
+func (self *backend) ImageVersionReader(id string) (reader io.ReadCloser, ctype string, err error) {
 	file, err := self.gridFS.OpenId(bson.ObjectIdHex(id))
 	if err == mgo.NotFound {
 		return nil, "", media.ErrInvalidImageID(id)
@@ -54,7 +53,7 @@ func (self *Backend) ImageVersionReader(id string) (reader io.ReadCloser, ctype 
 	return file, file.ContentType(), nil
 }
 
-func (self *Backend) ImageVersionWriter(version *media.ImageVersion) (writer io.WriteCloser, err error) {
+func (self *backend) ImageVersionWriter(version *media.ImageVersion) (writer io.WriteCloser, err error) {
 	if version.ID != "" {
 		err = self.gridFS.RemoveId(version.ID)
 		if err != nil {
@@ -71,4 +70,8 @@ func (self *Backend) ImageVersionWriter(version *media.ImageVersion) (writer io.
 	file.SetMeta(version)
 	version.ID.Set(id)
 	return file, err
+}
+
+func (self *backend) ImageIterator() model.Iterator {
+	return imageIterator{self.images.Iterator()}
 }

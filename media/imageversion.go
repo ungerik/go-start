@@ -10,18 +10,6 @@ import (
 	"github.com/ungerik/go-start/view"
 )
 
-func newImageVersion(filename, contentType string, sourceRect image.Rectangle, width, height int, grayscale bool) ImageVersion {
-	version := ImageVersion{
-		Filename:    model.String(filename),
-		ContentType: model.String(contentType),
-		Width:       model.Int(width),
-		Height:      model.Int(height),
-		Grayscale:   model.Bool(grayscale),
-	}
-	version.SourceRect.SetRectangle(sourceRect)
-	return version
-}
-
 type ImageVersion struct {
 	image        *Image
 	ID           model.String `bson:",omitempty"`
@@ -95,11 +83,11 @@ func (self *ImageVersion) LoadImage() (image.Image, error) {
 
 func (self *ImageVersion) ViewImage(class string) *view.Image {
 	return &view.Image{
-		URL:         self.URL(),
-		Width:       self.Width.GetInt(),
-		Height:      self.Height.GetInt(),
-		Description: self.image.Description.Get(),
-		Class:       class,
+		URL:    self.URL(),
+		Width:  self.Width.GetInt(),
+		Height: self.Height.GetInt(),
+		Title:  self.image.Title.Get(),
+		Class:  class,
 	}
 }
 
@@ -107,7 +95,7 @@ func (self *ImageVersion) ViewImageLink(imageClass, linkClass string) *view.Link
 	return &view.Link{
 		Model: &view.StringLink{
 			Url:     self.image.Link.Get(),
-			Title:   self.image.Description.Get(),
+			Title:   self.image.Title.Get(),
 			Content: self.ViewImage(imageClass),
 		},
 		Class: linkClass,

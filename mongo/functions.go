@@ -176,7 +176,7 @@ func DereferenceIterator(refs ...Ref) model.Iterator {
 		docs[i], err = refs[i].Get()
 		if err != nil {
 			err = errs.Format("%s: %s", refs[i].ID.Hex(), err.Error())
-			return model.NewErrorIterator(err)
+			return model.NewErrorOnlyIterator(err)
 		}
 	}
 	return model.NewObjectIterator(docs...)

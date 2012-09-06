@@ -22,7 +22,7 @@ func (self *Configuration) Init() error {
 	if mongo.Database == nil {
 		panic("Package mongo must be initialized before mongomedia")
 	}
-	media.Config.Backend = &Backend{
+	media.Config.Backend = &backend{
 		gridFS: mongo.Database.GridFS(self.GridFSName),
 		images: mongo.NewCollection(self.GridFSName+".images", (*ImageDoc)(nil)),
 	}

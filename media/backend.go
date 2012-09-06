@@ -2,6 +2,8 @@ package media
 
 import (
 	"io"
+
+	"github.com/ungerik/go-start/model"
 )
 
 type Backend interface {
@@ -21,6 +23,8 @@ type Backend interface {
 	// of an existing image. version.ID can be changed by the function call
 	// regardless of the former value
 	ImageVersionWriter(version *ImageVersion) (writer io.WriteCloser, err error)
+
+	ImageIterator() model.Iterator
 }
 
 type ErrInvalidImageID string

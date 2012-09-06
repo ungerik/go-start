@@ -14,8 +14,8 @@ import (
 	_ "code.google.com/p/go.image/bmp"
 	_ "code.google.com/p/go.image/tiff"
 
-	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
+	"github.com/ungerik/go-start/view"
 )
 
 type HorAlignment int
@@ -83,7 +83,9 @@ func NewImage(filename string, data []byte) (*Image, error) {
 		}
 	}
 
-	version := newImageVersion(
+	image := new(Image)
+
+	version := image.addVersion(
 		MakePrettyUrlFilename(filename),
 		"image/"+t,
 		i.Bounds(),
@@ -96,16 +98,14 @@ func NewImage(filename string, data []byte) (*Image, error) {
 		return nil, err
 	}
 
-	image := &Image{Versions: []ImageVersion{version}}
-	image.Init()
 	return image, nil
 }
 
 type Image struct {
-	ID          model.String `bson:",omitempty"`
-	Description model.String
-	Link        model.Url
-	Versions    []ImageVersion
+	ID       model.String `bson:",omitempty"`
+	Title    model.String
+	Link     model.Url
+	Versions []ImageVersion
 }
 
 func (self *Image) Init() {
@@ -114,8 +114,31 @@ func (self *Image) Init() {
 	}
 }
 
+func (self *Image) addVersion(filename, contentType string, sourceRect image.Rectangle, width, height int, grayscale bool) *ImageVersion {
+	version := ImageVersion{
+		image:       self,
+		Filename:    model.String(filename),
+		ContentType: model.String(contentType),
+		Width:       model.Int(width),
+		Height:      model.Int(height),
+		Grayscale:   model.Bool(grayscale),
+	}
+	version.SourceRect.SetRectangle(sourceRect)
+	self.Versions = append(self.Versions, version)
+	return &self.Versions[len(self.Versions)-1]
+}
+
 func (self *Image) Filename() string {
 	return self.Versions[0].Filename.Get()
+}
+
+// TitleOrFilename returns Title if not empty,
+// or else Filename().
+func (self *Image) TitleOrFilename() string {
+	if self.Title.IsEmpty() {
+		return self.Filename()
+	}
+	return self.Title.Get()
 }
 
 func (self *Image) ContentType() string {
@@ -136,6 +159,10 @@ func (self *Image) Rectangle() image.Rectangle {
 
 func (self *Image) Grayscale() bool {
 	return self.Versions[0].Grayscale.Get()
+}
+
+func (self *Image) URL() view.URL {
+	return self.Versions[0].URL()
 }
 
 // AspectRatio returns Width / Height
@@ -263,8 +290,7 @@ func (self *Image) VersionSourceRect(sourceRect image.Rectangle, width, height i
 	}
 
 	// Save new image version
-	self.Versions = append(self.Versions, newImageVersion(self.Filename(), self.ContentType(), sourceRect, width, height, grayscale))
-	version := &self.Versions[len(self.Versions)-1]
+	version := self.addVersion(self.Filename(), self.ContentType(), sourceRect, width, height, grayscale)
 	err = version.SaveImage(versionImage)
 	if err != nil {
 		return nil, err

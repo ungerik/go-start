@@ -4,9 +4,9 @@ func NewObjectIterator(objects ...interface{}) Iterator {
 	return &ObjectIterator{objects: objects}
 }
 
-func NewObjectOrErrorIterator(object interface{}, err error) Iterator {
+func NewObjectOrErrorOnlyIterator(object interface{}, err error) Iterator {
 	if err != nil {
-		return NewErrorIterator(err)
+		return NewErrorOnlyIterator(err)
 	}
 	return NewObjectIterator(object)
 }
