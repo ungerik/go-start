@@ -43,6 +43,20 @@ func (self *backend) SaveImage(image *media.Image) error {
 	return self.images.Update(id, doc)
 }
 
+func (self *backend) DeleteImage(image *media.Image) error {
+	for i := range image.Versions {
+		err := self.DeleteImageVersion(image.Versions[i].ID.Get())
+		if err != nil {
+			return err
+		}
+	}
+	return self.images.Remove(bson.ObjectIdHex(image.ID.Get()))
+}
+
+func (self *backend) DeleteImageVersion(id string) error {
+	return self.gridFS.RemoveId(id)
+}
+
 func (self *backend) ImageVersionReader(id string) (reader io.ReadCloser, ctype string, err error) {
 	file, err := self.gridFS.OpenId(bson.ObjectIdHex(id))
 	if err == mgo.NotFound {

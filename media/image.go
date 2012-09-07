@@ -114,6 +114,14 @@ func (self *Image) Init() {
 	}
 }
 
+func (self *Image) Save() error {
+	return Config.Backend.SaveImage(self)
+}
+
+func (self *Image) Delete() error {
+	return Config.Backend.DeleteImage(self)
+}
+
 func (self *Image) addVersion(filename, contentType string, sourceRect image.Rectangle, width, height int, grayscale bool) *ImageVersion {
 	version := ImageVersion{
 		image:       self,
@@ -126,6 +134,15 @@ func (self *Image) addVersion(filename, contentType string, sourceRect image.Rec
 	version.SourceRect.SetRectangle(sourceRect)
 	self.Versions = append(self.Versions, version)
 	return &self.Versions[len(self.Versions)-1]
+}
+
+func (self *Image) DeleteVersion(index int) error {
+	err := Config.Backend.DeleteImageVersion(self.Versions[index].ID.Get())
+	if err != nil {
+		return err
+	}
+	self.Versions = append(self.Versions[:index], self.Versions[index+1:]...)
+	return nil
 }
 
 func (self *Image) Filename() string {

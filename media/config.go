@@ -16,7 +16,7 @@ var Config = Configuration{
 	DummyImageColor: "#a8a8a8",
 	ImagesAdmin: ImagesAdminConfiguration{
 		Class:          "media-images-admin",
-		ThumbnailSize:  100,
+		ThumbnailSize:  150,
 		ThumbnailClass: "media-images-admin-thumbnail",
 	},
 }
@@ -25,6 +25,7 @@ type ImagesAdminConfiguration struct {
 	Class          string
 	ThumbnailSize  int
 	ThumbnailClass string
+	ButtonClass    string
 }
 
 type Configuration struct {

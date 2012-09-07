@@ -12,6 +12,9 @@ type Backend interface {
 	// SaveImage saves image and updates its ID if it is empty.
 	SaveImage(image *Image) error
 
+	DeleteImage(image *Image) error
+	DeleteImageVersion(id string) error
+
 	// ImageVersionReader returns an io.ReadCloser to read the image-data
 	// with the given id from the backend.
 	// If there is no image with the given id,
