@@ -32,14 +32,14 @@ func (self *backend) SaveImage(image *media.Image) error {
 			return err
 		}
 		image.ID.Set(id.Hex())
-		return nil
+		doc.Image.ID = image.ID
+		return self.images.Update(id, doc)
 	}
 
 	id := bson.ObjectIdHex(image.ID.Get())
 	doc := self.images.NewDocument().(*ImageDoc)
 	doc.SetObjectId(id)
 	doc.Image = *image
-	doc.Image.ID = ""
 	return self.images.Update(id, doc)
 }
 

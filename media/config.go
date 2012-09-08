@@ -15,17 +15,32 @@ http://deepliquid.com/content/Jcrop.html
 var Config = Configuration{
 	DummyImageColor: "#a8a8a8",
 	ImagesAdmin: ImagesAdminConfiguration{
-		Class:          "media-images-admin",
-		ThumbnailSize:  150,
-		ThumbnailClass: "media-images-admin-thumbnail",
+		ImageEditorClass:    "media-image-editor",
+		ThumbnailSize:       150,
+		ThumbnailFrameClass: "thumbnail-frame",
+		ActionsClass:        "actions",
+	},
+	ImageRefEditor: ImageRefEditorConfiguration{
+		Class:               "media-imageref-editor",
+		ThumbnailSize:       50,
+		ThumbnailFrameClass: "thumbnail-frame",
+		ActionsClass:        "actions",
 	},
 }
 
 type ImagesAdminConfiguration struct {
-	Class          string
-	ThumbnailSize  int
-	ThumbnailClass string
-	ButtonClass    string
+	ImageEditorClass    string
+	ThumbnailSize       int
+	ThumbnailFrameClass string
+	ActionsClass        string
+	ButtonClass         string
+}
+
+type ImageRefEditorConfiguration struct {
+	Class               string
+	ThumbnailFrameClass string
+	ThumbnailSize       int
+	ActionsClass        string
 }
 
 type Configuration struct {
@@ -34,6 +49,7 @@ type Configuration struct {
 	DummyImageColor         string // web color
 	dummyImageURL           string
 	ImagesAdmin             ImagesAdminConfiguration
+	ImageRefEditor          ImageRefEditorConfiguration
 }
 
 func (self *Configuration) Name() string {
