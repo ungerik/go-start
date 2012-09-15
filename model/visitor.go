@@ -148,7 +148,7 @@ func (self *structVisitorWrapper) StructField(depth int, v reflect.Value, f refl
 
 func (self *structVisitorWrapper) EndStruct(depth int, v reflect.Value) error {
 	self.metaData = self.end(depth, StructKind)
-	if self.metaData.Parent.IsModelValueOrChild() {
+	if self.metaData.IsModelValueOrChild() {
 		// Ignore struct fields of Value implementations
 		return nil
 	}
@@ -175,7 +175,7 @@ func (self *structVisitorWrapper) MapField(depth int, v reflect.Value, key strin
 
 func (self *structVisitorWrapper) EndMap(depth int, v reflect.Value) error {
 	self.metaData = self.end(depth, MapKind)
-	if self.metaData.Parent.IsModelValueOrChild() {
+	if self.metaData.IsModelValueOrChild() {
 		// Ignore map fields of Value implementations
 		return nil
 	}
@@ -218,7 +218,7 @@ func (self *structVisitorWrapper) EndSlice(depth int, v reflect.Value) error {
 		return self.visitor.EndNamedFields(self.metaData)
 	}
 	self.metaData = self.end(depth, SliceKind)
-	if self.metaData.Parent.IsModelValueOrChild() {
+	if self.metaData.IsModelValueOrChild() {
 		// Ignore slice fields of Value implementations
 		return nil
 	}
@@ -258,7 +258,7 @@ func (self *structVisitorWrapper) EndArray(depth int, v reflect.Value) error {
 		return self.visitor.EndNamedFields(self.metaData)
 	}
 	self.metaData = self.end(depth, ArrayKind)
-	if self.metaData.Parent.IsModelValueOrChild() {
+	if self.metaData.IsModelValueOrChild() {
 		// Ignore array fields of Value implementations
 		return nil
 	}
