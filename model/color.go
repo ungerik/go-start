@@ -96,7 +96,7 @@ func (self *Color) Validate(metaData *MetaData) error {
 // RGBA returns the color as image/color.RGBA struct.
 // If the color is empty, a default zero struct will be returned.
 func (self *Color) RGBA() color.RGBA {
-	if len(*self) > 0 {
+	if self.IsEmpty() {
 		return color.RGBA{}
 	}
 	b, err := hex.DecodeString(self.String()[1:])

@@ -11,7 +11,7 @@ import (
 func newIterator(query Query) model.Iterator {
 	mgoQuery, err := query.mongoQuery()
 	if err != nil {
-		return model.NewErrorIterator(err)
+		return model.NewErrorOnlyIterator(err)
 	}
 	mgoIter := mgoQuery.Iter()
 	collection, selectors := collectionAndSubDocumentSelectors(query)

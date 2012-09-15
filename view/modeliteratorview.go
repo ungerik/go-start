@@ -9,7 +9,7 @@ import (
 // ModelIteratorView
 
 type GetModelIteratorFunc func(ctx *Context) model.Iterator
-type GetModelIteratorViewFunc func(model interface{}, ctx *Context) (view View, err error)
+type GetModelIteratorViewFunc func(ctx *Context, model interface{}) (view View, err error)
 
 func ModelIterator(iter model.Iterator) GetModelIteratorFunc {
 	return func(ctx *Context) model.Iterator {
@@ -28,7 +28,7 @@ func (self *ModelIteratorView) Render(ctx *Context) (err error) {
 
 	iter := self.GetModelIterator(ctx)
 	for model := iter.Next(); model != nil; model = iter.Next() {
-		view, err := self.GetModelIteratorView(model, ctx)
+		view, err := self.GetModelIteratorView(ctx, model)
 		if err != nil {
 			return err
 		}

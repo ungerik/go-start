@@ -13,6 +13,7 @@ import (
 	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/mongo"
+	"github.com/ungerik/go-start/reflection"
 	"github.com/ungerik/go-start/utils"
 )
 
@@ -20,6 +21,7 @@ const MultipartFormData = "multipart/form-data"
 const FormIDName = "gostart_form_id"
 
 type GetFormModelFunc func(form *Form, ctx *Context) (model interface{}, err error)
+type OnFormSubmitFunc func(form *Form, formModel interface{}, ctx *Context) (message string, redirect URL, err error)
 
 type FileUploadFormModel struct {
 	File model.File
@@ -40,8 +42,110 @@ func FormModel(model interface{}) GetFormModelFunc {
 	}
 }
 
-func SaveModel(form *Form, formModel interface{}, ctx *Context) (string, URL, error) {
+func OnFormSubmitSaveModel(form *Form, formModel interface{}, ctx *Context) (string, URL, error) {
 	return "", nil, formModel.(mongo.Document).Save()
+}
+
+// OnFormSubmit wraps onSubmitFunc as a OnFormSubmitFunc with the
+// arguments and results of OnFormSubmitFunc optional for onSubmitFunc.
+// The order of the arguments and results is also free to choose.
+func OnFormSubmit(onSubmitFunc interface{}) OnFormSubmitFunc {
+	v := reflect.ValueOf(onSubmitFunc)
+	t := v.Type()
+	if t.Kind() != reflect.Func {
+		panic(fmt.Errorf("OnFormSubmitBindURLArgs: onSubmitFunc must be a function, got %T", onSubmitFunc))
+	}
+	iForm := -1
+	for i := 0; i < t.NumIn(); i++ {
+		if t.In(i) == reflect.TypeOf((*Form)(nil)) {
+			iForm = i
+			break
+		}
+	}
+	iFormModel := -1
+	for i := 0; i < t.NumIn(); i++ {
+		if t.In(i) == reflect.TypeOf((*interface{})(nil)).Elem() {
+			iFormModel = i
+			break
+		}
+	}
+	iContext := -1
+	for i := 0; i < t.NumIn(); i++ {
+		if t.In(i) == reflect.TypeOf((*Context)(nil)) {
+			iContext = i
+			break
+		}
+	}
+	iMessage := -1
+	for i := 0; i < t.NumOut(); i++ {
+		if t.Out(i) == reflect.TypeOf((*string)(nil)).Elem() {
+			iMessage = i
+			break
+		}
+	}
+	iRedirect := -1
+	for i := 0; i < t.NumOut(); i++ {
+		if t.Out(i) == reflect.TypeOf((*URL)(nil)) {
+			iRedirect = i
+			break
+		}
+	}
+	iError := -1
+	for i := 0; i < t.NumOut(); i++ {
+		if t.Out(i) == reflection.TypeOfError {
+			iError = i
+			break
+		}
+	}
+	return func(form *Form, formModel interface{}, ctx *Context) (message string, redirect URL, err error) {
+		args := make([]reflect.Value, t.NumIn())
+		if iForm != -1 {
+			args[iForm] = reflect.ValueOf(form)
+		}
+		if iFormModel != -1 {
+			args[iFormModel] = reflect.ValueOf(formModel)
+		}
+		if iContext != -1 {
+			args[iContext] = reflect.ValueOf(ctx)
+		}
+
+		results := v.Call(args)
+
+		if iMessage != -1 {
+			message = results[iMessage].Interface().(string)
+		}
+		if iRedirect != -1 {
+			redirect, _ = results[iRedirect].Interface().(URL)
+		}
+		if iError != -1 {
+			err, _ = results[iError].Interface().(error)
+		}
+		return message, redirect, err
+	}
+}
+
+/*
+OnFormSubmitBindURLArgs creates a View where onSubmitFunc is called from View.Render
+with Context.URLArgs converted to function arguments.
+The first onSubmitFunc argument can be of type *Context, but this is optional.
+All further arguments will be converted from the corresponding Context.URLArgs
+string to their actual type.
+Conversion to integer, float, string and bool arguments are supported.
+If there are more URLArgs than function args, then supernumerous URLArgs will
+be ignored.
+If there are less URLArgs than function args, then the function args will
+receive their types zero value.
+The first result value of onSubmitFunc has to be of type View,
+the second result is optional and of type error.
+
+Example:
+
+	view.OnFormSubmitBindURLArgs(func(i int, b bool) view.View {
+		return view.Printf("ctx.URLArgs[0]: %d, ctx.URLArgs[1]: %b", i, b)
+	})
+*/
+func _OnFormSubmitBindURLArgs(onSubmitFunc interface{}) OnFormSubmitFunc {
+	panic("todo")
 }
 
 /*
@@ -143,7 +247,7 @@ type Form struct {
 		This can be used to return a readable error message for the user
 		via message and an internal error for logging via err.
 	*/
-	OnSubmit func(form *Form, formModel interface{}, ctx *Context) (message string, redirect URL, err error)
+	OnSubmit OnFormSubmitFunc
 
 	ModelMaxDepth            int      // if zero, no depth limit
 	ExcludedFields           []string // Use point notation for nested fields. In case of arrays/slices use wildcards

@@ -1,6 +1,8 @@
 package view
 
 import (
+	"fmt"
+
 	"github.com/ungerik/web.go"
 )
 
@@ -8,7 +10,8 @@ func newContext(webContext *web.Context, respondingView View, urlArgs []string) 
 	ctx := &Context{
 		URLArgs:  urlArgs,
 		Request:  newRequest(webContext),
-		Response: newResponse(webContext, respondingView),
+		Response: newResponse(webContext),
+		RespondingView: respondingView,
 	}
 	ctx.Session = newSession(ctx)
 	return ctx
@@ -18,6 +21,9 @@ type Context struct {
 	Request  *Request
 	Response *Response
 	Session  *Session
+
+	// View that responds to the HTTP request
+	RespondingView View
 
 	// Arguments parsed from the URL path
 	URLArgs []string
@@ -43,4 +49,12 @@ func (self *Context) ForURLArgs(urlArgs ...string) *Context {
 	clone := *self
 	clone.URLArgs = urlArgs
 	return &clone
+}
+
+func (self *Context) ForURLArgsConvert(urlArgs ...interface{}) *Context {
+	stringArgs := make([]string, len(urlArgs))
+	for i := range urlArgs {
+		stringArgs[i] = fmt.Sprint(urlArgs[i])
+	}
+	return self.ForURLArgs(stringArgs...)
 }

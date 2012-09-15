@@ -44,7 +44,7 @@ func (self *XMLWriter) Attrib(name string, value ...interface{}) *XMLWriter {
 
 	fmt.Fprintf(self.writer, " %s='", name)
 	for _, valuePart := range value {
-		str := html.EscapeString(fmt.Sprintf("%v", valuePart))
+		str := html.EscapeString(fmt.Sprint(valuePart))
 		self.writer.Write([]byte(str))
 	}
 	self.writer.Write([]byte{'\''})

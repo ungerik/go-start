@@ -1,14 +1,14 @@
 package model
 
 func NewLimitedIterator(iter Iterator, limit int) *LimitedIterator {
-	return &LimitedIterator{iter: iter, limit: limit}
+	return &LimitedIterator{Iterator: iter, limit: limit}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // LimitedIterator
 
 type LimitedIterator struct {
-	iter  Iterator
+	Iterator
 	limit int
 	index int
 }
@@ -18,9 +18,5 @@ func (self *LimitedIterator) Next() interface{} {
 		return nil
 	}
 	self.index++
-	return self.iter.Next()
-}
-
-func (self *LimitedIterator) Err() error {
-	return self.iter.Err()
+	return self.Iterator.Next()
 }

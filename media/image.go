@@ -15,6 +15,7 @@ import (
 	_ "code.google.com/p/go.image/tiff"
 
 	"github.com/ungerik/go-start/model"
+	"github.com/ungerik/go-start/view"
 )
 
 type HorAlignment int
@@ -82,8 +83,10 @@ func NewImage(filename string, data []byte) (*Image, error) {
 		}
 	}
 
-	version := newImageVersion(
-		MakeValidUrlFilename(filename),
+	image := new(Image)
+
+	version := image.addVersion(
+		MakePrettyUrlFilename(filename),
 		"image/"+t,
 		i.Bounds(),
 		i.Bounds().Dx(),
@@ -95,16 +98,14 @@ func NewImage(filename string, data []byte) (*Image, error) {
 		return nil, err
 	}
 
-	image := &Image{Versions: []ImageVersion{version}}
-	image.Init()
 	return image, nil
 }
 
 type Image struct {
-	ID          model.String `bson:",omitempty"`
-	Description model.String
-	Link        model.Url
-	Versions    []ImageVersion
+	ID       model.String `bson:",omitempty"`
+	Title    model.String
+	Link     model.Url
+	Versions []ImageVersion
 }
 
 func (self *Image) Init() {
@@ -113,8 +114,48 @@ func (self *Image) Init() {
 	}
 }
 
+func (self *Image) Save() error {
+	return Config.Backend.SaveImage(self)
+}
+
+func (self *Image) Delete() error {
+	return Config.Backend.DeleteImage(self)
+}
+
+func (self *Image) addVersion(filename, contentType string, sourceRect image.Rectangle, width, height int, grayscale bool) *ImageVersion {
+	version := ImageVersion{
+		image:       self,
+		Filename:    model.String(filename),
+		ContentType: model.String(contentType),
+		Width:       model.Int(width),
+		Height:      model.Int(height),
+		Grayscale:   model.Bool(grayscale),
+	}
+	version.SourceRect.SetRectangle(sourceRect)
+	self.Versions = append(self.Versions, version)
+	return &self.Versions[len(self.Versions)-1]
+}
+
+func (self *Image) DeleteVersion(index int) error {
+	err := Config.Backend.DeleteImageVersion(self.Versions[index].ID.Get())
+	if err != nil {
+		return err
+	}
+	self.Versions = append(self.Versions[:index], self.Versions[index+1:]...)
+	return nil
+}
+
 func (self *Image) Filename() string {
 	return self.Versions[0].Filename.Get()
+}
+
+// TitleOrFilename returns Title if not empty,
+// or else Filename().
+func (self *Image) TitleOrFilename() string {
+	if self.Title.IsEmpty() {
+		return self.Filename()
+	}
+	return self.Title.Get()
 }
 
 func (self *Image) ContentType() string {
@@ -135,6 +176,10 @@ func (self *Image) Rectangle() image.Rectangle {
 
 func (self *Image) Grayscale() bool {
 	return self.Versions[0].Grayscale.Get()
+}
+
+func (self *Image) URL() view.URL {
+	return self.Versions[0].URL()
 }
 
 // AspectRatio returns Width / Height
@@ -232,7 +277,7 @@ func (self *Image) VersionSourceRect(sourceRect image.Rectangle, width, height i
 
 	var versionImage image.Image
 	if sourceRect.In(self.Rectangle()) {
-		versionImage = ResizeImage(origImage, sourceRect, width, height)
+		versionImage = ResampleImage(origImage, sourceRect, width, height)
 		if grayscale && !self.Grayscale() {
 			var grayVersion image.Image = image.NewGray(versionImage.Bounds())
 			draw.Draw(grayVersion.(draw.Image), versionImage.Bounds(), versionImage, image.ZP, draw.Src)
@@ -257,13 +302,12 @@ func (self *Image) VersionSourceRect(sourceRect image.Rectangle, width, height i
 		destRect.Min.Y = int(float64(-sourceRect.Min.Y) / sourceH * float64(height))
 		destRect.Max.X = destRect.Min.X + int(float64(self.Width())/sourceW*float64(width))
 		destRect.Max.Y = destRect.Min.Y + int(float64(self.Height())/sourceH*float64(height))
-		destImage := ResizeImage(origImage, origImage.Bounds(), destRect.Dx(), destRect.Dy())
+		destImage := ResampleImage(origImage, origImage.Bounds(), destRect.Dx(), destRect.Dy())
 		draw.Draw(versionImage.(draw.Image), destRect, destImage, image.ZP, draw.Src)
 	}
 
 	// Save new image version
-	self.Versions = append(self.Versions, newImageVersion(self.Filename(), self.ContentType(), sourceRect, width, height, grayscale))
-	version := &self.Versions[len(self.Versions)-1]
+	version := self.addVersion(self.Filename(), self.ContentType(), sourceRect, width, height, grayscale)
 	err = version.SaveImage(versionImage)
 	if err != nil {
 		return nil, err

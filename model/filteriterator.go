@@ -6,7 +6,7 @@ package model
 type FilterFunc func(doc interface{}) (ok bool)
 
 type FilterIterator struct {
-	Iterator   Iterator
+	Iterator
 	PassFilter FilterFunc
 }
 
@@ -17,8 +17,4 @@ func (self *FilterIterator) Next() interface{} {
 		}
 	}
 	return nil
-}
-
-func (self *FilterIterator) Err() error {
-	return self.Iterator.Err()
 }

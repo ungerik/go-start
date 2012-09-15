@@ -2,6 +2,8 @@ package media
 
 import (
 	"io"
+
+	"github.com/ungerik/go-start/model"
 )
 
 type Backend interface {
@@ -9,6 +11,9 @@ type Backend interface {
 
 	// SaveImage saves image and updates its ID if it is empty.
 	SaveImage(image *Image) error
+
+	DeleteImage(image *Image) error
+	DeleteImageVersion(id string) error
 
 	// ImageVersionReader returns an io.ReadCloser to read the image-data
 	// with the given id from the backend.
@@ -21,6 +26,8 @@ type Backend interface {
 	// of an existing image. version.ID can be changed by the function call
 	// regardless of the former value
 	ImageVersionWriter(version *ImageVersion) (writer io.WriteCloser, err error)
+
+	ImageIterator() model.Iterator
 }
 
 type ErrInvalidImageID string

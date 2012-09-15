@@ -55,11 +55,11 @@ qq.getUniqueId = (function(){
 //
 // Browsers and platforms detection
 
-qq.ie       = function(){ return navigator.userAgent.indexOf('MSIE') != -1; }
-qq.safari   = function(){ return navigator.vendor != undefined && navigator.vendor.indexOf("Apple") != -1; }
-qq.chrome   = function(){ return navigator.vendor != undefined && navigator.vendor.indexOf('Google') != -1; }
-qq.firefox  = function(){ return (navigator.userAgent.indexOf('Mozilla') != -1 && navigator.vendor != undefined && navigator.vendor == ''); }
-qq.windows  = function(){ return navigator.platform == "Win32"; }
+qq.ie       = function(){ return navigator.userAgent.indexOf('MSIE') != -1; };
+qq.safari   = function(){ return navigator.vendor !== undefined && navigator.vendor.indexOf("Apple") != -1; };
+qq.chrome   = function(){ return navigator.vendor !== undefined && navigator.vendor.indexOf('Google') != -1; };
+qq.firefox  = function(){ return (navigator.userAgent.indexOf('Mozilla') != -1 && navigator.vendor !== undefined && navigator.vendor === ''); };
+qq.windows  = function(){ return navigator.platform == "Win32"; };
 
 //
 // Events
@@ -72,8 +72,8 @@ qq.attach = function(element, type, fn){
 		element.attachEvent('on' + type, fn);
 	}
 	return function() {
-		qq.detach(element, type, fn)
-	}
+		qq.detach(element, type, fn);
+	};
 };
 qq.detach = function(element, type, fn){
 	if (element.removeEventListener){
@@ -137,7 +137,7 @@ qq.toElement = (function(){
  * Fixes opacity in IE6-8.
  */
 qq.css = function(element, styles){
-	if (styles.opacity != null){
+	if (styles.opacity !== null){
 		if (typeof element.style.opacity != 'string' && typeof(element.filters) != 'undefined'){
 			styles.filter = 'alpha(opacity=' + Math.round(100 * styles.opacity) + ')';
 		}
@@ -649,7 +649,7 @@ qq.extend(qq.FileUploader.prototype, {
 		for(var i in dzs) if (dzs[i] === element) return this._options.extraDropzones.splice(i,1);
 	},
 	_leaving_document_out: function(e){
-		return ((qq.chrome() || (qq.safari() && qq.windows())) && e.clientX == 0 && e.clientY == 0) // null coords for Chrome and Safari Windows
+		return ((qq.chrome() || (qq.safari() && qq.windows())) && e.clientX === 0 && e.clientY === 0) // null coords for Chrome and Safari Windows
 				|| (qq.firefox() && !e.relatedTarget); // null e.relatedTarget for Firefox
 	},
 	/**

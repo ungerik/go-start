@@ -20,25 +20,13 @@ func NewCollection(name string, documentPrototype interface{}) *Collection {
 	if _, ok := collections[name]; ok {
 		panic(fmt.Sprintf("Collection %s already created", name))
 	}
-
 	t := reflect.TypeOf(documentPrototype)
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
 	collection := &Collection{Name: name, DocumentType: t}
-
 	collection.Init()
-	collections[name] = collection
-
 	return collection
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// ForeignRef
-
-type ForeignRef struct {
-	Collection *Collection
-	Selector   string
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -68,7 +56,10 @@ type Collection struct {
 
 func (self *Collection) Init() {
 	self.thisQuery = self
-	//self.collection = database.C(self.Name)
+	collections[self.Name] = self
+	if Database != nil {
+		self.collection = Database.C(self.Name)
+	}
 	// self.foreignRefs = []ForeignRef{}
 }
 
@@ -76,8 +67,14 @@ func (self *Collection) checkDBConnection() {
 	if self == nil {
 		panic("mongo.Collection is nil")
 	}
+	if self.collection == nil {
+		panic("mongo.Collection.collection is nil")
+	}
+	if self.collection.Database == nil {
+		panic("mongo.Collection.collection.Database is nil")
+	}
 	if self.collection.Database.Session == nil {
-		panic("mongo.Collection '" + self.Name + "' not initialized. Have you called mongo.AddCollection(" + self.Name + ")?")
+		panic("mongo.Collection.collection.Database.Session is nil")
 	}
 }
 
@@ -233,7 +230,7 @@ func (self *Collection) DocumentWithIDIterator(id bson.ObjectId, subDocSelectors
 	if len(subDocSelectors) > 0 {
 		panic("Sub document selectors are not implemented")
 	}
-	return model.NewObjectOrErrorIterator(self.DocumentWithID(id, subDocSelectors...))
+	return model.NewObjectOrErrorOnlyIterator(self.DocumentWithID(id, subDocSelectors...))
 }
 
 func (self *Collection) TryDocumentWithIDIterator(id bson.ObjectId, subDocSelectors ...string) model.Iterator {
@@ -242,7 +239,7 @@ func (self *Collection) TryDocumentWithIDIterator(id bson.ObjectId, subDocSelect
 	}
 	document, ok, err := self.TryDocumentWithID(id, subDocSelectors...)
 	if err != nil {
-		return model.NewErrorIterator(err)
+		return model.NewErrorOnlyIterator(err)
 	}
 	if !ok {
 		return model.NewObjectIterator()
@@ -306,3 +303,11 @@ func (self *Collection) RemoveAllNotIn(ids ...bson.ObjectId) error {
 //	}
 //	return self.collection.EnsureIndex(index)
 //}
+
+///////////////////////////////////////////////////////////////////////////////
+// ForeignRef
+
+type ForeignRef struct {
+	Collection *Collection
+	Selector   string
+}

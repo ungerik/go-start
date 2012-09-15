@@ -11,10 +11,9 @@ import (
 	"github.com/ungerik/web.go"
 )
 
-func newResponse(webContext *web.Context, respondingView View) *Response {
+func newResponse(webContext *web.Context) *Response {
 	response := &Response{
-		webContext:     webContext,
-		RespondingView: respondingView,
+		webContext: webContext,
 	}
 	response.PushBody()
 	return response
@@ -29,9 +28,6 @@ type Response struct {
 	webContext *web.Context
 
 	Session *Session
-
-	// View that responds to the HTTP request
-	RespondingView View
 
 	bodyStack []responseBody
 	// XML allowes the Response to be used as utils.XMLWriter

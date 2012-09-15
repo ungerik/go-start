@@ -11,15 +11,11 @@ import (
 func NewFormFieldFactory(wrapped view.FormFieldFactory, imageWidgetClass string, thumbnailsize int) *FormFieldFactory {
 	return &FormFieldFactory{
 		FormFieldFactoryWrapper: view.FormFieldFactoryWrapper{wrapped},
-		ImageWidgetClass:        imageWidgetClass,
-		ThumbnailSize:           thumbnailsize,
 	}
 }
 
 type FormFieldFactory struct {
 	view.FormFieldFactoryWrapper
-	ImageWidgetClass string
-	ThumbnailSize    int
 }
 
 func (self *FormFieldFactory) CanCreateInput(metaData *model.MetaData, form *view.Form) bool {
@@ -34,50 +30,55 @@ func (self *FormFieldFactory) CanCreateInput(metaData *model.MetaData, form *vie
 
 func (self *FormFieldFactory) NewInput(withLabel bool, metaData *model.MetaData, form *view.Form) (view.View, error) {
 	if imageRef, ok := metaData.Value.Addr().Interface().(*ImageRef); ok {
+		thumbnailSize := Config.ImageRefEditor.ThumbnailSize
+		removeButton := &view.Button{Content: view.HTML("Remove"), OnClick: ""}
+
 		var img view.View
-		var removeButton = &view.Button{Content: view.HTML("Remove"), OnClick: ""}
-		var requires view.View
-
-		if !Config.NoDynamicStyleAndScript {
-			requires = view.Views{
-				view.RequireStyleURL("/media/fileuploader.css", 0),
-				view.RequireScriptURL("/media/fileuploader.js", 0),
-				view.RequireScriptURL("/media/media.js", 10),
-			}
-		}
-
 		if imageRef.IsEmpty() {
 			removeButton.Disabled = true
-			img = view.IMG(Config.dummyImageURL, self.ThumbnailSize, self.ThumbnailSize)
+			img = view.IMG(Config.dummyImageURL, thumbnailSize, thumbnailSize)
 		} else {
 			image, err := imageRef.GetImage()
 			if err != nil {
 				return nil, err
 			}
-			version, err := image.Thumbnail(self.ThumbnailSize)
+			version, err := image.Thumbnail(thumbnailSize)
 			if err != nil {
 				return nil, err
 			}
 			img = version.ViewImage("")
 		}
 
-		editor := view.DIV(self.ImageWidgetClass,
-			requires,
-			&view.HiddenInput{Name: metaData.Selector(), Value: imageRef.String()},
-			&view.Div{
-				Class:   "media-thumbnail-frame",
-				Style:   fmt.Sprintf("width:%dpx;height:%dpx;", self.ThumbnailSize, self.ThumbnailSize),
-				Content: img,
-			},
-			view.DIV("media-actions-frame",
+		hiddenInput := &view.HiddenInput{Name: metaData.Selector(), Value: imageRef.String()}
+
+		thumbnailFrame := &view.Div{
+			Class:   Config.ImageRefEditor.ThumbnailFrameClass,
+			Style:   fmt.Sprintf("width:%dpx;height:%dpx;", thumbnailSize, thumbnailSize),
+			Content: img,
+		}
+
+		const onCompleteSrc = `function(id, fileName, responseJSON) {
+			alert(JSON.stringify(responseJSON));
+			var img = "<img src='" + responseJSON.thumbnailURL + "' width='%d' height='%d'/>";
+			jQuery("#%s").empty().html(img);
+			jQuery("#%s").attr("value", responseJSON.imageID);
+		}`
+		onComplete := fmt.Sprintf(
+			onCompleteSrc,
+			thumbnailSize,
+			thumbnailSize,
+			thumbnailFrame.ID(),
+			hiddenInput.ID(),
+		)
+		// onComplete = ""
+
+		editor := view.DIV(Config.ImageRefEditor.Class,
+			hiddenInput,
+			thumbnailFrame,
+			view.DIV(Config.ImageRefEditor.ActionsClass,
 				view.HTML("&larr; drag &amp; drop files here"),
-				view.BR(),
-				&view.Button{
-					Content: view.HTML("Upload"),
-					OnClick: "",
-				},
-				view.BR(),
 				removeButton,
+				UploadImageButton(thumbnailSize, onComplete),
 			),
 			view.DivClearBoth(),
 		)
