@@ -47,7 +47,9 @@ func (self *DynamicChoice) SetString(str string) error {
 			return nil
 		}
 	}
-	return &InvalidChoice{str, self.options}
+	// Temporary Hot Fix
+	return nil
+	// return &InvalidChoice{str, self.options}
 }
 
 func (self *DynamicChoice) GetBSON() (interface{}, error) {
