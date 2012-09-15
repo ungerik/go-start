@@ -6,10 +6,13 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"os"
 	"path"
 
 	"github.com/ungerik/go-start/debug"
 )
+
+var Logger = log.New(os.Stderr, "", log.LstdFlags)
 
 type Package interface {
 	Name() string
@@ -23,7 +26,7 @@ func Load(configFile string, packages ...Package) {
 	debug.Nop()
 	data, err := ioutil.ReadFile(configFile)
 	if err != nil {
-		log.Panicf("Error while reading config file %s: %s", configFile, err)
+		Logger.Panicf("Error while reading config file %s: %s", configFile, err)
 	}
 	Packages = packages
 	switch path.Ext(configFile) {
@@ -32,7 +35,7 @@ func Load(configFile string, packages ...Package) {
 		var buf bytes.Buffer
 		err = json.Compact(&buf, data)
 		if err != nil {
-			log.Panicf("Error in JSON config file %s: %s", configFile, err)
+			Logger.Panicf("Error in JSON config file %s: %s", configFile, err)
 		}
 		data = buf.Bytes()
 
@@ -62,11 +65,11 @@ func Load(configFile string, packages ...Package) {
 
 			err = json.Unmarshal(data[begin:end], pkg)
 			if err != nil {
-				log.Panicf("Error while unmarshalling JSON from config file %s: %s", configFile, err)
+				Logger.Panicf("Error while unmarshalling JSON from config file %s: %s", configFile, err)
 			}
 			err := pkg.Init()
 			if err != nil {
-				log.Panicf("Error while initializing package %s: %s", pkg.Name(), err)
+				Logger.Panicf("Error while initializing package %s: %s", pkg.Name(), err)
 			}
 		}
 
@@ -79,7 +82,7 @@ func Close() {
 	for i := len(Packages) - 1; i >= 0; i-- {
 		err := Packages[i].Close()
 		if err != nil {
-			log.Println("Error while closing package %s: %s", Packages[i].Name(), err)
+			Logger.Println("Error while closing package %s: %s", Packages[i].Name(), err)
 		}
 	}
 }

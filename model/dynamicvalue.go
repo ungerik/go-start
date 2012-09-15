@@ -8,6 +8,9 @@ import (
 
 var DynamicValueType = reflect.TypeOf(DynamicValue{})
 
+// DynamicValue can be used to build a model dynamically
+// instead of using a static typed struct.
+// See DynamicValues
 type DynamicValue struct {
 	Name string
 	Value
@@ -54,6 +57,8 @@ func (self *DynamicValue) SetBSON(raw bson.Raw) error {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// DynamicValues is used to create a model dynamically instead
+// of using a static typed struct.
 type DynamicValues []DynamicValue
 
 func (self DynamicValues) Get(name string) (value *DynamicValue, found bool) {

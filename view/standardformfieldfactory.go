@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	// "github.com/ungerik/go-start/debug"
+	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/model"
 )
 
@@ -150,6 +150,20 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 			Size:     1,
 		}
 
+	case *model.MultipleChoice:
+		options := s.Options(metaData)
+		checkboxes := make(Views, len(options))
+		for i, option := range options {
+			checkboxes[i] = &Checkbox{
+				Label:    option,
+				Class:    form.FieldInputClass(metaData),
+				Name:     fmt.Sprintf("%s_%d", metaData.Selector(), i),
+				Disabled: form.IsFieldDisabled(metaData),
+				Checked:  s.IsSet(option),
+			}
+		}
+		input = checkboxes
+
 	case *model.DynamicChoice:
 		options := s.Options()
 		index := s.Index()
@@ -246,7 +260,7 @@ func (self *StandardFormFieldFactory) NewInput(withLabel bool, metaData *model.M
 		}
 
 	default:
-		return nil, fmt.Errorf("Unsupported model.Value type %T", metaData.Value.Addr().Interface())
+		return nil, errs.Format("Unsupported model.Value type '%T' at %s", metaData.Value.Interface(), metaData.Selector())
 	}
 
 	if withLabel {

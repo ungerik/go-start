@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"reflect"
 	"strconv"
 	"strings"
 	// "mime/multipart"
 
+	"github.com/ungerik/go-start/config"
 	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/mongo"
@@ -307,7 +307,7 @@ func (self *Form) IsFieldExcluded(field *model.MetaData, ctx *Context) bool {
 						return false
 					}
 					if err != nil {
-						log.Println("Error in view.Form.IsFieldExcluded(): " + err.Error())
+						config.Logger.Println("Error in view.Form.IsFieldExcluded(): " + err.Error())
 					}
 				}
 				// }
@@ -552,11 +552,19 @@ func (self *setPostValuesStructVisitor) trySetFieldValue(field *model.MetaData) 
 	switch s := field.Value.Addr().Interface().(type) {
 	case model.Reference:
 		// we don't handle references with forms yet
-		return nil
 
 	case *model.Bool:
 		s.Set(self.ctx.Request.FormValue(field.Selector()) != "")
-		return nil
+
+	case *model.MultipleChoice:
+		options := s.Options(field)
+		*s = nil
+		for i, option := range options {
+			name := fmt.Sprintf("%s_%d", field.Selector(), i)
+			if self.ctx.Request.FormValue(name) != "" {
+				*s = append(*s, option)
+			}
+		}
 
 	case *model.Blob:
 		file, _, err := self.ctx.Request.FormFile(field.Selector())
@@ -569,7 +577,6 @@ func (self *setPostValuesStructVisitor) trySetFieldValue(field *model.MetaData) 
 			return err
 		}
 		s.Set(bytes)
-		return nil
 
 	case *model.File:
 		file, header, err := self.ctx.Request.FormFile(field.Selector())
@@ -583,11 +590,10 @@ func (self *setPostValuesStructVisitor) trySetFieldValue(field *model.MetaData) 
 		}
 		s.Name = header.Filename
 		s.Data = bytes
-		return nil
 
 	case model.Value:
+		// General case
 		s.SetString(self.ctx.Request.FormValue(field.Selector()))
-		return nil
 	}
 	return nil
 }

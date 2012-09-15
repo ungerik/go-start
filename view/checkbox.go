@@ -15,7 +15,7 @@ type Checkbox struct {
 
 func (self *Checkbox) Render(ctx *Context) (err error) {
 	ctx.Response.XML.OpenTag("input")
-	ctx.Response.XML.Attrib(self.ID(), self.id)
+	ctx.Response.XML.Attrib("id", self.ID())
 	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
 	ctx.Response.XML.Attrib("type", "checkbox")
 	ctx.Response.XML.Attrib("name", self.Name)

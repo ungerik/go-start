@@ -29,6 +29,7 @@ func VisitMaxDepth(model interface{}, maxDepth int, visitor Visitor) error {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+// todo fix special case of empty structs
 type structVisitorWrapper struct {
 	visitor  Visitor
 	metaData *MetaData
@@ -127,45 +128,57 @@ func (self *structVisitorWrapper) namedFieldMetaData(depth int, v reflect.Value,
 }
 
 func (self *structVisitorWrapper) BeginStruct(depth int, v reflect.Value) error {
-	if v.Type() == DynamicValueType {
-		// Ignore struct fields of DynamicValue
+	self.metaData = self.begin(depth, v, StructKind)
+	if self.metaData.IsModelValueOrChild() {
+		// Ignore struct fields of Value implementations
 		return nil
 	}
-	self.metaData = self.begin(depth, v, StructKind)
 	return self.visitor.BeginNamedFields(self.metaData)
 }
 
 func (self *structVisitorWrapper) StructField(depth int, v reflect.Value, f reflect.StructField, index int) error {
-	if self.metaData.Parent != nil && self.metaData.Parent.Kind == DynamicKind {
-		// Ignore struct fields of DynamicValue
-		return nil
-	}
 	self.metaData = self.namedFieldMetaData(depth, v, f.Name, index)
 	self.metaData.tag = f.Tag
+	if self.metaData.Parent.IsModelValueOrChild() {
+		// Ignore struct fields of Value implementations
+		return nil
+	}
 	return self.visitor.NamedField(self.metaData)
 }
 
 func (self *structVisitorWrapper) EndStruct(depth int, v reflect.Value) error {
-	if v.Type() == DynamicValueType {
-		// Ignore struct fields of DynamicValue
+	self.metaData = self.end(depth, StructKind)
+	if self.metaData.Parent.IsModelValueOrChild() {
+		// Ignore struct fields of Value implementations
 		return nil
 	}
-	self.metaData = self.end(depth, StructKind)
 	return self.visitor.EndNamedFields(self.metaData)
 }
 
 func (self *structVisitorWrapper) BeginMap(depth int, v reflect.Value) error {
 	self.metaData = self.begin(depth, v, MapKind)
+	if self.metaData.IsModelValueOrChild() {
+		// Ignore map fields of Value implementations
+		return nil
+	}
 	return self.visitor.BeginNamedFields(self.metaData)
 }
 
 func (self *structVisitorWrapper) MapField(depth int, v reflect.Value, key string, index int) error {
 	self.metaData = self.namedFieldMetaData(depth, v, key, index)
+	if self.metaData.Parent.IsModelValueOrChild() {
+		// Ignore map fields of Value implementations
+		return nil
+	}
 	return self.visitor.NamedField(self.metaData)
 }
 
 func (self *structVisitorWrapper) EndMap(depth int, v reflect.Value) error {
 	self.metaData = self.end(depth, MapKind)
+	if self.metaData.Parent.IsModelValueOrChild() {
+		// Ignore map fields of Value implementations
+		return nil
+	}
 	return self.visitor.EndNamedFields(self.metaData)
 }
 
@@ -176,6 +189,10 @@ func (self *structVisitorWrapper) BeginSlice(depth int, v reflect.Value) error {
 		return self.visitor.BeginNamedFields(self.metaData)
 	}
 	self.metaData = self.begin(depth, v, SliceKind)
+	if self.metaData.IsModelValueOrChild() {
+		// Ignore slice fields of Value implementations
+		return nil
+	}
 	return self.visitor.BeginIndexedFields(self.metaData)
 }
 
@@ -187,6 +204,10 @@ func (self *structVisitorWrapper) SliceField(depth int, v reflect.Value, index i
 		return self.visitor.NamedField(self.metaData)
 	}
 	self.metaData = self.indexedFieldMetaData(depth, v, index, SliceKind)
+	if self.metaData.Parent.IsModelValueOrChild() {
+		// Ignore slice fields of Value implementations
+		return nil
+	}
 	return self.visitor.IndexedField(self.metaData)
 }
 
@@ -197,6 +218,10 @@ func (self *structVisitorWrapper) EndSlice(depth int, v reflect.Value) error {
 		return self.visitor.EndNamedFields(self.metaData)
 	}
 	self.metaData = self.end(depth, SliceKind)
+	if self.metaData.Parent.IsModelValueOrChild() {
+		// Ignore slice fields of Value implementations
+		return nil
+	}
 	return self.visitor.EndIndexedFields(self.metaData)
 }
 
@@ -206,6 +231,10 @@ func (self *structVisitorWrapper) BeginArray(depth int, v reflect.Value) error {
 		return self.visitor.BeginNamedFields(self.metaData)
 	}
 	self.metaData = self.begin(depth, v, ArrayKind)
+	if self.metaData.IsModelValueOrChild() {
+		// Ignore array fields of Value implementations
+		return nil
+	}
 	return self.visitor.BeginIndexedFields(self.metaData)
 }
 
@@ -216,6 +245,10 @@ func (self *structVisitorWrapper) ArrayField(depth int, v reflect.Value, index i
 		return self.visitor.NamedField(self.metaData)
 	}
 	self.metaData = self.indexedFieldMetaData(depth, v, index, ArrayKind)
+	if self.metaData.Parent.IsModelValueOrChild() {
+		// Ignore array fields of Value implementations
+		return nil
+	}
 	return self.visitor.IndexedField(self.metaData)
 }
 
@@ -225,5 +258,9 @@ func (self *structVisitorWrapper) EndArray(depth int, v reflect.Value) error {
 		return self.visitor.EndNamedFields(self.metaData)
 	}
 	self.metaData = self.end(depth, ArrayKind)
+	if self.metaData.Parent.IsModelValueOrChild() {
+		// Ignore array fields of Value implementations
+		return nil
+	}
 	return self.visitor.EndIndexedFields(self.metaData)
 }

@@ -24,14 +24,16 @@ func Nop(dummiesIn ...interface{}) (dummyOut interface{}) {
 var Logger = log.New(os.Stdout, "", 0)
 
 func CallStackInfo(skip int) (info string) {
-	if pc, file, line, ok := runtime.Caller(skip); ok {
+	pc, file, line, ok := runtime.Caller(skip)
+	if ok {
 		funcName := runtime.FuncForPC(pc).Name()
-		info += fmt.Sprintf("%s()\n%s:%d", funcName, file, line)
+		info += fmt.Sprintf("In function %s()", funcName)
 	}
-	if _, file, line, ok := runtime.Caller(skip + 1); ok {
+	for i := 0; ok; i++ {
 		info += fmt.Sprintf("\n%s:%d", file, line)
+		_, file, line, ok = runtime.Caller(skip + i)
 	}
-	return
+	return info
 }
 
 func PrintCallStack() {

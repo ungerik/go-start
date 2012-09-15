@@ -93,8 +93,29 @@ type MetaData struct {
 }
 
 func (self *MetaData) ModelValue() (val Value, ok bool) {
+	if self == nil {
+		return nil, false
+	}
 	val, ok = self.Value.Addr().Interface().(Value)
 	return val, ok
+}
+
+func (self *MetaData) IsModelValue() bool {
+	if self == nil {
+		return false
+	}
+	_, ok := self.ModelValue()
+	return ok
+}
+
+func (self *MetaData) IsModelValueOrChild() bool {
+	if self == nil {
+		return false
+	}
+	if self.IsModelValue() {
+		return true
+	}
+	return self.Parent.IsModelValueOrChild()
 }
 
 func (self *MetaData) ModelValidator() (val Validator, ok bool) {
