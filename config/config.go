@@ -76,13 +76,6 @@ func Load(configFile string, packages ...Package) {
 	default:
 		panic("Unsupported config file: " + configFile)
 	}
-
-	for _, pkg := range packages {
-		err := pkg.Init()
-		if err != nil {
-			log.Panicf("Error while initializing package %s: %s", pkg.Name(), err)
-		}
-	}
 }
 
 func Close() {
