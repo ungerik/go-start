@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"strconv"
 
-	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/mongo"
 )
@@ -613,45 +612,70 @@ func (self ModelBlobController) SetValue(ctx *Context, metaData *model.MetaData,
 // MongoRefController
 
 type MongoRefController struct {
-	DocIterator model.Iterator
+	ModelIterator model.Iterator
 	// GetName returns the name of a referenced document.
 	// If GetName is nil, then the String() method of
 	// the doc will be used.
 	GetName func(doc interface{}) string
 }
 
-func (self MongoRefController) Supports(metaData *model.MetaData, form *Form) bool {
+func (self *MongoRefController) Supports(metaData *model.MetaData, form *Form) bool {
 	_, ok := metaData.Value.Addr().Interface().(*mongo.Ref)
 	return ok
 }
 
-func (self MongoRefController) NewInput(withLabel bool, metaData *model.MetaData, form *Form) (input View, err error) {
+func (self *MongoRefController) getName(doc interface{}) string {
+	if self.GetName != nil {
+		return self.GetName(doc)
+	}
+	return doc.(fmt.Stringer).String()
+}
+
+func (self *MongoRefController) NewInput(withLabel bool, metaData *model.MetaData, form *Form) (input View, err error) {
 	mongoRef := metaData.Value.Addr().Interface().(*mongo.Ref)
-	var options []string
-	for doc := self.DocIterator.Next(); doc != nil; doc = self.DocIterator.Next() {
-		if self.GetName != nil {
-			options = append(options, self.GetName(doc))
-		} else if s, ok := doc.(fmt.Stringer); ok {
-			options = append(options, s.String())
-		} else {
-			panic(errs.Format("MongoRefFormFieldFactory: %T must implement fmt.String", doc))
+
+	options := []string{""}
+	for doc := self.ModelIterator.Next(); doc != nil; doc = self.ModelIterator.Next() {
+		name := self.getName(doc)
+		for _, option := range options {
+			if option == name {
+				return nil, fmt.Errorf("Names of mongo documents must be unique, found double '%s'", name)
+			}
 		}
+		options = append(options, name)
 	}
 
-	mongoRef.Get()
-	if len(options) == 0 || options[0] != "" {
-		options = append([]string{""}, options...)
+	name := ""
+	if !mongoRef.IsEmpty() {
+		doc, err := mongoRef.Get()
+		if err != nil {
+			return nil, err
+		}
+		name = self.getName(doc)
 	}
+
 	input = &Select{
-		Class: form.FieldInputClass(metaData),
-		Name:  metaData.Selector(),
-		// Model:    &StringsSelectModel{options, s.Get()},
+		Class:    form.FieldInputClass(metaData),
+		Name:     metaData.Selector(),
+		Model:    &StringsSelectModel{options, name},
 		Disabled: form.IsFieldDisabled(metaData),
 		Size:     1,
+	}
+	if withLabel {
+		return AddStandardLabel(form, input, metaData), nil
 	}
 	return input, nil
 }
 
-func (self MongoRefController) SetValue(ctx *Context, metaData *model.MetaData, form *Form) error {
+func (self *MongoRefController) SetValue(ctx *Context, metaData *model.MetaData, form *Form) error {
+	mongoRef := metaData.Value.Addr().Interface().(*mongo.Ref)
+	mongoRef.Set(nil)
+	selected := ctx.Request.FormValue(metaData.Selector())
+	for doc := self.ModelIterator.Next(); doc != nil; doc = self.ModelIterator.Next() {
+		if self.getName(doc) == selected {
+			mongoRef.Set(doc.(mongo.Document))
+			return nil
+		}
+	}
 	return nil
 }

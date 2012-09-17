@@ -59,7 +59,7 @@ func (self *Configuration) Name() string {
 func (self *Configuration) Init() error {
 	c := model.NewColor(self.DummyImageColor)
 	self.dummyImageURL = ColoredImageDataURL(c.RGBA())
-	view.Config.Form.DefaultFieldControllers = append(view.Config.Form.DefaultFieldControllers, ImageRefController{})
+	view.Config.Form.DefaultFieldControllers = view.Config.Form.DefaultFieldControllers.Append(ImageRefController{})
 	return nil
 }
 
