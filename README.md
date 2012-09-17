@@ -36,6 +36,12 @@ Features:
 		(used by http://startuplive.in)
 
 
+The case for Go:
+================
+
+https://gist.github.com/3731476
+	
+
 Views:
 ======
 

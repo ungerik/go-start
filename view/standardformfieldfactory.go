@@ -8,15 +8,6 @@ import (
 	"github.com/ungerik/go-start/model"
 )
 
-func AddStandardLabel(form *Form, forView View, metaData *model.MetaData) Views {
-	var labelContent View = Escape(form.FieldLabel(metaData))
-	if form.IsFieldRequired(metaData) {
-		labelContent = Views{labelContent, form.GetRequiredMarker()}
-	}
-	label := &Label{For: forView, Content: labelContent}
-	return Views{label, forView}
-}
-
 type StandardFormFieldFactory struct {
 }
 
@@ -346,4 +337,13 @@ func (self *StandardFormFieldFactory) NewDownButton(disabled bool, onclick strin
 		OnClick:  onclick,
 		Class:    "form-table-button",
 	}
+}
+
+func AddStandardLabel(form *Form, forView View, metaData *model.MetaData) Views {
+	var labelContent View = Escape(form.FieldLabel(metaData))
+	if form.IsFieldRequired(metaData) {
+		labelContent = Views{labelContent, form.GetRequiredMarker()}
+	}
+	label := &Label{For: forView, Content: labelContent}
+	return Views{label, forView}
 }

@@ -269,6 +269,7 @@ type Form struct {
 	Redirect                 URL    // 302 redirect after successful OnSubmit()
 	ShowRefIDs               bool
 	Enctype                  string
+	FieldControllers         FormFieldControllers // Config.Form.DefaultFieldControllers will be used in nil
 }
 
 // GetLayout returns self.Layout if not nil,
@@ -287,6 +288,15 @@ func (self *Form) GetFieldFactory() FormFieldFactory {
 		return Config.Form.DefaultFieldFactory
 	}
 	return self.FieldFactory
+}
+
+// GetFieldControllers returns self.FieldControllers if not nil,
+// else Config.Form.DefaultFieldControllers will be returned.
+func (self *Form) GetFieldControllers() FormFieldControllers {
+	if self.FieldControllers == nil {
+		return Config.Form.DefaultFieldControllers
+	}
+	return self.FieldControllers
 }
 
 // GetCSRFProtector returns self.CSRFProtector if not nil,
