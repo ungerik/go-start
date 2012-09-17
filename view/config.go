@@ -25,7 +25,6 @@ var Config = Configuration{
 			DefaultInputSize:      80,
 			DefaultTableInputSize: 20,
 		},
-		DefaultFieldFactory:             new(StandardFormFieldFactory),
 		DefaultCSRFProtector:            nil,
 		DefaultSubmitButtonText:         "Save",
 		DefaultErrorMessageClass:        "error",
@@ -158,7 +157,6 @@ type PageConfiguration struct {
 
 type FormConfiguration struct {
 	DefaultLayout                   FormLayout
-	DefaultFieldFactory             FormFieldFactory
 	DefaultCSRFProtector            CSRFProtector
 	DefaultErrorMessageClass        string
 	DefaultSuccessMessageClass      string

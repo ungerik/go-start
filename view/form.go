@@ -174,11 +174,7 @@ type FormLayout interface {
 	BeginIndexedFields(indexedFields *model.MetaData, form *Form, ctx *Context, formContent *Views) error
 	IndexedField(field *model.MetaData, validationErr error, form *Form, ctx *Context, formContent *Views) error
 	EndIndexedFields(indexedFields *model.MetaData, validationErr error, form *Form, ctx *Context, formContent *Views) error
-}
 
-type FormFieldFactory interface {
-	CanCreateInput(metaData *model.MetaData, form *Form) bool
-	NewInput(withLabel bool, metaData *model.MetaData, form *Form) (View, error)
 	NewHiddenInput(metaData *model.MetaData, form *Form) (View, error)
 	NewTableHeader(metaData *model.MetaData, form *Form) (View, error)
 	NewFieldDescrtiption(description string, form *Form) View
@@ -212,10 +208,10 @@ type Form struct {
 	// that there are multiple forms on a single page.
 	// Can be empty if there is only one form on a page, but it is good
 	// practice to always use form ids.
-	FormID        string
-	CSRFProtector CSRFProtector
-	Layout        FormLayout       // Config.Form.DefaultLayout will be used if nil
-	FieldFactory  FormFieldFactory // Config.Form.DefaultFieldFactory will be used if nil
+	FormID           string
+	CSRFProtector    CSRFProtector
+	Layout           FormLayout           // Config.Form.DefaultLayout will be used if nil
+	FieldControllers FormFieldControllers // Config.Form.DefaultFieldControllers will be used in nil
 
 	// GetModel returns the data-model used to create the form fields
 	// and will receive changes from a form submit.
@@ -269,7 +265,6 @@ type Form struct {
 	Redirect                 URL    // 302 redirect after successful OnSubmit()
 	ShowRefIDs               bool
 	Enctype                  string
-	FieldControllers         FormFieldControllers // Config.Form.DefaultFieldControllers will be used in nil
 }
 
 // GetLayout returns self.Layout if not nil,
@@ -279,15 +274,6 @@ func (self *Form) GetLayout() FormLayout {
 		return Config.Form.DefaultLayout
 	}
 	return self.Layout
-}
-
-// GetFieldFactory returns self.FieldFactory if not nil,
-// else Config.Form.DefaultFieldFactory will be returned.
-func (self *Form) GetFieldFactory() FormFieldFactory {
-	if self.FieldFactory == nil {
-		return Config.Form.DefaultFieldFactory
-	}
-	return self.FieldFactory
 }
 
 // GetFieldControllers returns self.FieldControllers if not nil,
@@ -438,7 +424,7 @@ func (self *Form) IsFieldExcluded(field *model.MetaData, ctx *Context) bool {
 // Only visible fields are validated.
 // IsFieldExcluded and IsFieldHidden have different semantics.
 func (self *Form) IsFieldVisible(field *model.MetaData, ctx *Context) bool {
-	return self.GetFieldFactory().CanCreateInput(field, self) &&
+	return self.GetFieldControllers().Supports(field, self) &&
 		!self.IsFieldExcluded(field, ctx) &&
 		!self.IsFieldHidden(field)
 }
@@ -538,9 +524,9 @@ func (self *Form) Render(ctx *Context) (err error) {
 	if layout == nil {
 		panic("view.Form.GetLayout() returned nil")
 	}
-	fieldFactory := self.GetFieldFactory()
-	if fieldFactory == nil {
-		panic("view.Form.GetFieldFactory() returned nil")
+	fieldControllers := self.GetFieldControllers()
+	if fieldControllers == nil {
+		panic("view.Form.GetFieldControllers() returned nil")
 	}
 
 	var formModel interface{}
@@ -549,7 +535,7 @@ func (self *Form) Render(ctx *Context) (err error) {
 	isPost := self.IsPost(ctx.Request)
 
 	if self.GetModel == nil {
-		submitButton := self.GetFieldFactory().NewSubmitButton(self.GetSubmitButtonText(), self.SubmitButtonConfirm, self)
+		submitButton := layout.NewSubmitButton(self.GetSubmitButtonText(), self.SubmitButtonConfirm, self)
 		content = append(content, submitButton)
 	} else {
 		formModel, err = self.GetModel(self, ctx)

@@ -1,6 +1,7 @@
 package view
 
 import (
+	"fmt"
 	"strconv"
 
 	// "github.com/ungerik/go-start/debug"
@@ -55,27 +56,26 @@ func (self *StandardFormLayout) BeginFormContent(form *Form, ctx *Context, formC
 }
 
 func (self *StandardFormLayout) SubmitSuccess(message string, form *Form, ctx *Context, formContent *Views) error {
-	*formContent = append(*formContent, form.GetFieldFactory().NewSuccessMessage(message, form))
+	*formContent = append(*formContent, self.NewSuccessMessage(message, form))
 	return nil
 }
 
 func (self *StandardFormLayout) SubmitError(message string, form *Form, ctx *Context, formContent *Views) error {
-	*formContent = append(*formContent, form.GetFieldFactory().NewGeneralErrorMessage(message, form))
+	*formContent = append(*formContent, self.NewGeneralErrorMessage(message, form))
 	return nil
 }
 
 func (self *StandardFormLayout) EndFormContent(fieldValidationErrs, generalValidationErrs []error, form *Form, ctx *Context, formContent *Views) error {
-	fieldFactory := form.GetFieldFactory()
 	for _, err := range generalValidationErrs {
-		*formContent = append(*formContent, fieldFactory.NewGeneralErrorMessage(err.Error(), form))
-		*formContent = append(Views{fieldFactory.NewGeneralErrorMessage(err.Error(), form)}, *formContent...)
+		*formContent = append(*formContent, self.NewGeneralErrorMessage(err.Error(), form))
+		*formContent = append(Views{self.NewGeneralErrorMessage(err.Error(), form)}, *formContent...)
 	}
 	if form.GeneralErrorOnFieldError && len(fieldValidationErrs) > 0 {
 		e := Config.Form.GeneralErrorMessageOnFieldError
-		*formContent = append(*formContent, fieldFactory.NewGeneralErrorMessage(e, form))
-		*formContent = append(Views{fieldFactory.NewGeneralErrorMessage(e, form)}, *formContent...)
+		*formContent = append(*formContent, self.NewGeneralErrorMessage(e, form))
+		*formContent = append(Views{self.NewGeneralErrorMessage(e, form)}, *formContent...)
 	}
-	submitButton := fieldFactory.NewSubmitButton(form.GetSubmitButtonText(), form.SubmitButtonConfirm, form)
+	submitButton := self.NewSubmitButton(form.GetSubmitButtonText(), form.SubmitButtonConfirm, form)
 	*formContent = append(*formContent, submitButton)
 	return nil
 }
@@ -85,8 +85,8 @@ func (self *StandardFormLayout) BeginNamedFields(namedFields *model.MetaData, fo
 }
 
 func (self *StandardFormLayout) NamedField(field *model.MetaData, validationErr error, form *Form, ctx *Context, formContent *Views) error {
-	fieldFactory := form.GetFieldFactory()
-	if !fieldFactory.CanCreateInput(field, form) {
+	controllers := form.GetFieldControllers()
+	if !controllers.Supports(field, form) {
 		return nil
 	}
 
@@ -96,7 +96,7 @@ func (self *StandardFormLayout) NamedField(field *model.MetaData, validationErr 
 	}
 
 	if form.IsFieldHidden(field) {
-		input, err := fieldFactory.NewHiddenInput(field, form)
+		input, err := self.NewHiddenInput(field, form)
 		if err != nil {
 			return err
 		}
@@ -104,12 +104,12 @@ func (self *StandardFormLayout) NamedField(field *model.MetaData, validationErr 
 		return nil
 	}
 
-	formField, err := fieldFactory.NewInput(true, field, form)
+	formField, err := controllers.NewInput(true, field, form)
 	if err != nil {
 		return err
 	}
 	if validationErr != nil {
-		formField = Views{formField, fieldFactory.NewFieldErrorMessage(validationErr.Error(), field, form)}
+		formField = Views{formField, self.NewFieldErrorMessage(validationErr.Error(), field, form)}
 	}
 	*formContent = append(*formContent, DIV(Config.Form.StandardFormLayoutDivClass, formField))
 	return nil
@@ -128,7 +128,6 @@ func (self *StandardFormLayout) IndexedField(field *model.MetaData, validationEr
 		return nil
 	}
 	arrayOrSlice := field.Parent
-	fieldFactory := form.GetFieldFactory()
 	// We expect a Table as last form content field.
 	// If it doesn't exist yet because this is the first visible
 	// struct field in the first array field, then create it
@@ -138,7 +137,7 @@ func (self *StandardFormLayout) IndexedField(field *model.MetaData, validationEr
 	}
 	if table == nil {
 		// First array/slice field, create table and table model.
-		header, err := fieldFactory.NewTableHeader(arrayOrSlice, form)
+		header, err := self.NewTableHeader(arrayOrSlice, form)
 		if err != nil {
 			return err
 		}
@@ -151,14 +150,14 @@ func (self *StandardFormLayout) IndexedField(field *model.MetaData, validationEr
 		// Add script for manipulating table rows
 		ctx.Response.RequireScriptURL("/js/form.js", 0)
 	}
-	td, err := fieldFactory.NewInput(false, field, form)
+	td, err := form.GetFieldControllers().NewInput(false, field, form)
 	if err != nil {
 		return err
 	}
 	if validationErr != nil {
 		td = Views{
 			td,
-			fieldFactory.NewFieldErrorMessage(validationErr.Error(), field, form),
+			self.NewFieldErrorMessage(validationErr.Error(), field, form),
 		}
 	}
 	table.Model = append(table.Model.(ViewsTableModel), Views{td})
@@ -169,7 +168,6 @@ func (self *StandardFormLayout) EndIndexedFields(indexedFields *model.MetaData, 
 	if len(*formContent) > 0 {
 		// Add "Actions" column with buttons to table with slice or array values
 		if table, ok := (*formContent)[len(*formContent)-1].(*Table); ok {
-			fieldFactory := form.GetFieldFactory()
 			tableModel := table.Model.(ViewsTableModel)
 			tableModel[0] = append(tableModel[0], HTML("Actions"))
 			rows := tableModel.Rows()
@@ -180,14 +178,14 @@ func (self *StandardFormLayout) EndIndexedFields(indexedFields *model.MetaData, 
 				firstRow := (i == 1)
 				lastRow := (i == rows-1)
 				buttons := Views{
-					fieldFactory.NewUpButton(firstRow, "gostart_form.moveRowUp(this);", form),
-					fieldFactory.NewDownButton(lastRow, "gostart_form.moveRowDown(this);", form),
+					self.NewUpButton(firstRow, "gostart_form.moveRowUp(this);", form),
+					self.NewDownButton(lastRow, "gostart_form.moveRowDown(this);", form),
 				}
 				if indexedFields.Kind == model.SliceKind {
 					if lastRow {
-						buttons = append(buttons, fieldFactory.NewAddButton("gostart_form.addRow(this);", form))
+						buttons = append(buttons, self.NewAddButton("gostart_form.addRow(this);", form))
 					} else {
-						buttons = append(buttons, fieldFactory.NewRemoveButton("gostart_form.removeRow(this)", form))
+						buttons = append(buttons, self.NewRemoveButton("gostart_form.removeRow(this)", form))
 					}
 				}
 				tableModel[i] = append(tableModel[i], buttons)
@@ -206,7 +204,6 @@ func (self *StandardFormLayout) EndIndexedFields(indexedFields *model.MetaData, 
 }
 
 func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *model.MetaData, validationErr error, form *Form, ctx *Context, formContent *Views) error {
-	fieldFactory := form.GetFieldFactory()
 	// We expect a Table as last form content field.
 	// If it doesn't exist yet because this is the first visible
 	// struct field in the first array field, then create it
@@ -230,7 +227,7 @@ func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *m
 	tableModel := table.Model.(ViewsTableModel)
 	if field.Parent.Index == 0 {
 		// If first array field, add label to table header
-		header, err := fieldFactory.NewTableHeader(field, form)
+		header, err := self.NewTableHeader(field, form)
 		if err != nil {
 			return err
 		}
@@ -244,14 +241,14 @@ func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *m
 	// Append form field in last row for this struct field
 	row := &tableModel[tableModel.Rows()-1]
 
-	td, err := fieldFactory.NewInput(false, field, form)
+	td, err := form.GetFieldControllers().NewInput(false, field, form)
 	if err != nil {
 		return err
 	}
 	if validationErr != nil {
 		td = Views{
 			td,
-			fieldFactory.NewFieldErrorMessage(validationErr.Error(), field, form),
+			self.NewFieldErrorMessage(validationErr.Error(), field, form),
 		}
 	}
 	*row = append(*row, td)
@@ -266,4 +263,92 @@ func (self *StandardFormLayout) fieldNeedsLabel(field *model.MetaData) bool {
 		}
 	}
 	return true
+}
+
+func (self *StandardFormLayout) NewHiddenInput(metaData *model.MetaData, form *Form) (View, error) {
+	return &HiddenInput{
+		Name:  metaData.Selector(),
+		Value: fmt.Sprint(metaData.Value.Interface()),
+	}, nil
+}
+
+func (self *StandardFormLayout) NewTableHeader(metaData *model.MetaData, form *Form) (View, error) {
+	switch metaData.Kind {
+	case model.ValueKind:
+		var label View = Escape(form.DirectFieldLabel(metaData))
+		if form.IsFieldRequired(metaData) {
+			label = Views{label, form.GetRequiredMarker()}
+		}
+		return label, nil
+	case model.ArrayKind, model.SliceKind:
+		return Escape(form.FieldLabel(metaData)), nil
+	}
+	return nil, fmt.Errorf("Unsupported metaData.Kind for NewTableHeader(): %s", metaData.Kind)
+}
+
+func (self *StandardFormLayout) NewFieldDescrtiption(description string, form *Form) View {
+	return SPAN(form.GetFieldDescriptionClass(), Escape(description))
+}
+
+func (self *StandardFormLayout) NewFieldErrorMessage(message string, metaData *model.MetaData, form *Form) View {
+	return SPAN(form.GetErrorMessageClass(), Escape(message))
+}
+
+func (self *StandardFormLayout) NewGeneralErrorMessage(message string, form *Form) View {
+	return SPAN(form.GetErrorMessageClass(), Escape(message))
+}
+
+func (self *StandardFormLayout) NewSuccessMessage(message string, form *Form) View {
+	return SPAN(form.GetSuccessMessageClass(), Escape(message))
+}
+
+func (self *StandardFormLayout) NewSubmitButton(text, confirmationMessage string, form *Form) View {
+	return &SubmitButton{
+		Class:          form.GetSubmitButtonClass(),
+		Value:          text,
+		OnClickConfirm: confirmationMessage,
+	}
+}
+
+func (self *StandardFormLayout) NewAddButton(onclick string, form *Form) View {
+	return &Button{
+		Content: HTML("+"),
+		OnClick: onclick,
+		Class:   "form-table-button",
+	}
+}
+
+func (self *StandardFormLayout) NewRemoveButton(onclick string, form *Form) View {
+	return &Button{
+		Content: HTML("X"),
+		OnClick: onclick,
+		Class:   "form-table-button",
+	}
+}
+
+func (self *StandardFormLayout) NewUpButton(disabled bool, onclick string, form *Form) View {
+	return &Button{
+		Content:  HTML("&uarr;"),
+		Disabled: disabled,
+		OnClick:  onclick,
+		Class:    "form-table-button",
+	}
+}
+
+func (self *StandardFormLayout) NewDownButton(disabled bool, onclick string, form *Form) View {
+	return &Button{
+		Content:  HTML("&darr;"),
+		Disabled: disabled,
+		OnClick:  onclick,
+		Class:    "form-table-button",
+	}
+}
+
+func AddStandardLabel(form *Form, forView View, metaData *model.MetaData) Views {
+	var labelContent View = Escape(form.FieldLabel(metaData))
+	if form.IsFieldRequired(metaData) {
+		labelContent = Views{labelContent, form.GetRequiredMarker()}
+	}
+	label := &Label{For: forView, Content: labelContent}
+	return Views{label, forView}
 }

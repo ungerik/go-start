@@ -5,7 +5,9 @@ import (
 	"io/ioutil"
 	"strconv"
 
+	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/model"
+	"github.com/ungerik/go-start/mongo"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -68,12 +70,16 @@ func (self FormFieldControllers) SetValue(ctx *Context, metaData *model.MetaData
 	return ErrFormFieldTypeNotSupported{metaData}
 }
 
+func (self FormFieldControllers) Append(controllers ...FormFieldController) FormFieldControllers {
+	return append(self, controllers...)
+}
+
 ///////////////////////////////////////////////////////////////////////////////
-// modelValueControllerBase
+// SetModelValueControllerBase
 
-type modelValueControllerBase struct{}
+type SetModelValueControllerBase struct{}
 
-func (self modelValueControllerBase) SetValue(ctx *Context, metaData *model.MetaData, form *Form) error {
+func (self SetModelValueControllerBase) SetValue(ctx *Context, metaData *model.MetaData, form *Form) error {
 	value := metaData.Value.Addr().Interface().(model.Value)
 	value.SetString(ctx.Request.FormValue(metaData.Selector()))
 	return nil
@@ -83,7 +89,7 @@ func (self modelValueControllerBase) SetValue(ctx *Context, metaData *model.Meta
 // ModelStringController
 
 type ModelStringController struct {
-	modelValueControllerBase
+	SetModelValueControllerBase
 }
 
 func (self ModelStringController) Supports(metaData *model.MetaData, form *Form) bool {
@@ -117,7 +123,7 @@ func (self ModelStringController) NewInput(withLabel bool, metaData *model.MetaD
 // ModelTextController
 
 type ModelTextController struct {
-	modelValueControllerBase
+	SetModelValueControllerBase
 }
 
 func (self ModelTextController) Supports(metaData *model.MetaData, form *Form) bool {
@@ -160,7 +166,7 @@ func (self ModelTextController) NewInput(withLabel bool, metaData *model.MetaDat
 // ModelUrlController
 
 type ModelUrlController struct {
-	modelValueControllerBase
+	SetModelValueControllerBase
 }
 
 func (self ModelUrlController) Supports(metaData *model.MetaData, form *Form) bool {
@@ -188,7 +194,7 @@ func (self ModelUrlController) NewInput(withLabel bool, metaData *model.MetaData
 // ModelEmailController
 
 type ModelEmailController struct {
-	modelValueControllerBase
+	SetModelValueControllerBase
 }
 
 func (self ModelEmailController) Supports(metaData *model.MetaData, form *Form) bool {
@@ -217,7 +223,7 @@ func (self ModelEmailController) NewInput(withLabel bool, metaData *model.MetaDa
 // ModelPasswordController
 
 type ModelPasswordController struct {
-	modelValueControllerBase
+	SetModelValueControllerBase
 }
 
 func (self ModelPasswordController) Supports(metaData *model.MetaData, form *Form) bool {
@@ -252,7 +258,7 @@ func (self ModelPasswordController) NewInput(withLabel bool, metaData *model.Met
 // ModelPhoneController
 
 type ModelPhoneController struct {
-	modelValueControllerBase
+	SetModelValueControllerBase
 }
 
 func (self ModelPhoneController) Supports(metaData *model.MetaData, form *Form) bool {
@@ -310,7 +316,7 @@ func (self ModelBoolController) SetValue(ctx *Context, metaData *model.MetaData,
 // ModelChoiceController
 
 type ModelChoiceController struct {
-	modelValueControllerBase
+	SetModelValueControllerBase
 }
 
 func (self ModelChoiceController) Supports(metaData *model.MetaData, form *Form) bool {
@@ -383,7 +389,7 @@ func (self ModelMultipleChoiceController) SetValue(ctx *Context, metaData *model
 // ModelDynamicChoiceController
 
 type ModelDynamicChoiceController struct {
-	modelValueControllerBase
+	SetModelValueControllerBase
 }
 
 func (self ModelDynamicChoiceController) Supports(metaData *model.MetaData, form *Form) bool {
@@ -416,7 +422,7 @@ func (self ModelDynamicChoiceController) NewInput(withLabel bool, metaData *mode
 // ModelDateController
 
 type ModelDateController struct {
-	modelValueControllerBase
+	SetModelValueControllerBase
 }
 
 func (self ModelDateController) Supports(metaData *model.MetaData, form *Form) bool {
@@ -447,7 +453,7 @@ func (self ModelDateController) NewInput(withLabel bool, metaData *model.MetaDat
 // ModelDateTimeController
 
 type ModelDateTimeController struct {
-	modelValueControllerBase
+	SetModelValueControllerBase
 }
 
 func (self ModelDateTimeController) Supports(metaData *model.MetaData, form *Form) bool {
@@ -478,7 +484,7 @@ func (self ModelDateTimeController) NewInput(withLabel bool, metaData *model.Met
 // ModelFloatController
 
 type ModelFloatController struct {
-	modelValueControllerBase
+	SetModelValueControllerBase
 }
 
 func (self ModelFloatController) Supports(metaData *model.MetaData, form *Form) bool {
@@ -505,7 +511,7 @@ func (self ModelFloatController) NewInput(withLabel bool, metaData *model.MetaDa
 // ModelIntController
 
 type ModelIntController struct {
-	modelValueControllerBase
+	SetModelValueControllerBase
 }
 
 func (self ModelIntController) Supports(metaData *model.MetaData, form *Form) bool {
@@ -600,5 +606,52 @@ func (self ModelBlobController) SetValue(ctx *Context, metaData *model.MetaData,
 		return err
 	}
 	b.Set(bytes)
+	return nil
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// MongoRefController
+
+type MongoRefController struct {
+	DocIterator model.Iterator
+	// GetName returns the name of a referenced document.
+	// If GetName is nil, then the String() method of
+	// the doc will be used.
+	GetName func(doc interface{}) string
+}
+
+func (self MongoRefController) Supports(metaData *model.MetaData, form *Form) bool {
+	_, ok := metaData.Value.Addr().Interface().(*mongo.Ref)
+	return ok
+}
+
+func (self MongoRefController) NewInput(withLabel bool, metaData *model.MetaData, form *Form) (input View, err error) {
+	mongoRef := metaData.Value.Addr().Interface().(*mongo.Ref)
+	var options []string
+	for doc := self.DocIterator.Next(); doc != nil; doc = self.DocIterator.Next() {
+		if self.GetName != nil {
+			options = append(options, self.GetName(doc))
+		} else if s, ok := doc.(fmt.Stringer); ok {
+			options = append(options, s.String())
+		} else {
+			panic(errs.Format("MongoRefFormFieldFactory: %T must implement fmt.String", doc))
+		}
+	}
+
+	mongoRef.Get()
+	if len(options) == 0 || options[0] != "" {
+		options = append([]string{""}, options...)
+	}
+	input = &Select{
+		Class: form.FieldInputClass(metaData),
+		Name:  metaData.Selector(),
+		// Model:    &StringsSelectModel{options, s.Get()},
+		Disabled: form.IsFieldDisabled(metaData),
+		Size:     1,
+	}
+	return input, nil
+}
+
+func (self MongoRefController) SetValue(ctx *Context, metaData *model.MetaData, form *Form) error {
 	return nil
 }
