@@ -21,171 +21,7 @@ const FormIDName = "gostart_form_id"
 
 type GetFormModelFunc func(form *Form, ctx *Context) (model interface{}, err error)
 type OnFormSubmitFunc func(form *Form, formModel interface{}, ctx *Context) (message string, redirect URL, err error)
-
-type FileUploadFormModel struct {
-	File model.File
-}
-
-// GetFileUploadFormModel when set at Form.GetModel will create a
-// file upload form. Form.Enctype will be set to "multipart/form-fata"
-// *FileUploadFormModel will be passed as formModel at Form.OnSubmit
-func GetFileUploadFormModel(form *Form, ctx *Context) (interface{}, error) {
-	form.Enctype = MultipartFormData
-	return &FileUploadFormModel{}, nil
-}
-
-func FormModel(model interface{}) GetFormModelFunc {
-	debug.Nop()
-	return func(form *Form, ctx *Context) (interface{}, error) {
-		return model, nil
-	}
-}
-
-func OnFormSubmitSaveModel(form *Form, formModel interface{}, ctx *Context) (string, URL, error) {
-	return "", nil, formModel.(mongo.Document).Save()
-}
-
-// OnFormSubmit wraps onSubmitFunc as a OnFormSubmitFunc with the
-// arguments and results of OnFormSubmitFunc optional for onSubmitFunc.
-// The order of the arguments and results is also free to choose.
-func OnFormSubmit(onSubmitFunc interface{}) OnFormSubmitFunc {
-	v := reflect.ValueOf(onSubmitFunc)
-	t := v.Type()
-	if t.Kind() != reflect.Func {
-		panic(fmt.Errorf("OnFormSubmitBindURLArgs: onSubmitFunc must be a function, got %T", onSubmitFunc))
-	}
-	iForm := -1
-	for i := 0; i < t.NumIn(); i++ {
-		if t.In(i) == reflect.TypeOf((*Form)(nil)) {
-			iForm = i
-			break
-		}
-	}
-	iFormModel := -1
-	for i := 0; i < t.NumIn(); i++ {
-		if t.In(i) == reflect.TypeOf((*interface{})(nil)).Elem() {
-			iFormModel = i
-			break
-		}
-	}
-	iContext := -1
-	for i := 0; i < t.NumIn(); i++ {
-		if t.In(i) == reflect.TypeOf((*Context)(nil)) {
-			iContext = i
-			break
-		}
-	}
-	iMessage := -1
-	for i := 0; i < t.NumOut(); i++ {
-		if t.Out(i) == reflect.TypeOf((*string)(nil)).Elem() {
-			iMessage = i
-			break
-		}
-	}
-	iRedirect := -1
-	for i := 0; i < t.NumOut(); i++ {
-		if t.Out(i) == reflect.TypeOf((*URL)(nil)) {
-			iRedirect = i
-			break
-		}
-	}
-	iError := -1
-	for i := 0; i < t.NumOut(); i++ {
-		if t.Out(i) == reflection.TypeOfError {
-			iError = i
-			break
-		}
-	}
-	return func(form *Form, formModel interface{}, ctx *Context) (message string, redirect URL, err error) {
-		args := make([]reflect.Value, t.NumIn())
-		if iForm != -1 {
-			args[iForm] = reflect.ValueOf(form)
-		}
-		if iFormModel != -1 {
-			args[iFormModel] = reflect.ValueOf(formModel)
-		}
-		if iContext != -1 {
-			args[iContext] = reflect.ValueOf(ctx)
-		}
-
-		results := v.Call(args)
-
-		if iMessage != -1 {
-			message = results[iMessage].Interface().(string)
-		}
-		if iRedirect != -1 {
-			redirect, _ = results[iRedirect].Interface().(URL)
-		}
-		if iError != -1 {
-			err, _ = results[iError].Interface().(error)
-		}
-		return message, redirect, err
-	}
-}
-
-/*
-OnFormSubmitBindURLArgs creates a View where onSubmitFunc is called from View.Render
-with Context.URLArgs converted to function arguments.
-The first onSubmitFunc argument can be of type *Context, but this is optional.
-All further arguments will be converted from the corresponding Context.URLArgs
-string to their actual type.
-Conversion to integer, float, string and bool arguments are supported.
-If there are more URLArgs than function args, then supernumerous URLArgs will
-be ignored.
-If there are less URLArgs than function args, then the function args will
-receive their types zero value.
-The first result value of onSubmitFunc has to be of type View,
-the second result is optional and of type error.
-
-Example:
-
-	view.OnFormSubmitBindURLArgs(func(i int, b bool) view.View {
-		return view.Printf("ctx.URLArgs[0]: %d, ctx.URLArgs[1]: %b", i, b)
-	})
-*/
-func _OnFormSubmitBindURLArgs(onSubmitFunc interface{}) OnFormSubmitFunc {
-	panic("todo")
-}
-
-/*
-FormLayout is responsible for creating and structuring all dynamic content
-of the form including the submit button.
-It uses Form.GetFieldFactory() to create the field views.
-*/
-type FormLayout interface {
-	GetDefaultInputSize(metaData *model.MetaData) int
-
-	BeginFormContent(form *Form, ctx *Context, formContent *Views) error
-	// SubmitSuccess will be called before EndFormContent if there were no
-	// validation errors of the posted form data and Form.OnSubmit has
-	// not returned an error.
-	SubmitSuccess(message string, form *Form, ctx *Context, formContent *Views) error
-	// SubmitError will be called before EndFormContent if there were no
-	// validation errors of the posted form data and Form.OnSubmit has
-	// returned an error.
-	SubmitError(message string, form *Form, ctx *Context, formContent *Views) error
-	EndFormContent(fieldValidationErrs, generalValidationErrs []error, form *Form, ctx *Context, formContent *Views) error
-
-	BeginNamedFields(namedFields *model.MetaData, form *Form, ctx *Context, formContent *Views) error
-	NamedField(field *model.MetaData, validationErr error, form *Form, ctx *Context, formContent *Views) error
-	EndNamedFields(namedFields *model.MetaData, validationErr error, form *Form, ctx *Context, formContent *Views) error
-
-	BeginIndexedFields(indexedFields *model.MetaData, form *Form, ctx *Context, formContent *Views) error
-	IndexedField(field *model.MetaData, validationErr error, form *Form, ctx *Context, formContent *Views) error
-	EndIndexedFields(indexedFields *model.MetaData, validationErr error, form *Form, ctx *Context, formContent *Views) error
-
-	NewHiddenInput(metaData *model.MetaData, form *Form) (View, error)
-	NewTableHeader(metaData *model.MetaData, form *Form) (View, error)
-	NewFieldDescrtiption(description string, form *Form) View
-	NewFieldErrorMessage(message string, metaData *model.MetaData, form *Form) View
-	NewGeneralErrorMessage(message string, form *Form) View
-	NewSuccessMessage(message string, form *Form) View
-	NewSubmitButton(text, confirmationMessage string, form *Form) View
-	NewAddButton(onclick string, form *Form) View
-	NewRemoveButton(onclick string, form *Form) View
-	NewUpButton(disabled bool, onclick string, form *Form) View
-	NewDownButton(disabled bool, onclick string, form *Form) View
-}
+type OnFormValidationErrorFunc func(form *Form, formModel interface{}, fieldValidationErrors, generalValidationErrors []error)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form
@@ -193,20 +29,97 @@ type FormLayout interface {
 /*
 Form creates an input form for a data model.
 
-Rules for form fields:
+The default behavior of Form is to send a POST request with the
+form data to the same URL of the page it is located in.
+Form then takes the values from the POST request and sets them
+at the data model and then validates the model.
 
-	TODO
+All model.Value implementations also implement model.Validator.
+Custom model wide validation can be achieved by implementing
+model.Validator for the whole model or parts of it.
+
+Example from user/formmodels.go:
+
+	type PasswordFormModel struct {
+		Password1 model.Password `model:"minlen=6" view:"label=Password|size=20"`
+		Password2 model.Password `view:"label=Repeat password|size=20"`
+	}
+
+	func (self *PasswordFormModel) Validate(metaData *model.MetaData) error {
+		if self.Password1 != self.Password2 {
+			return errors.New("Passwords don't match")
+		}
+		return nil
+	}
+
+If there were any validations errors Form.OnValidationError will be called
+if not nil, or else Form.OnSubmit.
+
+message, redirect, err
+
+If there are multiple forms on one page, then every form
+needs a unique FormID, because the POST request with the form
+data is made to the same URL or the page. 
+FormID can be empty if there is only one form on a page,
+but it's good practice to always assign a FormID, because then
+forms later added to the page won't lead to conflicts.
+
+The model for the form is provided the GetModel function.
+It can be a struct of model.Value implementations like model.String or model.Int
+or a slice of model.DynamicValue.
+
+The names of the exported struct fields or model.DynamicValue.Name is used as
+label for the generated form fields. The labels of struct fields can be
+overridden by adding a view tag like `view:"label=Hello World!".
+
+Example:
+
+	type MyModel struct {
+		AnInt model.Int                           // Label will be "AnInt"
+		Overr model.String `view:"label=A String" // Label will be "A String"
+	}
+
+Labels can also be overridden by the form by setting Form.Labels which is
+a map[string]string.
+The "selector" of a field is used as key and the label as value in the map.
+
+A selector is the path of struct field names or model.DynamicValue.Name
+from the root of the model to the described concatenated by ".".
+In case of slice or array fields, the index is used as field name.
+The wildcard $ can be used to select all fields of a slice or array.
+
+Example:
+
+	type MyModel struct {
+		A model.String		
+		B struct {
+			X model.Int
+		}
+		C [2]struct{
+			Y model.Int
+		}
+	}
+
+	"A"     selects MyModel.A
+	"B.X"   selects MyModel.B.X
+	"C.1.Y" selects MyModel.C[1].Y
+	"C.$.Y" selects MyModel.C[0].Y and MyModel.C[1].Y
+
+
+
 */
 type Form struct {
 	ViewBaseWithId
 	Class  string
 	Style  string
 	Action string // Default is "." plus any URL params
-	Method string
-	// FormID must be unique on a page to identify the form for the case
-	// that there are multiple forms on a single page.
-	// Can be empty if there is only one form on a page, but it is good
-	// practice to always use form ids.
+	Method string // Default is POST
+	// If there are multiple forms on one page, then every form
+	// needs a unique FormID, because the POST request with the form
+	// data is made to the same URL or the page. 
+	// FormID can be empty if there is only one form on a page,
+	// but it's good practice to always assign a FormID, because then
+	// forms later added to the page won't lead to conflicts.
 	FormID           string
 	CSRFProtector    CSRFProtector
 	Layout           FormLayout           // Config.Form.DefaultLayout will be used if nil
@@ -243,6 +156,9 @@ type Form struct {
 		via message and an internal error for logging via err.
 	*/
 	OnSubmit OnFormSubmitFunc
+
+	// OnValidationError is called when the form model failed to validate.
+	OnValidationError OnFormValidationErrorFunc
 
 	ModelMaxDepth            int      // if zero, no depth limit
 	ExcludedFields           []string // Use point notation for nested fields. In case of arrays/slices use wildcards
@@ -539,6 +455,9 @@ func (self *Form) Render(ctx *Context) (err error) {
 	content := Views{&HiddenInput{Name: FormIDName, Value: self.FormID}}
 	isPost := self.IsPost(ctx.Request)
 
+	var fieldValidationErrors []error
+	var generalValidationErrors []error
+
 	if self.GetModel == nil {
 		submitButton := layout.NewSubmitButton(self.GetSubmitButtonText(), self.SubmitButtonConfirm, self)
 		content = append(content, submitButton)
@@ -564,7 +483,7 @@ func (self *Form) Render(ctx *Context) (err error) {
 				return err
 			}
 		}
-		validateAndFormLayout := &validateAndFormLayoutStructVisitor{
+		validateAndLayout := &validateAndFormLayoutStructVisitor{
 			form:        self,
 			formLayout:  layout,
 			formModel:   formModel,
@@ -572,33 +491,41 @@ func (self *Form) Render(ctx *Context) (err error) {
 			ctx:         ctx,
 			isPost:      isPost,
 		}
-		err = model.Visit(formModel, validateAndFormLayout)
+		err = model.Visit(formModel, validateAndLayout)
 		if err != nil {
 			return err
 		}
-		hasErrors = len(validateAndFormLayout.fieldValidationErrors) > 0 || len(validateAndFormLayout.generalValidationErrors) > 0
+		fieldValidationErrors = validateAndLayout.fieldValidationErrors
+		generalValidationErrors = validateAndLayout.generalValidationErrors
+		hasErrors = len(fieldValidationErrors) > 0 || len(generalValidationErrors) > 0
 	}
 
-	if isPost && !hasErrors {
-		message, redirect, err := self.OnSubmit(self, formModel, ctx)
-		if err == nil {
-			if redirect == nil {
-				redirect = self.Redirect
-			}
-			if redirect != nil {
-				return Redirect(redirect.URL(ctx))
-			}
-			if message == "" {
-				message = self.SuccessMessage
-			}
-			if message != "" {
-				self.GetLayout().SubmitSuccess(message, self, ctx, &content)
+	if isPost {
+		if hasErrors {
+			if self.OnValidationError != nil {
+				self.OnValidationError(self, formModel, fieldValidationErrors, generalValidationErrors)
 			}
 		} else {
-			if message == "" {
-				message = err.Error()
+			message, redirect, err := self.OnSubmit(self, formModel, ctx)
+			if err == nil {
+				if redirect == nil {
+					redirect = self.Redirect
+				}
+				if redirect != nil {
+					return Redirect(redirect.URL(ctx))
+				}
+				if message == "" {
+					message = self.SuccessMessage
+				}
+				if message != "" {
+					self.GetLayout().SubmitSuccess(message, self, ctx, &content)
+				}
+			} else {
+				if message == "" {
+					message = err.Error()
+				}
+				self.GetLayout().SubmitError(message, self, ctx, &content)
 			}
-			self.GetLayout().SubmitError(message, self, ctx, &content)
 		}
 	}
 
@@ -818,4 +745,132 @@ func (self *validateAndFormLayoutStructVisitor) EndIndexedFields(indexedFields *
 		return self.endForm(indexedFields)
 	}
 	return err
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Utility functions
+
+type FileUploadFormModel struct {
+	File model.File
+}
+
+// GetFileUploadFormModel when set at Form.GetModel will create a
+// file upload form. Form.Enctype will be set to "multipart/form-fata"
+// *FileUploadFormModel will be passed as formModel at Form.OnSubmit
+func GetFileUploadFormModel(form *Form, ctx *Context) (interface{}, error) {
+	form.Enctype = MultipartFormData
+	return &FileUploadFormModel{}, nil
+}
+
+func FormModel(model interface{}) GetFormModelFunc {
+	debug.Nop()
+	return func(form *Form, ctx *Context) (interface{}, error) {
+		return model, nil
+	}
+}
+
+func OnFormSubmitSaveModel(form *Form, formModel interface{}, ctx *Context) (string, URL, error) {
+	return "", nil, formModel.(mongo.Document).Save()
+}
+
+// OnFormSubmit wraps onSubmitFunc as a OnFormSubmitFunc with the
+// arguments and results of OnFormSubmitFunc optional for onSubmitFunc.
+// The order of the arguments and results is also free to choose.
+func OnFormSubmit(onSubmitFunc interface{}) OnFormSubmitFunc {
+	v := reflect.ValueOf(onSubmitFunc)
+	t := v.Type()
+	if t.Kind() != reflect.Func {
+		panic(fmt.Errorf("OnFormSubmitBindURLArgs: onSubmitFunc must be a function, got %T", onSubmitFunc))
+	}
+	iForm := -1
+	for i := 0; i < t.NumIn(); i++ {
+		if t.In(i) == reflect.TypeOf((*Form)(nil)) {
+			iForm = i
+			break
+		}
+	}
+	iFormModel := -1
+	for i := 0; i < t.NumIn(); i++ {
+		if t.In(i) == reflect.TypeOf((*interface{})(nil)).Elem() {
+			iFormModel = i
+			break
+		}
+	}
+	iContext := -1
+	for i := 0; i < t.NumIn(); i++ {
+		if t.In(i) == reflect.TypeOf((*Context)(nil)) {
+			iContext = i
+			break
+		}
+	}
+	iMessage := -1
+	for i := 0; i < t.NumOut(); i++ {
+		if t.Out(i) == reflect.TypeOf((*string)(nil)).Elem() {
+			iMessage = i
+			break
+		}
+	}
+	iRedirect := -1
+	for i := 0; i < t.NumOut(); i++ {
+		if t.Out(i) == reflect.TypeOf((*URL)(nil)) {
+			iRedirect = i
+			break
+		}
+	}
+	iError := -1
+	for i := 0; i < t.NumOut(); i++ {
+		if t.Out(i) == reflection.TypeOfError {
+			iError = i
+			break
+		}
+	}
+	return func(form *Form, formModel interface{}, ctx *Context) (message string, redirect URL, err error) {
+		args := make([]reflect.Value, t.NumIn())
+		if iForm != -1 {
+			args[iForm] = reflect.ValueOf(form)
+		}
+		if iFormModel != -1 {
+			args[iFormModel] = reflect.ValueOf(formModel)
+		}
+		if iContext != -1 {
+			args[iContext] = reflect.ValueOf(ctx)
+		}
+
+		results := v.Call(args)
+
+		if iMessage != -1 {
+			message = results[iMessage].Interface().(string)
+		}
+		if iRedirect != -1 {
+			redirect, _ = results[iRedirect].Interface().(URL)
+		}
+		if iError != -1 {
+			err, _ = results[iError].Interface().(error)
+		}
+		return message, redirect, err
+	}
+}
+
+/*
+OnFormSubmitBindURLArgs creates a View where onSubmitFunc is called from View.Render
+with Context.URLArgs converted to function arguments.
+The first onSubmitFunc argument can be of type *Context, but this is optional.
+All further arguments will be converted from the corresponding Context.URLArgs
+string to their actual type.
+Conversion to integer, float, string and bool arguments are supported.
+If there are more URLArgs than function args, then supernumerous URLArgs will
+be ignored.
+If there are less URLArgs than function args, then the function args will
+receive their types zero value.
+The first result value of onSubmitFunc has to be of type View,
+the second result is optional and of type error.
+
+Example:
+
+	view.OnFormSubmitBindURLArgs(func(i int, b bool) view.View {
+		return view.Printf("ctx.URLArgs[0]: %d, ctx.URLArgs[1]: %b", i, b)
+	})
+*/
+func _OnFormSubmitBindURLArgs(onSubmitFunc interface{}) OnFormSubmitFunc {
+	panic("todo")
 }
