@@ -3,7 +3,6 @@ package view
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"reflect"
 	"strconv"
 	"strings"
@@ -283,6 +282,12 @@ func (self *Form) GetFieldControllers() FormFieldControllers {
 		return Config.Form.DefaultFieldControllers
 	}
 	return self.FieldControllers
+}
+
+func (self *Form) AddMongoRefController(selector string, options model.Iterator) {
+	self.FieldControllers = self.GetFieldControllers().Append(
+		NewMongoRefController(selector, options),
+	)
 }
 
 // GetCSRFProtector returns self.CSRFProtector if not nil,
@@ -644,66 +649,15 @@ type setPostValuesStructVisitor struct {
 	ctx       *Context
 }
 
-func (self *setPostValuesStructVisitor) trySetFieldValue(field *model.MetaData) error {
-	if self.form.IsFieldDisabled(field) || self.form.IsFieldExcluded(field, self.ctx) {
-		return nil
-	}
-
-	switch s := field.Value.Addr().Interface().(type) {
-	case model.Reference:
-		// we don't handle references with forms yet
-
-	case *model.Bool:
-		s.Set(self.ctx.Request.FormValue(field.Selector()) != "")
-
-	case *model.MultipleChoice:
-		options := s.Options(field)
-		*s = nil
-		for i, option := range options {
-			name := fmt.Sprintf("%s_%d", field.Selector(), i)
-			if self.ctx.Request.FormValue(name) != "" {
-				*s = append(*s, option)
-			}
-		}
-
-	case *model.Blob:
-		file, _, err := self.ctx.Request.FormFile(field.Selector())
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-		bytes, err := ioutil.ReadAll(file)
-		if err != nil {
-			return err
-		}
-		s.Set(bytes)
-
-	case *model.File:
-		file, header, err := self.ctx.Request.FormFile(field.Selector())
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-		bytes, err := ioutil.ReadAll(file)
-		if err != nil {
-			return err
-		}
-		s.Name = header.Filename
-		s.Data = bytes
-
-	case model.Value:
-		// General case
-		s.SetString(self.ctx.Request.FormValue(field.Selector()))
-	}
-	return nil
-}
-
 func (self *setPostValuesStructVisitor) BeginNamedFields(namedFields *model.MetaData) error {
 	return nil
 }
 
 func (self *setPostValuesStructVisitor) NamedField(field *model.MetaData) error {
-	return self.trySetFieldValue(field)
+	if self.form.IsFieldDisabled(field) || self.form.IsFieldExcluded(field, self.ctx) {
+		return nil
+	}
+	return self.form.GetFieldControllers().SetValue(self.ctx, field, self.form)
 }
 
 func (self *setPostValuesStructVisitor) EndNamedFields(namedFields *model.MetaData) error {
@@ -715,7 +669,7 @@ func (self *setPostValuesStructVisitor) BeginIndexedFields(indexedFields *model.
 		if lengthStr := self.ctx.Request.FormValue(indexedFields.Selector() + ".length"); lengthStr != "" {
 			length, err := strconv.Atoi(lengthStr)
 			if err != nil {
-				panic(err.Error())
+				panic(err)
 			}
 			if length != indexedFields.Value.Len() {
 				indexedFields.Value.Set(utils.SetSliceLengh(indexedFields.Value, length))
@@ -727,7 +681,10 @@ func (self *setPostValuesStructVisitor) BeginIndexedFields(indexedFields *model.
 }
 
 func (self *setPostValuesStructVisitor) IndexedField(field *model.MetaData) error {
-	return self.trySetFieldValue(field)
+	if self.form.IsFieldDisabled(field) || self.form.IsFieldExcluded(field, self.ctx) {
+		return nil
+	}
+	return self.form.GetFieldControllers().SetValue(self.ctx, field, self.form)
 }
 
 func (self *setPostValuesStructVisitor) EndIndexedFields(indexedFields *model.MetaData) error {

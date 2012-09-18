@@ -18,23 +18,10 @@ type FormFieldController interface {
 	Supports(metaData *model.MetaData, form *Form) bool
 
 	// NewInput creates a new form field input view for the model metaData.
-	// Returns ErrFormFieldTypeNotSupported if the model is not supported.
 	NewInput(withLabel bool, metaData *model.MetaData, form *Form) (input View, err error)
 
 	// SetValue sets the value of the model from HTTP POST form data.
-	// Returns ErrFormFieldTypeNotSupported if the model is not supported.
 	SetValue(ctx *Context, metaData *model.MetaData, form *Form) error
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// ErrFormFieldTypeNotSupported
-
-type ErrFormFieldTypeNotSupported struct {
-	*model.MetaData
-}
-
-func (self ErrFormFieldTypeNotSupported) Error() string {
-	return fmt.Sprintf("Type %s of form field %s not supported", self.Value.Type(), self.Selector())
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -57,7 +44,7 @@ func (self FormFieldControllers) NewInput(withLabel bool, metaData *model.MetaDa
 			return c.NewInput(withLabel, metaData, form)
 		}
 	}
-	return nil, ErrFormFieldTypeNotSupported{metaData}
+	return nil, nil
 }
 
 func (self FormFieldControllers) SetValue(ctx *Context, metaData *model.MetaData, form *Form) error {
@@ -66,12 +53,23 @@ func (self FormFieldControllers) SetValue(ctx *Context, metaData *model.MetaData
 			return c.SetValue(ctx, metaData, form)
 		}
 	}
-	return ErrFormFieldTypeNotSupported{metaData}
+	return nil
 }
 
 func (self FormFieldControllers) Append(controllers ...FormFieldController) FormFieldControllers {
 	return append(self, controllers...)
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// ErrFormFieldTypeNotSupported
+
+// type ErrFormFieldTypeNotSupported struct {
+// 	*model.MetaData
+// }
+
+// func (self ErrFormFieldTypeNotSupported) Error() string {
+// 	return fmt.Sprintf("Type %s of form field %s not supported", self.Value.Type(), self.Selector())
+// }
 
 ///////////////////////////////////////////////////////////////////////////////
 // SetModelValueControllerBase
@@ -611,22 +609,27 @@ func (self ModelBlobController) SetValue(ctx *Context, metaData *model.MetaData,
 ///////////////////////////////////////////////////////////////////////////////
 // MongoRefController
 
+func NewMongoRefController(selector string, options model.Iterator) *MongoRefController {
+	return &MongoRefController{Selector: selector, OptionsIterator: options}
+}
+
 type MongoRefController struct {
-	ModelIterator model.Iterator
-	// GetName returns the name of a referenced document.
-	// If GetName is nil, then the String() method of
+	Selector        string
+	OptionsIterator model.Iterator
+	// GetLabel returns the label of a referenced document.
+	// If GetLabel is nil, then the String() method of
 	// the doc will be used.
-	GetName func(doc interface{}) string
+	GetLabel func(doc interface{}) string
 }
 
 func (self *MongoRefController) Supports(metaData *model.MetaData, form *Form) bool {
 	_, ok := metaData.Value.Addr().Interface().(*mongo.Ref)
-	return ok
+	return ok && self.Selector == metaData.Selector()
 }
 
-func (self *MongoRefController) getName(doc interface{}) string {
-	if self.GetName != nil {
-		return self.GetName(doc)
+func (self *MongoRefController) getLabel(doc interface{}) string {
+	if self.GetLabel != nil {
+		return self.GetLabel(doc)
 	}
 	return doc.(fmt.Stringer).String()
 }
@@ -635,8 +638,8 @@ func (self *MongoRefController) NewInput(withLabel bool, metaData *model.MetaDat
 	mongoRef := metaData.Value.Addr().Interface().(*mongo.Ref)
 
 	options := []string{""}
-	for doc := self.ModelIterator.Next(); doc != nil; doc = self.ModelIterator.Next() {
-		name := self.getName(doc)
+	for doc := self.OptionsIterator.Next(); doc != nil; doc = self.OptionsIterator.Next() {
+		name := self.getLabel(doc)
 		for _, option := range options {
 			if option == name {
 				return nil, fmt.Errorf("Names of mongo documents must be unique, found double '%s'", name)
@@ -651,7 +654,7 @@ func (self *MongoRefController) NewInput(withLabel bool, metaData *model.MetaDat
 		if err != nil {
 			return nil, err
 		}
-		name = self.getName(doc)
+		name = self.getLabel(doc)
 	}
 
 	input = &Select{
@@ -671,8 +674,8 @@ func (self *MongoRefController) SetValue(ctx *Context, metaData *model.MetaData,
 	mongoRef := metaData.Value.Addr().Interface().(*mongo.Ref)
 	mongoRef.Set(nil)
 	selected := ctx.Request.FormValue(metaData.Selector())
-	for doc := self.ModelIterator.Next(); doc != nil; doc = self.ModelIterator.Next() {
-		if self.getName(doc) == selected {
+	for doc := self.OptionsIterator.Next(); doc != nil; doc = self.OptionsIterator.Next() {
+		if self.getLabel(doc) == selected {
 			mongoRef.Set(doc.(mongo.Document))
 			return nil
 		}
