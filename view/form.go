@@ -21,7 +21,7 @@ const FormIDName = "gostart_form_id"
 
 type GetFormModelFunc func(form *Form, ctx *Context) (model interface{}, err error)
 type OnFormSubmitFunc func(form *Form, formModel interface{}, ctx *Context) (message string, redirect URL, err error)
-type OnFormValidationErrorFunc func(form *Form, formModel interface{}, fieldValidationErrors, generalValidationErrors []error)
+type OnFormValidationErrorFunc func(form *Form, formModel interface{}, fieldValidationErrors, generalValidationErrors []error) (revalidate bool)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form
@@ -180,6 +180,139 @@ type Form struct {
 	Redirect                 URL    // 302 redirect after successful OnSubmit()
 	ShowRefIDs               bool
 	Enctype                  string
+}
+
+func (self *Form) Render(ctx *Context) (err error) {
+	if self.OnSubmit == nil {
+		panic("view.Form.OnSubmit must not be nil")
+	}
+	layout := self.GetLayout()
+	if layout == nil {
+		panic("view.Form.GetLayout() returned nil")
+	}
+	fieldControllers := self.GetFieldControllers()
+	if fieldControllers == nil {
+		panic("view.Form.GetFieldControllers() returned nil")
+	}
+
+	var formModel interface{}
+	var fieldValidationErrors []error
+	var generalValidationErrors []error
+	content := Views{&HiddenInput{Name: FormIDName, Value: self.FormID}}
+	isPost := self.IsPost(ctx.Request)
+
+	if self.GetModel == nil {
+		submitButton := layout.NewSubmitButton(self.GetSubmitButtonText(), self.SubmitButtonConfirm, self)
+		content = append(content, submitButton)
+	} else {
+		formModel, err = self.GetModel(self, ctx)
+		if err != nil {
+			return err
+		}
+		v := reflect.ValueOf(formModel)
+		if !(v.Kind() == reflect.Ptr && v.Elem().Kind() == reflect.Struct) &&
+			!(v.Kind() == reflect.Map && v.Type().Key().Kind() == reflect.String) &&
+			!(v.Type() == model.DynamicValueType) {
+			panic(fmt.Errorf("Invalid form model type: %T", formModel))
+		}
+		if isPost {
+			setPostValues := &setPostValuesStructVisitor{
+				form:      self,
+				formModel: formModel,
+				ctx:       ctx,
+			}
+			err = model.Visit(formModel, setPostValues)
+			if err != nil {
+				return err
+			}
+		}
+		validateAndLayout := &validateAndFormLayoutStructVisitor{
+			form:                    self,
+			formLayout:              layout,
+			formModel:               formModel,
+			formContent:             &content,
+			ctx:                     ctx,
+			isPost:                  isPost,
+			fieldValidationErrors:   &fieldValidationErrors,
+			generalValidationErrors: &generalValidationErrors,
+		}
+		err = model.Visit(formModel, validateAndLayout)
+		if err != nil {
+			return err
+		}
+
+		if isPost && self.OnValidationError != nil && (len(fieldValidationErrors) > 0 || len(generalValidationErrors) > 0) {
+			revalidate := self.OnValidationError(self, formModel, fieldValidationErrors, generalValidationErrors)
+			if revalidate {
+				fieldValidationErrors = nil
+				generalValidationErrors = nil
+				err = model.Visit(formModel, validateAndLayout)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	if isPost && len(fieldValidationErrors) == 0 && len(generalValidationErrors) == 0 {
+		message, redirect, err := self.OnSubmit(self, formModel, ctx)
+		if err == nil {
+			if redirect == nil {
+				redirect = self.Redirect
+			}
+			if redirect != nil {
+				return Redirect(redirect.URL(ctx))
+			}
+			if message == "" {
+				message = self.SuccessMessage
+			}
+			if message != "" {
+				self.GetLayout().SubmitSuccess(message, self, ctx, &content)
+			}
+		} else {
+			if message == "" {
+				message = err.Error()
+			}
+			self.GetLayout().SubmitError(message, self, ctx, &content)
+		}
+	}
+
+	// Render HTML form element
+	method := strings.ToUpper(self.Method)
+	if method == "" {
+		method = "POST"
+	}
+	action := self.Action
+	if action == "" {
+		action = "."
+		if i := strings.Index(ctx.Request.RequestURI, "?"); i != -1 {
+			action += ctx.Request.RequestURI[i:]
+		}
+	}
+	// Hack: Value of hidden input FormIDName is not available when
+	// enctype is multipart/form-data (bug?), so pass the form id as
+	// URL parameter
+	if self.Enctype == MultipartFormData && ctx.Request.Method != "POST" {
+		action = utils.AddUrlParam(action, FormIDName, self.FormID)
+	}
+
+	ctx.Response.XML.OpenTag("form")
+	ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
+	ctx.Response.XML.AttribIfNotDefault("style", self.Style)
+	ctx.Response.XML.Attrib("method", method)
+	ctx.Response.XML.Attrib("action", action)
+	ctx.Response.XML.AttribIfNotDefault("enctype", self.Enctype)
+
+	if len(content) > 0 {
+		content.Init(content)
+		err = content.Render(ctx)
+		if err != nil {
+			return err
+		}
+	}
+	ctx.Response.XML.ForceCloseTag() // form
+	return nil
 }
 
 // GetLayout returns self.Layout if not nil,
@@ -437,136 +570,6 @@ func (self *Form) FieldInputClass(metaData *model.MetaData) string {
 	return class
 }
 
-func (self *Form) Render(ctx *Context) (err error) {
-	if self.OnSubmit == nil {
-		panic("view.Form.OnSubmit must not be nil")
-	}
-	layout := self.GetLayout()
-	if layout == nil {
-		panic("view.Form.GetLayout() returned nil")
-	}
-	fieldControllers := self.GetFieldControllers()
-	if fieldControllers == nil {
-		panic("view.Form.GetFieldControllers() returned nil")
-	}
-
-	var formModel interface{}
-	var hasErrors bool
-	content := Views{&HiddenInput{Name: FormIDName, Value: self.FormID}}
-	isPost := self.IsPost(ctx.Request)
-
-	var fieldValidationErrors []error
-	var generalValidationErrors []error
-
-	if self.GetModel == nil {
-		submitButton := layout.NewSubmitButton(self.GetSubmitButtonText(), self.SubmitButtonConfirm, self)
-		content = append(content, submitButton)
-	} else {
-		formModel, err = self.GetModel(self, ctx)
-		if err != nil {
-			return err
-		}
-		v := reflect.ValueOf(formModel)
-		if !(v.Kind() == reflect.Ptr && v.Elem().Kind() == reflect.Struct) &&
-			!(v.Kind() == reflect.Map && v.Type().Key().Kind() == reflect.String) &&
-			!(v.Type() == model.DynamicValueType) {
-			panic(fmt.Errorf("Invalid form model type: %T", formModel))
-		}
-		if isPost {
-			setPostValues := &setPostValuesStructVisitor{
-				form:      self,
-				formModel: formModel,
-				ctx:       ctx,
-			}
-			err = model.Visit(formModel, setPostValues)
-			if err != nil {
-				return err
-			}
-		}
-		validateAndLayout := &validateAndFormLayoutStructVisitor{
-			form:        self,
-			formLayout:  layout,
-			formModel:   formModel,
-			formContent: &content,
-			ctx:         ctx,
-			isPost:      isPost,
-		}
-		err = model.Visit(formModel, validateAndLayout)
-		if err != nil {
-			return err
-		}
-		fieldValidationErrors = validateAndLayout.fieldValidationErrors
-		generalValidationErrors = validateAndLayout.generalValidationErrors
-		hasErrors = len(fieldValidationErrors) > 0 || len(generalValidationErrors) > 0
-	}
-
-	if isPost {
-		if hasErrors {
-			if self.OnValidationError != nil {
-				self.OnValidationError(self, formModel, fieldValidationErrors, generalValidationErrors)
-			}
-		} else {
-			message, redirect, err := self.OnSubmit(self, formModel, ctx)
-			if err == nil {
-				if redirect == nil {
-					redirect = self.Redirect
-				}
-				if redirect != nil {
-					return Redirect(redirect.URL(ctx))
-				}
-				if message == "" {
-					message = self.SuccessMessage
-				}
-				if message != "" {
-					self.GetLayout().SubmitSuccess(message, self, ctx, &content)
-				}
-			} else {
-				if message == "" {
-					message = err.Error()
-				}
-				self.GetLayout().SubmitError(message, self, ctx, &content)
-			}
-		}
-	}
-
-	// Render HTML form element
-	method := strings.ToUpper(self.Method)
-	if method == "" {
-		method = "POST"
-	}
-	action := self.Action
-	if action == "" {
-		action = "."
-		if i := strings.Index(ctx.Request.RequestURI, "?"); i != -1 {
-			action += ctx.Request.RequestURI[i:]
-		}
-	}
-	// Hack: Value of hidden input FormIDName is not available when
-	// enctype is multipart/form-data (bug?), so pass the form id as
-	// URL parameter
-	if self.Enctype == MultipartFormData && ctx.Request.Method != "POST" {
-		action = utils.AddUrlParam(action, FormIDName, self.FormID)
-	}
-
-	ctx.Response.XML.OpenTag("form")
-	ctx.Response.XML.AttribIfNotDefault("id", self.id)
-	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
-	ctx.Response.XML.AttribIfNotDefault("style", self.Style)
-	ctx.Response.XML.Attrib("method", method)
-	ctx.Response.XML.Attrib("action", action)
-	ctx.Response.XML.AttribIfNotDefault("enctype", self.Enctype)
-
-	if len(content) > 0 {
-		content.Init(content)
-		err = content.Render(ctx)
-		if err != nil {
-			return err
-		}
-	}
-	ctx.Response.XML.ForceCloseTag() // form
-	return nil
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 // setPostValuesStructVisitor
 
@@ -637,8 +640,8 @@ type validateAndFormLayoutStructVisitor struct {
 	isPost      bool
 
 	// Output
-	fieldValidationErrors   []error
-	generalValidationErrors []error
+	fieldValidationErrors   *[]error
+	generalValidationErrors *[]error
 }
 
 func (self *validateAndFormLayoutStructVisitor) validateField(field *model.MetaData) error {
@@ -648,7 +651,7 @@ func (self *validateAndFormLayoutStructVisitor) validateField(field *model.MetaD
 			err = model.NewRequiredError(field)
 		}
 		if err != nil {
-			self.fieldValidationErrors = append(self.fieldValidationErrors, err)
+			*self.fieldValidationErrors = append(*self.fieldValidationErrors, err)
 		}
 		return err
 	}
@@ -659,7 +662,7 @@ func (self *validateAndFormLayoutStructVisitor) validateGeneral(data *model.Meta
 	if validator, ok := data.ModelValidator(); ok {
 		err := validator.Validate(data)
 		if err != nil {
-			self.generalValidationErrors = append(self.generalValidationErrors, err)
+			*self.generalValidationErrors = append(*self.generalValidationErrors, err)
 		}
 		return err
 	}
@@ -667,7 +670,7 @@ func (self *validateAndFormLayoutStructVisitor) validateGeneral(data *model.Meta
 }
 
 func (self *validateAndFormLayoutStructVisitor) endForm(data *model.MetaData) (err error) {
-	return self.formLayout.EndFormContent(self.fieldValidationErrors, self.generalValidationErrors, self.form, self.ctx, self.formContent)
+	return self.formLayout.EndFormContent(*self.fieldValidationErrors, *self.generalValidationErrors, self.form, self.ctx, self.formContent)
 }
 
 func (self *validateAndFormLayoutStructVisitor) BeginNamedFields(namedFields *model.MetaData) error {
