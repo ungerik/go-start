@@ -653,11 +653,16 @@ func (self *setPostValuesStructVisitor) BeginNamedFields(namedFields *model.Meta
 	return nil
 }
 
-func (self *setPostValuesStructVisitor) NamedField(field *model.MetaData) error {
+func (self *setPostValuesStructVisitor) field(field *model.MetaData) error {
 	if self.form.IsFieldDisabled(field) || self.form.IsFieldExcluded(field, self.ctx) {
 		return nil
 	}
-	return self.form.GetFieldControllers().SetValue(self.ctx, field, self.form)
+	value := self.ctx.Request.FormValue(field.Selector())
+	return self.form.GetFieldControllers().SetValue(value, self.ctx, field, self.form)
+}
+
+func (self *setPostValuesStructVisitor) NamedField(field *model.MetaData) error {
+	return self.field(field)
 }
 
 func (self *setPostValuesStructVisitor) EndNamedFields(namedFields *model.MetaData) error {
@@ -681,10 +686,7 @@ func (self *setPostValuesStructVisitor) BeginIndexedFields(indexedFields *model.
 }
 
 func (self *setPostValuesStructVisitor) IndexedField(field *model.MetaData) error {
-	if self.form.IsFieldDisabled(field) || self.form.IsFieldExcluded(field, self.ctx) {
-		return nil
-	}
-	return self.form.GetFieldControllers().SetValue(self.ctx, field, self.form)
+	return self.field(field)
 }
 
 func (self *setPostValuesStructVisitor) EndIndexedFields(indexedFields *model.MetaData) error {

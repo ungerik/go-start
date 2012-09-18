@@ -91,10 +91,13 @@ func RemoveRefWithID(refs []Ref, id bson.ObjectId) ([]Ref, bool) {
 	return refs, false
 }
 
+// nil refs will be ignored
 func ValidateRefs(refs []Ref) (validRefs []Ref, invalidRefs []Ref) {
 	for _, ref := range refs {
-		if _, err := ref.Get(); err == nil {
-			validRefs = append(validRefs, ref)
+		if doc, err := ref.Get(); err == nil {
+			if doc != nil {
+				validRefs = append(validRefs, ref)
+			}
 		} else {
 			invalidRefs = append(invalidRefs, ref)
 		}
@@ -170,13 +173,14 @@ func InitRefs(document interface{}) {
 
 // Returns an iterator of dereferenced refs, or an error iterator if there was an error
 func DereferenceIterator(refs ...Ref) model.Iterator {
-	docs := make([]interface{}, len(refs))
+	var docs []interface{}
 	for i := range refs {
-		var err error
-		docs[i], err = refs[i].Get()
+		doc, err := refs[i].Get()
 		if err != nil {
 			err = errs.Format("%s: %s", refs[i].ID.Hex(), err.Error())
 			return model.NewErrorOnlyIterator(err)
+		} else if doc != nil {
+			docs = append(docs, doc)
 		}
 	}
 	return model.NewObjectIterator(docs...)
@@ -187,11 +191,11 @@ func FailsafeDereferenceIterator(refs ...Ref) (i model.Iterator, errors []error)
 	var docs []interface{}
 	for i := range refs {
 		doc, err := refs[i].Get()
-		if err == nil {
-			docs = append(docs, doc)
-		} else {
+		if err != nil {
 			err = errs.Format("%s: %s", refs[i].ID.Hex(), err.Error())
 			errors = append(errors, err)
+		} else if doc != nil {
+			docs = append(docs, doc)
 		}
 	}
 	return model.NewObjectIterator(docs...), errors

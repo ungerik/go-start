@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"strconv"
 
+	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/mongo"
 )
@@ -21,7 +22,7 @@ type FormFieldController interface {
 	NewInput(withLabel bool, metaData *model.MetaData, form *Form) (input View, err error)
 
 	// SetValue sets the value of the model from HTTP POST form data.
-	SetValue(ctx *Context, metaData *model.MetaData, form *Form) error
+	SetValue(value string, ctx *Context, metaData *model.MetaData, form *Form) error
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -47,10 +48,10 @@ func (self FormFieldControllers) NewInput(withLabel bool, metaData *model.MetaDa
 	return nil, nil
 }
 
-func (self FormFieldControllers) SetValue(ctx *Context, metaData *model.MetaData, form *Form) error {
+func (self FormFieldControllers) SetValue(value string, ctx *Context, metaData *model.MetaData, form *Form) error {
 	for _, c := range self {
 		if c.Supports(metaData, form) {
-			return c.SetValue(ctx, metaData, form)
+			return c.SetValue(value, ctx, metaData, form)
 		}
 	}
 	return nil
@@ -76,9 +77,9 @@ func (self FormFieldControllers) Append(controllers ...FormFieldController) Form
 
 type SetModelValueControllerBase struct{}
 
-func (self SetModelValueControllerBase) SetValue(ctx *Context, metaData *model.MetaData, form *Form) error {
-	value := metaData.Value.Addr().Interface().(model.Value)
-	value.SetString(ctx.Request.FormValue(metaData.Selector()))
+func (self SetModelValueControllerBase) SetValue(value string, ctx *Context, metaData *model.MetaData, form *Form) error {
+	m := metaData.Value.Addr().Interface().(model.Value)
+	m.SetString(value)
 	return nil
 }
 
@@ -303,9 +304,9 @@ func (self ModelBoolController) NewInput(withLabel bool, metaData *model.MetaDat
 	return checkbox, nil
 }
 
-func (self ModelBoolController) SetValue(ctx *Context, metaData *model.MetaData, form *Form) error {
+func (self ModelBoolController) SetValue(value string, ctx *Context, metaData *model.MetaData, form *Form) error {
 	b := metaData.Value.Addr().Interface().(*model.Bool)
-	b.Set(ctx.Request.FormValue(metaData.Selector()) != "")
+	b.Set(value != "")
 	return nil
 }
 
@@ -369,7 +370,7 @@ func (self ModelMultipleChoiceController) NewInput(withLabel bool, metaData *mod
 	return checkboxes, nil
 }
 
-func (self ModelMultipleChoiceController) SetValue(ctx *Context, metaData *model.MetaData, form *Form) error {
+func (self ModelMultipleChoiceController) SetValue(value string, ctx *Context, metaData *model.MetaData, form *Form) error {
 	m := metaData.Value.Addr().Interface().(*model.MultipleChoice)
 	options := m.Options(metaData)
 	*m = nil
@@ -553,7 +554,7 @@ func (self ModelFileController) NewInput(withLabel bool, metaData *model.MetaDat
 	return input, nil
 }
 
-func (self ModelFileController) SetValue(ctx *Context, metaData *model.MetaData, form *Form) error {
+func (self ModelFileController) SetValue(value string, ctx *Context, metaData *model.MetaData, form *Form) error {
 	f := metaData.Value.Addr().Interface().(*model.File)
 	file, header, err := ctx.Request.FormFile(metaData.Selector())
 	if err != nil {
@@ -591,7 +592,7 @@ func (self ModelBlobController) NewInput(withLabel bool, metaData *model.MetaDat
 	return input, nil
 }
 
-func (self ModelBlobController) SetValue(ctx *Context, metaData *model.MetaData, form *Form) error {
+func (self ModelBlobController) SetValue(value string, ctx *Context, metaData *model.MetaData, form *Form) error {
 	b := metaData.Value.Addr().Interface().(*model.Blob)
 	file, _, err := ctx.Request.FormFile(metaData.Selector())
 	if err != nil {
@@ -614,7 +615,7 @@ func NewMongoRefController(selector string, options model.Iterator) *MongoRefCon
 }
 
 type MongoRefController struct {
-	Selector        string
+	Selector        string // Empty string matches all selectors
 	OptionsIterator model.Iterator
 	// GetLabel returns the label of a referenced document.
 	// If GetLabel is nil, then the String() method of
@@ -624,7 +625,7 @@ type MongoRefController struct {
 
 func (self *MongoRefController) Supports(metaData *model.MetaData, form *Form) bool {
 	_, ok := metaData.Value.Addr().Interface().(*mongo.Ref)
-	return ok && self.Selector == metaData.Selector()
+	return ok && (self.Selector == "" || self.Selector == metaData.Selector())
 }
 
 func (self *MongoRefController) getLabel(doc interface{}) string {
@@ -649,11 +650,11 @@ func (self *MongoRefController) NewInput(withLabel bool, metaData *model.MetaDat
 	}
 
 	name := ""
-	if !mongoRef.IsEmpty() {
-		doc, err := mongoRef.Get()
-		if err != nil {
-			return nil, err
-		}
+	doc, err := mongoRef.Get()
+	if err != nil {
+		return nil, err
+	}
+	if doc != nil {
 		name = self.getLabel(doc)
 	}
 
@@ -670,14 +671,15 @@ func (self *MongoRefController) NewInput(withLabel bool, metaData *model.MetaDat
 	return input, nil
 }
 
-func (self *MongoRefController) SetValue(ctx *Context, metaData *model.MetaData, form *Form) error {
+func (self *MongoRefController) SetValue(value string, ctx *Context, metaData *model.MetaData, form *Form) error {
 	mongoRef := metaData.Value.Addr().Interface().(*mongo.Ref)
 	mongoRef.Set(nil)
-	selected := ctx.Request.FormValue(metaData.Selector())
-	for doc := self.OptionsIterator.Next(); doc != nil; doc = self.OptionsIterator.Next() {
-		if self.getLabel(doc) == selected {
-			mongoRef.Set(doc.(mongo.Document))
-			return nil
+	if value != "" {
+		for doc := self.OptionsIterator.Next(); doc != nil; doc = self.OptionsIterator.Next() {
+			if self.getLabel(doc) == value {
+				mongoRef.Set(doc.(mongo.Document))
+				return nil
+			}
 		}
 	}
 	return nil
