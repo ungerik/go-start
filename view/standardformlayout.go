@@ -104,7 +104,7 @@ func (self *StandardFormLayout) NamedField(field *model.MetaData, validationErr 
 		return nil
 	}
 
-	formField, err := fieldFactory.NewInput(true, field, form)
+	formField, err := form.newFieldInput(true, field)
 	if err != nil {
 		return err
 	}
@@ -151,7 +151,7 @@ func (self *StandardFormLayout) IndexedField(field *model.MetaData, validationEr
 		// Add script for manipulating table rows
 		ctx.Response.RequireScriptURL("/js/form.js", 0)
 	}
-	td, err := fieldFactory.NewInput(false, field, form)
+	td, err := form.newFieldInput(false, field)
 	if err != nil {
 		return err
 	}
@@ -244,7 +244,7 @@ func (self *StandardFormLayout) structFieldInArrayOrSlice(arrayOrSlice, field *m
 	// Append form field in last row for this struct field
 	row := &tableModel[tableModel.Rows()-1]
 
-	td, err := fieldFactory.NewInput(false, field, form)
+	td, err := form.newFieldInput(false, field)
 	if err != nil {
 		return err
 	}

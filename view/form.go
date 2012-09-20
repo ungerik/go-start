@@ -249,6 +249,10 @@ type Form struct {
 	*/
 	OnSubmit OnFormSubmitFunc
 
+	// NewFieldInput is a hook that will be called instead of FieldFactory.NewInput
+	// if not nil. Can be used for form specific alterations to the form layout.
+	NewFieldInput func(withLabel bool, metaData *model.MetaData, form *Form) (View, error)
+
 	ModelMaxDepth            int      // if zero, no depth limit
 	ExcludedFields           []string // Use point notation for nested fields. In case of arrays/slices use wildcards
 	HiddenFields             []string // Use point notation for nested fields. In case of arrays/slices use wildcards
@@ -513,6 +517,13 @@ func (self *Form) InputFieldPlaceholder(metaData *model.MetaData) string {
 		return placeholder
 	}
 	return ""
+}
+
+func (self *Form) newFieldInput(withLabel bool, metaData *model.MetaData) (View, error) {
+	if self.NewFieldInput != nil {
+		return self.NewFieldInput(withLabel, metaData, self)
+	}
+	return self.GetFieldFactory().NewInput(withLabel, metaData, self)
 }
 
 func (self *Form) FieldInputClass(metaData *model.MetaData) string {

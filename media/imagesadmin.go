@@ -34,10 +34,10 @@ func ImagesAdmin() view.View {
 					&view.Form{
 						FormID:            "edit" + image.ID.Get(),
 						SubmitButtonClass: Config.ImagesAdmin.ButtonClass,
-						GetModel: func(form *view.Form, ctx *view.Context) (model interface{}, err error) {
+						GetModel: func(form *view.Form, ctx *view.Context) (interface{}, error) {
 							return &imageData{
 								Title:    image.Title,
-								Filename: image.Versions[0].Filename,
+								Filename: model.String(image.Filename()),
 								Link:     image.Link,
 							}, nil
 						},

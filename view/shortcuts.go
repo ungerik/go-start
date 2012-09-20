@@ -9,6 +9,19 @@ import (
 ///////////////////////////////////////////////////////////////////////////////
 // Shortcuts
 
+// ViewOrError returns a DynamicView that renders view if err is nil or
+// else renders the error.
+func ViewOrError(view View, err error) DynamicView {
+	return DynamicView(
+		func(ctx *Context) (View, error) {
+			if err != nil {
+				return nil, err
+			}
+			return view, nil
+		},
+	)
+}
+
 // Escape HTML escapes a string.
 func Escape(text string) HTML {
 	return HTML(html.EscapeString(text))

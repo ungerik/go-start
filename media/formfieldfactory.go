@@ -31,14 +31,17 @@ func (self *FormFieldFactory) CanCreateInput(metaData *model.MetaData, form *vie
 func (self *FormFieldFactory) NewInput(withLabel bool, metaData *model.MetaData, form *view.Form) (view.View, error) {
 	if imageRef, ok := metaData.Value.Addr().Interface().(*ImageRef); ok {
 		thumbnailSize := Config.ImageRefEditor.ThumbnailSize
-		removeButton := &view.Button{Content: view.HTML("Remove"), OnClick: ""}
+
+		hiddenInput := &view.HiddenInput{Name: metaData.Selector(), Value: imageRef.String()}
+
+		removeButton := &view.Button{Content: view.HTML("Remove")}
 
 		var img view.View
 		if imageRef.IsEmpty() {
 			removeButton.Disabled = true
 			img = view.IMG(Config.dummyImageURL, thumbnailSize, thumbnailSize)
 		} else {
-			image, err := imageRef.GetImage()
+			image, err := imageRef.Get()
 			if err != nil {
 				return nil, err
 			}
@@ -49,34 +52,38 @@ func (self *FormFieldFactory) NewInput(withLabel bool, metaData *model.MetaData,
 			img = version.ViewImage("")
 		}
 
-		hiddenInput := &view.HiddenInput{Name: metaData.Selector(), Value: imageRef.String()}
-
 		thumbnailFrame := &view.Div{
 			Class:   Config.ImageRefEditor.ThumbnailFrameClass,
 			Style:   fmt.Sprintf("width:%dpx;height:%dpx;", thumbnailSize, thumbnailSize),
 			Content: img,
 		}
 
-		const onCompleteSrc = `function(id, fileName, responseJSON) {
-			alert(JSON.stringify(responseJSON));
-			var img = "<img src='" + responseJSON.thumbnailURL + "' width='%d' height='%d'/>";
-			jQuery("#%s").empty().html(img);
-			jQuery("#%s").attr("value", responseJSON.imageID);
-		}`
+		removeButton.OnClick = fmt.Sprintf(
+			`jQuery("#%s").removeAttr("value");jQuery("#%s").empty();`,
+			hiddenInput.ID(),
+			thumbnailFrame.ID(),
+		)
+
+		// alert(JSON.stringify(responseJSON));
 		onComplete := fmt.Sprintf(
-			onCompleteSrc,
+			`function(id, fileName, responseJSON) {
+				var img = "<img src='" + responseJSON.thumbnailURL + "' width='%d' height='%d'/>";
+				jQuery("#%s").empty().html(img);
+				jQuery("#%s").attr("value", responseJSON.imageID);
+				jQuery("#%s").removeAttr("disabled");
+			}`,
 			thumbnailSize,
 			thumbnailSize,
 			thumbnailFrame.ID(),
 			hiddenInput.ID(),
+			removeButton.ID(),
 		)
-		// onComplete = ""
 
 		editor := view.DIV(Config.ImageRefEditor.Class,
 			hiddenInput,
 			thumbnailFrame,
 			view.DIV(Config.ImageRefEditor.ActionsClass,
-				view.HTML("&larr; drag &amp; drop files here"),
+				// view.HTML("&larr; drag &amp; drop files here"),
 				removeButton,
 				UploadImageButton(thumbnailSize, onComplete),
 			),

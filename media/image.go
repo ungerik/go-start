@@ -249,6 +249,10 @@ func (self *Image) sourceRectTouchOriginalFromInside(width, height int, horAlign
 	return r.Add(offset)
 }
 
+func (self *Image) OriginalVersion() *ImageVersion {
+	return &self.Versions[0]
+}
+
 // SourceRectVersion searches and returns an existing matching version,
 // or a new one will be created and saved.
 func (self *Image) VersionSourceRect(sourceRect image.Rectangle, width, height int, grayscale bool, outsideColor color.Color) (im *ImageVersion, err error) {
