@@ -29,10 +29,96 @@ type OnFormValidationErrorFunc func(form *Form, formModel interface{}, fieldVali
 /*
 Form creates an input form for a data model.
 
+Gists:
+
+	https://gist.github.com/3748164
+
+Note:
+
+	CSRF protection is not implemented yet
+
+The data model:
+
 The default behavior of Form is to send a POST request with the
 form data to the same URL of the page it is located in.
 Form then takes the values from the POST request and sets them
 at the data model and then validates the model.
+
+The model for the form is provided the GetModel function.
+It can be a struct of model.Value implementations like model.String or model.Bool
+or a slice of model.DynamicValue.
+
+The names of the exported struct fields or model.DynamicValue.Name is used as
+label for the generated form fields. The labels of struct fields can be
+overridden by adding a view tag like `view:"label=Hello World!".
+
+Example:
+
+	type MyModel struct {
+		AnInt model.Int                           // Label will be "AnInt"
+		Overr model.String `view:"label=A String" // Label will be "A String"
+	}
+
+Labels can also be overridden on a per form basis by setting Form.Labels
+which is a map[string]string.
+The "selector" of a field is used as key and the label as value in the map.
+
+Form field selectors:
+
+A selector is the path of struct field names or model.DynamicValue.Name
+from the root of the model to the described concatenated by ".".
+In case of slice or array fields, the index is used as field name.
+The wildcard character $ can be used to select all fields of a slice or array.
+
+Example:
+
+	type MyModel struct {
+		A model.String		
+		B struct {
+			X model.Int
+		}
+		C [2]struct{
+			Y model.Int
+		}
+	}
+
+	"A"     selects MyModel.A
+	"B.X"   selects MyModel.B.X
+	"C.1.Y" selects MyModel.C[1].Y
+	"C.$.Y" selects MyModel.C[0].Y and MyModel.C[1].Y
+
+Selectors can also be used to mark data model fields as
+required, excluded, hidden, disabled by setting them at
+Form.RequiredFields, Form.ExcludedFields, Form.HiddenFields
+and Form.DisabledFields.
+Required fields must not be empty to validate.
+Hidden fields generate hidden HTML form input elements,
+whereas excluded fields are completely ignored.
+
+required can also be set as model tag, hidden and disabled
+as view tags at struct fields of the data model.
+
+Example:
+
+	var myModel struct {
+		Required1 model.String `model:"required"`
+		Required2 model.Int
+		Hidden1   model.Float `view:"hidden"`
+		Hidden2   model.Url
+		Disabled1 model.Bool `view:"disabled"`
+		Disabled2 model.Email
+		Excluded  model.String
+	}
+	&Form{
+		RequiredFields: []string{"Required2"},
+		HiddenFields:   []string{"Hidden2"},
+		DisabledFields: []string{"Disabled2"},
+		ExcludedFields: []string{"Excluded"},
+		GetModel:       FormModel(&myModel),
+	}
+
+
+Data validation:
 
 All model.Value implementations also implement model.Validator.
 Custom model wide validation can be achieved by implementing
@@ -55,7 +141,18 @@ Example from user/formmodels.go:
 If there were any validations errors Form.OnValidationError will be called
 if not nil, or else Form.OnSubmit.
 
-message, redirect, err
+Processing the submitted data:
+
+Form.OnSubmit returns three values: (message string, redirect URL, err error)
+If error is nil and redirect is not nil, then a redirect response will be sent.
+Without redirect message will be displayed if not empty.
+The message will be styled as success message if err is nil, else as error message.
+If message is empty and err is not nil, then err will be displayed as error message.
+Keep in mind, that users of a website are not interested in technical details
+of internal errors, they can even be used to hack the website.
+So use message to return a sanitized message for the user
+and error for internal logging.
+
 
 If there are multiple forms on one page, then every form
 needs a unique FormID, because the POST request with the form
@@ -63,48 +160,6 @@ data is made to the same URL or the page.
 FormID can be empty if there is only one form on a page,
 but it's good practice to always assign a FormID, because then
 forms later added to the page won't lead to conflicts.
-
-The model for the form is provided the GetModel function.
-It can be a struct of model.Value implementations like model.String or model.Int
-or a slice of model.DynamicValue.
-
-The names of the exported struct fields or model.DynamicValue.Name is used as
-label for the generated form fields. The labels of struct fields can be
-overridden by adding a view tag like `view:"label=Hello World!".
-
-Example:
-
-	type MyModel struct {
-		AnInt model.Int                           // Label will be "AnInt"
-		Overr model.String `view:"label=A String" // Label will be "A String"
-	}
-
-Labels can also be overridden by the form by setting Form.Labels which is
-a map[string]string.
-The "selector" of a field is used as key and the label as value in the map.
-
-A selector is the path of struct field names or model.DynamicValue.Name
-from the root of the model to the described concatenated by ".".
-In case of slice or array fields, the index is used as field name.
-The wildcard $ can be used to select all fields of a slice or array.
-
-Example:
-
-	type MyModel struct {
-		A model.String		
-		B struct {
-			X model.Int
-		}
-		C [2]struct{
-			Y model.Int
-		}
-	}
-
-	"A"     selects MyModel.A
-	"B.X"   selects MyModel.B.X
-	"C.1.Y" selects MyModel.C[1].Y
-	"C.$.Y" selects MyModel.C[0].Y and MyModel.C[1].Y
-
 
 
 */
