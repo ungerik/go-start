@@ -44,9 +44,43 @@ form data to the same URL of the page it is located in.
 Form then takes the values from the POST request and sets them
 at the data model and then validates the model.
 
+If there are multiple forms on one page, then every form
+needs a unique FormID, because the POST request with the form
+data is made to the same URL or the page. 
+FormID can be empty if there is only one form on a page,
+but it's good practice to always assign a FormID, because then
+forms later added to the page won't lead to conflicts.
+
 The model for the form is provided the GetModel function.
-It can be a struct of model.Value implementations like model.String or model.Bool
-or a slice of model.DynamicValue.
+It can be a struct of model.Value implementations like
+model.String or model.Bool or a slice of model.DynamicValue
+(which is available as type model.DynamicValues with additional
+methods).
+If the model was declared as variable before the form,
+then the helper function FormModel() can be used for GetModel.
+Note that model structs are always passed on as pointers.
+
+Example:
+
+	var structModel struct {
+		A, B model.Bool
+	}
+	&Form{
+		GetModel: FormModel(&structModel),
+	}
+
+	&Form{
+		GetModel: func(form *Form, ctx *Context) (interface{}, error) {
+			dynamicModel := model.DynamicValues{
+				{Name: "A": Value: model.NewBool(true)},
+				{Name: "B": Value: model.NewString("go-start is awesome")},
+				{Name: "C": Value: model.NewString("Required")},
+			}
+			dynamicModel[2].SetAttrib("model", "required", "true")
+			return dynamicModel, nil
+		}
+	}
+
 
 The names of the exported struct fields or model.DynamicValue.Name is used as
 label for the generated form fields. The labels of struct fields can be
@@ -117,7 +151,6 @@ Example:
 		GetModel:       FormModel(&myModel),
 	}
 
-
 Data validation:
 
 All model.Value implementations also implement model.Validator.
@@ -154,13 +187,15 @@ So use message to return a sanitized message for the user
 and error for internal logging.
 
 
-If there are multiple forms on one page, then every form
-needs a unique FormID, because the POST request with the form
-data is made to the same URL or the page. 
-FormID can be empty if there is only one form on a page,
-but it's good practice to always assign a FormID, because then
-forms later added to the page won't lead to conflicts.
+Form layout:
 
+todo
+
+Slices and arrays in the data model will be displayed as table by StandardFormLayout
+
+Styling:
+
+todo
 
 */
 type Form struct {
