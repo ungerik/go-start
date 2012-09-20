@@ -1,6 +1,9 @@
 package model
 
-import "net/url"
+import (
+	"net/url"
+	"strings"
+)
 
 func NewUrl(value string) *Url {
 	return (*Url)(&value)
@@ -16,6 +19,9 @@ func (self *Url) Set(value string) error {
 	if value == "" {
 		*self = ""
 		return nil
+	}
+	if !strings.HasPrefix(value, "http") {
+		value = "http://" + value
 	}
 	_, err := url.Parse(value)
 	if err == nil {
