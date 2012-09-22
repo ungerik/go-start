@@ -23,7 +23,6 @@ func (self ImageRefController) NewInput(withLabel bool, metaData *model.MetaData
 
 	var img view.View
 	if imageRef.IsEmpty() {
-		// removeButton.Disabled = true
 		img = view.IMG(Config.dummyImageURL, thumbnailSize, thumbnailSize)
 	} else {
 		image, err := imageRef.Get()
@@ -45,35 +44,29 @@ func (self ImageRefController) NewInput(withLabel bool, metaData *model.MetaData
 		Content: img,
 	}
 
-	onComplete := fmt.Sprintf(
-		`function(id, fileName, responseJSON) {
-			// alert(JSON.stringify(responseJSON));
-			var img = "<img src='" + responseJSON.thumbnailURL + "' width='%d' height='%d'/>";
-			jQuery("#%s").empty().html(img);
-			jQuery("#%s").attr("value", responseJSON.imageID);
-		}`,
-		thumbnailSize,
-		thumbnailSize,
-		thumbnailFrame.ID(),
-		hiddenInput.ID(),
-	)
-
 	removeButton := &view.Button{
 		Content: view.HTML("Remove"),
 		OnClick: fmt.Sprintf(
-			`jQuery("#%s").attr("value", ""); jQuery("#%s").empty();`,
+			`jQuery("#%s").attr("value", "");
+			jQuery("#%s").empty().append("<img src='%s' width='%d' height='%d'/>");`,
 			hiddenInput.ID(),
 			thumbnailFrame.ID(),
+			Config.dummyImageURL,
+			thumbnailSize,
+			thumbnailSize,
 		),
 	}
 
+	chooseDialogThumbnails := view.DIV("")
+	chooseDialogThumbnailsID := chooseDialogThumbnails.ID()
 	chooseDialog := &view.ModalDialog{
+		Style: "width:600px;height:400px;",
 		Content: view.Views{
-			view.H1("hello world"),
+			view.H3("Choose Image:"),
+			chooseDialogThumbnails,
 			view.ModalDialogCloseButton("Close"),
 		},
 	}
-	// chooseDialog.Style = "width:400px;height:400px;"
 
 	editor := view.DIV(Config.ImageRefController.Class,
 		hiddenInput,
@@ -81,9 +74,44 @@ func (self ImageRefController) NewInput(withLabel bool, metaData *model.MetaData
 		view.DIV(Config.ImageRefController.ActionsClass,
 			// view.HTML("&larr; drag &amp; drop files here"),
 			chooseDialog,
-			chooseDialog.OpenButton("Choose"),
+			view.DynamicView(
+				func(ctx *view.Context) (view.View, error) {
+					ctx.Response.RequireScriptURL("/media/media.js", 0)
+					return &view.Button{
+						Content: view.HTML("Choose"),
+						OnClick: fmt.Sprintf(
+							`gostart_media.fillChooser('#%s', '%s', function(value){
+								jQuery('#%s').attr('value', value.id);
+								var img = '<img src=\"'+value.url+'\" alt=\"'+value.title+'\"/>';
+								jQuery('#%s').empty().append(img);
+								%s
+							});
+							%s;`,
+							chooseDialogThumbnailsID,
+							AllThumbnailsAPI.URL(ctx.ForURLArgsConvert(Config.ImageRefController.ThumbnailSize)),
+							hiddenInput.ID(),
+							thumbnailFrame.ID(),
+							view.ModalDialogCloseScript,
+							chooseDialog.OpenScript(),
+						),
+					}, nil
+				},
+			),
 			removeButton,
-			UploadImageButton(thumbnailSize, onComplete),
+			UploadImageButton(
+				thumbnailSize,
+				fmt.Sprintf(
+					`function(id, fileName, responseJSON) {
+						var img = "<img src='" + responseJSON.thumbnailURL + "' width='%d' height='%d'/>";
+						jQuery("#%s").empty().html(img);
+						jQuery("#%s").attr("value", responseJSON.imageID);
+					}`,
+					thumbnailSize,
+					thumbnailSize,
+					thumbnailFrame.ID(),
+					hiddenInput.ID(),
+				),
+			),
 		),
 		view.DivClearBoth(),
 	)

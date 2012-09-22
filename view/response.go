@@ -128,9 +128,14 @@ func (self *Response) Header() http.Header {
 	return self.webContext.Header()
 }
 
-func (self *Response) ContentTypeByExt(ext string) {
+func (self *Response) SetContentTypeByExt(ext string) {
 	self.webContext.ContentType(ext)
 }
+
+// todo gets overwritten bei web.go, so use SetContentTypeByExt
+// func (self *Response) SetContentType(ctype string) {
+// 	self.Header().Add("Content-Type", ctype)
+// }
 
 // ContentDispositionAttachment makes the webbrowser open a
 // "Save As.." dialog for the response.

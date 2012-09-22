@@ -86,7 +86,7 @@ func (self *Template) Render(ctx *Context) (err error) {
 	}
 
 	if self.ContentTypeExt != "" {
-		ctx.Response.ContentTypeByExt(self.ContentTypeExt)
+		ctx.Response.SetContentTypeByExt(self.ContentTypeExt)
 	}
 
 	var context interface{}

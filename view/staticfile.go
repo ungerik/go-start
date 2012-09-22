@@ -34,7 +34,7 @@ func (self *StaticFile) Render(ctx *Context) (err error) {
 		}
 	}
 
-	ctx.Response.ContentTypeByExt(self.ContentTypeExt)
+	ctx.Response.SetContentTypeByExt(self.ContentTypeExt)
 	ctx.Response.Write(self.fileContent)
 	return nil
 }

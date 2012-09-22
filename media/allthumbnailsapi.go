@@ -4,8 +4,10 @@ import (
 	"github.com/ungerik/go-start/view"
 )
 
-var AllThumbnailsView = view.NewViewURLWrapper(view.RenderViewBindURLArgs(
+var AllThumbnailsAPI = view.NewViewURLWrapper(view.RenderViewBindURLArgs(
 	func(ctx *view.Context, thumbnailSize int) error {
+		// ctx.Response.SetContentType("application/json")
+		ctx.Response.SetContentTypeByExt(".json")
 		ctx.Response.WriteString("[\n")
 		first := true
 		i := Config.Backend.ImageIterator()
@@ -20,7 +22,10 @@ var AllThumbnailsView = view.NewViewURLWrapper(view.RenderViewBindURLArgs(
 			} else {
 				ctx.Response.WriteString(",\n")
 			}
-			ctx.Response.Printf(`{id: "%s", url: "%s"}`, image.ID, thumbnail.GetURL().URL(ctx))
+			ctx.Response.Printf(
+				`{"id": "%s", "title": "%s", "url": "%s"}`,
+				image.ID, image.TitleOrFilename(), thumbnail.GetURL().URL(ctx),
+			)
 		}
 		if i.Err() != nil {
 			return i.Err()
