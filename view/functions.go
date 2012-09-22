@@ -2,9 +2,9 @@ package view
 
 import (
 	"io"
-	"log"
 	"strconv"
 
+	"github.com/ungerik/go-start/config"
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/templatesystem"
 	"github.com/ungerik/go-start/utils"
@@ -78,8 +78,8 @@ func RunServerAddr(addr string, paths *ViewPath) {
 			panic(err)
 		}
 	}
-	log.Print("view.Config.IsProductionServer = ", Config.IsProductionServer)
-	log.Print("view.Config.Debug.Mode = ", Config.Debug.Mode)
+	config.Logger.Print("view.Config.IsProductionServer = ", Config.IsProductionServer)
+	config.Logger.Print("view.Config.Debug.Mode = ", Config.Debug.Mode)
 
 	if paths != nil {
 		paths.initAndRegisterViewsRecursive("/")

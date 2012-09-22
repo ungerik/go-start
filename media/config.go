@@ -1,8 +1,8 @@
 package media
 
 import (
-	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
+	"github.com/ungerik/go-start/view"
 )
 
 /*
@@ -20,7 +20,7 @@ var Config = Configuration{
 		ThumbnailFrameClass: "thumbnail-frame",
 		ActionsClass:        "actions",
 	},
-	ImageRefEditor: ImageRefEditorConfiguration{
+	ImageRefController: ImageRefControllerConfiguration{
 		Class:               "media-imageref-editor",
 		ThumbnailSize:       50,
 		ThumbnailFrameClass: "thumbnail-frame",
@@ -36,7 +36,7 @@ type ImagesAdminConfiguration struct {
 	ButtonClass         string
 }
 
-type ImageRefEditorConfiguration struct {
+type ImageRefControllerConfiguration struct {
 	Class               string
 	ThumbnailFrameClass string
 	ThumbnailSize       int
@@ -49,7 +49,7 @@ type Configuration struct {
 	DummyImageColor         string // web color
 	dummyImageURL           string
 	ImagesAdmin             ImagesAdminConfiguration
-	ImageRefEditor          ImageRefEditorConfiguration
+	ImageRefController      ImageRefControllerConfiguration
 }
 
 func (self *Configuration) Name() string {
@@ -59,6 +59,7 @@ func (self *Configuration) Name() string {
 func (self *Configuration) Init() error {
 	c := model.NewColor(self.DummyImageColor)
 	self.dummyImageURL = ColoredImageDataURL(c.RGBA())
+	view.Config.Form.DefaultFieldControllers = view.Config.Form.DefaultFieldControllers.Append(ImageRefController{})
 	return nil
 }
 

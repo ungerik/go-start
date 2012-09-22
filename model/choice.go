@@ -2,8 +2,10 @@ package model
 
 import (
 	"fmt"
-	"github.com/ungerik/go-start/errs"
 	"strings"
+
+	"github.com/ungerik/go-start/errs"
+	"github.com/ungerik/go-start/utils"
 )
 
 func NewChoice(value string) *Choice {
@@ -40,12 +42,26 @@ func (self *Choice) SetString(str string) error {
 	return nil
 }
 
+func choiceOptions(metaData *MetaData) []string {
+	options, ok := metaData.Attrib(StructTagKey, "options")
+	if !ok {
+		return nil
+	}
+	options = strings.Replace(options, "\\,", "|", -1)
+	options = strings.Replace(options, ",", "|", -1)
+	return strings.Split(options, "|")
+}
+
+func (self *Choice) Options(metaData *MetaData) []string {
+	return choiceOptions(metaData)
+}
+
 func (self *Choice) IsEmpty() bool {
 	return *self == ""
 }
 
 func (self *Choice) Required(metaData *MetaData) bool {
-	options := self.Options(metaData)
+	options := choiceOptions(metaData)
 	return len(options) > 0 && options[0] != ""
 }
 
@@ -55,27 +71,10 @@ func (self *Choice) Validate(metaData *MetaData) error {
 	if len(options) == 0 {
 		return errs.Format("model.Choice needs options")
 	}
-	found := false
-	for _, option := range options {
-		if str == option {
-			found = true
-			break
-		}
-	}
-	if !found {
+	if !utils.StringIn(str, options) {
 		return &InvalidChoice{str, options}
 	}
 	return nil
-}
-
-func (self *Choice) Options(metaData *MetaData) []string {
-	options, ok := metaData.Attrib(StructTagKey, "options")
-	if !ok {
-		return nil
-	}
-	options = strings.Replace(options, "\\,", "|", -1)
-	options = strings.Replace(options, ",", "|", -1)
-	return strings.Split(options, "|")
 }
 
 type InvalidChoice struct {

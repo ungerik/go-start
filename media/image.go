@@ -178,8 +178,8 @@ func (self *Image) Grayscale() bool {
 	return self.Versions[0].Grayscale.Get()
 }
 
-func (self *Image) URL() view.URL {
-	return self.Versions[0].URL()
+func (self *Image) GetURL() view.URL {
+	return self.Versions[0].GetURL()
 }
 
 // AspectRatio returns Width / Height

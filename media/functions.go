@@ -24,6 +24,7 @@ func ViewPath(name string) view.ViewPath {
 	return view.ViewPath{Name: name, Sub: []view.ViewPath{
 		{Name: "image", Args: 2, View: ImageView},
 		{Name: "upload-image", Args: 1, View: UploadImage},
+		{Name: "thumbnails.json", Args: 1, View: AllThumbnailsView},
 	}}
 }
 

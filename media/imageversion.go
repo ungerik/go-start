@@ -22,7 +22,7 @@ type ImageVersion struct {
 	Grayscale    model.Bool
 }
 
-func (self *ImageVersion) URL() view.URL {
+func (self *ImageVersion) GetURL() view.URL {
 	return view.NewURLWithArgs(ImageView, self.ID.Get(), self.Filename.Get())
 }
 
@@ -83,7 +83,7 @@ func (self *ImageVersion) LoadImage() (image.Image, error) {
 
 func (self *ImageVersion) ViewImage(class string) *view.Image {
 	return &view.Image{
-		URL:    self.URL(),
+		URL:    self.GetURL(),
 		Width:  self.Width.GetInt(),
 		Height: self.Height.GetInt(),
 		Title:  self.image.Title.Get(),

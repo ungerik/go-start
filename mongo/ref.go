@@ -3,10 +3,8 @@ package mongo
 import (
 	"fmt"
 	"github.com/ungerik/go-start/errs"
-	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/mgo/bson"
-
-	
+	"github.com/ungerik/go-start/model"
 )
 
 /*
@@ -91,7 +89,16 @@ func (self *Ref) Collection() (collection *Collection, err error) {
 	return collection, nil
 }
 
+// Returns nil if the reference is empty
 func (self *Ref) Get() (doc interface{}, err error) {
+	if self.IsEmpty() {
+		return nil, nil
+	}
+	return self.GetOrError()
+}
+
+// Returns an error if the reference is empty
+func (self *Ref) GetOrError() (doc interface{}, err error) {
 	collection, err := self.Collection()
 	if err != nil {
 		return nil, err
@@ -99,15 +106,12 @@ func (self *Ref) Get() (doc interface{}, err error) {
 	return collection.DocumentWithID(self.ID)
 }
 
-func (self *Ref) TryGet() (doc interface{}, ok bool, err error) {
-	collection, err := self.Collection()
-	if err != nil {
-		return nil, false, err
-	}
-	return collection.TryDocumentWithID(self.ID)
-}
-
+// nil is valid and sets the reference to empty
 func (self *Ref) Set(document Document) {
+	if document == nil {
+		self.ID = ""
+		return
+	}
 	if document.Collection() == nil {
 		panic("model.Document.Collection() == nil")
 	}
@@ -119,10 +123,6 @@ func (self *Ref) Set(document Document) {
 
 func (self *Ref) IsEmpty() bool {
 	return self.ID == ""
-}
-
-func (self *Ref) SetEmpty() {
-	self.ID = ""
 }
 
 func (self *Ref) References(doc Document) (ok bool, err error) {

@@ -1,13 +1,13 @@
 package view
 
 import (
-	"log"
 	"net/http"
 	"net/url"
 	"regexp"
 	"runtime"
 	"strings"
 
+	"github.com/ungerik/go-start/config"
 	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/reflection"
 	"github.com/ungerik/web.go"
@@ -94,7 +94,7 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 	viewsByPath[path] = self.View
 
 	if Config.Debug.LogPaths {
-		log.Print(path)
+		config.Logger.Print(path)
 	}
 
 	//debug.Print(path)
@@ -134,18 +134,18 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 				ctx.Response.NotFound404(err.Error())
 			case Redirect:
 				if Config.Debug.LogRedirects {
-					log.Printf("%d Redirect: %s\n", http.StatusFound, err.Error())
+					config.Logger.Printf("%d Redirect: %s\n", http.StatusFound, err.Error())
 				}
 				ctx.Response.RedirectTemporary302(err.Error())
 			case PermanentRedirect:
 				if Config.Debug.LogRedirects {
-					log.Printf("%d Permanent Redirect: %s\n", http.StatusMovedPermanently, err.Error())
+					config.Logger.Printf("%d Permanent Redirect: %s\n", http.StatusMovedPermanently, err.Error())
 				}
 				ctx.Response.RedirectPermanently301(err.Error())
 			case Forbidden:
 				ctx.Response.Forbidden403(err.Error())
 			default:
-				log.Println(err.Error())
+				config.Logger.Println(err.Error())
 				debug.LogCallStack()
 				msg := err.Error()
 				if Config.Debug.Mode {

@@ -42,7 +42,7 @@ var UploadImage = view.NewViewURLWrapper(view.RenderViewBindURLArgs(
 			return formatError(err)
 		}
 
-		ctx.Response.Printf(`{success: true, imageID: "%s", thumbnailURL: "%s", thumbnailSize: %d}`, i.ID, v.URL().URL(ctx), thumbnailSize)
+		ctx.Response.Printf(`{success: true, imageID: "%s", thumbnailURL: "%s", thumbnailSize: %d}`, i.ID, v.GetURL().URL(ctx), thumbnailSize)
 		return nil
 	},
 ))

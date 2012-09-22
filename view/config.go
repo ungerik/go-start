@@ -25,7 +25,6 @@ var Config = Configuration{
 			DefaultInputSize:      80,
 			DefaultTableInputSize: 20,
 		},
-		DefaultFieldFactory:             new(StandardFormFieldFactory),
 		DefaultCSRFProtector:            nil,
 		DefaultSubmitButtonText:         "Save",
 		DefaultErrorMessageClass:        "error",
@@ -33,6 +32,24 @@ var Config = Configuration{
 		DefaultFieldDescriptionClass:    "description",
 		DefaultRequiredMarker:           HTML("<span class='required'>*</span>"),
 		GeneralErrorMessageOnFieldError: "This form has errors",
+		DefaultFieldControllers: FormFieldControllers{
+			ModelStringController{},
+			ModelTextController{},
+			ModelUrlController{},
+			ModelEmailController{},
+			ModelPasswordController{},
+			ModelIntController{},
+			ModelFloatController{},
+			ModelPhoneController{},
+			ModelBoolController{},
+			ModelChoiceController{},
+			ModelMultipleChoiceController{},
+			ModelDynamicChoiceController{},
+			ModelDateController{},
+			ModelDateTimeController{},
+			ModelFileController{},
+			ModelBlobController{},
+		},
 	},
 	BaseDirs:            []string{"."},
 	StaticDirs:          []string{"static"},    // every StaticDir will be appended to every BaseDir to search for static files
@@ -140,7 +157,6 @@ type PageConfiguration struct {
 
 type FormConfiguration struct {
 	DefaultLayout                   FormLayout
-	DefaultFieldFactory             FormFieldFactory
 	DefaultCSRFProtector            CSRFProtector
 	DefaultErrorMessageClass        string
 	DefaultSuccessMessageClass      string
@@ -150,6 +166,7 @@ type FormConfiguration struct {
 	DefaultSubmitButtonText         string
 	GeneralErrorMessageOnFieldError string
 	DefaultRequiredMarker           View
+	DefaultFieldControllers         FormFieldControllers
 }
 
 // // Init updates Config with the site-name, cookie secret and base directories used
