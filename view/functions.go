@@ -21,7 +21,7 @@ func init() {
 		for {
 			viewIdCounter++
 			// Use base32 encoding for ids to make them shorter
-			viewIdChan <- strconv.FormatInt(viewIdCounter, 32)
+			viewIdChan <- "i" + strconv.FormatInt(viewIdCounter, 32)
 		}
 	}()
 }
@@ -131,4 +131,3 @@ func RenderChildViewsHTML(parent View, ctx *Context) (err error) {
 	})
 	return err
 }
-

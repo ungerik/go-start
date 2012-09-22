@@ -32,8 +32,7 @@ func (self *ModalDialog) Render(ctx *Context) (err error) {
 }
 
 func (self *ModalDialog) OpenScript() string {
-	// return fmt.Sprintf("Avgrund.show('#%s');", self.ID())
-	return fmt.Sprintf("Avgrund.show('.avgrund-popup');")
+	return fmt.Sprintf("Avgrund.show('#%s');", self.ID())
 }
 
 func (self *ModalDialog) OpenButton(text string) *Button {
