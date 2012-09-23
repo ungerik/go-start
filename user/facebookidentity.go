@@ -1,6 +1,8 @@
 package user
 
 import (
+	"fmt"
+
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/view"
 )
@@ -15,15 +17,23 @@ type FacebookIdentity struct {
 	AccessToken model.String
 }
 
-func (self *FacebookIdentity) ProfileURL() string {
-	name := self.Name.Get()
-	if name == "" {
-		name = self.ID.Get()
-		if name == "" {
-			return ""
-		}
+func (self *FacebookIdentity) NameOrID() string {
+	if !self.Name.IsEmpty() {
+		return self.Name.Get()
 	}
-	return "http://facebook.com/" + name
+	return self.ID.Get()
+}
+
+func (self *FacebookIdentity) ProfileURL() string {
+	return "http://facebook.com/" + self.NameOrID()
+}
+
+func (self *FacebookIdentity) ProfileImageURL() string {
+	name := self.NameOrID()
+	if name == "" {
+		return ""
+	}
+	return fmt.Sprintf("http://graph.facebook.com/%s/picture?type=large", name)
 }
 
 func (self *FacebookIdentity) URL(ctx *view.Context) string {
@@ -35,14 +45,7 @@ func (self *FacebookIdentity) LinkContent(ctx *view.Context) view.View {
 }
 
 func (self *FacebookIdentity) LinkTitle(ctx *view.Context) string {
-	name := self.Name.Get()
-	if name == "" {
-		name = self.ID.Get()
-		if name == "" {
-			return ""
-		}
-	}
-	return name
+	return self.NameOrID()
 }
 
 func (self *FacebookIdentity) LinkRel(ctx *view.Context) string {
