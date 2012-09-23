@@ -1,6 +1,8 @@
 package user
 
 import (
+	"fmt"
+
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/view"
 )
@@ -15,7 +17,7 @@ type TwitterIdentity struct {
 	AccessToken model.String
 }
 
-func (self *TwitterIdentity) ProfileURL() string {
+func (self *TwitterIdentity) NameOrID() string {
 	name := self.Name.Get()
 	if name == "" {
 		name = self.ID.Get()
@@ -29,7 +31,19 @@ func (self *TwitterIdentity) ProfileURL() string {
 			return ""
 		}
 	}
-	return "http://twitter.com/" + name
+	return name
+}
+
+func (self *TwitterIdentity) ProfileURL() string {
+	return "http://twitter.com/" + self.NameOrID()
+}
+
+func (self *TwitterIdentity) ProfileImageURL() string {
+	name := self.NameOrID()
+	if name == "" {
+		return ""
+	}
+	return fmt.Sprintf("https://api.twitter.com/1/users/profile_image/%s?size=bigger", name)
 }
 
 func (self *TwitterIdentity) URL(ctx *view.Context) string {
