@@ -1,0 +1,14 @@
+<snippet>
+	<content><![CDATA[
+i := ${1:myIterator}
+for doc := i.Next(); doc != nil; doc = i.Next() {
+	${2:x} := doc.(*${3:MyType})
+}
+if i.Err() != nil {
+	return i.Err()
+}
+]]></content>
+	<tabTrigger>iter</tabTrigger>
+	<scope>source.go</scope>
+	<description>go-start model.Iterator</description>
+</snippet>

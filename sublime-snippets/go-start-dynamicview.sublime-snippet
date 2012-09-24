@@ -1,0 +1,12 @@
+<snippet>
+	<content><![CDATA[
+DynamicView(
+	func(ctx *Context) (View, error) {
+		return ${1:Views{}}, nil
+	},
+)
+]]></content>
+	<tabTrigger>DynamicView</tabTrigger>
+	<scope>source.go</scope>
+	<description>go-start view.DynamicView</description>
+</snippet>

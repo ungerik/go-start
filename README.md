@@ -34,6 +34,8 @@ Features:
 	* RSS parsing: http://github.com/ungerik/go-rss
 	* Amiando event management: http://github.com/ungerik/go-amiando
 		(used by http://startuplive.in)
+* Sublime Text 2 Snippets
+	* See sublime-snippets/
 
 
 The case for Go:
