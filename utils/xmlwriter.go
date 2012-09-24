@@ -26,6 +26,10 @@ type XMLWriter struct {
 	inOpenTag bool
 }
 
+func (self *XMLWriter) WriteXMLDeclaration() *XMLWriter {
+	return self.Content(`<?xml version="1.0" encoding="UTF-8"?>`)
+}
+
 func (self *XMLWriter) OpenTag(tag string) *XMLWriter {
 	self.finishOpenTag()
 
