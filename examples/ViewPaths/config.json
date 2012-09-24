@@ -1,0 +1,10 @@
+{
+    "view": {
+        "ListenAndServeAt": "0.0.0.0:80",
+        "Debug": {
+            "ListenAndServeAt": "0.0.0.0:8080"
+        },
+        "BaseDirs": [".", "../.."],
+        "CookieSecret": "Test123"
+    }
+}
