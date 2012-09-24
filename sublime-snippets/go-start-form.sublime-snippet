@@ -1,0 +1,19 @@
+<snippet>
+	<content><![CDATA[
+&Form{
+	FormID:              "${1:unique-on-page}",
+	SubmitButtonText:    "Save",
+	SubmitButtonConfirm: "Are you sure you want to ... ?",
+	GetModel: func(form *Form, ctx *Context) (model interface{}, err error) {
+		return ${2:&MyModel{Field: "initial value"}}, nil
+	},
+	OnSubmit: func(form *Form, formModel interface{}, ctx *Context) (string, URL, error) {
+		return "", nil, formModel.(*${3:MyModel}).Save()
+	},
+	Redirect: StringURL("."),
+}
+]]></content>
+	<tabTrigger>Form</tabTrigger>
+	<scope>source.go</scope>
+	<description>go-start view.Form</description>
+</snippet>
