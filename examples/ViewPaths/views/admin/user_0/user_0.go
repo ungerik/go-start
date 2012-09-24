@@ -25,8 +25,14 @@ func init() {
 				},
 			),
 			root.Navigation(),
-			H3("This view uses an URL argument"),
-			A(&views.Admin_User0),
+			DynamicViewBindURLArgs(
+				func(ctx *Context, username string) (View, error) {
+					return Views{
+						H4(Printf("This view uses the URL argument '%s':", username)),
+						HTML(views.Admin_User0.URL(ctx)),
+					}, nil
+				},
+			),
 		},
 	}
 }
