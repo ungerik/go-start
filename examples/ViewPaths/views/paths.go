@@ -29,8 +29,8 @@ func Paths() *ViewPath {
 		// Paths can have an Authenticator
 		{Name: "admin", View: Admin, Auth: AdminAuth, Sub: []ViewPath{
 			// Args is the number arguments that get parsed from the URL.
-			// URL for empty Name: /admin/<URLArg>/
-			// URL for Name = "user": /admin/user/<URLArg>/
+			// URL for empty Name: /admin/<URLArg0>/
+			// URL for Name = "user": /admin/user/<URLArg0>/
 			{Args: 1, View: Admin_User0, Auth: AdminAuth},
 		}},
 	}}
