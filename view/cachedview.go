@@ -101,9 +101,8 @@ func (self *CachedView) URL(ctx *Context) string {
 }
 
 func (self *CachedView) SetPath(path string) {
+	self.path = path
 	if viewWithURL, ok := self.Content.(ViewWithURL); ok {
 		viewWithURL.SetPath(path)
-	} else {
-		self.path = path
 	}
 }

@@ -131,16 +131,25 @@ func (self *Page) SetPath(path string) {
 
 // Implements the URL and LinkModel interface
 func (self *Page) URL(ctx *Context) string {
+	if self == nil {
+		panic("view.Page is nil, potential circular initialization dependency, consider using addresses of page variables")
+	}
 	return StringURL(self.path).URL(ctx)
 }
 
 // Implements the LinkModel interface
 func (self *Page) LinkContent(ctx *Context) View {
+	if self == nil {
+		panic("view.Page is nil, potential circular initialization dependency, consider using addresses of page variables")
+	}
 	return HTML(self.LinkTitle(ctx))
 }
 
 // Implements the LinkModel interface
 func (self *Page) LinkTitle(ctx *Context) string {
+	if self == nil {
+		panic("view.Page is nil, potential circular initialization dependency, consider using addresses of page variables")
+	}
 	if self.Title == nil {
 		return ""
 	}
