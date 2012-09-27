@@ -28,11 +28,10 @@ func ImagesAdmin() view.View {
 				}
 				editor := view.DIV(Config.ImagesAdmin.ImageEditorClass,
 					view.H3(image.TitleOrFilename()),
+					view.A_blank(image.GetURL(), "Link to original"),
 					view.DIV(Config.ImagesAdmin.ThumbnailFrameClass,
 						thumbnail.ViewImage(""),
 					),
-					view.HTML("Image URL: "),
-					view.A_blank(image.GetURL(), image.GetURL().URL(ctx)),
 					&view.Form{
 						FormID:            "edit" + image.ID.Get(),
 						SubmitButtonClass: Config.ImagesAdmin.ButtonClass,

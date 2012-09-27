@@ -1,9 +1,5 @@
 var gostart_media = {
 
-	upload: function(url, thumbnailFrameID) {
-		var thumbnailFrame = jQuery("#"+thumbnailFrameID);
-	},
-
 	fillChooser: function(thumbnailsSelector, thumbnailsURL, onClickFunc) {
 		var thumbnails = jQuery(thumbnailsSelector);
 		thumbnails.empty();
@@ -13,7 +9,7 @@ var gostart_media = {
 		})
 		.done(function(data) {
 			jQuery.each(data, function(index, value) {
-				var img = jQuery('<img src="'+value.url+'" alt="'+value.title+'"/>');
+				var img = jQuery('<img src="'+value.url+'" alt="'+value.title+'" style="cursor:pointer;margin:5px;"/>');
 				img.click(function(){ onClickFunc(value); });
 				thumbnails.append(img);
 			});
