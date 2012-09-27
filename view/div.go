@@ -9,6 +9,7 @@ type Div struct {
 	Class   string
 	Style   string
 	Content View
+	OnClick string
 }
 
 func (self *Div) IterateChildren(callback IterateChildrenCallback) {
@@ -22,6 +23,7 @@ func (self *Div) Render(ctx *Context) (err error) {
 	ctx.Response.XML.AttribIfNotDefault("id", self.id)
 	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
 	ctx.Response.XML.AttribIfNotDefault("style", self.Style)
+	ctx.Response.XML.AttribIfNotDefault("onclick", self.OnClick)
 	if self.Content != nil {
 		err = self.Content.Render(ctx)
 	}

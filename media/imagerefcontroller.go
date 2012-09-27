@@ -8,6 +8,16 @@ import (
 	"github.com/ungerik/go-start/view"
 )
 
+const qqUploadButtonStyle = `
+.qq-upload-button {
+	float: left;
+	margin: 10px 5px;
+	cursor: pointer;
+}
+.qq-upload-button:hover{
+	background-color: #cc0000;
+}`
+
 type ImageRefController struct {
 	view.SetModelValueControllerBase
 }
@@ -44,7 +54,8 @@ func (self ImageRefController) NewInput(withLabel bool, metaData *model.MetaData
 		Content: img,
 	}
 
-	removeButton := &view.Button{
+	removeButton := &view.Div{
+		Class:   "qq-upload-button",
 		Content: view.HTML("Remove"),
 		OnClick: fmt.Sprintf(
 			`jQuery("#%s").attr("value", "");
@@ -71,13 +82,16 @@ func (self ImageRefController) NewInput(withLabel bool, metaData *model.MetaData
 	editor := view.DIV(Config.ImageRefController.Class,
 		hiddenInput,
 		thumbnailFrame,
+		chooseDialog,
 		view.DIV(Config.ImageRefController.ActionsClass,
 			// view.HTML("&larr; drag &amp; drop files here"),
-			chooseDialog,
+			removeButton,
 			view.DynamicView(
 				func(ctx *view.Context) (view.View, error) {
 					ctx.Response.RequireScriptURL("/media/media.js", 0)
-					return &view.Button{
+					ctx.Response.RequireStyle(qqUploadButtonStyle, 10)
+					return &view.Div{
+						Class:   "qq-upload-button",
 						Content: view.HTML("Choose"),
 						OnClick: fmt.Sprintf(
 							`gostart_media.fillChooser('#%s', '%s', function(value){
@@ -97,7 +111,6 @@ func (self ImageRefController) NewInput(withLabel bool, metaData *model.MetaData
 					}, nil
 				},
 			),
-			removeButton,
 			UploadImageButton(
 				thumbnailSize,
 				fmt.Sprintf(
