@@ -3,6 +3,7 @@ package mongomedia
 import (
 	"io"
 
+	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/media"
 	"github.com/ungerik/go-start/mgo"
 	"github.com/ungerik/go-start/mgo/bson"
@@ -11,8 +12,9 @@ import (
 )
 
 type backend struct {
-	gridFS *mgo.GridFS
-	images *mongo.Collection
+	gridFS                      *mgo.GridFS
+	images                      *mongo.Collection
+	imageRefCollectionSelectors map[*mongo.Collection][]string
 }
 
 func (self *backend) LoadImage(id string) (*media.Image, error) {
@@ -92,4 +94,43 @@ func (self *backend) ImageIterator() model.Iterator {
 			return doc.(*ImageDoc).GetAndInitImage()
 		},
 	)
+}
+
+func (self *backend) getImageRefCollectionSelectors() map[*mongo.Collection][]string {
+	if self.imageRefCollectionSelectors == nil {
+		colSel := make(map[*mongo.Collection][]string)
+		for _, collection := range mongo.Collections {
+			doc := collection.NewDocument()
+			model.SetAllSliceLengths(doc, 1)
+			model.Visit(doc, model.FieldOnlyVisitor(
+				func(data *model.MetaData) error {
+					if _, ok := data.Value.Addr().Interface().(*media.ImageRef); ok {
+						if _, ok := colSel[collection]; !ok {
+							colSel[collection] = nil
+						}
+						colSel[collection] = append(colSel[collection], data.WildcardSelector())
+					}
+					return nil
+				},
+			))
+		}
+		self.imageRefCollectionSelectors = colSel
+	}
+	return self.imageRefCollectionSelectors
+}
+
+func (self *backend) CountImageRefs(imageID string) (int, error) {
+	colSel := self.getImageRefCollectionSelectors()
+	// debug.Dump(colSel)
+	count := 0
+	for collection, selectors := range colSel {
+		for _, sel := range selectors {
+			c, err := collection.Filter(sel, imageID).Count()
+			if err != nil {
+				return 0, err
+			}
+			count += c
+		}
+	}
+	return count, nil
 }

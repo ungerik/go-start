@@ -1,5 +1,9 @@
 package model
 
+import (
+	"github.com/ungerik/go-start/utils"
+)
+
 // CopyFields copies matching struct/array/slice fields
 // that implement the Value interface from src to dst.
 // Matching is done by comparing the MetaData.Selector()
@@ -59,6 +63,18 @@ func CopyFieldsIfNotEmpty(dst, src interface{}) (err error) {
 				}
 			}
 			return err
+		},
+	))
+}
+
+// SetAllSliceLengths sets the length of all slices in document.
+func SetAllSliceLengths(document interface{}, length int) {
+	Visit(document, VisitorFunc(
+		func(data *MetaData) error {
+			if data.Kind == SliceKind && data.Value.Len() != length {
+				data.Value.Set(utils.SetSliceLengh(data.Value, length))
+			}
+			return nil
 		},
 	))
 }

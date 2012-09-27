@@ -24,7 +24,7 @@ import (
 // }
 
 func CollectionByName(name string) (collection *Collection, ok bool) {
-	collection, ok = collections[name]
+	collection, ok = Collections[name]
 	return collection, ok
 }
 

@@ -7,6 +7,12 @@ import (
 	"github.com/ungerik/go-start/model"
 )
 
+func NewImageRef(image *Image) *ImageRef {
+	imageRef := new(ImageRef)
+	imageRef.Set(image)
+	return imageRef
+}
+
 type ImageRef string
 
 func (self *ImageRef) String() string {

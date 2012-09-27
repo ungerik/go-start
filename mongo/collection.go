@@ -17,7 +17,7 @@ import (
 // NewCollection
 
 func NewCollection(name string, documentPrototype interface{}) *Collection {
-	if _, ok := collections[name]; ok {
+	if _, ok := Collections[name]; ok {
 		panic(fmt.Sprintf("Collection %s already created", name))
 	}
 	t := reflect.TypeOf(documentPrototype)
@@ -56,7 +56,7 @@ type Collection struct {
 
 func (self *Collection) Init() {
 	self.thisQuery = self
-	collections[self.Name] = self
+	Collections[self.Name] = self
 	if Database != nil {
 		self.collection = Database.C(self.Name)
 	}

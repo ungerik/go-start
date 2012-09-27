@@ -82,7 +82,7 @@ func (self *Ref) Collection() (collection *Collection, err error) {
 	if self.CollectionName == "" {
 		return nil, errs.Format("Missing collection name. Did you call mongo.Document.Init()?")
 	}
-	collection, ok := collections[self.CollectionName]
+	collection, ok := Collections[self.CollectionName]
 	if !ok {
 		return nil, errs.Format("Collection '" + self.CollectionName + "' not registered")
 	}

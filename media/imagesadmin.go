@@ -1,7 +1,7 @@
 package media
 
 import (
-	"github.com/ungerik/go-start/debug"
+	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/view"
 )
@@ -17,11 +17,14 @@ func ImagesAdmin() view.View {
 		UploadImageButton(Config.ImagesAdmin.ThumbnailSize, "function(){window.location.reload()}"),
 		&view.ModelIteratorView{
 			GetModelIterator: func(ctx *view.Context) model.Iterator {
-				debug.Dump(Config.Backend)
 				return Config.Backend.ImageIterator()
 			},
 			GetModelIteratorView: func(ctx *view.Context, m interface{}) (view.View, error) {
 				image := m.(*Image)
+				refCount, err := image.CountRefs()
+				if err != nil {
+					return nil, err
+				}
 				thumbnail, err := image.Thumbnail(Config.ImagesAdmin.ThumbnailSize)
 				if err != nil {
 					return nil, err
@@ -29,6 +32,7 @@ func ImagesAdmin() view.View {
 				editor := view.DIV(Config.ImagesAdmin.ImageEditorClass,
 					view.H3(image.TitleOrFilename()),
 					view.A_blank(image.GetURL(), "Link to original"),
+					view.Printf(" | Used %dx", refCount),
 					view.DIV(Config.ImagesAdmin.ThumbnailFrameClass,
 						thumbnail.ViewImage(""),
 					),

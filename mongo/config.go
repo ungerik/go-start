@@ -12,7 +12,7 @@ var Config = Configuration{
 
 var Database *mgo.Database
 
-var collections = map[string]*Collection{}
+var Collections = map[string]*Collection{}
 
 type Configuration struct {
 	Host                string
@@ -50,7 +50,7 @@ func (self *Configuration) Init() error {
 
 	Database = session.DB(Config.Database)
 
-	for _, collection := range collections {
+	for _, collection := range Collections {
 		collection.collection = Database.C(collection.Name)
 	}
 

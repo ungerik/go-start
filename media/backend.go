@@ -28,6 +28,9 @@ type Backend interface {
 	ImageVersionWriter(version *ImageVersion) (writer io.WriteCloser, err error)
 
 	ImageIterator() model.Iterator
+
+	// CountImageRefs counts all 
+	CountImageRefs(imageID string) (int, error)
 }
 
 type ErrInvalidImageID string
