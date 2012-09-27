@@ -1,9 +1,9 @@
 package mongo
 
 import (
+	"github.com/ungerik/go-start/mgo"
 	"github.com/ungerik/go-start/mgo/bson"
 	"github.com/ungerik/go-start/model"
-	"github.com/ungerik/go-start/mgo"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -74,6 +74,10 @@ type Query interface {
 	TryOneID() (id bson.ObjectId, found bool, err error)
 	IDs() (ids []bson.ObjectId, err error)
 	Refs() (refs []Ref, err error)
+
+	// Write
+	UpdateOne(selector string, value interface{}) error
+	UpdateAll(selector string, value interface{}) error
 
 	// RemoveAll ignores Skip() and Limit()
 	RemoveAll() error

@@ -25,6 +25,14 @@ func (self *backend) LoadImage(id string) (*media.Image, error) {
 	return doc.(*ImageDoc).GetAndInitImage(), nil
 }
 
+func (self *backend) TryLoadImage(id string) (*media.Image, bool, error) {
+	doc, found, err := self.images.TryDocumentWithID(bson.ObjectIdHex(id))
+	if !found {
+		return nil, found, err
+	}
+	return doc.(*ImageDoc).GetAndInitImage(), true, nil
+}
+
 func (self *backend) SaveImage(image *media.Image) error {
 	if image.ID == "" {
 		doc := self.images.NewDocument().(*ImageDoc)
@@ -124,8 +132,8 @@ func (self *backend) CountImageRefs(imageID string) (int, error) {
 	// debug.Dump(colSel)
 	count := 0
 	for collection, selectors := range colSel {
-		for _, sel := range selectors {
-			c, err := collection.Filter(sel, imageID).Count()
+		for _, selector := range selectors {
+			c, err := collection.Filter(selector, imageID).Count()
 			if err != nil {
 				return 0, err
 			}
@@ -133,4 +141,17 @@ func (self *backend) CountImageRefs(imageID string) (int, error) {
 		}
 	}
 	return count, nil
+}
+
+func (self *backend) RemoveAllImageRefs(imageID string) error {
+	colSel := self.getImageRefCollectionSelectors()
+	for collection, selectors := range colSel {
+		for _, selector := range selectors {
+			err := collection.Filter(selector, imageID).UpdateAll(selector, "")
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

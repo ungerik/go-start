@@ -1,9 +1,9 @@
 package mongo
 
 import (
+	"github.com/ungerik/go-start/mgo"
 	"github.com/ungerik/go-start/mgo/bson"
 	"github.com/ungerik/go-start/model"
-	"github.com/ungerik/go-start/mgo"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -204,6 +204,14 @@ func (self *QueryError) IDs() (ids []bson.ObjectId, err error) {
 
 func (self *QueryError) Refs() (refs []Ref, err error) {
 	return nil, self.Err
+}
+
+func (self *QueryError) UpdateOne(selector string, value interface{}) error {
+	return self.Err
+}
+
+func (self *QueryError) UpdateAll(selector string, value interface{}) error {
+	return self.Err
 }
 
 func (self *QueryError) RemoveAll() error {

@@ -35,15 +35,20 @@ func (self ImageRefController) NewInput(withLabel bool, metaData *model.MetaData
 	if imageRef.IsEmpty() {
 		img = view.IMG(Config.dummyImageURL, thumbnailSize, thumbnailSize)
 	} else {
-		image, err := imageRef.Get()
+		image, found, err := imageRef.TryGet()
 		if err != nil {
 			return nil, err
 		}
-		version, err := image.Thumbnail(thumbnailSize)
-		if err != nil {
-			return nil, err
+		if found {
+			version, err := image.Thumbnail(thumbnailSize)
+			if err != nil {
+				return nil, err
+			}
+			img = version.ViewImage("")
+		} else {
+			imageRef.Set(nil)
+			img = view.IMG(Config.dummyImageURL, thumbnailSize, thumbnailSize)
 		}
-		img = version.ViewImage("")
 	}
 
 	hiddenInput := &view.HiddenInput{Name: metaData.Selector(), Value: imageRef.String()}

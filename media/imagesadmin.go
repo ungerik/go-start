@@ -1,6 +1,8 @@
 package media
 
 import (
+	"fmt"
+
 	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/view"
@@ -29,10 +31,14 @@ func ImagesAdmin() view.View {
 				if err != nil {
 					return nil, err
 				}
+				deleteConfirmation := fmt.Sprintf("Are you sure you want to delete the image %s?", image.TitleOrFilename())
+				if refCount > 0 {
+					deleteConfirmation += fmt.Sprintf(" It is used %d times!", refCount)
+				}
 				editor := view.DIV(Config.ImagesAdmin.ImageEditorClass,
 					view.H3(image.TitleOrFilename()),
 					view.A_blank(image.GetURL(), "Link to original"),
-					view.Printf(" | Used %dx", refCount),
+					view.Printf(" | Used %d times", refCount),
 					view.DIV(Config.ImagesAdmin.ThumbnailFrameClass,
 						thumbnail.ViewImage(""),
 					),
@@ -59,10 +65,14 @@ func ImagesAdmin() view.View {
 					},
 					&view.Form{
 						SubmitButtonText:    "Delete",
-						SubmitButtonConfirm: "Are you sure you want to delete the image " + image.TitleOrFilename() + "?",
+						SubmitButtonConfirm: deleteConfirmation,
 						SubmitButtonClass:   Config.ImagesAdmin.ButtonClass,
 						FormID:              "delete" + image.ID.Get(),
 						OnSubmit: func(form *view.Form, formModel interface{}, ctx *view.Context) (message string, redirect view.URL, err error) {
+							// err = image.RemoveAllRefs()
+							// if err != nil {
+							// 	return "", nil, err
+							// }
 							return "", view.StringURL("."), image.Delete()
 						},
 					},

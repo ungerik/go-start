@@ -126,6 +126,10 @@ func (self *Image) CountRefs() (int, error) {
 	return Config.Backend.CountImageRefs(self.ID.Get())
 }
 
+func (self *Image) RemoveAllRefs() error {
+	return Config.Backend.RemoveAllImageRefs(self.ID.Get())
+}
+
 func (self *Image) addVersion(filename, contentType string, sourceRect image.Rectangle, width, height int, grayscale bool) *ImageVersion {
 	version := ImageVersion{
 		image:       self,

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/errs"
-	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/mgo"
 	"github.com/ungerik/go-start/mgo/bson"
+	"github.com/ungerik/go-start/model"
 	"strings"
 )
 
@@ -370,6 +370,22 @@ func (self *queryBase) Refs() (refs []Ref, err error) {
 		return nil, i.Err()
 	}
 	return refs, nil
+}
+
+func (self *queryBase) UpdateOne(selector string, value interface{}) error {
+	q, err := self.thisQuery.mongoQuery()
+	if err != nil {
+		return err
+	}
+	return self.Collection().collection.Update(q, bson.M{selector: value})
+}
+
+func (self *queryBase) UpdateAll(selector string, value interface{}) error {
+	q, err := self.thisQuery.mongoQuery()
+	if err != nil {
+		return err
+	}
+	return self.Collection().collection.UpdateAll(q, bson.M{selector: value})
 }
 
 func (self *queryBase) RemoveAll() error {

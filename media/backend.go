@@ -8,6 +8,7 @@ import (
 
 type Backend interface {
 	LoadImage(id string) (*Image, error)
+	TryLoadImage(id string) (*Image, bool, error)
 
 	// SaveImage saves image and updates its ID if it is empty.
 	SaveImage(image *Image) error
@@ -29,8 +30,13 @@ type Backend interface {
 
 	ImageIterator() model.Iterator
 
-	// CountImageRefs counts all 
+	// CountImageRefs counts all ImageRef occurances with imageID
+	// in all known databases.
 	CountImageRefs(imageID string) (int, error)
+
+	// RemoveAllImageRefs removes all ImageRef occurances with imageID
+	// in all known databases.
+	RemoveAllImageRefs(imageID string) error
 }
 
 type ErrInvalidImageID string
