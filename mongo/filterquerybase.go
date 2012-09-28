@@ -1,9 +1,9 @@
 package mongo
 
 import (
-	"github.com/ungerik/go-start/mgo/bson"
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/mgo"
+	"github.com/ungerik/go-start/mgo/bson"
 
 //	"github.com/ungerik/go-start/debug"
 )
@@ -15,11 +15,11 @@ type filterQueryBase struct {
 	queryBase
 }
 
-func (self *filterQueryBase) mongoQuery() (q *mgo.Query, err error) {
-	chainedFilters := []Query{self.thisQuery}
+func bsonQuery(query Query) (bsonQuery bson.M, err error) {
+	chainedFilters := []Query{query}
 
 	orChained := false
-	for parent := self.parentQuery; parent != nil; parent = parent.ParentQuery() {
+	for parent := query.ParentQuery(); parent != nil; parent = parent.ParentQuery() {
 		if parent.IsFilter() {
 			chainedFilters = append(chainedFilters, parent)
 		}
@@ -29,10 +29,8 @@ func (self *filterQueryBase) mongoQuery() (q *mgo.Query, err error) {
 		}
 	}
 
-	var bsonQuery bson.M
-
 	if len(chainedFilters) == 1 {
-		bsonQuery = self.thisQuery.bsonSelector()
+		bsonQuery = query.bsonSelector()
 	} else if orChained {
 		bsonQueries := make([]bson.M, len(chainedFilters))
 		for i, filter := range chainedFilters {
@@ -51,6 +49,14 @@ func (self *filterQueryBase) mongoQuery() (q *mgo.Query, err error) {
 		}
 	}
 
+	return bsonQuery, nil
+}
+
+func (self *filterQueryBase) mongoQuery() (q *mgo.Query, err error) {
+	bsonQuery, err := bsonQuery(self.thisQuery)
+	if err != nil {
+		return nil, err
+	}
 	collection := self.Collection()
 	collection.checkDBConnection()
 	return collection.collection.Find(bsonQuery), nil
