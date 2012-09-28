@@ -372,12 +372,22 @@ func (self *queryBase) Refs() (refs []Ref, err error) {
 	return refs, nil
 }
 
+func getUpdateDoc(selector string, value interface{}) bson.M {
+	names := strings.Split(selector, ".")
+	doc := make(bson.M)
+	for i := 0; i < len(names)-1; i++ {
+		doc[names[i]] = make(bson.M)
+	}
+	doc[names[len(names)-1]] = value
+	return doc
+}
+
 func (self *queryBase) UpdateOne(selector string, value interface{}) error {
 	q, err := self.thisQuery.mongoQuery()
 	if err != nil {
 		return err
 	}
-	return self.Collection().collection.Update(q, bson.M{selector: value})
+	return self.Collection().collection.Update(q, getUpdateDoc(selector, value))
 }
 
 func (self *queryBase) UpdateAll(selector string, value interface{}) error {
@@ -385,7 +395,7 @@ func (self *queryBase) UpdateAll(selector string, value interface{}) error {
 	if err != nil {
 		return err
 	}
-	return self.Collection().collection.UpdateAll(q, bson.M{selector: value})
+	return self.Collection().collection.UpdateAll(q, getUpdateDoc(selector, value))
 }
 
 func (self *queryBase) RemoveAll() error {
