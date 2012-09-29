@@ -9,7 +9,7 @@ func NewBool(value bool) *Bool {
 /*
 Bool model value.
 Struct tag attributes:
-	none
+	required
 */
 type Bool bool
 
@@ -38,9 +38,12 @@ func (self *Bool) IsEmpty() bool {
 }
 
 func (self *Bool) Required(metaData *MetaData) bool {
-	return false
+	return metaData.BoolAttrib(StructTagKey, "required")
 }
 
 func (self *Bool) Validate(metaData *MetaData) error {
+	if self.Required(metaData) && *self == false {
+		return NewRequiredError(metaData)
+	}
 	return nil
 }
