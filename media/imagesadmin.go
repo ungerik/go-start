@@ -15,8 +15,11 @@ type imageData struct {
 }
 
 func ImagesAdmin() view.View {
+	uploader := view.DIV("")
+	uploaderID := uploader.ID()
+	uploader.Content = UploadImageButton("#"+uploaderID, "", "", Config.ImagesAdmin.ThumbnailSize, "function(){window.location.reload()}")
 	return view.Views{
-		UploadImageButton(Config.ImagesAdmin.ThumbnailSize, "function(){window.location.reload()}"),
+		uploader,
 		&view.ModelIteratorView{
 			GetModelIterator: func(ctx *view.Context) model.Iterator {
 				return Config.Backend.ImageIterator()

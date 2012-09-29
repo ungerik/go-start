@@ -8,16 +8,6 @@ import (
 	"github.com/ungerik/go-start/view"
 )
 
-const qqUploadButtonStyle = `
-.qq-upload-button {
-	float: left;
-	margin: 10px 5px;
-	cursor: pointer;
-}
-.qq-upload-button:hover{
-	background-color: #cc0000;
-}`
-
 type ImageRefController struct {
 	view.SetModelValueControllerBase
 }
@@ -59,17 +49,21 @@ func (self ImageRefController) NewInput(withLabel bool, metaData *model.MetaData
 		Content: img,
 	}
 
+	uploadList := &view.List{Class: "qq-upload-list"}
+
 	removeButton := &view.Div{
 		Class:   "qq-upload-button",
 		Content: view.HTML("Remove"),
 		OnClick: fmt.Sprintf(
 			`jQuery("#%s").attr("value", "");
-			jQuery("#%s").empty().append("<img src='%s' width='%d' height='%d'/>");`,
+			jQuery("#%s").empty().append("<img src='%s' width='%d' height='%d'/>");
+			jQuery("#%s").empty();`,
 			hiddenInput.ID(),
 			thumbnailFrame.ID(),
 			Config.dummyImageURL,
 			thumbnailSize,
 			thumbnailSize,
+			uploadList.ID(),
 		),
 	}
 
@@ -84,54 +78,75 @@ func (self ImageRefController) NewInput(withLabel bool, metaData *model.MetaData
 		},
 	}
 
+	chooseButton := view.DynamicView(
+		func(ctx *view.Context) (view.View, error) {
+			return &view.Div{
+				Class:   "qq-upload-button",
+				Content: view.HTML("Choose existing"),
+				OnClick: fmt.Sprintf(
+					`gostart_media.fillChooser('#%s', '%s', function(value){
+						jQuery('#%s').attr('value', value.id);
+						var img = '<img src=\"'+value.url+'\" alt=\"'+value.title+'\"/>';
+						jQuery('#%s').empty().append(img);
+						%s
+					});
+					%s;`,
+					chooseDialogThumbnailsID,
+					AllThumbnailsAPI.URL(ctx.ForURLArgsConvert(Config.ImageRefController.ThumbnailSize)),
+					hiddenInput.ID(),
+					thumbnailFrame.ID(),
+					view.ModalDialogCloseScript,
+					chooseDialog.OpenScript(),
+				),
+			}, nil
+		},
+	)
+
+	uploadButton := view.DIV("")
+	uploadButtonID := uploadButton.ID()
+	uploadButton.Content = UploadImageButton(
+		"#"+uploadButtonID,
+		"#"+thumbnailFrame.ID(),
+		"#"+uploadList.ID(),
+		thumbnailSize,
+		fmt.Sprintf(
+			`function(id, fileName, responseJSON) {
+				var img = "<img src='" + responseJSON.thumbnailURL + "' width='%d' height='%d'/>";
+				jQuery("#%s").empty().html(img);
+				jQuery("#%s").attr("value", responseJSON.imageID);
+			}`,
+			thumbnailSize,
+			thumbnailSize,
+			thumbnailFrame.ID(),
+			hiddenInput.ID(),
+		),
+	)
+
 	editor := view.DIV(Config.ImageRefController.Class,
+		view.RequireScriptURL("/media/media.js", 0),
+		view.RequireStyle(
+			`.qq-upload-button {
+				margin: 0 0 5px 10px;
+				cursor: pointer;
+			}
+			.qq-upload-button:hover {
+				background-color: #cc0000;
+			}`,
+			10,
+		),
+		chooseDialog,
 		hiddenInput,
 		thumbnailFrame,
-		chooseDialog,
-		view.DIV(Config.ImageRefController.ActionsClass,
-			// view.HTML("&larr; drag &amp; drop files here"),
-			removeButton,
-			view.DynamicView(
-				func(ctx *view.Context) (view.View, error) {
-					ctx.Response.RequireScriptURL("/media/media.js", 0)
-					ctx.Response.RequireStyle(qqUploadButtonStyle, 10)
-					return &view.Div{
-						Class:   "qq-upload-button",
-						Content: view.HTML("Choose"),
-						OnClick: fmt.Sprintf(
-							`gostart_media.fillChooser('#%s', '%s', function(value){
-								jQuery('#%s').attr('value', value.id);
-								var img = '<img src=\"'+value.url+'\" alt=\"'+value.title+'\"/>';
-								jQuery('#%s').empty().append(img);
-								%s
-							});
-							%s;`,
-							chooseDialogThumbnailsID,
-							AllThumbnailsAPI.URL(ctx.ForURLArgsConvert(Config.ImageRefController.ThumbnailSize)),
-							hiddenInput.ID(),
-							thumbnailFrame.ID(),
-							view.ModalDialogCloseScript,
-							chooseDialog.OpenScript(),
-						),
-					}, nil
-				},
-			),
-			UploadImageButton(
-				thumbnailSize,
-				fmt.Sprintf(
-					`function(id, fileName, responseJSON) {
-						var img = "<img src='" + responseJSON.thumbnailURL + "' width='%d' height='%d'/>";
-						jQuery("#%s").empty().html(img);
-						jQuery("#%s").attr("value", responseJSON.imageID);
-					}`,
-					thumbnailSize,
-					thumbnailSize,
-					thumbnailFrame.ID(),
-					hiddenInput.ID(),
-				),
-			),
-		),
-		view.DivClearBoth(),
+		&view.Div{
+			Class: Config.ImageRefController.ActionsClass,
+			Style: fmt.Sprintf("margin-left: %dpx", thumbnailSize+10),
+			Content: view.Views{
+				removeButton,
+				chooseButton,
+				uploadButton,
+			},
+		},
+		uploadList,
 	)
 
 	if withLabel {

@@ -16,13 +16,13 @@ var Config = Configuration{
 	DummyImageColor: "#a8a8a8",
 	ImagesAdmin: ImagesAdminConfiguration{
 		ImageEditorClass:    "media-image-editor",
-		ThumbnailSize:       150,
+		ThumbnailSize:       200,
 		ThumbnailFrameClass: "thumbnail-frame",
 		ActionsClass:        "actions",
 	},
 	ImageRefController: ImageRefControllerConfiguration{
 		Class:               "media-imageref-editor",
-		ThumbnailSize:       50,
+		ThumbnailSize:       100,
 		ThumbnailFrameClass: "thumbnail-frame",
 		ActionsClass:        "actions",
 	},

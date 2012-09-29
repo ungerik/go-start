@@ -48,43 +48,50 @@ var UploadImage = view.NewViewURLWrapper(view.RenderViewBindURLArgs(
 ))
 
 // Uses https://github.com/valums/file-uploader
-func UploadImageButton(thumbnailSize int, onComplete string) view.View {
+func UploadImageButton(parentSelector, dropZoneSelector, listSelector string, thumbnailSize int, onComplete string) view.View {
+	extraDropzones := "[]"
+	if dropZoneSelector != "" {
+		dropZoneSelector = fmt.Sprintf(`[jQuery("%s")[0]]`, dropZoneSelector)
+	}
+	listElement := "null"
+	if listSelector != "" {
+		listElement = fmt.Sprintf(`jQuery("%s")[0]`, listSelector)
+	}
 	if onComplete == "" {
 		onComplete = "function(){}"
 	}
 
-	const registerUploaderScript = `jQuery(function() {
-		var uploader = new qq.FileUploader({
-			debug: true,
-		    element: jQuery("#%s")[0],
-		    action: "%s",
-		    allowedExtensions: ["png", "jpg", "jpeg", "gif", "bmp", "tif", "tiff"],
-		    acceptFiles: ["image/png", "image/jpeg", "image/gif", "image/bmp", "image/tiff"],
-		    multiple: false,
-		    onComplete: %s
-		});
-	});`
-
-	uploader := view.DIV("uploader")
-	uploaderID := uploader.ID()
 	uploaderScript := view.RenderView(
 		func(ctx *view.Context) error {
 			uploadURL := UploadImage.URL(ctx.ForURLArgsConvert(thumbnailSize))
-			script := fmt.Sprintf(registerUploaderScript, uploaderID, uploadURL, onComplete)
+			script := fmt.Sprintf(
+				`jQuery(function() {
+					var uploader = new qq.FileUploader({
+						debug: true,
+					    element: jQuery("%s")[0],
+					    extraDropzones: %s,
+					    listElement: %s,
+					    action: "%s",
+					    allowedExtensions: ["png", "jpg", "jpeg", "gif", "bmp", "tif", "tiff"],
+					    acceptFiles: ["image/png", "image/jpeg", "image/gif", "image/bmp", "image/tiff"],
+					    sizeLimit: 1024*1024*64,
+					    multiple: false,
+					    onComplete: %s
+					});
+				});`,
+				parentSelector,
+				extraDropzones,
+				listElement,
+				uploadURL,
+				onComplete,
+			)
 			ctx.Response.RequireScript(script, 20)
+			if !Config.NoDynamicStyleAndScript {
+				ctx.Response.RequireStyleURL("/media/fileuploader.css", 0)
+				ctx.Response.RequireScriptURL("/media/fileuploader.js", 0)
+			}
 			return nil
 		},
 	)
-	return view.Views{
-		&view.If{
-			Condition: !Config.NoDynamicStyleAndScript,
-			Content: view.Views{
-				view.RequireStyleURL("/media/fileuploader.css", 0),
-				view.RequireScriptURL("/media/fileuploader.js", 0),
-				// view.RequireScriptURL("/media/media.js", 10),
-			},
-		},
-		uploader,
-		uploaderScript,
-	}
+	return uploaderScript
 }
