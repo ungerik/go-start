@@ -339,6 +339,16 @@ func (self *Image) VersionCentered(width, height int, grayscale bool) (im *Image
 	return self.Version(width, height, HorCenter, VerCenter, grayscale)
 }
 
+func (self *Image) VersionWidth(width int, grayscale bool) (im *ImageVersion, err error) {
+	height := int(float64(width)/self.AspectRatio() + 0.5)
+	return self.Version(width, height, HorCenter, VerCenter, grayscale)
+}
+
+func (self *Image) VersionHeight(height int, grayscale bool) (im *ImageVersion, err error) {
+	width := int(float64(height)*self.AspectRatio() + 0.5)
+	return self.Version(width, height, HorCenter, VerCenter, grayscale)
+}
+
 func (self *Image) VersionTouchOrigFromOutside(width, height int, horAlign HorAlignment, verAlign VerAlignment, grayscale bool, outsideColor color.Color) (im *ImageVersion, err error) {
 	return self.VersionSourceRect(self.sourceRectTouchOriginalFromOutside(width, height, horAlign, verAlign), width, height, grayscale, outsideColor)
 }

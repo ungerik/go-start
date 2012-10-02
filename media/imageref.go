@@ -95,6 +95,22 @@ func (self *ImageRef) VersionCentered(width, height int, grayscale bool) (im *Im
 	return image.VersionCentered(width, height, grayscale)
 }
 
+func (self *ImageRef) VersionWidth(width int, grayscale bool) (im *ImageVersion, err error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.VersionWidth(width, grayscale)
+}
+
+func (self *ImageRef) VersionHeight(height int, grayscale bool) (im *ImageVersion, err error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.VersionHeight(height, grayscale)
+}
+
 func (self *ImageRef) VersionTouchOrigFromOutside(width, height int, horAlign HorAlignment, verAlign VerAlignment, grayscale bool, outsideColor color.Color) (im *ImageVersion, err error) {
 	image, err := self.Get()
 	if err != nil {
