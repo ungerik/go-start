@@ -43,7 +43,7 @@ func ImagesAdmin() view.View {
 					view.A_blank(image.GetURL(), "Link to original"),
 					view.Printf(" | Used %d times", refCount),
 					view.DIV(Config.ImagesAdmin.ThumbnailFrameClass,
-						thumbnail.ViewImage(""),
+						thumbnail.View(""),
 					),
 					&view.Form{
 						FormID:            "edit" + image.ID.Get(),

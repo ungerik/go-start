@@ -34,7 +34,7 @@ func (self ImageRefController) NewInput(withLabel bool, metaData *model.MetaData
 			if err != nil {
 				return nil, err
 			}
-			img = version.ViewImage("")
+			img = version.View("")
 		} else {
 			imageRef.Set(nil)
 			img = view.IMG(Config.dummyImageURL, thumbnailSize, thumbnailSize)

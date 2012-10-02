@@ -81,7 +81,7 @@ func (self *ImageVersion) LoadImage() (image.Image, error) {
 	return im, nil
 }
 
-func (self *ImageVersion) ViewImage(class string) *view.Image {
+func (self *ImageVersion) View(class string) *view.Image {
 	return &view.Image{
 		URL:    self.GetURL(),
 		Width:  self.Width.GetInt(),
@@ -91,12 +91,12 @@ func (self *ImageVersion) ViewImage(class string) *view.Image {
 	}
 }
 
-func (self *ImageVersion) ViewImageLink(imageClass, linkClass string) *view.Link {
+func (self *ImageVersion) LinkedView(imageClass, linkClass string) *view.Link {
 	return &view.Link{
 		Model: &view.StringLink{
 			Url:     self.image.Link.Get(),
 			Title:   self.image.Title.Get(),
-			Content: self.ViewImage(imageClass),
+			Content: self.View(imageClass),
 		},
 		Class: linkClass,
 	}

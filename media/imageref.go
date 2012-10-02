@@ -5,6 +5,7 @@ import (
 	"image/color"
 
 	"github.com/ungerik/go-start/model"
+	"github.com/ungerik/go-start/view"
 )
 
 func NewImageRef(image *Image) *ImageRef {
@@ -133,4 +134,152 @@ func (self *ImageRef) Thumbnail(size int) (im *ImageVersion, err error) {
 		return nil, err
 	}
 	return image.Thumbnail(size)
+}
+
+///
+
+func (self *ImageRef) OriginalVersionView(class string) (*view.Image, error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.OriginalVersion().View(class), nil
+}
+
+func (self *ImageRef) VersionSourceRectView(sourceRect image.Rectangle, width, height int, grayscale bool, outsideColor color.Color, class string) (*view.Image, error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.VersionSourceRectView(sourceRect, width, height, grayscale, outsideColor, class)
+}
+
+func (self *ImageRef) VersionView(width, height int, horAlign HorAlignment, verAlign VerAlignment, grayscale bool, class string) (*view.Image, error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.VersionView(width, height, horAlign, verAlign, grayscale, class)
+}
+
+func (self *ImageRef) VersionCenteredView(width, height int, grayscale bool, class string) (*view.Image, error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.VersionCenteredView(width, height, grayscale, class)
+}
+
+func (self *ImageRef) VersionWidthView(width int, grayscale bool, class string) (*view.Image, error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.VersionWidthView(width, grayscale, class)
+}
+
+func (self *ImageRef) VersionHeightView(height int, grayscale bool, class string) (*view.Image, error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.VersionHeightView(height, grayscale, class)
+}
+
+func (self *ImageRef) VersionTouchOrigFromOutsideView(width, height int, horAlign HorAlignment, verAlign VerAlignment, grayscale bool, outsideColor color.Color, class string) (*view.Image, error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.VersionTouchOrigFromOutsideView(width, height, horAlign, verAlign, grayscale, outsideColor, class)
+}
+
+func (self *ImageRef) VersionTouchOrigFromOutsideCenteredView(width, height int, grayscale bool, outsideColor color.Color, class string) (*view.Image, error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.VersionTouchOrigFromOutsideCenteredView(width, height, grayscale, outsideColor, class)
+}
+
+func (self *ImageRef) ThumbnailView(size int, class string) (*view.Image, error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.ThumbnailView(size, class)
+}
+
+///
+
+func (self *ImageRef) OriginalVersionLinkedView(imageClass, linkClass string) (*view.Link, error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.OriginalVersion().LinkedView(imageClass, linkClass), nil
+}
+
+func (self *ImageRef) VersionSourceRectLinkedView(sourceRect image.Rectangle, width, height int, grayscale bool, outsideColor color.Color, imageClass, linkClass string) (*view.Link, error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.VersionSourceRectLinkedView(sourceRect, width, height, grayscale, outsideColor, imageClass, linkClass)
+}
+
+func (self *ImageRef) VersionLinkedView(width, height int, horAlign HorAlignment, verAlign VerAlignment, grayscale bool, imageClass, linkClass string) (*view.Link, error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.VersionLinkedView(width, height, horAlign, verAlign, grayscale, imageClass, linkClass)
+}
+
+func (self *ImageRef) VersionCenteredLinkedView(width, height int, grayscale bool, imageClass, linkClass string) (*view.Link, error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.VersionCenteredLinkedView(width, height, grayscale, imageClass, linkClass)
+}
+
+func (self *ImageRef) VersionWidthLinkedView(width int, grayscale bool, imageClass, linkClass string) (*view.Link, error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.VersionWidthLinkedView(width, grayscale, imageClass, linkClass)
+}
+
+func (self *ImageRef) VersionHeightLinkedView(height int, grayscale bool, imageClass, linkClass string) (*view.Link, error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.VersionHeightLinkedView(height, grayscale, imageClass, linkClass)
+}
+
+func (self *ImageRef) VersionTouchOrigFromOutsideLinkedView(width, height int, horAlign HorAlignment, verAlign VerAlignment, grayscale bool, outsideColor color.Color, imageClass, linkClass string) (*view.Link, error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.VersionTouchOrigFromOutsideLinkedView(width, height, horAlign, verAlign, grayscale, outsideColor, imageClass, linkClass)
+}
+
+func (self *ImageRef) VersionTouchOrigFromOutsideCenteredLinkedView(width, height int, grayscale bool, outsideColor color.Color, imageClass, linkClass string) (*view.Link, error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.VersionTouchOrigFromOutsideCenteredLinkedView(width, height, grayscale, outsideColor, imageClass, linkClass)
+}
+
+func (self *ImageRef) ThumbnailLinkedView(size int, imageClass, linkClass string) (*view.Link, error) {
+	image, err := self.Get()
+	if err != nil {
+		return nil, err
+	}
+	return image.ThumbnailLinkedView(size, imageClass, linkClass)
 }
