@@ -299,7 +299,11 @@ func (self ModelBoolController) NewInput(withLabel bool, metaData *model.MetaDat
 		Checked:  b.Get(),
 	}
 	if withLabel {
-		checkbox.Label = form.FieldLabel(metaData)
+		labelContent := form.FieldLabel(metaData)
+		if form.IsFieldRequired(metaData) {
+			labelContent = "<span class='required'>*</span> " + labelContent
+		}
+		checkbox.Label = labelContent
 	}
 	return checkbox, nil
 }
