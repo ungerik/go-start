@@ -84,7 +84,7 @@ func (self ImageRefController) NewInput(withLabel bool, metaData *model.MetaData
 				Class:   "qq-upload-button",
 				Content: view.HTML("Choose existing"),
 				OnClick: fmt.Sprintf(
-					`gostart_media.fillChooser('#%s', '%s', function(value){
+					`gostart_media.fillChooseDialog('#%s', '%s', function(value){
 						jQuery('#%s').attr('value', value.id);
 						var img = '<img src=\"'+value.url+'\" alt=\"'+value.title+'\"/>';
 						jQuery('#%s').empty().append(img);
