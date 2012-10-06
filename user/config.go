@@ -10,7 +10,7 @@ var Config = Configuration{
 	ConfirmationMessage: ConfirmationMessage{
 		EmailSubject: "Please confirm your email address for %s",
 		EmailMessage: "Please confirm your email address for %s by opening the following link:\n\n%s",
-		Sent:         "We sent you an email with a verification link.<br/>It might some time to show up, but when it does you will be ready to use this site.",
+		Sent:         "We sent you an email with a verification link. It might some time to show up, but when it does you will be ready to use this site.",
 	},
 }
 

@@ -169,7 +169,7 @@ func (self *StandardFormLayout) EndIndexedFields(indexedFields *model.MetaData, 
 		// Add "Actions" column with buttons to table with slice or array values
 		if table, ok := (*formContent)[len(*formContent)-1].(*Table); ok {
 			tableModel := table.Model.(ViewsTableModel)
-			tableModel[0] = append(tableModel[0], HTML("Actions"))
+			tableModel[0] = append(tableModel[0], HTML("<div class='table-actions'>Actions</div>"))
 			rows := tableModel.Rows()
 			for i := 1; i < rows; i++ {
 				// todo: script depends on buttons being HTML buttons,
