@@ -867,7 +867,15 @@ func FormModel(model interface{}) GetFormModelFunc {
 }
 
 func OnFormSubmitSaveModel(form *Form, formModel interface{}, ctx *Context) (string, URL, error) {
-	return "", nil, formModel.(mongo.Document).Save()
+	err := formModel.(mongo.Document).Save()
+	if err != nil {
+		config.Logger.Println(err)
+		debug.LogCallStack()
+		if !Config.Debug.Mode {
+			return "An error ocured while saving the form data", nil, err
+		}
+	}
+	return "", nil, err
 }
 
 // OnFormSubmit wraps onSubmitFunc as a OnFormSubmitFunc with the
