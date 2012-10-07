@@ -2,8 +2,8 @@ package mongo
 
 import (
 	"github.com/ungerik/go-start/errs"
-	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/mgo/bson"
+	"github.com/ungerik/go-start/model"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -61,7 +61,7 @@ func (self *DocumentBase) Save() error {
 	}
 
 	if !self.ID.Valid() {
-		id, err := self.Collection().Insert(self.embeddingStruct)
+		id, err := self.collection.Insert(self.embeddingStruct)
 		if err == nil {
 			self.ID = id
 		}

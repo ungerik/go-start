@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ungerik/go-start/config"
+	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/mgo"
 	"github.com/ungerik/go-start/mgo/bson"
@@ -191,7 +193,12 @@ func (self *Collection) betterError(err error, context string) error {
 	return err
 }
 
-func (self *Collection) DocumentWithID(id bson.ObjectId, subDocSelectors ...string) (document interface{}, err error) {
+func (self *Collection) logIdNotFoundError(id bson.ObjectId) {
+	config.Logger.Printf("MongoDB document with id %s not found in collection %s", id.Hex(), self.Collection().Name)
+	debug.LogCallStack()
+}
+
+func (self *Collection) documentWithID(id bson.ObjectId, subDocSelectors ...string) (document interface{}, err error) {
 	if len(subDocSelectors) > 0 {
 		panic("Sub document selectors are not implemented")
 	}
@@ -211,9 +218,6 @@ func (self *Collection) DocumentWithID(id bson.ObjectId, subDocSelectors ...stri
 		err = q.Select(strings.Join(subDocSelectors, ".")).One(document)
 	}
 	if err != nil {
-		if err == mgo.NotFound {
-			err = fmt.Errorf("MongoDB document with id %s not found in collection %s", id.Hex(), self.Collection().Name)
-		}
 		return nil, err
 	}
 	// document has to be initialized again,
@@ -223,6 +227,14 @@ func (self *Collection) DocumentWithID(id bson.ObjectId, subDocSelectors ...stri
 	return document, nil
 }
 
+func (self *Collection) DocumentWithID(id bson.ObjectId, subDocSelectors ...string) (document interface{}, err error) {
+	document, err = self.documentWithID(id, subDocSelectors...)
+	if err == mgo.NotFound {
+		self.logIdNotFoundError(id)
+	}
+	return document, err
+}
+
 func (self *Collection) TryDocumentWithID(id bson.ObjectId, subDocSelectors ...string) (document interface{}, found bool, err error) {
 	if len(subDocSelectors) > 0 {
 		panic("Sub document selectors are not implemented")
@@ -230,7 +242,7 @@ func (self *Collection) TryDocumentWithID(id bson.ObjectId, subDocSelectors ...s
 	if id == "" {
 		return nil, false, nil
 	}
-	document, err = self.DocumentWithID(id, subDocSelectors...)
+	document, err = self.documentWithID(id, subDocSelectors...)
 	if err == mgo.NotFound {
 		return nil, false, nil
 	}
@@ -278,6 +290,9 @@ func (self *Collection) Insert(document interface{}) (id bson.ObjectId, err erro
 	}
 	newId, err := self.collection.Upsert(bson.M{"_id": id}, document)
 	if err != nil {
+		if err == mgo.NotFound {
+			self.logIdNotFoundError(id)
+		}
 		return id, err
 	}
 	id = newId.(bson.ObjectId)
@@ -289,10 +304,14 @@ func (self *Collection) Insert(document interface{}) (id bson.ObjectId, err erro
 
 func (self *Collection) Update(id bson.ObjectId, document interface{}) (err error) {
 	self.checkDBConnection()
-	return self.collection.Update(bson.M{"_id": id}, document)
+	err = self.collection.Update(bson.M{"_id": id}, document)
+	if err == mgo.NotFound {
+		self.logIdNotFoundError(id)
+	}
+	return err
 }
 
-func (self *Collection) Remove(ids ...bson.ObjectId) error {
+func (self *Collection) Remove(ids ...bson.ObjectId) (err error) {
 	self.checkDBConnection()
 	return self.collection.Remove(bson.M{"_id": bson.M{"$in": ids}})
 }
