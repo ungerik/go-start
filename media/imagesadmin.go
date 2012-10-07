@@ -40,8 +40,10 @@ func ImagesAdmin() view.View {
 				}
 				editor := view.DIV(Config.ImagesAdmin.ImageEditorClass,
 					view.H3(image.TitleOrFilename()),
-					view.A_blank(image.GetURL(), "Link to original"),
-					view.Printf(" | Used %d times", refCount),
+					view.P(
+						view.A_blank(image.GetURL(), "Link to original"),
+						view.Printf(" | Used %d times", refCount),
+					),
 					view.DIV(Config.ImagesAdmin.ThumbnailFrameClass,
 						thumbnail.View(""),
 					),

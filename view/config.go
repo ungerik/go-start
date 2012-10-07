@@ -51,38 +51,42 @@ var Config = Configuration{
 			ModelBlobController{},
 		},
 	},
-	BaseDirs:            []string{"."},
-	StaticDirs:          []string{"static"},    // every StaticDir will be appended to every BaseDir to search for static files
-	TemplateDirs:        []string{"templates"}, // every TemplateDir will be appended to every BaseDir to search for template files
-	SessionTracker:      &CookieSessionTracker{},
-	SessionDataStore:    NewCookieSessionDataStore(),
-	NamedAuthenticators: make(map[string]Authenticator),
+	LabeledModelViewLabelClass: "labeled-model-view-label",
+	LabeledModelViewValueClass: "labeled-model-view-value",
+	BaseDirs:                  []string{"."},
+	StaticDirs:                []string{"static"},    // every StaticDir will be appended to every BaseDir to search for static files
+	TemplateDirs:              []string{"templates"}, // every TemplateDir will be appended to every BaseDir to search for template files
+	SessionTracker:            &CookieSessionTracker{},
+	SessionDataStore:          NewCookieSessionDataStore(),
+	NamedAuthenticators:       make(map[string]Authenticator),
 }
 
 var StructTagKey = "view"
 
 type Configuration struct {
-	initialized         bool
-	ListenAndServeAt    string
-	IsProductionServer  bool // IsProductionServer will be set to true if localhost resolves to one of ProductionServerIPs
-	ProductionServerIPs []string
-	TemplateSystem      templatesystem.Implementation
-	Page                PageConfiguration
-	Form                FormConfiguration
-	DisableCachedViews  bool
-	BaseDirs            []string
-	StaticDirs          []string
-	TemplateDirs        []string
-	RedirectSubdomains  []string // Exapmle: "www"
-	SiteName            string
-	CookieSecret        string
-	SessionTracker      SessionTracker
-	SessionDataStore    SessionDataStore
-	OnPreAuth           func(ctx *Context) error
-	GlobalAuth          Authenticator // Will allways be used before all other authenticators
-	FallbackAuth        Authenticator // Will be used when no other authenticator is defined for the view
-	NamedAuthenticators map[string]Authenticator
-	LoginSignupPage     **Page
+	initialized               bool
+	ListenAndServeAt          string
+	IsProductionServer        bool // IsProductionServer will be set to true if localhost resolves to one of ProductionServerIPs
+	ProductionServerIPs       []string
+	TemplateSystem            templatesystem.Implementation
+	Page                      PageConfiguration
+	Form                      FormConfiguration
+	LabeledModelViewLabelClass string
+	LabeledModelViewValueClass string
+	DisableCachedViews        bool
+	BaseDirs                  []string
+	StaticDirs                []string
+	TemplateDirs              []string
+	RedirectSubdomains        []string // Exapmle: "www"
+	SiteName                  string
+	CookieSecret              string
+	SessionTracker            SessionTracker
+	SessionDataStore          SessionDataStore
+	OnPreAuth                 func(ctx *Context) error
+	GlobalAuth                Authenticator // Will allways be used before all other authenticators
+	FallbackAuth              Authenticator // Will be used when no other authenticator is defined for the view
+	NamedAuthenticators       map[string]Authenticator
+	LoginSignupPage           **Page
 	// Middlewares               []Middleware
 	Debug struct {
 		ListenAndServeAt string
