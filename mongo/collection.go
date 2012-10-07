@@ -183,6 +183,14 @@ func (self *Collection) Ref(id bson.ObjectId) Ref {
 	return Ref{id, self.Name}
 }
 
+// betterError returns a better error description
+func (self *Collection) betterError(err error, context string) error {
+	if err == mgo.NotFound {
+		return fmt.Errorf("MongoDB document with id %s not found in collection %s", context, self.Collection().Name)
+	}
+	return err
+}
+
 func (self *Collection) DocumentWithID(id bson.ObjectId, subDocSelectors ...string) (document interface{}, err error) {
 	if len(subDocSelectors) > 0 {
 		panic("Sub document selectors are not implemented")
@@ -203,6 +211,9 @@ func (self *Collection) DocumentWithID(id bson.ObjectId, subDocSelectors ...stri
 		err = q.Select(strings.Join(subDocSelectors, ".")).One(document)
 	}
 	if err != nil {
+		if err == mgo.NotFound {
+			err = fmt.Errorf("MongoDB document with id %s not found in collection %s", id.Hex(), self.Collection().Name)
+		}
 		return nil, err
 	}
 	// document has to be initialized again,

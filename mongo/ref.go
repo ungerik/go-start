@@ -33,6 +33,42 @@ func (self *Ref) SetString(str string) error {
 	return nil
 }
 
+// Returns nil and no error if the reference is empty
+func (self *Ref) Get() (doc interface{}, err error) {
+	if self.IsEmpty() {
+		return nil, nil
+	}
+	return self.GetOrError()
+}
+
+// Returns an error if the reference is empty
+func (self *Ref) GetOrError() (doc interface{}, err error) {
+	collection, err := self.Collection()
+	if err != nil {
+		return nil, err
+	}
+	return collection.DocumentWithID(self.ID)
+}
+
+// nil is valid and sets the reference to empty
+func (self *Ref) Set(document Document) {
+	if document == nil {
+		self.ID = ""
+		return
+	}
+	if document.Collection() == nil {
+		panic("model.Document.Collection() == nil")
+	}
+	if document.Collection().Name != self.CollectionName {
+		panic(fmt.Sprintf("Can't set document from different collection. Expected collection '%s', got '%s'", self.CollectionName, document.Collection().Name))
+	}
+	self.ID = document.ObjectId()
+}
+
+func (self *Ref) IsEmpty() bool {
+	return self.ID == ""
+}
+
 // Implements bson.Getter
 func (self Ref) GetBSON() (interface{}, error) {
 	if !self.ID.Valid() {
@@ -87,42 +123,6 @@ func (self *Ref) Collection() (collection *Collection, err error) {
 		return nil, errs.Format("Collection '" + self.CollectionName + "' not registered")
 	}
 	return collection, nil
-}
-
-// Returns nil if the reference is empty
-func (self *Ref) Get() (doc interface{}, err error) {
-	if self.IsEmpty() {
-		return nil, nil
-	}
-	return self.GetOrError()
-}
-
-// Returns an error if the reference is empty
-func (self *Ref) GetOrError() (doc interface{}, err error) {
-	collection, err := self.Collection()
-	if err != nil {
-		return nil, err
-	}
-	return collection.DocumentWithID(self.ID)
-}
-
-// nil is valid and sets the reference to empty
-func (self *Ref) Set(document Document) {
-	if document == nil {
-		self.ID = ""
-		return
-	}
-	if document.Collection() == nil {
-		panic("model.Document.Collection() == nil")
-	}
-	if document.Collection().Name != self.CollectionName {
-		panic(fmt.Sprintf("Can't set document from different collection. Expected collection '%s', got '%s'", self.CollectionName, document.Collection().Name))
-	}
-	self.ID = document.ObjectId()
-}
-
-func (self *Ref) IsEmpty() bool {
-	return self.ID == ""
 }
 
 func (self *Ref) References(doc Document) (ok bool, err error) {
