@@ -13,7 +13,7 @@ import (
 func RemoveInvalidRefsButton(class string, collections ...*mongo.Collection) *view.Form {
 	confirmation := "Are you sure you want to remove all invalid mongo refs in all collections?"
 	if len(collections) > 0 {
-		confirmation := "Are you sure you want to remove all invalid mongo refs in the collections "
+		confirmation = "Are you sure you want to remove all invalid mongo refs in the collections "
 		for i, c := range collections {
 			if i > 0 {
 				confirmation += ", "
