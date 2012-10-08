@@ -324,9 +324,9 @@ func (self *Collection) RemoveAllNotIn(ids ...bson.ObjectId) error {
 // RemoveInvalidRefs removes invalid refs from all documents and saves
 // the changes.
 func (self *Collection) RemoveInvalidRefs() (invalidRefs []Ref, err error) {
-	if !self.DocumentType.Implements(reflect.TypeOf((*Document)(nil)).Elem()) {
-		return nil, nil
-	}
+	// if !self.DocumentType.Implements(reflect.TypeOf((*Document)(nil)).Elem()) {
+	// 	return nil, nil
+	// }
 	i := self.Iterator()
 	for doc := i.Next(); doc != nil; doc = i.Next() {
 		document := doc.(Document)

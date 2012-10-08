@@ -11,64 +11,64 @@ import (
 	"github.com/ungerik/go-start/mongo"
 )
 
-type backend struct {
-	gridFS                      *mgo.GridFS
-	images                      *mongo.Collection
+type Backend struct {
+	GridFS                      *mgo.GridFS
+	Images                      *mongo.Collection
 	imageRefCollectionSelectors map[*mongo.Collection][]string
 }
 
-func (self *backend) LoadImage(id string) (*media.Image, error) {
-	doc, err := self.images.DocumentWithID(bson.ObjectIdHex(id))
+func (self *Backend) LoadImage(id string) (*media.Image, error) {
+	doc, err := self.Images.DocumentWithID(bson.ObjectIdHex(id))
 	if err != nil {
 		return nil, err
 	}
 	return doc.(*ImageDoc).GetAndInitImage(), nil
 }
 
-func (self *backend) TryLoadImage(id string) (*media.Image, bool, error) {
-	doc, found, err := self.images.TryDocumentWithID(bson.ObjectIdHex(id))
+func (self *Backend) TryLoadImage(id string) (*media.Image, bool, error) {
+	doc, found, err := self.Images.TryDocumentWithID(bson.ObjectIdHex(id))
 	if !found {
 		return nil, found, err
 	}
 	return doc.(*ImageDoc).GetAndInitImage(), true, nil
 }
 
-func (self *backend) SaveImage(image *media.Image) error {
+func (self *Backend) SaveImage(image *media.Image) error {
 	if image.ID == "" {
-		doc := self.images.NewDocument().(*ImageDoc)
+		doc := self.Images.NewDocument().(*ImageDoc)
 		doc.Image = *image
-		id, err := self.images.Insert(doc)
+		id, err := self.Images.Insert(doc)
 		if err != nil {
 			return err
 		}
 		image.ID.Set(id.Hex())
 		doc.Image.ID = image.ID
-		return self.images.Update(id, doc)
+		return self.Images.Update(id, doc)
 	}
 
 	id := bson.ObjectIdHex(image.ID.Get())
-	doc := self.images.NewDocument().(*ImageDoc)
+	doc := self.Images.NewDocument().(*ImageDoc)
 	doc.SetObjectId(id)
 	doc.Image = *image
-	return self.images.Update(id, doc)
+	return self.Images.Update(id, doc)
 }
 
-func (self *backend) DeleteImage(image *media.Image) error {
+func (self *Backend) DeleteImage(image *media.Image) error {
 	for i := range image.Versions {
 		err := self.DeleteImageVersion(image.Versions[i].ID.Get())
 		if err != nil {
 			return err
 		}
 	}
-	return self.images.Remove(bson.ObjectIdHex(image.ID.Get()))
+	return self.Images.Remove(bson.ObjectIdHex(image.ID.Get()))
 }
 
-func (self *backend) DeleteImageVersion(id string) error {
-	return self.gridFS.RemoveId(id)
+func (self *Backend) DeleteImageVersion(id string) error {
+	return self.GridFS.RemoveId(id)
 }
 
-func (self *backend) ImageVersionReader(id string) (reader io.ReadCloser, ctype string, err error) {
-	file, err := self.gridFS.OpenId(bson.ObjectIdHex(id))
+func (self *Backend) ImageVersionReader(id string) (reader io.ReadCloser, ctype string, err error) {
+	file, err := self.GridFS.OpenId(bson.ObjectIdHex(id))
 	if err == mgo.NotFound {
 		return nil, "", media.ErrInvalidImageID(id)
 	} else if err != nil {
@@ -77,15 +77,15 @@ func (self *backend) ImageVersionReader(id string) (reader io.ReadCloser, ctype 
 	return file, file.ContentType(), nil
 }
 
-func (self *backend) ImageVersionWriter(version *media.ImageVersion) (writer io.WriteCloser, err error) {
+func (self *Backend) ImageVersionWriter(version *media.ImageVersion) (writer io.WriteCloser, err error) {
 	if version.ID != "" {
-		err = self.gridFS.RemoveId(version.ID)
+		err = self.GridFS.RemoveId(version.ID)
 		if err != nil {
 			return nil, err
 		}
 		version.ID = ""
 	}
-	file, err := self.gridFS.Create("")
+	file, err := self.GridFS.Create("")
 	if err != nil {
 		return nil, err
 	}
@@ -96,15 +96,15 @@ func (self *backend) ImageVersionWriter(version *media.ImageVersion) (writer io.
 	return file, err
 }
 
-func (self *backend) ImageIterator() model.Iterator {
-	return model.ConvertIterator(self.images.Iterator(),
+func (self *Backend) ImageIterator() model.Iterator {
+	return model.ConvertIterator(self.Images.Iterator(),
 		func(doc interface{}) interface{} {
 			return doc.(*ImageDoc).GetAndInitImage()
 		},
 	)
 }
 
-func (self *backend) getImageRefCollectionSelectors() map[*mongo.Collection][]string {
+func (self *Backend) getImageRefCollectionSelectors() map[*mongo.Collection][]string {
 	if self.imageRefCollectionSelectors == nil {
 		colSel := make(map[*mongo.Collection][]string)
 		for _, collection := range mongo.Collections {
@@ -127,7 +127,7 @@ func (self *backend) getImageRefCollectionSelectors() map[*mongo.Collection][]st
 	return self.imageRefCollectionSelectors
 }
 
-func (self *backend) CountImageRefs(imageID string) (int, error) {
+func (self *Backend) CountImageRefs(imageID string) (int, error) {
 	colSel := self.getImageRefCollectionSelectors()
 	// debug.Dump(colSel)
 	count := 0
@@ -143,7 +143,7 @@ func (self *backend) CountImageRefs(imageID string) (int, error) {
 	return count, nil
 }
 
-func (self *backend) RemoveAllImageRefs(imageID string) error {
+func (self *Backend) RemoveAllImageRefs(imageID string) error {
 	colSel := self.getImageRefCollectionSelectors()
 	for collection, selectors := range colSel {
 		for _, selector := range selectors {

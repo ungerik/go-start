@@ -14,6 +14,7 @@ var Config = Configuration{
 
 type Configuration struct {
 	GridFSName string
+	Backend    Backend
 }
 
 func (self *Configuration) Name() string {
@@ -24,10 +25,9 @@ func (self *Configuration) Init() error {
 	if mongo.Database == nil {
 		panic("Package mongo must be initialized before mongomedia")
 	}
-	media.Config.Backend = &backend{
-		gridFS: mongo.Database.GridFS(self.GridFSName),
-		images: mongo.NewCollection(self.GridFSName+".images", (*ImageDoc)(nil)),
-	}
+	self.Backend.GridFS = mongo.Database.GridFS(self.GridFSName)
+	self.Backend.Images = mongo.NewCollection(self.GridFSName+".images", (*ImageDoc)(nil))
+	media.Config.Backend = &self.Backend
 	return nil
 }
 

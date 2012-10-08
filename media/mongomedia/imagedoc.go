@@ -14,6 +14,10 @@ func (self *ImageDoc) Init(collection *mongo.Collection, embeddingStruct interfa
 	self.DocumentBase.Init(collection, embeddingStruct)
 }
 
+func (self *ImageDoc) Save() error {
+	return self.DocumentBase.Save()
+}
+
 func (self *ImageDoc) GetAndInitImage() *media.Image {
 	self.Image.Init()
 	return &self.Image
