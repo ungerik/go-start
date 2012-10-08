@@ -74,3 +74,7 @@ func (self *DocumentBase) Save() error {
 func (self *DocumentBase) Remove() error {
 	return self.collection.Remove(self.ID)
 }
+
+func (self *DocumentBase) RemoveInvalidRefs() (invalidRefs []Ref, err error) {
+	return RemoveInvalidRefs(self.embeddingStruct)
+}

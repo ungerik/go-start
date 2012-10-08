@@ -43,11 +43,7 @@ func (self *Ref) Get() (doc interface{}, err error) {
 
 // Returns an error if the reference is empty
 func (self *Ref) GetOrError() (doc interface{}, err error) {
-	collection, err := self.Collection()
-	if err != nil {
-		return nil, err
-	}
-	return collection.DocumentWithID(self.ID)
+	return self.Collection().DocumentWithID(self.ID)
 }
 
 // nil is valid and sets the reference to empty
@@ -103,7 +99,21 @@ func (self *Ref) Validate(metaData *model.MetaData) error {
 	if self.Required(metaData) && self.IsEmpty() {
 		return model.NewRequiredError(metaData)
 	}
+	if ok, err := self.CheckID(); !ok {
+		if err != nil {
+			return err
+		}
+		return errs.Format("Invalid mongo.Ref. No document with ID %s in collection %s", self.ID, self.CollectionName)
+	}
 	return nil
+}
+
+func (self *Ref) CheckID() (bool, error) {
+	if self.IsEmpty() {
+		return true, nil
+	}
+	count, err := self.Collection().FilterReferenced(*self).Count()
+	return count == 1, err
 }
 
 func (self *Ref) Required(metaData *model.MetaData) bool {
@@ -114,15 +124,15 @@ func (self *Ref) Required(metaData *model.MetaData) bool {
 func (self *Ref) Reference() {
 }
 
-func (self *Ref) Collection() (collection *Collection, err error) {
+func (self *Ref) Collection() *Collection {
 	if self.CollectionName == "" {
-		return nil, errs.Format("Missing collection name. Did you call mongo.Document.Init()?")
+		panic(errs.Format("Missing collection name. Did you call mongo.Document.Init()?"))
 	}
 	collection, ok := Collections[self.CollectionName]
 	if !ok {
-		return nil, errs.Format("Collection '" + self.CollectionName + "' not registered")
+		panic(errs.Format("Collection '" + self.CollectionName + "' not registered"))
 	}
-	return collection, nil
+	return collection
 }
 
 func (self *Ref) References(doc Document) (ok bool, err error) {

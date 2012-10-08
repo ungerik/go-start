@@ -171,6 +171,37 @@ func InitRefs(document interface{}) {
 	))
 }
 
+func RemoveInvalidRefs(document interface{}) (invalidRefs []Ref, err error) {
+	err = model.Visit(document, model.FieldTypeVisitor(
+		func(ref *Ref) error {
+			ok, err := ref.CheckID()
+			if err != nil {
+				return err
+			}
+			if !ok {
+				invalidRefs = append(invalidRefs, *ref)
+				ref.Set(nil)
+			}
+			return nil
+		},
+	))
+	if err != nil {
+		return nil, err
+	}
+	return invalidRefs, nil
+}
+
+func RemoveInvalidRefsInAllCollections() (invalidRefs []Ref, err error) {
+	for _, collection := range Collections {
+		refs, err := collection.RemoveInvalidRefs()
+		if err != nil {
+			return nil, err
+		}
+		invalidRefs = append(invalidRefs, refs...)
+	}
+	return invalidRefs, nil
+}
+
 // Returns an iterator of dereferenced refs, or an error iterator if there was an error
 func DereferenceIterator(refs ...Ref) model.Iterator {
 	var docs []interface{}

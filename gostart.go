@@ -12,6 +12,7 @@ import (
 	_ "github.com/ungerik/go-start/model"
 	_ "github.com/ungerik/go-start/modelext"
 	_ "github.com/ungerik/go-start/mongo"
+	_ "github.com/ungerik/go-start/mongoadmin"
 	_ "github.com/ungerik/go-start/reflection"
 	_ "github.com/ungerik/go-start/states"
 	_ "github.com/ungerik/go-start/templatesystem"

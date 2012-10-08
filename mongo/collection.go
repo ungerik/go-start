@@ -270,7 +270,7 @@ func (self *Collection) TryDocumentWithIDIterator(id bson.ObjectId, subDocSelect
 	return model.NewObjectIterator(document)
 }
 
-func (self *Collection) FilterReferenced(refs []Ref) Query {
+func (self *Collection) FilterReferenced(refs ...Ref) Query {
 	return self.FilterRef("_id", refs...)
 }
 
@@ -319,6 +319,33 @@ func (self *Collection) Remove(ids ...bson.ObjectId) (err error) {
 func (self *Collection) RemoveAllNotIn(ids ...bson.ObjectId) error {
 	self.checkDBConnection()
 	return self.collection.Remove(bson.M{"_id": bson.M{"$nin": ids}})
+}
+
+// RemoveInvalidRefs removes invalid refs from all documents and saves
+// the changes.
+func (self *Collection) RemoveInvalidRefs() (invalidRefs []Ref, err error) {
+	if !self.DocumentType.Implements(reflect.TypeOf((*Document)(nil)).Elem()) {
+		return nil, nil
+	}
+	i := self.Iterator()
+	for doc := i.Next(); doc != nil; doc = i.Next() {
+		document := doc.(Document)
+		refs, err := document.RemoveInvalidRefs()
+		if err != nil {
+			return nil, err
+		}
+		if len(refs) > 0 {
+			err = document.Save()
+			if err != nil {
+				return nil, err
+			}
+			invalidRefs = append(invalidRefs, refs...)
+		}
+	}
+	if i.Err() != nil {
+		return nil, i.Err()
+	}
+	return invalidRefs, nil
 }
 
 //func (self *Collection) EnsureIndex(unique bool, keyNodes ...oldmodel.Node) error {
