@@ -34,7 +34,7 @@ func (self *Ref) SetString(str string) error {
 }
 
 func (self *Ref) DebugString() string {
-	return fmt.Sprintf("%#v", *self)
+	return fmt.Sprintf("mongo.Ref of ID %s in collection %s", self.ID.Hex(), self.CollectionName)
 }
 
 // Returns nil and no error if the reference is empty

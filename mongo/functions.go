@@ -175,15 +175,20 @@ func InitRefs(document interface{}) {
 	))
 }
 
-func RemoveInvalidRefs(document interface{}) (invalidRefs []Ref, err error) {
+type InvalidRefData struct {
+	Ref      *Ref
+	MetaData *model.MetaData
+}
+
+func RemoveInvalidRefs(document interface{}) (invalidRefs []InvalidRefData, err error) {
 	err = model.Visit(document, model.FieldTypeVisitor(
-		func(ref *Ref) error {
+		func(ref *Ref, metaData *model.MetaData) error {
 			ok, err := ref.CheckID()
 			if err != nil {
 				return err
 			}
 			if !ok {
-				invalidRefs = append(invalidRefs, *ref)
+				invalidRefs = append(invalidRefs, InvalidRefData{ref, metaData})
 				ref.Set(nil)
 			}
 			return nil
@@ -195,16 +200,16 @@ func RemoveInvalidRefs(document interface{}) (invalidRefs []Ref, err error) {
 	return invalidRefs, nil
 }
 
-func RemoveInvalidRefsInAllCollections() (invalidRefs []Ref, err error) {
+func RemoveInvalidRefsInAllCollections() (invalidCollectionRefs map[string][]InvalidRefData, err error) {
 	config.Logger.Println("mongo.RemoveInvalidRefsInAllCollections()")
-	for _, collection := range Collections {
+	for name, collection := range Collections {
 		refs, err := collection.RemoveInvalidRefs()
 		if err != nil {
 			return nil, err
 		}
-		invalidRefs = append(invalidRefs, refs...)
+		invalidCollectionRefs[name] = refs
 	}
-	return invalidRefs, nil
+	return invalidCollectionRefs, nil
 }
 
 // Returns an iterator of dereferenced refs, or an error iterator if there was an error

@@ -34,33 +34,40 @@ func (self FieldOnlyVisitor) EndIndexedFields(*MetaData) error {
 	return nil
 }
 
-// VisitFieldType calls callback for every struct field whose type
-// is asignable to the type of the callback's only argument.
+// FieldTypeVisitor calls callback for every struct field whose type
+// is asignable to the type of the callback's first argument.
+// callback can have a second, optional argument of type *MetaData.
 // callback can return one error value or no result.
 func FieldTypeVisitor(callback interface{}) Visitor {
 	cv := reflect.ValueOf(callback)
 	ct := cv.Type()
-	if ct.NumIn() != 1 {
-		panic(fmt.Errorf("model.VisitFieldType callback must have 1 argument, got %d", ct.NumIn()))
+	if ct.NumIn() != 1 && ct.NumIn() != 2 {
+		panic(fmt.Errorf("model.FieldTypeVisitor callback must have one or two arguments, got %d", ct.NumIn()))
+	}
+	if ct.NumIn() != 2 && ct.In(1) != reflect.TypeOf((*MetaData)(nil)) {
+		panic(fmt.Errorf("model.FieldTypeVisitor callback's second argument must be of type *MetaData, got %s", ct.In(1)))
 	}
 	if ct.NumOut() != 0 && ct.NumOut() != 1 {
-		panic(fmt.Errorf("model.VisitFieldType callback must have 0 or 1 result, got %d", ct.NumOut()))
+		panic(fmt.Errorf("model.FieldTypeVisitor callback must have zero or one results, got %d", ct.NumIn()))
 	}
 	if ct.NumOut() == 1 && ct.Out(0) != reflection.TypeOfError {
-		panic(fmt.Errorf("model.VisitFieldType callback result must be of type error, got %s", ct.Out(0)))
+		panic(fmt.Errorf("model.FieldTypeVisitor callback result must be of type error, got %s", ct.Out(0)))
 	}
 	argT := ct.In(0)
 	return FieldOnlyVisitor(
 		func(field *MetaData) error {
-			var arg reflect.Value
+			var args []reflect.Value
 			if field.Value.Type().AssignableTo(argT) {
-				arg = field.Value
+				args = []reflect.Value{field.Value}
 			} else if field.Value.CanAddr() && field.Value.Addr().Type().AssignableTo(argT) {
-				arg = field.Value.Addr()
+				args = []reflect.Value{field.Value.Addr()}
 			} else {
 				return nil
 			}
-			results := cv.Call([]reflect.Value{arg})
+			if ct.NumIn() == 2 {
+				args = append(args, reflect.ValueOf(field))
+			}
+			results := cv.Call(args)
 			if len(results) == 0 {
 				return nil
 			}

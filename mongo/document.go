@@ -19,5 +19,5 @@ type Document interface {
 	Remove() error
 	// RemoveInvalidRefs sets all invalid mongo.Ref instances to empty,
 	// but does not save the document.
-	RemoveInvalidRefs() (invalidRefs []Ref, err error)
+	RemoveInvalidRefs() (invalidRefs []InvalidRefData, err error)
 }
