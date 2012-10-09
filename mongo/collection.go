@@ -342,7 +342,7 @@ func (self *Collection) RemoveInvalidRefs() (invalidRefs []InvalidRefData, err e
 		if len(refsData) > 0 {
 			config.Logger.Println("Found invalid refs in document " + document.ObjectId().Hex())
 			for _, refData := range refsData {
-				config.Logger.Println("Invalid ref from %s to ", refData.MetaData.Selector(), refData.Ref.DebugString())
+				config.Logger.Printf("Invalid ref from %s to ", refData.MetaData.Selector(), refData.Ref.DebugString())
 			}
 			// err = document.Save()
 			// if err != nil {
