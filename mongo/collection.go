@@ -80,6 +80,10 @@ func (self *Collection) checkDBConnection() {
 	}
 }
 
+func (self *Collection) String() string {
+	return fmt.Sprintf("mongo.Collection '%s' of type %s", self.Name, self.DocumentType)
+}
+
 func (self *Collection) Selector() string {
 	return ""
 }
@@ -324,6 +328,7 @@ func (self *Collection) RemoveAllNotIn(ids ...bson.ObjectId) error {
 // RemoveInvalidRefs removes invalid refs from all documents and saves
 // the changes.
 func (self *Collection) RemoveInvalidRefs() (invalidRefs []Ref, err error) {
+	config.Logger.Println("RemoveInvalidRefs() @ " + self.String())
 	// if !self.DocumentType.Implements(reflect.TypeOf((*Document)(nil)).Elem()) {
 	// 	return nil, nil
 	// }
@@ -335,14 +340,20 @@ func (self *Collection) RemoveInvalidRefs() (invalidRefs []Ref, err error) {
 			return nil, err
 		}
 		if len(refs) > 0 {
+			config.Logger.Println("Found invalid refs in document " + document.ObjectId().Hex())
+			for _, ref := range refs {
+				config.Logger.Println("Invalid: " + ref.String())
+			}
 			err = document.Save()
 			if err != nil {
+				config.Logger.Printf("mongo.Collection.RemoveInvalidRefs(): Error while saving document %#v", document)
 				return nil, err
 			}
 			invalidRefs = append(invalidRefs, refs...)
 		}
 	}
 	if i.Err() != nil {
+		config.Logger.Printf("mongo.Collection.RemoveInvalidRefs(): Error while iterating collection documents: '%s'", i.Err())
 		return nil, i.Err()
 	}
 	return invalidRefs, nil

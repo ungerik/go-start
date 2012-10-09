@@ -33,6 +33,10 @@ func (self *Ref) SetString(str string) error {
 	return nil
 }
 
+func (self *Ref) DebugString() string {
+	return fmt.Sprintf("%#v", *self)
+}
+
 // Returns nil and no error if the reference is empty
 func (self *Ref) Get() (doc interface{}, err error) {
 	if self.IsEmpty() {

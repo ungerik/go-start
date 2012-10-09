@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/ungerik/go-start/config"
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/mgo/bson"
 	"github.com/ungerik/go-start/model"
@@ -84,7 +85,7 @@ func MatchBsonField(bsonName string) reflection.MatchStructFieldFunc {
 	}
 }
 
-func RemoveRefWithID(refs []Ref, id bson.ObjectId) ([]Ref, bool) {
+func RemoveRefWithIDFromSlice(refs []Ref, id bson.ObjectId) ([]Ref, bool) {
 	if i, found := FindRefWithID(refs, id); found {
 		return append(refs[0:i], refs[i+1:len(refs)]...), true
 	}
@@ -92,17 +93,20 @@ func RemoveRefWithID(refs []Ref, id bson.ObjectId) ([]Ref, bool) {
 }
 
 // nil refs will be ignored
-func ValidateRefs(refs []Ref) (validRefs []Ref, invalidRefs []Ref) {
+func CheckRefs(refs []Ref) (validRefs []Ref, invalidRefs []Ref, err error) {
 	for _, ref := range refs {
-		if doc, err := ref.Get(); err == nil {
-			if doc != nil {
+		if !ref.IsEmpty() {
+			if ok, err := ref.CheckID(); !ok {
+				if err != nil {
+					return nil, nil, err
+				}
+				invalidRefs = append(invalidRefs, ref)
+			} else {
 				validRefs = append(validRefs, ref)
 			}
-		} else {
-			invalidRefs = append(invalidRefs, ref)
 		}
 	}
-	return validRefs, invalidRefs
+	return validRefs, invalidRefs, nil
 }
 
 func FindRefWithID(refs []Ref, id bson.ObjectId) (index int, found bool) {
@@ -192,6 +196,7 @@ func RemoveInvalidRefs(document interface{}) (invalidRefs []Ref, err error) {
 }
 
 func RemoveInvalidRefsInAllCollections() (invalidRefs []Ref, err error) {
+	config.Logger.Println("mongo.RemoveInvalidRefsInAllCollections()")
 	for _, collection := range Collections {
 		refs, err := collection.RemoveInvalidRefs()
 		if err != nil {
