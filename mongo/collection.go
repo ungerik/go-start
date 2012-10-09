@@ -342,13 +342,13 @@ func (self *Collection) RemoveInvalidRefs() (invalidRefs []Ref, err error) {
 		if len(refs) > 0 {
 			config.Logger.Println("Found invalid refs in document " + document.ObjectId().Hex())
 			for _, ref := range refs {
-				config.Logger.Println("Invalid: " + ref.String())
+				config.Logger.Println("Invalid: " + ref.DebugString())
 			}
-			err = document.Save()
-			if err != nil {
-				config.Logger.Printf("mongo.Collection.RemoveInvalidRefs(): Error while saving document %#v", document)
-				return nil, err
-			}
+			// err = document.Save()
+			// if err != nil {
+			// 	config.Logger.Printf("mongo.Collection.RemoveInvalidRefs(): Error while saving document %#v", document)
+			// 	return nil, err
+			// }
 			invalidRefs = append(invalidRefs, refs...)
 		}
 	}
