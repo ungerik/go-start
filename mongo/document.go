@@ -1,7 +1,8 @@
 package mongo
 
 import (
-	"github.com/ungerik/go-start/mgo/bson"
+	"labix.org/v2/mgo/bson"
+
 	"github.com/ungerik/go-start/model"
 )
 
@@ -16,7 +17,7 @@ type Document interface {
 	Iterator() model.Iterator
 	Ref() Ref
 	Save() error
-	Remove() error
+	Delete() error
 	// RemoveInvalidRefs sets all invalid mongo.Ref instances to empty,
 	// but does not save the document.
 	RemoveInvalidRefs() (invalidRefs []InvalidRefData, err error)

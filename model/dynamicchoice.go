@@ -2,7 +2,7 @@ package model
 
 import (
 	"fmt"
-	"github.com/ungerik/go-start/mgo/bson"
+	"labix.org/v2/mgo/bson"
 )
 
 ///////////////////////////////////////////////////////////////////////////////

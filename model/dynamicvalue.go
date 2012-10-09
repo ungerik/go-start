@@ -3,7 +3,7 @@ package model
 import (
 	"reflect"
 
-	"github.com/ungerik/go-start/mgo/bson"
+	"labix.org/v2/mgo/bson"
 )
 
 var DynamicValueType = reflect.TypeOf(DynamicValue{})

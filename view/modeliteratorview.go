@@ -27,7 +27,8 @@ func (self *ModelIteratorView) Render(ctx *Context) (err error) {
 	var children Views
 
 	iter := self.GetModelIterator(ctx)
-	for model := iter.Next(); model != nil; model = iter.Next() {
+	var model interface{}
+	for iter.Next(&model) {
 		view, err := self.GetModelIteratorView(ctx, model)
 		if err != nil {
 			return err

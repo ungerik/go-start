@@ -3,7 +3,7 @@ package user
 import (
 	"fmt"
 	"github.com/ungerik/go-mail"
-	"github.com/ungerik/go-start/mgo/bson"
+	"labix.org/v2/mgo/bson"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/view"
 	"net/url"

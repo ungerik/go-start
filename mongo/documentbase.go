@@ -2,8 +2,8 @@ package mongo
 
 import (
 	"github.com/ungerik/go-start/errs"
-	"github.com/ungerik/go-start/mgo/bson"
 	"github.com/ungerik/go-start/model"
+	"labix.org/v2/mgo/bson"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -48,7 +48,7 @@ func (self *DocumentBase) SetObjectId(id bson.ObjectId) {
 }
 
 func (self *DocumentBase) Iterator() model.Iterator {
-	return model.NewObjectIterator(self.embeddingStruct)
+	return model.NewSliceIterator(self.embeddingStruct)
 }
 
 func (self *DocumentBase) Ref() Ref {
@@ -59,20 +59,21 @@ func (self *DocumentBase) Save() error {
 	if self.embeddingStruct == nil {
 		return errs.Format("Can't save uninitialized mongo.Document. embeddingStruct is nil.")
 	}
-
 	if !self.ID.Valid() {
-		id, err := self.collection.Insert(self.embeddingStruct)
-		if err == nil {
-			self.ID = id
-		}
+		self.ID = bson.NewObjectId()
+	}
+	info, err := self.collection.collection.UpsertId(self.ID, self.embeddingStruct)
+	if err != nil {
 		return err
 	}
-
-	return self.collection.Update(self.ID, self.embeddingStruct)
+	if info.UpsertedId != nil && info.UpsertedId.(bson.ObjectId) != self.ID {
+		panic("Something is wrong with Upsert")
+	}
+	return nil
 }
 
-func (self *DocumentBase) Remove() error {
-	return self.collection.Remove(self.ID)
+func (self *DocumentBase) Delete() error {
+	return self.collection.Delete(self.ID)
 }
 
 func (self *DocumentBase) RemoveInvalidRefs() (invalidRefs []InvalidRefData, err error) {

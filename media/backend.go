@@ -32,11 +32,11 @@ type Backend interface {
 
 	// CountImageRefs counts all ImageRef occurances with imageID
 	// in all known databases.
-	CountImageRefs(imageID string) (int, error)
+	CountImageRefs(imageID string) (count int, err error)
 
 	// RemoveAllImageRefs removes all ImageRef occurances with imageID
 	// in all known databases.
-	RemoveAllImageRefs(imageID string) error
+	RemoveAllImageRefs(imageID string) (count int, err error)
 }
 
 type ErrInvalidImageID string

@@ -3,7 +3,7 @@ package mongo
 import (
 	"fmt"
 	"github.com/ungerik/go-start/errs"
-	"github.com/ungerik/go-start/mgo/bson"
+	"labix.org/v2/mgo/bson"
 	"github.com/ungerik/go-start/model"
 )
 

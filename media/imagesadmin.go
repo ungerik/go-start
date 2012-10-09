@@ -74,7 +74,7 @@ func ImagesAdmin() view.View {
 						SubmitButtonClass:   Config.ImagesAdmin.ButtonClass,
 						FormID:              "delete" + image.ID.Get(),
 						OnSubmit: func(form *view.Form, formModel interface{}, ctx *view.Context) (message string, redirect view.URL, err error) {
-							err = image.RemoveAllRefs()
+							_, err = image.RemoveAllRefs()
 							if err != nil {
 								return "", nil, err
 							}

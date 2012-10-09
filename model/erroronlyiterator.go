@@ -4,15 +4,12 @@ func NewErrorOnlyIterator(err error) Iterator {
 	return &ErrorOnlyIterator{err}
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// ErrorOnlyIterator
-
 type ErrorOnlyIterator struct {
 	err error
 }
 
-func (self *ErrorOnlyIterator) Next() interface{} {
-	return nil
+func (self *ErrorOnlyIterator) Next(resultPtr interface{}) bool {
+	return false
 }
 
 func (self *ErrorOnlyIterator) Err() error {

@@ -1,8 +1,9 @@
 package mongo
 
 import (
-	"github.com/ungerik/go-start/mgo"
-	"github.com/ungerik/go-start/mgo/bson"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
+
 	"github.com/ungerik/go-start/model"
 )
 
@@ -25,9 +26,8 @@ type Query interface {
 	SubDocument(selector string) Query
 	Skip(int) Query
 	Limit(int) Query
-	Sort(selector string) Query                               // Chain Sort() and SortReverse() for multi value sorting
-	SortReverse(selector string) Query                        // Chain Sort() and SortReverse() for multi value sorting
-	SortFunc(less func(a, b interface{}) bool) model.Iterator // Last query of chain
+	Sort(selectors ...string) Query // sort reverse by prefixing the selector with a minus -
+	SortFunc(less func(a, b interface{}) bool) model.Iterator
 
 	// FilterX must be the first query on a Collection
 	IsFilter() bool
@@ -77,8 +77,8 @@ type Query interface {
 
 	// Write
 	UpdateOne(selector string, value interface{}) error
-	UpdateAll(selector string, value interface{}) error
+	UpdateAll(selector string, value interface{}) (numUpdated int, err error)
 
 	// RemoveAll ignores Skip() and Limit()
-	RemoveAll() error
+	RemoveAll() (numRemoved int, err error)
 }

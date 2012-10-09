@@ -8,7 +8,6 @@ import (
 	_ "github.com/ungerik/go-start/i18n"
 	_ "github.com/ungerik/go-start/media"
 	_ "github.com/ungerik/go-start/media/mongomedia"
-	_ "github.com/ungerik/go-start/mgo"
 	_ "github.com/ungerik/go-start/model"
 	_ "github.com/ungerik/go-start/modelext"
 	_ "github.com/ungerik/go-start/mongo"

@@ -2,7 +2,7 @@ package mongo
 
 import (
 	"github.com/ungerik/go-start/model"
-	"github.com/ungerik/go-start/mgo"
+	"labix.org/v2/mgo"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -24,19 +24,18 @@ type MongoIterator struct {
 	iter       *mgo.Iter
 }
 
-func (self *MongoIterator) Next() interface{} {
+func (self *MongoIterator) Next(resultPtr interface{}) bool {
 	if self.iter.Err() != nil {
-		return self.iter.Err()
+		return false
 	}
-	document := self.collection.NewDocument(self.selectors...)
-	if ok := self.iter.Next(document); !ok {
-		return nil
+	if !self.iter.Next(resultPtr) {
+		return false
 	}
-	// document has to be initialized again,
+	// resultPtr has to be initialized again,
 	// because mgo zeros the struct while unmarshalling.
 	// Newly created slice elements need to be initialized too
-	self.collection.InitDocument(document)
-	return document
+	self.collection.InitDocument(resultPtr.(Document))
+	return true
 }
 
 func (self *MongoIterator) Err() error {

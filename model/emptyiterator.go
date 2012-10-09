@@ -1,13 +1,10 @@
 package model
 
-///////////////////////////////////////////////////////////////////////////////
-// EmptyIterator
-
 type EmptyIterator struct {
 }
 
-func (self *EmptyIterator) Next() interface{} {
-	return nil
+func (self *EmptyIterator) Next(resultPtr interface{}) bool {
+	return false
 }
 
 func (self *EmptyIterator) Err() error {

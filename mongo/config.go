@@ -2,7 +2,7 @@ package mongo
 
 import (
 	"fmt"
-	"github.com/ungerik/go-start/mgo"
+	"labix.org/v2/mgo"
 )
 
 var Config = Configuration{
@@ -38,7 +38,7 @@ func (self *Configuration) Init() error {
 		host = Config.Host
 	}
 
-	// http://goneat.org/pkg/github.com/ungerik/go-start/mgo/#Session.Mongo
+	// http://goneat.org/pkg/labix.org/v2/mgo/#Session.Mongo
 	// [mongodb://][user:pass@]host1[:port1][,host2[:port2],...][/database][?options]
 	url := fmt.Sprintf("mongodb://%s%s/%s", login, host, Config.Database)
 

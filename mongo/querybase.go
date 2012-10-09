@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"strings"
 
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
+
 	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/errs"
-	"github.com/ungerik/go-start/mgo"
-	"github.com/ungerik/go-start/mgo/bson"
 	"github.com/ungerik/go-start/model"
 )
 
@@ -84,16 +85,11 @@ func (self *queryBase) Limit(limit int) Query {
 	return q
 }
 
-func (self *queryBase) Sort(selector string) Query {
-	selector = strings.ToLower(selector)
-	q := &sortQuery{selector: selector}
-	q.init(q, self.thisQuery)
-	return checkQuery(q)
-}
-
-func (self *queryBase) SortReverse(selector string) Query {
-	selector = strings.ToLower(selector)
-	q := &sortQuery{selector: "-" + selector}
+func (self *queryBase) Sort(selectors ...string) Query {
+	for i := range selectors {
+		selectors[i] = strings.ToLower(selectors[i])
+	}
+	q := &sortQuery{selectors: selectors}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
@@ -295,7 +291,7 @@ func (self *queryBase) One() (document interface{}, err error) {
 
 func (self *queryBase) TryOne() (document interface{}, found bool, err error) {
 	document, err = self.One()
-	if err == mgo.NotFound {
+	if err == mgo.ErrNotFound {
 		return nil, false, nil
 	}
 	return document, err == nil, err
@@ -308,7 +304,7 @@ func (self *queryBase) GetOrCreateOne() (document interface{}, found bool, err e
 	}
 	document = self.Collection().NewDocument()
 	err = q.One(document)
-	if err != nil && err != mgo.NotFound {
+	if err != nil && err != mgo.ErrNotFound {
 		return nil, false, err
 	}
 	// document has to be initialized again,
@@ -334,7 +330,7 @@ func (self *queryBase) OneID() (id bson.ObjectId, err error) {
 
 func (self *queryBase) TryOneID() (id bson.ObjectId, found bool, err error) {
 	id, err = self.OneID()
-	if err == mgo.NotFound {
+	if err == mgo.ErrNotFound {
 		return id, false, nil
 	}
 	return id, err == nil, err
@@ -365,7 +361,7 @@ func (self *queryBase) Refs() (refs []Ref, err error) {
 	collection := self.Collection()
 	var doc DocumentBase
 	for i.Next(&doc) {
-		refs = append(refs, collection.Ref(doc.ID))
+		refs = append(refs, collection.RefForID(doc.ID))
 	}
 	if i.Err() != nil {
 		return nil, i.Err()
@@ -381,14 +377,16 @@ func (self *queryBase) UpdateOne(selector string, value interface{}) error {
 	return self.Collection().collection.Update(bsonQuery, bson.M{"$set": bson.M{selector: value}})
 }
 
-func (self *queryBase) UpdateAll(selector string, value interface{}) error {
+func (self *queryBase) UpdateAll(selector string, value interface{}) (numUpdated int, err error) {
 	bsonQuery, err := bsonQuery(self.thisQuery)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return self.Collection().collection.UpdateAll(bsonQuery, bson.M{"$set": bson.M{selector: value}})
+	info, err := self.Collection().collection.UpdateAll(bsonQuery, bson.M{"$set": bson.M{selector: value}})
+	return info.Updated, err
 }
 
-func (self *queryBase) RemoveAll() error {
-	return self.Collection().collection.RemoveAll(self.bsonSelector())
+func (self *queryBase) RemoveAll() (numRemoved int, err error) {
+	info, err := self.Collection().collection.RemoveAll(self.bsonSelector())
+	return info.Removed, err
 }

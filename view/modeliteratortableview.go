@@ -53,7 +53,8 @@ func (self *ModelIteratorTableView) Render(ctx *Context) (err error) {
 
 	rowNr := 0
 	iter := self.GetModelIterator(ctx)
-	for rowModel := iter.Next(); rowModel != nil; rowModel = iter.Next() {
+	var rowModel interface{}
+	for iter.Next(&rowModel) {
 		views, err := self.GetRowViews(rowNr, rowModel, ctx)
 		if err != nil {
 			return err

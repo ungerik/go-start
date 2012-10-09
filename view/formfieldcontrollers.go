@@ -643,7 +643,8 @@ func (self *MongoRefController) NewInput(withLabel bool, metaData *model.MetaDat
 	mongoRef := metaData.Value.Addr().Interface().(*mongo.Ref)
 
 	options := []string{""}
-	for doc := self.OptionsIterator.Next(); doc != nil; doc = self.OptionsIterator.Next() {
+	var doc interface{}
+	for self.OptionsIterator.Next(&doc) {
 		name := self.getLabel(doc)
 		for _, option := range options {
 			if option == name {
@@ -652,9 +653,12 @@ func (self *MongoRefController) NewInput(withLabel bool, metaData *model.MetaDat
 		}
 		options = append(options, name)
 	}
+	if self.OptionsIterator.Err() != nil {
+		return nil, self.OptionsIterator.Err()
+	}
 
 	name := ""
-	doc, err := mongoRef.Get()
+	doc, err = mongoRef.Get()
 	if err != nil {
 		return nil, err
 	}
@@ -679,11 +683,15 @@ func (self *MongoRefController) SetValue(value string, ctx *Context, metaData *m
 	mongoRef := metaData.Value.Addr().Interface().(*mongo.Ref)
 	mongoRef.Set(nil)
 	if value != "" {
-		for doc := self.OptionsIterator.Next(); doc != nil; doc = self.OptionsIterator.Next() {
+		var doc interface{}
+		for self.OptionsIterator.Next(&doc) {
 			if self.getLabel(doc) == value {
 				mongoRef.Set(doc.(mongo.Document))
 				return nil
 			}
+		}
+		if self.OptionsIterator.Err() != nil {
+			return self.OptionsIterator.Err()
 		}
 	}
 	return nil

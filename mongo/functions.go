@@ -7,10 +7,10 @@ import (
 
 	"github.com/ungerik/go-start/config"
 	"github.com/ungerik/go-start/errs"
-	"github.com/ungerik/go-start/mgo/bson"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/reflection"
 	"github.com/ungerik/go-start/utils"
+	"labix.org/v2/mgo/bson"
 
 //	"github.com/ungerik/go-start/debug"
 )
@@ -65,7 +65,7 @@ func checkQuery(query Query) Query {
 		if selector != "" {
 			selectors = append(selectors, selector)
 		}
-		if err := collection.ValidateSelector(selectors...); err != nil {
+		if err := collection.ValidateSelectors(selectors...); err != nil {
 			return &QueryError{query.ParentQuery(), err}
 		}
 	}
@@ -156,7 +156,7 @@ func SortRefs(refs []Ref, lessFunc func(a, b *Ref) bool) {
 //
 //	}
 //
-//	return model.NewObjectIterator(docs...), nil
+//	return model.NewSliceIterator(docs...), nil
 //}
 
 func InitRefs(document interface{}) {
@@ -224,7 +224,7 @@ func DereferenceIterator(refs ...Ref) model.Iterator {
 			docs = append(docs, doc)
 		}
 	}
-	return model.NewObjectIterator(docs...)
+	return model.NewSliceIterator(docs...)
 }
 
 // Returns an iterator for all refs without error and a slice of the errors
@@ -239,5 +239,11 @@ func FailsafeDereferenceIterator(refs ...Ref) (i model.Iterator, errors []error)
 			docs = append(docs, doc)
 		}
 	}
-	return model.NewObjectIterator(docs...), errors
+	return model.NewSliceIterator(docs...), errors
+}
+
+func ReverseBsonD(d bson.D) {
+	for i, j := 0, len(d)-1; i < j; i, j = i+1, j-1 {
+		d[i], d[j] = d[j], d[i]
+	}
 }

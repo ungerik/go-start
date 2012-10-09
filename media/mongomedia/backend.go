@@ -3,10 +3,11 @@ package mongomedia
 import (
 	"io"
 
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
+
 	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/media"
-	"github.com/ungerik/go-start/mgo"
-	"github.com/ungerik/go-start/mgo/bson"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/mongo"
 )
@@ -35,22 +36,21 @@ func (self *Backend) TryLoadImage(id string) (*media.Image, bool, error) {
 
 func (self *Backend) SaveImage(image *media.Image) error {
 	if image.ID == "" {
-		doc := self.Images.NewDocument().(*ImageDoc)
-		doc.Image = *image
-		id, err := self.Images.Insert(doc)
+		imageDoc := ImageDoc{Image: *image}
+		self.Images.InitDocument(&imageDoc)
+		err := imageDoc.Save()
 		if err != nil {
 			return err
 		}
 		image.ID.Set(id.Hex())
-		doc.Image.ID = image.ID
+		imageDoc.Image.ID = image.ID
 		return self.Images.Update(id, doc)
 	}
 
-	id := bson.ObjectIdHex(image.ID.Get())
-	doc := self.Images.NewDocument().(*ImageDoc)
-	doc.SetObjectId(id)
-	doc.Image = *image
-	return self.Images.Update(id, doc)
+	var imageDoc ImageDoc
+	imageDoc.SetObjectId(bson.ObjectIdHex(image.ID.Get()))
+	imageDoc.Image = *image
+	return self.Images.InitAndSave(&imageDoc)
 }
 
 func (self *Backend) DeleteImage(image *media.Image) error {
@@ -69,7 +69,7 @@ func (self *Backend) DeleteImageVersion(id string) error {
 
 func (self *Backend) ImageVersionReader(id string) (reader io.ReadCloser, ctype string, err error) {
 	file, err := self.GridFS.OpenId(bson.ObjectIdHex(id))
-	if err == mgo.NotFound {
+	if err == mgo.ErrNotFound {
 		return nil, "", media.ErrInvalidImageID(id)
 	} else if err != nil {
 		return nil, "", err
@@ -97,7 +97,7 @@ func (self *Backend) ImageVersionWriter(version *media.ImageVersion) (writer io.
 }
 
 func (self *Backend) ImageIterator() model.Iterator {
-	return model.ConvertIterator(self.Images.Iterator(),
+	return model.ConversionIterator(self.Images.Iterator(),
 		func(doc interface{}) interface{} {
 			return doc.(*ImageDoc).GetAndInitImage()
 		},
@@ -127,10 +127,9 @@ func (self *Backend) getImageRefCollectionSelectors() map[*mongo.Collection][]st
 	return self.imageRefCollectionSelectors
 }
 
-func (self *Backend) CountImageRefs(imageID string) (int, error) {
+func (self *Backend) CountImageRefs(imageID string) (count int, err error) {
 	colSel := self.getImageRefCollectionSelectors()
 	// debug.Dump(colSel)
-	count := 0
 	for collection, selectors := range colSel {
 		for _, selector := range selectors {
 			c, err := collection.Filter(selector, imageID).Count()
@@ -143,15 +142,16 @@ func (self *Backend) CountImageRefs(imageID string) (int, error) {
 	return count, nil
 }
 
-func (self *Backend) RemoveAllImageRefs(imageID string) error {
+func (self *Backend) RemoveAllImageRefs(imageID string) (count int, err error) {
 	colSel := self.getImageRefCollectionSelectors()
 	for collection, selectors := range colSel {
 		for _, selector := range selectors {
-			err := collection.Filter(selector, imageID).UpdateAll(selector, "")
+			c, err := collection.Filter(selector, imageID).UpdateAll(selector, "")
 			if err != nil {
-				return err
+				return count, err
 			}
+			count += c
 		}
 	}
-	return nil
+	return count, nil
 }

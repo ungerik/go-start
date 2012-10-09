@@ -1,8 +1,9 @@
 package mongo
 
 import (
-	"github.com/ungerik/go-start/mgo"
-	"github.com/ungerik/go-start/mgo/bson"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
+
 	"github.com/ungerik/go-start/model"
 )
 
@@ -58,11 +59,7 @@ func (self *QueryError) Limit(int) Query {
 	return self
 }
 
-func (self *QueryError) Sort(selector string) Query {
-	return self
-}
-
-func (self *QueryError) SortReverse(selector string) Query {
+func (self *QueryError) Sort(selectors ...string) Query {
 	return self
 }
 
@@ -210,10 +207,10 @@ func (self *QueryError) UpdateOne(selector string, value interface{}) error {
 	return self.Err
 }
 
-func (self *QueryError) UpdateAll(selector string, value interface{}) error {
-	return self.Err
+func (self *QueryError) UpdateAll(selector string, value interface{}) (numUpdated int, err error) {
+	return 0, self.Err
 }
 
-func (self *QueryError) RemoveAll() error {
-	return self.Err
+func (self *QueryError) RemoveAll() (numRemoved int, err error) {
+	return 0, self.Err
 }
