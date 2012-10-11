@@ -195,6 +195,10 @@ func (self *Collection) TryDocumentWithID(id bson.ObjectId, resultPtr interface{
 	return err == nil, err
 }
 
+func (self *queryBase) UpdateSubDocumentWithID(id bson.ObjectId, subDocument interface{}) error {
+	return self.Filter("_id", id).UpdateSubDocument(subDocument)
+}
+
 // func (self *Collection) DocumentWithIDIterator(id bson.ObjectId) model.Iterator {
 // 	return model.NewSliceOrErrorOnlyIterator(self.DocumentWithID(id))
 // }
@@ -234,9 +238,6 @@ func (self *Collection) DeleteAllNotIn(ids ...bson.ObjectId) error {
 // the changes.
 func (self *Collection) RemoveInvalidRefs() (invalidRefs []InvalidRefData, err error) {
 	config.Logger.Println("RemoveInvalidRefs() @ " + self.String())
-	// if !self.DocumentType.Implements(reflect.TypeOf((*Document)(nil)).Elem()) {
-	// 	return nil, nil
-	// }
 	i := self.Iterator()
 	var doc Document
 	for i.Next(&doc) {
@@ -249,11 +250,11 @@ func (self *Collection) RemoveInvalidRefs() (invalidRefs []InvalidRefData, err e
 			for _, refData := range refsData {
 				config.Logger.Printf("Invalid ref from %s to ", refData.MetaData.Selector(), refData.Ref)
 			}
-			// err = doc.Save()
-			// if err != nil {
-			// 	config.Logger.Printf("mongo.Collection.RemoveInvalidRefs(): Error while saving document %#v", document)
-			// 	return nil, err
-			// }
+			err = doc.Save()
+			if err != nil {
+				config.Logger.Printf("mongo.Collection.RemoveInvalidRefs(): Error while saving document %#v", doc)
+				return nil, err
+			}
 			invalidRefs = append(invalidRefs, refsData...)
 		}
 	}

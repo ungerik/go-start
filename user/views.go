@@ -14,13 +14,12 @@ func EmailConfirmationView(profileURL view.URL) view.View {
 				return view.DIV("error", view.HTML("Invalid email confirmation code!")), nil
 			}
 
-			var user User
-			email, confirmed, err := ConfirmEmail(confirmationCode, &user)
+			userID, email, confirmed, err := ConfirmEmail(confirmationCode)
 			if !confirmed {
 				return view.DIV("error", view.HTML("Invalid email confirmation code!")), err
 			}
 
-			Login(ctx.Session, &user)
+			LoginID(ctx.Session, userID)
 
 			return view.Views{
 				view.DIV("success", view.Printf("Email address %s confirmed!", email)),
@@ -126,7 +125,7 @@ func NewSignupForm(buttonText, class, errorMessageClass, successMessageClass str
 			if err != nil {
 				return "", nil, err
 			}
-			return "", nil, user.Save()
+			return "", nil, Config.Collection.UpdateSubDocumentWithID(user.ID, &user)
 		},
 	}
 }

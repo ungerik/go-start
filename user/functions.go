@@ -73,7 +73,7 @@ func EnsureExists(username, email, password string, admin bool, resultPtr interf
 	user.Blocked.Set(false)
 	user.Admin.Set(admin)
 
-	err = user.Save()
+	err = Config.Collection.UpdateSubDocumentWithID(user.ID, user)
 	if err != nil {
 		return false, err
 	}
@@ -101,13 +101,13 @@ func WithEmail(addr string, resultPtr interface{}) (found bool, err error) {
 	return query.TryOneDocument(resultPtr)
 }
 
-func ConfirmEmail(confirmationCode string, resultPtr interface{}) (email string, confirmed bool, err error) {
+func ConfirmEmail(confirmationCode string) (userID, email string, confirmed bool, err error) {
 	query := Config.Collection.Filter("Email.ConfirmationCode", confirmationCode)
-	found, err := query.TryOneDocument(resultPtr)
+	var user User
+	found, err := query.TryOneDocument(&user)
 	if !found {
-		return "", false, err
+		return "", "", false, err
 	}
-	user := FromDocument(resultPtr)
 
 	for i := range user.Email {
 		if user.Email[i].ConfirmationCode.Get() == confirmationCode {
@@ -117,12 +117,12 @@ func ConfirmEmail(confirmationCode string, resultPtr interface{}) (email string,
 	}
 	errs.Assert(email != "", "ConfirmationCode has to be found")
 
-	err = user.Save()
+	err = Config.Collection.UpdateSubDocumentWithID(user.ID, &user)
 	if err != nil {
-		return "", false, err
+		return "", "", false, err
 	}
 
-	return email, true, nil
+	return user.ID.Hex(), email, true, nil
 }
 
 ///////////////////////////////////////////////////////////////////////////////

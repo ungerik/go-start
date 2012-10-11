@@ -77,6 +77,8 @@ type Query interface {
 	// Write
 	UpdateOne(selector string, value interface{}) error
 	UpdateAll(selector string, value interface{}) (numUpdated int, err error)
+	// UpdateSubDocument will update the matching sub-document part
+	UpdateSubDocument(subDocument interface{}) error
 
 	// RemoveAll ignores Skip() and Limit()
 	RemoveAll() (numRemoved int, err error)
