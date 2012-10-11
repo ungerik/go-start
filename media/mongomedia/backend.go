@@ -19,38 +19,39 @@ type Backend struct {
 }
 
 func (self *Backend) LoadImage(id string) (*media.Image, error) {
-	doc, err := self.Images.DocumentWithID(bson.ObjectIdHex(id))
+	var doc ImageDoc
+	err := self.Images.DocumentWithID(bson.ObjectIdHex(id), &doc)
 	if err != nil {
 		return nil, err
 	}
-	return doc.(*ImageDoc).GetAndInitImage(), nil
+	return doc.GetAndInitImage(), nil
 }
 
 func (self *Backend) TryLoadImage(id string) (*media.Image, bool, error) {
-	doc, found, err := self.Images.TryDocumentWithID(bson.ObjectIdHex(id))
+	var doc ImageDoc
+	found, err := self.Images.TryDocumentWithID(bson.ObjectIdHex(id), &doc)
 	if !found {
 		return nil, found, err
 	}
-	return doc.(*ImageDoc).GetAndInitImage(), true, nil
+	return doc.GetAndInitImage(), true, nil
 }
 
 func (self *Backend) SaveImage(image *media.Image) error {
 	if image.ID == "" {
-		imageDoc := ImageDoc{Image: *image}
-		self.Images.InitDocument(&imageDoc)
+		var imageDoc ImageDoc
+		imageDoc.Image = *image
 		err := imageDoc.Save()
 		if err != nil {
 			return err
 		}
-		image.ID.Set(id.Hex())
-		imageDoc.Image.ID = image.ID
-		return self.Images.Update(id, doc)
+		imageDoc.Image.ID.Set(imageDoc.ObjectId().Hex())
+		return imageDoc.Save()
 	}
 
 	var imageDoc ImageDoc
 	imageDoc.SetObjectId(bson.ObjectIdHex(image.ID.Get()))
 	imageDoc.Image = *image
-	return self.Images.InitAndSave(&imageDoc)
+	return self.Images.InitAndSaveDocument(&imageDoc)
 }
 
 func (self *Backend) DeleteImage(image *media.Image) error {
@@ -60,7 +61,7 @@ func (self *Backend) DeleteImage(image *media.Image) error {
 			return err
 		}
 	}
-	return self.Images.Remove(bson.ObjectIdHex(image.ID.Get()))
+	return self.Images.Delete(bson.ObjectIdHex(image.ID.Get()))
 }
 
 func (self *Backend) DeleteImageVersion(id string) error {
@@ -108,9 +109,10 @@ func (self *Backend) getImageRefCollectionSelectors() map[*mongo.Collection][]st
 	if self.imageRefCollectionSelectors == nil {
 		colSel := make(map[*mongo.Collection][]string)
 		for _, collection := range mongo.Collections {
-			doc := collection.NewDocument()
-			model.SetAllSliceLengths(doc, 1)
-			model.Visit(doc, model.FieldOnlyVisitor(
+			var doc ImageDoc
+			collection.InitDocument(&doc)
+			model.SetAllSliceLengths(&doc, 1)
+			model.Visit(&doc, model.FieldOnlyVisitor(
 				func(data *model.MetaData) error {
 					if _, ok := data.Value.Addr().Interface().(*media.ImageRef); ok {
 						if _, ok := colSel[collection]; !ok {

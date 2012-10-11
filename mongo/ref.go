@@ -2,8 +2,10 @@ package mongo
 
 import (
 	"fmt"
-	"github.com/ungerik/go-start/errs"
+
 	"labix.org/v2/mgo/bson"
+
+	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/model"
 )
 
@@ -17,11 +19,11 @@ type Ref struct {
 	CollectionName string        `gostart:"-"`
 }
 
-func (self *Ref) String() string {
+func (self *Ref) StringID() string {
 	return self.ID.Hex()
 }
 
-func (self *Ref) SetString(str string) error {
+func (self *Ref) SetStringID(str string) error {
 	switch len(str) {
 	case 0, 12:
 		self.ID = bson.ObjectId(str)
@@ -33,21 +35,18 @@ func (self *Ref) SetString(str string) error {
 	return nil
 }
 
-func (self *Ref) DebugString() string {
+func (self *Ref) String() string {
 	return fmt.Sprintf("mongo.Ref of ID %s in collection %s", self.ID.Hex(), self.CollectionName)
 }
 
 // Returns nil and no error if the reference is empty
-func (self *Ref) Get() (doc interface{}, err error) {
-	if self.IsEmpty() {
-		return nil, nil
-	}
-	return self.GetOrError()
+func (self *Ref) Get(resultPtr interface{}) error {
+	return self.Collection().DocumentWithID(self.ID, resultPtr)
 }
 
 // Returns an error if the reference is empty
-func (self *Ref) GetOrError() (doc interface{}, err error) {
-	return self.Collection().DocumentWithID(self.ID)
+func (self *Ref) TryGet(resultPtr interface{}) (found bool, err error) {
+	return self.Collection().TryDocumentWithID(self.ID, resultPtr)
 }
 
 // nil is valid and sets the reference to empty

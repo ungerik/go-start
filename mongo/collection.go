@@ -2,7 +2,7 @@ package mongo
 
 import (
 	"fmt"
-	"reflect"
+	// "reflect"
 	// "strconv"
 	// "strings"
 
@@ -12,28 +12,18 @@ import (
 	"github.com/ungerik/go-start/config"
 	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/errs"
-	"github.com/ungerik/go-start/model"
+	// "github.com/ungerik/go-start/model"
 	// "github.com/ungerik/go-start/reflection"
 )
 
-///////////////////////////////////////////////////////////////////////////////
-// NewCollection
-
-func NewCollection(name string, documentPrototype interface{}) *Collection {
+func NewCollection(name string) *Collection {
 	if _, ok := Collections[name]; ok {
 		panic(fmt.Sprintf("Collection %s already created", name))
 	}
-	t := reflect.TypeOf(documentPrototype)
-	if t.Kind() == reflect.Ptr {
-		t = t.Elem()
-	}
-	collection := &Collection{Name: name, DocumentType: t}
+	collection := &Collection{Name: name}
 	collection.Init()
 	return collection
 }
-
-///////////////////////////////////////////////////////////////////////////////
-// Collection
 
 /*
 Collection represents a MongoDB collection and implements mongo.Query for all
@@ -51,9 +41,8 @@ Example for creating, modifying and saving a document:
 */
 type Collection struct {
 	queryBase
-	Name         string
-	DocumentType reflect.Type
-	collection   *mgo.Collection
+	Name       string
+	collection *mgo.Collection
 	// foreignRefs  []ForeignRef
 }
 
@@ -82,7 +71,7 @@ func (self *Collection) checkDBConnection() {
 }
 
 func (self *Collection) String() string {
-	return fmt.Sprintf("mongo.Collection '%s' of type %s", self.Name, self.DocumentType)
+	return fmt.Sprintf("mongo.Collection '%s'", self.Name)
 }
 
 func (self *Collection) Selector() string {
@@ -144,18 +133,11 @@ func (self *Collection) ValidateSelectors(selectors ...string) (err error) {
 	return nil
 }
 
-// return error?
-func (self *Collection) NewDocument() Document {
-	doc := reflect.New(self.DocumentType).Interface().(Document)
-	self.InitDocument(doc)
-	return doc
-}
-
 func (self *Collection) InitDocument(doc Document) {
 	doc.Init(self, doc)
 }
 
-func (self *Collection) InitAndSave(doc Document) error {
+func (self *Collection) InitAndSaveDocument(doc Document) error {
 	self.InitDocument(doc)
 	return doc.Save()
 }
@@ -177,59 +159,59 @@ func (self *Collection) logIdNotFoundError(id bson.ObjectId) {
 	debug.LogCallStack()
 }
 
-func (self *Collection) documentWithID(id bson.ObjectId) (doc Document, err error) {
+func (self *Collection) documentWithID(id bson.ObjectId, resultPtr interface{}) error {
 	if id == "" {
-		return nil, errs.Format("mongo.Collection %s: Can't get document with empty id", self.Name)
+		return errs.Format("mongo.Collection %s: Can't get document with empty id", self.Name)
 	}
-
 	self.checkDBConnection()
-	doc = self.NewDocument()
 	q := self.collection.FindId(id)
-	err = q.One(doc)
+	err := q.One(resultPtr)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	// doc has to be initialized again,
+	// resultPtr has to be initialized again,
 	// because mgo zeros the struct while unmarshalling.
 	// Newly created slice elements need to be initialized too
-	self.InitDocument(doc)
-	return doc, nil
+	self.InitDocument(documentFromResultPtr(resultPtr))
+	return nil
 }
 
-func (self *Collection) DocumentWithID(id bson.ObjectId) (doc Document, err error) {
-	doc, err = self.documentWithID(id)
+func (self *Collection) DocumentWithID(id bson.ObjectId, resultPtr interface{}) error {
+	err := self.documentWithID(id, resultPtr)
 	if err == mgo.ErrNotFound {
 		self.logIdNotFoundError(id)
 	}
-	return doc, err
+	return err
 }
 
-func (self *Collection) TryDocumentWithID(id bson.ObjectId) (doc Document, found bool, err error) {
+func (self *Collection) TryDocumentWithID(id bson.ObjectId, resultPtr interface{}) (found bool, err error) {
 	if id == "" {
-		return nil, false, nil
+		return false, nil
 	}
-	doc, err = self.documentWithID(id)
+	err = self.documentWithID(id, resultPtr)
 	if err == mgo.ErrNotFound {
-		return nil, false, nil
+		return false, nil
 	}
-	return doc, err == nil, err
+	return err == nil, err
 }
 
-func (self *Collection) DocumentWithIDIterator(id bson.ObjectId) model.Iterator {
-	return model.NewSliceOrErrorOnlyIterator(self.DocumentWithID(id))
-}
+// func (self *Collection) DocumentWithIDIterator(id bson.ObjectId) model.Iterator {
+// 	return model.NewSliceOrErrorOnlyIterator(self.DocumentWithID(id))
+// }
 
-func (self *Collection) TryDocumentWithIDIterator(id bson.ObjectId) model.Iterator {
-	document, ok, err := self.TryDocumentWithID(id)
-	if err != nil {
-		return model.NewErrorOnlyIterator(err)
-	}
-	if !ok {
-		return model.NewSliceIterator()
-	}
-	return model.NewSliceIterator(document)
-}
+// func (self *Collection) TryDocumentWithIDIterator(id bson.ObjectId) model.Iterator {
+// 	document, ok, err := self.TryDocumentWithID(id)
+// 	if err != nil {
+// 		return model.NewErrorOnlyIterator(err)
+// 	}
+// 	if !ok {
+// 		return model.NewSliceIterator()
+// 	}
+// 	return model.NewSliceIterator(document)
+// }
 
+// FilterReferenced filters the collection for documents,
+// that are referenced by refs.
 func (self *Collection) FilterReferenced(refs ...Ref) Query {
 	return self.FilterRef("_id", refs...)
 }
@@ -265,7 +247,7 @@ func (self *Collection) RemoveInvalidRefs() (invalidRefs []InvalidRefData, err e
 		if len(refsData) > 0 {
 			config.Logger.Println("Found invalid refs in document " + doc.ObjectId().Hex())
 			for _, refData := range refsData {
-				config.Logger.Printf("Invalid ref from %s to ", refData.MetaData.Selector(), refData.Ref.DebugString())
+				config.Logger.Printf("Invalid ref from %s to ", refData.MetaData.Selector(), refData.Ref)
 			}
 			// err = doc.Save()
 			// if err != nil {

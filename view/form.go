@@ -427,9 +427,9 @@ func (self *Form) GetFieldControllers() FormFieldControllers {
 	return self.FieldControllers
 }
 
-func (self *Form) AddMongoRefController(selector string, options model.Iterator) {
+func (self *Form) AddMongoRefController(refSelector, labelSelector string, options model.Iterator) {
 	self.FieldControllers = self.GetFieldControllers().Append(
-		NewMongoRefController(selector, options),
+		&MongoRefController{RefSelector: refSelector, LabelSelector: labelSelector, OptionsIterator: options},
 	)
 }
 

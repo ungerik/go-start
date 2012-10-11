@@ -10,8 +10,8 @@ type Auth struct {
 }
 
 func (self *Auth) Authenticate(ctx *view.Context) (ok bool, err error) {
-	id, ok := ctx.Session.ID()
-	if !ok {
+	id := ctx.Session.ID()
+	if id == "" {
 		return false, nil
 	}
 

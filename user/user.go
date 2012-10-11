@@ -29,6 +29,16 @@ type User struct {
 	Skype              []SkypeIdentity
 }
 
+func (self *User) InitEmailPassword(email, password string) error {
+	err := self.AddEmail(email, "via signup")
+	if err != nil {
+		return err
+	}
+	self.Username.Set(self.Email[0].Address.Get())
+	self.Password.SetHashed(password)
+	return nil
+}
+
 func (self *User) IdentityConfirmed() bool {
 	return self.Blocked == false && (self.EmailPasswordConfirmed() ||
 		self.FacebookIdentityConfirmed() ||

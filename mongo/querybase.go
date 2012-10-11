@@ -272,53 +272,35 @@ func (self *queryBase) Or() Query {
 	return q
 }
 
-func (self *queryBase) One() (document interface{}, err error) {
+func (self *queryBase) OneDocument(resultPtr interface{}) error {
 	q, err := self.thisQuery.mongoQuery()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	document = self.Collection().NewDocument()
-	err = q.One(document)
+	err = q.One(resultPtr)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	// document has to be initialized again,
+	// resultPtr has to be initialized again,
 	// because mgo zeros the struct while unmarshalling.
 	// Newly created slice elements need to be initialized too
-	self.Collection().InitDocument(document)
-	return document, nil
+	self.Collection().InitDocument(documentFromResultPtr(resultPtr))
+	return nil
 }
 
-func (self *queryBase) TryOne() (document interface{}, found bool, err error) {
-	document, err = self.One()
+func (self *queryBase) TryOneDocument(resultPtr interface{}) (found bool, err error) {
+	err = self.OneDocument(resultPtr)
 	if err == mgo.ErrNotFound {
-		return nil, false, nil
+		return false, nil
 	}
-	return document, err == nil, err
-}
-
-func (self *queryBase) GetOrCreateOne() (document interface{}, found bool, err error) {
-	q, err := self.thisQuery.mongoQuery()
-	if err != nil {
-		return nil, false, err
-	}
-	document = self.Collection().NewDocument()
-	err = q.One(document)
-	if err != nil && err != mgo.ErrNotFound {
-		return nil, false, err
-	}
-	// document has to be initialized again,
-	// because mgo zeros the struct while unmarshalling.
-	// Newly created slice elements need to be initialized too
-	self.Collection().InitDocument(document)
-	return document, err == nil, nil
+	return err == nil, err
 }
 
 func (self *queryBase) Iterator() model.Iterator {
 	return newIterator(self.thisQuery)
 }
 
-func (self *queryBase) OneID() (id bson.ObjectId, err error) {
+func (self *queryBase) OneDocumentID() (id bson.ObjectId, err error) {
 	q, err := self.thisQuery.mongoQuery()
 	if err != nil {
 		return bson.ObjectId(""), err
@@ -328,15 +310,15 @@ func (self *queryBase) OneID() (id bson.ObjectId, err error) {
 	return doc.ID, err
 }
 
-func (self *queryBase) TryOneID() (id bson.ObjectId, found bool, err error) {
-	id, err = self.OneID()
+func (self *queryBase) TryOneDocumentID() (id bson.ObjectId, found bool, err error) {
+	id, err = self.OneDocumentID()
 	if err == mgo.ErrNotFound {
 		return id, false, nil
 	}
 	return id, err == nil, err
 }
 
-func (self *queryBase) IDs() (ids []bson.ObjectId, err error) {
+func (self *queryBase) DocumentIDs() (ids []bson.ObjectId, err error) {
 	q, err := self.thisQuery.mongoQuery()
 	if err != nil {
 		return nil, err

@@ -14,12 +14,13 @@ func EmailConfirmationView(profileURL view.URL) view.View {
 				return view.DIV("error", view.HTML("Invalid email confirmation code!")), nil
 			}
 
-			doc, email, confirmed, err := ConfirmEmail(confirmationCode)
+			var user User
+			email, confirmed, err := ConfirmEmail(confirmationCode, &user)
 			if !confirmed {
 				return view.DIV("error", view.HTML("Invalid email confirmation code!")), err
 			}
 
-			Login(ctx.Session, doc)
+			Login(ctx.Session, &user)
 
 			return view.Views{
 				view.DIV("success", view.Printf("Email address %s confirmed!", email)),
@@ -105,19 +106,18 @@ func NewSignupForm(buttonText, class, errorMessageClass, successMessageClass str
 			m := formModel.(*EmailPasswordFormModel)
 			email := m.Email.Get()
 			password := m.Password1.Get()
-			var user *User
-			doc, found, err := FindByEmail(email)
+			var user User
+			found, err := WithEmail(email, &user)
 			if err != nil {
 				return "", nil, err
 			}
 			if found {
-				user = From(doc)
 				if user.EmailPasswordConfirmed() {
 					return "", nil, errors.New("A user with that email and a password already exists")
 				}
 				user.Password.SetHashed(password)
 			} else {
-				user, _, err = New(email, password)
+				err = user.InitEmailPassword(email, password)
 				if err != nil {
 					return "", nil, err
 				}

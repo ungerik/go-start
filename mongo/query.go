@@ -65,14 +65,13 @@ type Query interface {
 	Explain() string
 
 	// Read
-	One() (document interface{}, err error)
-	TryOne() (document interface{}, found bool, err error)
-	GetOrCreateOne() (document interface{}, found bool, err error)
+	OneDocument(resultPtr interface{}) error
+	TryOneDocument(resultPtr interface{}) (found bool, err error)
 
 	Iterator() model.Iterator
-	OneID() (id bson.ObjectId, err error)
-	TryOneID() (id bson.ObjectId, found bool, err error)
-	IDs() (ids []bson.ObjectId, err error)
+	OneDocumentID() (id bson.ObjectId, err error)
+	TryOneDocumentID() (id bson.ObjectId, found bool, err error)
+	DocumentIDs() (ids []bson.ObjectId, err error)
 	Refs() (refs []Ref, err error)
 
 	// Write

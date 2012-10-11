@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/ungerik/go-start/config"
-	"github.com/ungerik/go-start/errs"
+	// "github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/reflection"
 	"github.com/ungerik/go-start/utils"
@@ -23,6 +23,16 @@ import (
 // 	collections[collection.Name] = collection
 // 	return nil
 // }
+
+func documentFromResultPtr(resultPtr interface{}) Document {
+	if resultPtr == nil {
+		return nil
+	}
+	if doc, ok := resultPtr.(Document); ok {
+		return doc
+	}
+	return documentFromResultPtr(reflect.ValueOf(resultPtr).Elem().Interface())
+}
 
 func CollectionByName(name string) (collection *Collection, ok bool) {
 	collection, ok = Collections[name]
@@ -212,35 +222,35 @@ func RemoveInvalidRefsInAllCollections() (invalidCollectionRefs map[string][]Inv
 	return invalidCollectionRefs, nil
 }
 
-// Returns an iterator of dereferenced refs, or an error iterator if there was an error
-func DereferenceIterator(refs ...Ref) model.Iterator {
-	var docs []interface{}
-	for i := range refs {
-		doc, err := refs[i].Get()
-		if err != nil {
-			err = errs.Format("%s: %s", refs[i].ID.Hex(), err.Error())
-			return model.NewErrorOnlyIterator(err)
-		} else if doc != nil {
-			docs = append(docs, doc)
-		}
-	}
-	return model.NewSliceIterator(docs...)
-}
+// // Returns an iterator of dereferenced refs, or an error iterator if there was an error
+// func DereferenceIterator(refs ...Ref) model.Iterator {
+// 	var docs []interface{}
+// 	for i := range refs {
+// 		doc, err := refs[i].Get()
+// 		if err != nil {
+// 			err = errs.Format("%s: %s", refs[i].ID.Hex(), err.Error())
+// 			return model.NewErrorOnlyIterator(err)
+// 		} else if doc != nil {
+// 			docs = append(docs, doc)
+// 		}
+// 	}
+// 	return model.NewSliceIterator(docs...)
+// }
 
-// Returns an iterator for all refs without error and a slice of the errors
-func FailsafeDereferenceIterator(refs ...Ref) (i model.Iterator, errors []error) {
-	var docs []interface{}
-	for i := range refs {
-		doc, err := refs[i].Get()
-		if err != nil {
-			err = errs.Format("%s: %s", refs[i].ID.Hex(), err.Error())
-			errors = append(errors, err)
-		} else if doc != nil {
-			docs = append(docs, doc)
-		}
-	}
-	return model.NewSliceIterator(docs...), errors
-}
+// // Returns an iterator for all refs without error and a slice of the errors
+// func FailsafeDereferenceIterator(refs ...Ref) (i model.Iterator, errors []error) {
+// 	var docs []interface{}
+// 	for i := range refs {
+// 		doc, err := refs[i].Get()
+// 		if err != nil {
+// 			err = errs.Format("%s: %s", refs[i].ID.Hex(), err.Error())
+// 			errors = append(errors, err)
+// 		} else if doc != nil {
+// 			docs = append(docs, doc)
+// 		}
+// 	}
+// 	return model.NewSliceIterator(docs...), errors
+// }
 
 func ReverseBsonD(d bson.D) {
 	for i, j := 0, len(d)-1; i < j; i, j = i+1, j-1 {

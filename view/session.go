@@ -34,25 +34,25 @@ type Session struct {
 				return nil
 			}
 	*/
-	User interface{}
+	// User interface{}
 
 	cachedID string
 }
 
 // ID returns the id of the session and if there is a session active.
 // It's valid to call this method on a nil pointer.
-func (self *Session) ID() (id string, ok bool) {
+func (self *Session) ID() string {
 	if self == nil {
-		return "", false
+		return ""
 	}
 	if self.cachedID != "" {
-		return self.cachedID, true
+		return self.cachedID
 	}
 	if Config.SessionTracker == nil {
-		return "", false
+		return ""
 	}
-	self.cachedID, ok = self.Tracker.ID(self.Ctx)
-	return self.cachedID, ok
+	self.cachedID = self.Tracker.ID(self.Ctx)
+	return self.cachedID
 }
 
 func (self *Session) SetID(id string) {

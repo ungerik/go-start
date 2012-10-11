@@ -4,18 +4,17 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/ungerik/go-start/errs"
 	"labix.org/v2/mgo/bson"
+
+	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/mongo"
 	"github.com/ungerik/go-start/view"
 )
 
-var (
-	UserPtrType = reflect.TypeOf((*User)(nil))
-	UserType    = UserPtrType.Elem()
-)
+var UserPtrType = reflect.TypeOf((*User)(nil))
+var UserType = UserPtrType.Elem()
 
-func From(document interface{}) (user *User) {
+func FromDocument(document interface{}) (user *User) {
 	v := reflect.ValueOf(document)
 
 	// Dereference pointers until we have a struct value
@@ -43,26 +42,14 @@ func From(document interface{}) (user *User) {
 	panic(errs.Format("user.From(): invalid document type %T", document))
 }
 
-func New(email, password string) (user *User, doc interface{}, err error) {
-	doc = Config.Collection.NewDocument()
-	user = From(doc)
-	err = user.AddEmail(email, "via signup")
-	if err != nil {
-		return nil, nil, err
-	}
-	user.Username.Set(user.Email[0].Address.Get())
-	user.Password.SetHashed(password)
-	return user, doc, nil
-}
-
 // Will use user.User.Username for search
 // Sets the username also as first name
-func EnsureExists(username, email, password string, admin bool) (doc interface{}, exists bool, err error) {
-	doc, exists, err = Config.Collection.Filter("Username", username).GetOrCreateOne()
+func EnsureExists(username, email, password string, admin bool, resultPtr interface{}) (exists bool, err error) {
+	exists, err = Config.Collection.Filter("Username", username).TryOneDocument(resultPtr)
 	if err != nil {
-		return nil, false, err
+		return false, err
 	}
-	user := From(doc)
+	user := FromDocument(resultPtr)
 
 	user.Username.Set(username)
 	user.Name.First.Set(username)
@@ -75,7 +62,7 @@ func EnsureExists(username, email, password string, admin bool) (doc interface{}
 		user.Email[0].Description.Set("via gostart/user.EnsureExists()")
 	}
 	if err != nil {
-		return nil, false, err
+		return false, err
 	}
 	if user.Email[0].Confirmed.IsEmpty() {
 		user.Email[0].Confirmed.SetNowUTC()
@@ -88,38 +75,39 @@ func EnsureExists(username, email, password string, admin bool) (doc interface{}
 
 	err = user.Save()
 	if err != nil {
-		return nil, false, err
+		return false, err
 	}
-	return doc, exists, nil
+	return exists, nil
 }
 
-func FindByID(id string) (userDoc interface{}, found bool, err error) {
-	return Config.Collection.TryDocumentWithID(bson.ObjectIdHex(id))
+func WithID(id string, resultPtr interface{}) (found bool, err error) {
+	return Config.Collection.TryDocumentWithID(bson.ObjectIdHex(id), resultPtr)
 }
 
 func IsConfirmedUserID(id string) (confirmed bool, err error) {
-	userDoc, found, err := FindByID(id)
+	var user User
+	found, err := WithID(id, &user)
 	if !found {
 		return false, err
 	}
-	return From(userDoc).IdentityConfirmed(), nil
+	return user.IdentityConfirmed(), nil
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Email functions
 
-func FindByEmail(addr string) (doc interface{}, found bool, err error) {
+func WithEmail(addr string, resultPtr interface{}) (found bool, err error) {
 	query := Config.Collection.FilterEqualCaseInsensitive("Email.Address", strings.TrimSpace(addr))
-	return query.TryOne()
+	return query.TryOneDocument(resultPtr)
 }
 
-func ConfirmEmail(confirmationCode string) (userDoc interface{}, email string, confirmed bool, err error) {
+func ConfirmEmail(confirmationCode string, resultPtr interface{}) (email string, confirmed bool, err error) {
 	query := Config.Collection.Filter("Email.ConfirmationCode", confirmationCode)
-	userDoc, found, err := query.TryOne()
+	found, err := query.TryOneDocument(resultPtr)
 	if !found {
-		return nil, "", false, err
+		return "", false, err
 	}
-	user := From(userDoc)
+	user := FromDocument(resultPtr)
 
 	for i := range user.Email {
 		if user.Email[i].ConfirmationCode.Get() == confirmationCode {
@@ -131,10 +119,10 @@ func ConfirmEmail(confirmationCode string) (userDoc interface{}, email string, c
 
 	err = user.Save()
 	if err != nil {
-		return nil, "", false, err
+		return "", false, err
 	}
 
-	return userDoc, email, true, nil
+	return email, true, nil
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -142,39 +130,36 @@ func ConfirmEmail(confirmationCode string) (userDoc interface{}, email string, c
 
 const ContextCacheKey = "github.com/ungerik/go-start/user.ContextCacheKey"
 
-func Login(session *view.Session, userDoc interface{}) {
-	session.SetID(userDoc.(mongo.Document).ObjectId().Hex())
-	session.User = userDoc
+func Login(session *view.Session, userDoc mongo.Document) {
+	LoginID(session, userDoc.ObjectId().Hex())
 }
 
 func Logout(session *view.Session) {
 	session.DeleteID()
-	session.User = nil
+}
+
+func LoginID(session *view.Session, id string) {
+	session.SetID(id)
 }
 
 func LoginEmailPassword(session *view.Session, email, password string) (emailPasswdMatch bool, err error) {
 	email = strings.TrimSpace(email)
-	userDoc, found, err := FindByEmail(email)
+	var user User
+	found, err := WithEmail(email, &user)
 	if !found {
 		return false, err
 	}
-	if !From(userDoc).EmailPasswordMatch(email, password) {
+	if !user.EmailPasswordMatch(email, password) {
 		return false, nil
 	}
-	Login(session, userDoc)
+	Login(session, &user)
 	return true, nil
 }
 
-// Returns nil if there is no session user
-func OfSession(session *view.Session) (userDoc interface{}) {
-	if session.User != nil {
-		return session.User
+func OfSession(session *view.Session, resultPtr interface{}) (found bool, err error) {
+	id := session.ID()
+	if id == "" {
+		return false, nil
 	}
-	id, ok := session.ID()
-	if !ok {
-		return nil
-	}
-	userDoc, _, _ = FindByID(id)
-	session.User = userDoc
-	return userDoc
+	return WithID(id, resultPtr)
 }

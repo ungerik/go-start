@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strconv"
+	"strings"
+
+	"labix.org/v2/mgo/bson"
 
 	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
@@ -614,62 +617,87 @@ func (self ModelBlobController) SetValue(value string, ctx *Context, metaData *m
 ///////////////////////////////////////////////////////////////////////////////
 // MongoRefController
 
-func NewMongoRefController(selector string, options model.Iterator) *MongoRefController {
-	return &MongoRefController{Selector: selector, OptionsIterator: options}
-}
-
 type MongoRefController struct {
-	Selector        string // Empty string matches all selectors
+	RefSelector     string // Empty string matches all selectors
+	LabelSelector   string // Selector for the string field with the name of the referenced document
 	OptionsIterator model.Iterator
-	// GetLabel returns the label of a referenced document.
-	// If GetLabel is nil, then the String() method of
-	// the doc will be used.
-	GetLabel func(doc interface{}) string
 }
 
 func (self *MongoRefController) Supports(metaData *model.MetaData, form *Form) bool {
 	_, ok := metaData.Value.Addr().Interface().(*mongo.Ref)
-	return ok && (self.Selector == "" || self.Selector == metaData.Selector())
+	return ok && (self.RefSelector == "" || self.RefSelector == metaData.Selector() || self.RefSelector == metaData.WildcardSelector())
 }
 
-func (self *MongoRefController) getLabel(doc interface{}) string {
-	if self.GetLabel != nil {
-		return self.GetLabel(doc)
+func (self *MongoRefController) getLabel(doc bson.M, labelSelectorParts []string) (label string) {
+	part := doc
+	for i, s := range labelSelectorParts {
+		switch p := part[s].(type) {
+		case bson.M:
+			part = p
+
+		case string:
+			if i < len(labelSelectorParts)-1 {
+				return ""
+			}
+			return p
+
+		case int:
+			if i < len(labelSelectorParts)-1 {
+				return ""
+			}
+			return strconv.Itoa(p)
+
+		case float64:
+			if i < len(labelSelectorParts)-1 {
+				return ""
+			}
+			return strconv.FormatFloat(p, 'f', -1, 64)
+
+		case bool:
+			if i < len(labelSelectorParts)-1 {
+				return ""
+			}
+			return strconv.FormatBool(p)
+
+		default:
+			return ""
+		}
 	}
-	return doc.(fmt.Stringer).String()
+	return ""
 }
 
 func (self *MongoRefController) NewInput(withLabel bool, metaData *model.MetaData, form *Form) (input View, err error) {
 	mongoRef := metaData.Value.Addr().Interface().(*mongo.Ref)
-
 	options := []string{""}
-	var doc interface{}
+	labelSelectorParts := strings.Split(self.LabelSelector, ".")
+	var doc bson.M
 	for self.OptionsIterator.Next(&doc) {
-		name := self.getLabel(doc)
-		for _, option := range options {
-			if option == name {
-				return nil, fmt.Errorf("Names of mongo documents must be unique, found double '%s'", name)
+		if label := self.getLabel(doc, labelSelectorParts); label != "" {
+			for _, option := range options {
+				if option == label {
+					return nil, fmt.Errorf("Names of mongo documents must be unique, found double '%s'", label)
+				}
 			}
+			options = append(options, label)
 		}
-		options = append(options, name)
 	}
 	if self.OptionsIterator.Err() != nil {
 		return nil, self.OptionsIterator.Err()
 	}
 
-	name := ""
-	doc, err = mongoRef.Get()
+	label := ""
+	ok, err := mongoRef.TryGet(&doc)
 	if err != nil {
 		return nil, err
 	}
-	if doc != nil {
-		name = self.getLabel(doc)
+	if ok {
+		label = self.getLabel(doc, labelSelectorParts)
 	}
 
 	input = &Select{
 		Class:    form.FieldInputClass(metaData),
 		Name:     metaData.Selector(),
-		Model:    &StringsSelectModel{options, name},
+		Model:    &StringsSelectModel{options, label},
 		Disabled: form.IsFieldDisabled(metaData),
 		Size:     1,
 	}
@@ -683,10 +711,11 @@ func (self *MongoRefController) SetValue(value string, ctx *Context, metaData *m
 	mongoRef := metaData.Value.Addr().Interface().(*mongo.Ref)
 	mongoRef.Set(nil)
 	if value != "" {
-		var doc interface{}
+		labelSelectorParts := strings.Split(self.LabelSelector, ".")
+		var doc bson.M
 		for self.OptionsIterator.Next(&doc) {
-			if self.getLabel(doc) == value {
-				mongoRef.Set(doc.(mongo.Document))
+			if self.getLabel(doc, labelSelectorParts) == value {
+				mongoRef.ID = doc["_id"].(bson.ObjectId)
 				return nil
 			}
 		}

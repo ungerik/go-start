@@ -171,31 +171,27 @@ func (self *QueryError) Explain() string {
 	return self.Err.Error()
 }
 
-func (self *QueryError) One() (document interface{}, err error) {
-	return nil, self.Err
+func (self *QueryError) OneDocument(resultPtr interface{}) error {
+	return self.Err
 }
 
-func (self *QueryError) TryOne() (document interface{}, found bool, err error) {
-	return nil, false, self.Err
-}
-
-func (self *QueryError) GetOrCreateOne() (document interface{}, found bool, err error) {
-	return nil, false, self.Err
+func (self *QueryError) TryOneDocument(resultPtr interface{}) (found bool, err error) {
+	return false, self.Err
 }
 
 func (self *QueryError) Iterator() model.Iterator {
 	return model.NewErrorOnlyIterator(self.Err)
 }
 
-func (self *QueryError) OneID() (id bson.ObjectId, err error) {
+func (self *QueryError) OneDocumentID() (id bson.ObjectId, err error) {
 	return "", self.Err
 }
 
-func (self *QueryError) TryOneID() (id bson.ObjectId, found bool, err error) {
+func (self *QueryError) TryOneDocumentID() (id bson.ObjectId, found bool, err error) {
 	return "", false, self.Err
 }
 
-func (self *QueryError) IDs() (ids []bson.ObjectId, err error) {
+func (self *QueryError) DocumentIDs() (ids []bson.ObjectId, err error) {
 	return nil, self.Err
 }
 

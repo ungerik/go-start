@@ -18,6 +18,10 @@ func (self *ImageDoc) Save() error {
 	return self.DocumentBase.Save()
 }
 
+func (self *ImageDoc) Delete() error {
+	return self.DocumentBase.Delete()
+}
+
 func (self *ImageDoc) GetAndInitImage() *media.Image {
 	self.Image.Init()
 	return &self.Image

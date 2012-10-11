@@ -32,8 +32,8 @@ func (self *CookieSessionDataStore) cookieName(sessionID string) string {
 }
 
 func (self *CookieSessionDataStore) Get(ctx *Context, data interface{}) (ok bool, err error) {
-	sessionID, ok := ctx.Session.ID()
-	if !ok {
+	sessionID := ctx.Session.ID()
+	if sessionID == "" {
 		return false, errs.Format("Can't set session data without a session id")
 	}
 
@@ -53,8 +53,8 @@ func (self *CookieSessionDataStore) Get(ctx *Context, data interface{}) (ok bool
 }
 
 func (self *CookieSessionDataStore) Set(ctx *Context, data interface{}) (err error) {
-	sessionID, ok := ctx.Session.ID()
-	if !ok {
+	sessionID := ctx.Session.ID()
+	if sessionID == "" {
 		return errs.Format("Can't set session data without a session id")
 	}
 
@@ -78,8 +78,8 @@ func (self *CookieSessionDataStore) Set(ctx *Context, data interface{}) (err err
 }
 
 func (self *CookieSessionDataStore) Delete(ctx *Context) (err error) {
-	sessionID, ok := ctx.Session.ID()
-	if !ok {
+	sessionID := ctx.Session.ID()
+	if sessionID == "" {
 		return errs.Format("Can't delete session data without a session id")
 	}
 
