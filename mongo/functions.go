@@ -222,21 +222,6 @@ func RemoveInvalidRefsInAllCollections() (invalidCollectionRefs map[string][]Inv
 	return invalidCollectionRefs, nil
 }
 
-// // Returns an iterator of dereferenced refs, or an error iterator if there was an error
-// func DereferenceIterator(refs ...Ref) model.Iterator {
-// 	var docs []interface{}
-// 	for i := range refs {
-// 		doc, err := refs[i].Get()
-// 		if err != nil {
-// 			err = errs.Format("%s: %s", refs[i].ID.Hex(), err.Error())
-// 			return model.NewErrorOnlyIterator(err)
-// 		} else if doc != nil {
-// 			docs = append(docs, doc)
-// 		}
-// 	}
-// 	return model.NewSliceIterator(docs...)
-// }
-
 // // Returns an iterator for all refs without error and a slice of the errors
 // func FailsafeDereferenceIterator(refs ...Ref) (i model.Iterator, errors []error) {
 // 	var docs []interface{}
