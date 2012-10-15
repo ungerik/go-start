@@ -368,19 +368,22 @@ func (self *queryBase) UpdateAll(selector string, value interface{}) (numUpdated
 	return info.Updated, err
 }
 
-func (self *queryBase) UpdateSubDocument(subDocument interface{}) error {
+func (self *queryBase) UpdateSubDocument(selector string, subDocument interface{}) error {
 	bsonQuery, err := bsonQuery(self.thisQuery)
 	if err != nil {
 		return err
 	}
-	var valMap bson.M
-	model.VisitMaxDepth(subDocument, 1, model.FieldOnlyVisitor(
-		func(field *model.MetaData) error {
-			valMap[field.Name] = field.Value.Addr().Interface()
-			return nil
-		},
-	))
-	return self.Collection().collection.Update(bsonQuery, bson.M{"$set": valMap})
+	if selector == "" {
+		var valMap bson.M
+		model.VisitMaxDepth(subDocument, 1, model.FieldOnlyVisitor(
+			func(field *model.MetaData) error {
+				valMap[field.Name] = field.Value.Addr().Interface()
+				return nil
+			},
+		))
+		return self.Collection().collection.Update(bsonQuery, bson.M{"$set": valMap})
+	}
+	return self.Collection().collection.Update(bsonQuery, bson.M{"$set": bson.M{selector: subDocument}})
 }
 
 func (self *queryBase) RemoveAll() (numRemoved int, err error) {

@@ -73,7 +73,7 @@ func EnsureExists(username, email, password string, admin bool, resultPtr interf
 	user.Blocked.Set(false)
 	user.Admin.Set(admin)
 
-	err = Config.Collection.UpdateSubDocumentWithID(user.ID, user)
+	err = Config.Collection.UpdateSubDocumentWithID(user.ID, "", user)
 	if err != nil {
 		return false, err
 	}
@@ -117,7 +117,7 @@ func ConfirmEmail(confirmationCode string) (userID, email string, confirmed bool
 	}
 	errs.Assert(email != "", "ConfirmationCode has to be found")
 
-	err = Config.Collection.UpdateSubDocumentWithID(user.ID, &user)
+	err = Config.Collection.UpdateSubDocumentWithID(user.ID, "", &user)
 	if err != nil {
 		return "", "", false, err
 	}
@@ -140,6 +140,10 @@ func Logout(session *view.Session) {
 
 func LoginID(session *view.Session, id string) {
 	session.SetID(id)
+}
+
+func LoggedIn(session *view.Session) bool {
+	return session.ID() != ""
 }
 
 func LoginEmailPassword(session *view.Session, email, password string) (emailPasswdMatch bool, err error) {

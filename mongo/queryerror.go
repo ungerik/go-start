@@ -207,7 +207,7 @@ func (self *QueryError) UpdateAll(selector string, value interface{}) (numUpdate
 	return 0, self.Err
 }
 
-func (self *QueryError) UpdateSubDocument(subDocument interface{}) error {
+func (self *QueryError) UpdateSubDocument(selector string, subDocument interface{}) error {
 	return self.Err
 }
 

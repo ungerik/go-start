@@ -39,7 +39,7 @@ type Session struct {
 	cachedID string
 }
 
-// ID returns the id of the session and if there is a session active.
+// ID returns the id of the session or an empty string.
 // It's valid to call this method on a nil pointer.
 func (self *Session) ID() string {
 	if self == nil {

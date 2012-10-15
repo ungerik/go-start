@@ -125,7 +125,7 @@ func NewSignupForm(buttonText, class, errorMessageClass, successMessageClass str
 			if err != nil {
 				return "", nil, err
 			}
-			return "", nil, Config.Collection.UpdateSubDocumentWithID(user.ID, &user)
+			return "", nil, Config.Collection.UpdateSubDocumentWithID(user.ID, "", &user)
 		},
 	}
 }

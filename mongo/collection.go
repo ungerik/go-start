@@ -195,8 +195,8 @@ func (self *Collection) TryDocumentWithID(id bson.ObjectId, resultPtr interface{
 	return err == nil, err
 }
 
-func (self *queryBase) UpdateSubDocumentWithID(id bson.ObjectId, subDocument interface{}) error {
-	return self.Filter("_id", id).UpdateSubDocument(subDocument)
+func (self *queryBase) UpdateSubDocumentWithID(id bson.ObjectId, selector string, subDocument interface{}) error {
+	return self.Filter("_id", id).UpdateSubDocument(selector, subDocument)
 }
 
 // func (self *Collection) DocumentWithIDIterator(id bson.ObjectId) model.Iterator {
