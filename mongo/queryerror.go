@@ -179,6 +179,14 @@ func (self *QueryError) TryOneDocument(resultPtr interface{}) (found bool, err e
 	return false, self.Err
 }
 
+func (self *QueryError) OneSubDocument(selector string, resultPtr interface{}) error {
+	return self.Err
+}
+
+func (self *QueryError) TryOneSubDocument(selector string, resultPtr interface{}) (found bool, err error) {
+	return false, self.Err
+}
+
 func (self *QueryError) Iterator() model.Iterator {
 	return model.NewErrorOnlyIterator(self.Err)
 }

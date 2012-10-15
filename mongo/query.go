@@ -68,7 +68,11 @@ type Query interface {
 	OneDocument(resultPtr interface{}) error
 	TryOneDocument(resultPtr interface{}) (found bool, err error)
 
+	OneSubDocument(selector string, resultPtr interface{}) error
+	TryOneSubDocument(selector string, resultPtr interface{}) (found bool, err error)
+
 	Iterator() model.Iterator
+
 	OneDocumentID() (id bson.ObjectId, err error)
 	TryOneDocumentID() (id bson.ObjectId, found bool, err error)
 	DocumentIDs() (ids []bson.ObjectId, err error)

@@ -296,6 +296,31 @@ func (self *queryBase) TryOneDocument(resultPtr interface{}) (found bool, err er
 	return err == nil, err
 }
 
+func (self *queryBase) OneSubDocument(selector string, resultPtr interface{}) error {
+	q, err := self.thisQuery.mongoQuery()
+	if err != nil {
+		return err
+	}
+	q = q.Select(bson.M{selector: 1})
+	err = q.One(resultPtr)
+	if err != nil {
+		return err
+	}
+	// resultPtr has to be initialized again,
+	// because mgo zeros the struct while unmarshalling.
+	// Newly created slice elements need to be initialized too
+	self.Collection().InitSubDocument(resultPtr)
+	return nil
+}
+
+func (self *queryBase) TryOneSubDocument(selector string, resultPtr interface{}) (found bool, err error) {
+	err = self.OneSubDocument(selector, resultPtr)
+	if err == mgo.ErrNotFound {
+		return false, nil
+	}
+	return err == nil, err
+}
+
 func (self *queryBase) Iterator() model.Iterator {
 	return newIterator(self.thisQuery)
 }

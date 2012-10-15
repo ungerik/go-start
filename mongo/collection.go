@@ -142,6 +142,10 @@ func (self *Collection) InitAndSaveDocument(doc Document) error {
 	return doc.Save()
 }
 
+func (self *Collection) InitSubDocument(subDoc interface{}) {
+	InitRefs(subDoc)
+}
+
 func (self *Collection) RefForID(id bson.ObjectId) Ref {
 	return Ref{id, self.Name}
 }
@@ -195,7 +199,32 @@ func (self *Collection) TryDocumentWithID(id bson.ObjectId, resultPtr interface{
 	return err == nil, err
 }
 
-func (self *queryBase) UpdateSubDocumentWithID(id bson.ObjectId, selector string, subDocument interface{}) error {
+func (self *Collection) SubDocumentWithID(id bson.ObjectId, selector string, resultPtr interface{}) error {
+	if id == "" {
+		return errs.Format("mongo.Collection %s: Can't get document with empty id", self.Name)
+	}
+	self.checkDBConnection()
+	q := self.collection.FindId(id).Select(bson.M{selector: 1})
+	err := q.One(resultPtr)
+	if err != nil {
+		return err
+	}
+	// resultPtr has to be initialized again,
+	// because mgo zeros the struct while unmarshalling.
+	// Newly created slice elements need to be initialized too
+	self.InitSubDocument(resultPtr)
+	return nil
+}
+
+func (self *Collection) TrySubDocumentWithID(id bson.ObjectId, selector string, resultPtr interface{}) (found bool, err error) {
+	err = self.SubDocumentWithID(id, selector, resultPtr)
+	if err == mgo.ErrNotFound {
+		return false, nil
+	}
+	return err == nil, err
+}
+
+func (self *Collection) UpdateSubDocumentWithID(id bson.ObjectId, selector string, subDocument interface{}) error {
 	return self.Filter("_id", id).UpdateSubDocument(selector, subDocument)
 }
 
