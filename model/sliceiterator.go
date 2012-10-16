@@ -2,7 +2,7 @@ package model
 
 import "reflect"
 
-func NewSliceIterator(objects ...interface{}) Iterator {
+func NewSliceIterator(objects ...interface{}) *SliceIterator {
 	return &SliceIterator{slice: objects}
 }
 

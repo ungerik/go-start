@@ -34,7 +34,7 @@ func (self *MongoIterator) Next(resultPtr interface{}) bool {
 	// resultPtr has to be initialized again,
 	// because mgo zeros the struct while unmarshalling.
 	// Newly created slice elements need to be initialized too
-	self.collection.InitDocument(resultPtr.(Document))
+	self.collection.InitDocument(documentFromResultPtr(resultPtr))
 	return true
 }
 

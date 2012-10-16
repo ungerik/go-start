@@ -1,8 +1,6 @@
 package model
 
-import "reflect"
-
-type FilterFunc func(doc interface{}) (ok bool)
+type FilterFunc func(resultPtr interface{}) bool
 
 type FilterIterator struct {
 	Iterator
@@ -10,10 +8,8 @@ type FilterIterator struct {
 }
 
 func (self *FilterIterator) Next(resultPtr interface{}) bool {
-	var doc interface{}
-	for self.Iterator.Next(&doc) {
-		if self.PassFilter(doc) {
-			reflect.ValueOf(resultPtr).Elem().Set(reflect.ValueOf(doc))
+	for self.Iterator.Next(resultPtr) {
+		if self.PassFilter(resultPtr) {
 			return true
 		}
 	}

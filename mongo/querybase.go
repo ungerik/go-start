@@ -95,7 +95,7 @@ func (self *queryBase) Sort(selectors ...string) Query {
 }
 
 func (self *queryBase) SortFunc(lessFunc func(a, b interface{}) bool) model.Iterator {
-	return model.SortIterator(self.Iterator(), lessFunc)
+	return model.NewSortIterator(self.Iterator(), lessFunc)
 }
 
 func (self *queryBase) Explain() string {

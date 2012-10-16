@@ -1,12 +1,8 @@
 package model
 
 import (
-	// "fmt"
-	// "reflect"
-	"math/rand"
-	"time"
-
-	"github.com/ungerik/go-start/utils"
+// "fmt"
+// "reflect"
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -55,30 +51,3 @@ type Iterator interface {
 // 	}()
 // 	return docChan, errChan
 // }
-
-func SortIterator(i Iterator, lessFunc func(a, b interface{}) (less bool)) Iterator {
-	var slice []interface{}
-	var doc interface{}
-	for i.Next(&doc) {
-		slice = append(slice, doc)
-	}
-	if i.Err() != nil {
-		return i
-	}
-	utils.Sort(slice, lessFunc)
-	return NewSliceIterator(slice...)
-}
-
-func RandomIterator(i Iterator) Iterator {
-	var slice []interface{}
-	var doc interface{}
-	for i.Next(&doc) {
-		slice = append(slice, doc)
-	}
-	if i.Err() != nil {
-		return i
-	}
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	indices := r.Perm(len(slice))
-	return NewIndexedSliceIterator(slice, indices)
-}

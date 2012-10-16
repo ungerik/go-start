@@ -6,7 +6,7 @@ import (
 	"github.com/ungerik/go-start/errs"
 )
 
-func NewIndexedSliceIterator(slice []interface{}, indices []int) Iterator {
+func NewIndexedSliceIterator(slice []interface{}, indices []int) *IndexedSliceIterator {
 	return &IndexedSliceIterator{slice: slice, indices: indices}
 }
 
