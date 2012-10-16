@@ -12,7 +12,7 @@ import (
 	"github.com/ungerik/go-start/config"
 	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/errs"
-	// "github.com/ungerik/go-start/model"
+	"github.com/ungerik/go-start/model"
 	// "github.com/ungerik/go-start/reflection"
 )
 
@@ -121,7 +121,7 @@ func (self *Collection) ValidateSelectors(selectors ...string) (err error) {
 	// for _, selector := range selectors {
 	// 	fields := strings.Split(selector, ".")
 	// 	if selector == "" || len(fields) == 0 {
-	// 		return errs.Format("Invalid empty selector in '%s'", selector)
+	// 		return errs.Format("In`valid empty selector in '%s'", selector)
 	// 	}
 	// 	for _, field := range fields {
 	// 		docType, err = self.subDocumentType(docType, field, selectors)
@@ -228,20 +228,53 @@ func (self *Collection) UpdateSubDocumentWithID(id bson.ObjectId, selector strin
 	return self.Filter("_id", id).UpdateSubDocument(selector, subDocument)
 }
 
-// func (self *Collection) DocumentWithIDIterator(id bson.ObjectId) model.Iterator {
-// 	return model.NewSliceOrErrorOnlyIterator(self.DocumentWithID(id))
-// }
+type documentWithIDIterator struct {
+	collection *Collection
+	id         bson.ObjectId
+	err        error
+	nextCalled bool
+}
 
-// func (self *Collection) TryDocumentWithIDIterator(id bson.ObjectId) model.Iterator {
-// 	document, ok, err := self.TryDocumentWithID(id)
-// 	if err != nil {
-// 		return model.NewErrorOnlyIterator(err)
-// 	}
-// 	if !ok {
-// 		return model.NewSliceIterator()
-// 	}
-// 	return model.NewSliceIterator(document)
-// }
+func (self *documentWithIDIterator) Next(resultPtr interface{}) (ok bool) {
+	if self.nextCalled {
+		return false
+	}
+	self.err = self.collection.DocumentWithID(self.id, resultPtr)
+	self.nextCalled = true
+	return self.err == nil
+}
+
+func (self *documentWithIDIterator) Err() error {
+	return self.err
+}
+
+type tryDocumentWithIDIterator struct {
+	collection *Collection
+	id         bson.ObjectId
+	err        error
+	nextCalled bool
+}
+
+func (self *tryDocumentWithIDIterator) Next(resultPtr interface{}) (ok bool) {
+	if self.nextCalled {
+		return false
+	}
+	ok, self.err = self.collection.TryDocumentWithID(self.id, resultPtr)
+	self.nextCalled = true
+	return ok
+}
+
+func (self *tryDocumentWithIDIterator) Err() error {
+	return self.err
+}
+
+func (self *Collection) DocumentWithIDIterator(id bson.ObjectId) model.Iterator {
+	return &documentWithIDIterator{collection: self, id: id}
+}
+
+func (self *Collection) TryDocumentWithIDIterator(id bson.ObjectId) model.Iterator {
+	return &tryDocumentWithIDIterator{collection: self, id: id}
+}
 
 // FilterReferenced filters the collection for documents,
 // that are referenced by refs.
