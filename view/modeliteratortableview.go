@@ -25,8 +25,10 @@ type ModelIteratorTableView struct {
 	Caption           string
 	GetModelIterator  GetModelIteratorFunc
 	GetHeaderRowViews func(ctx *Context) (views Views, err error)
-	GetRowViews       func(row int, rowModel interface{}, ctx *Context) (views Views, err error)
-	table             Table
+	// RowModel will be used by Next() from the model iterator
+	RowModel    interface{}
+	GetRowViews func(row int, rowModel interface{}, ctx *Context) (views Views, err error)
+	table       Table
 }
 
 func (self *ModelIteratorTableView) IterateChildren(callback IterateChildrenCallback) {
@@ -34,6 +36,10 @@ func (self *ModelIteratorTableView) IterateChildren(callback IterateChildrenCall
 }
 
 func (self *ModelIteratorTableView) Render(ctx *Context) (err error) {
+	if self.RowModel == nil {
+		panic("view.ModelIteratorTableView.RowModel is nil")
+	}
+
 	self.table.Class = self.Class
 	self.table.Caption = self.Caption
 
@@ -53,9 +59,8 @@ func (self *ModelIteratorTableView) Render(ctx *Context) (err error) {
 
 	rowNr := 0
 	iter := self.GetModelIterator(ctx)
-	var rowModel interface{}
-	for iter.Next(&rowModel) {
-		views, err := self.GetRowViews(rowNr, rowModel, ctx)
+	for iter.Next(self.RowModel) {
+		views, err := self.GetRowViews(rowNr, self.RowModel, ctx)
 		if err != nil {
 			return err
 		}

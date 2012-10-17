@@ -98,7 +98,9 @@ func (self *Backend) ImageVersionWriter(version *media.ImageVersion) (writer io.
 }
 
 func (self *Backend) ImageIterator() model.Iterator {
-	return model.ConversionIterator(self.Images.Iterator(),
+	return model.ConversionIterator(
+		self.Images.Iterator(),
+		new(ImageDoc),
 		func(doc interface{}) interface{} {
 			return doc.(*ImageDoc).GetAndInitImage()
 		},
