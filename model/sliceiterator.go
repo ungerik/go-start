@@ -13,6 +13,8 @@ func NewSliceOrErrorOnlyIterator(slice interface{}, err error) Iterator {
 	return NewSliceIterator(slice)
 }
 
+// SliceIterator
+// When calling Next, resultPtr must be a pointer to the slice element type
 type SliceIterator struct {
 	slice []interface{}
 	index int

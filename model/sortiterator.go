@@ -1,6 +1,10 @@
 package model
 
-import "github.com/ungerik/go-start/utils"
+import (
+	"reflect"
+
+	"github.com/ungerik/go-start/utils"
+)
 
 type LessFunc func(a, b interface{}) (less bool)
 
@@ -21,7 +25,7 @@ func (self *SortIterator) Next(resultPtr interface{}) bool {
 	if self.sliceIterator == nil {
 		slice := []interface{}{}
 		for self.Iterator.Next(resultPtr) {
-			slice = append(slice, resultPtr)
+			slice = append(slice, reflect.ValueOf(resultPtr).Elem().Interface())
 		}
 		if self.Err() != nil {
 			return false

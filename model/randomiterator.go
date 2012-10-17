@@ -2,6 +2,7 @@ package model
 
 import (
 	"math/rand"
+	"reflect"
 	"time"
 )
 
@@ -21,7 +22,7 @@ func (self *RandomIterator) Next(resultPtr interface{}) bool {
 	if self.indexedSliceIterator == nil {
 		slice := []interface{}{}
 		for self.Iterator.Next(resultPtr) {
-			slice = append(slice, resultPtr)
+			slice = append(slice, reflect.ValueOf(resultPtr).Elem().Interface())
 		}
 		if self.Err() != nil {
 			return false
