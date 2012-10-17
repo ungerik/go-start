@@ -19,28 +19,30 @@ func ModelIterator(iter model.Iterator) GetModelIteratorFunc {
 
 type ModelIteratorView struct {
 	ViewBase
-	GetModelIterator     GetModelIteratorFunc
+	GetModelIterator GetModelIteratorFunc
+	// Model will be used by Next() from the model iterator
+	Model                interface{}
 	GetModelIteratorView GetModelIteratorViewFunc // nil Views will be ignored
 }
 
 func (self *ModelIteratorView) Render(ctx *Context) (err error) {
-	var children Views
+	if self.Model == nil {
+		panic("view.ModelIteratorTableView.RowModel is nil")
+	}
 
 	iter := self.GetModelIterator(ctx)
-	var model interface{}
-	for iter.Next(&model) {
-		view, err := self.GetModelIteratorView(ctx, model)
+	for iter.Next(self.Model) {
+		view, err := self.GetModelIteratorView(ctx, self.Model)
 		if err != nil {
 			return err
 		}
 		if view != nil {
-			children = append(children, view)
 			view.Init(view)
+			err = view.Render(ctx)
+			if err != nil {
+				return err
+			}
 		}
 	}
-	if iter.Err() != nil {
-		return iter.Err()
-	}
-
-	return children.Render(ctx)
+	return iter.Err()
 }

@@ -3,8 +3,8 @@ package model
 import "reflect"
 
 // ConvertIterator returns an Iterator that calls conversionFunc
-// for every non nil from.Next() result and returns the result
-// of conversionFunc for every Next().
+// for every from.Next() result and returns the result
+// of conversionFunc at every Next().
 func ConversionIterator(from Iterator, sourceResult interface{}, conversionFunc func(interface{}) interface{}) Iterator {
 	return &conversionIterator{from, sourceResult, conversionFunc}
 }

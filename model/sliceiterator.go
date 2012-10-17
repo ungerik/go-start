@@ -24,9 +24,14 @@ func (self *SliceIterator) Next(resultPtr interface{}) bool {
 	if self.index >= len(self.slice) {
 		return false
 	}
-	object := self.slice[self.index]
+	v := reflect.ValueOf(self.slice[self.index])
 	self.index++
-	reflect.ValueOf(resultPtr).Elem().Set(reflect.ValueOf(object))
+	resultVal := reflect.ValueOf(resultPtr).Elem()
+	if resultVal.Type() == v.Type() {
+		resultVal.Set(v)
+	} else {
+		resultVal.Set(v.Elem())
+	}
 	return true
 }
 

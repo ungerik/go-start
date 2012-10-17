@@ -21,6 +21,7 @@ func ImagesAdmin() view.View {
 	return view.Views{
 		uploader,
 		&view.ModelIteratorView{
+			Model: new(Image),
 			GetModelIterator: func(ctx *view.Context) model.Iterator {
 				return Config.Backend.ImageIterator()
 			},

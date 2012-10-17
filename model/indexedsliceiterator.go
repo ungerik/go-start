@@ -25,9 +25,14 @@ func (self *IndexedSliceIterator) Next(resultPtr interface{}) bool {
 		self.err = errs.Format("Index %d from indices greater or equal than length of slice %d", self.indices[self.index], len(self.slice))
 		return false
 	}
-	object := self.slice[self.indices[self.index]]
+	v := reflect.ValueOf(self.slice[self.indices[self.index]])
 	self.index++
-	reflect.ValueOf(resultPtr).Elem().Set(reflect.ValueOf(object))
+	resultVal := reflect.ValueOf(resultPtr).Elem()
+	if resultVal.Type() == v.Type() {
+		resultVal.Set(v)
+	} else {
+		resultVal.Set(v.Elem())
+	}
 	return false
 }
 
