@@ -61,11 +61,6 @@ func (self *queryBase) Count() (n int, err error) {
 	return q.Count()
 }
 
-func (self *queryBase) HasDocumentWithID(id bson.ObjectId) (bool, error) {
-	n, err := self.thisQuery.Count()
-	return n == 1, err
-}
-
 func (self *queryBase) SubDocument(selector string) Query {
 	q := &subDocumentQuery{selector: selector}
 	q.init(q, self.thisQuery)
@@ -135,11 +130,22 @@ func (self *queryBase) FilterFunc(passFilter model.FilterFunc) model.Iterator {
 	return &model.FilterIterator{self.Iterator(), passFilter}
 }
 
-func (self *queryBase) FilterRef(selector string, ref ...Ref) Query {
+func (self *queryBase) FilterRef(selector string, refs ...Ref) Query {
 	selector = strings.ToLower(selector)
-	q := &filterRefQuery{selector: selector, refs: ref}
+	q := &filterRefQuery{selector: selector, refs: refs}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
+}
+
+func (self *queryBase) FilterID(ids ...bson.ObjectId) Query {
+	if len(ids) == 1 {
+		return self.Filter("_id", ids[0])
+	}
+	values := make([]interface{}, len(ids))
+	for i := range ids {
+		values[i] = ids[i]
+	}
+	return self.FilterIn("_id", values)
 }
 
 func (self *queryBase) FilterEqualCaseInsensitive(selector string, str string) Query {

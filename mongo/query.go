@@ -37,7 +37,8 @@ type Query interface {
 	// Filter via a Go function. Note that all documents have to be loaded
 	// in memory in order for Go code to be able to filter it.
 	FilterFunc(passFilter model.FilterFunc) model.Iterator
-	FilterRef(selector string, ref ...Ref) Query
+	FilterRef(selector string, refs ...Ref) Query
+	FilterID(ids ...bson.ObjectId) Query
 	FilterEqualCaseInsensitive(selector string, str string) Query
 	FilterNotEqual(selector string, value interface{}) Query
 	FilterLess(selector string, value interface{}) Query
@@ -61,7 +62,6 @@ type Query interface {
 
 	// Statistics
 	Count() (n int, err error)
-	HasDocumentWithID(id bson.ObjectId) (bool, error)
 	// Distinct() int
 	Explain() string
 

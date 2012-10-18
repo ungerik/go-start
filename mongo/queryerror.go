@@ -87,6 +87,10 @@ func (self *QueryError) FilterRef(selector string, ref ...Ref) Query {
 	return self
 }
 
+func (self *QueryError) FilterID(id ...bson.ObjectId) Query {
+	return self
+}
+
 func (self *QueryError) FilterEqualCaseInsensitive(selector string, str string) Query {
 	return self
 }

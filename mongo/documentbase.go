@@ -70,15 +70,14 @@ func (self *DocumentBase) Save() (err error) {
 		err = self.collection.collection.UpdateId(self.ID, self.embeddingStruct)
 	} else {
 		self.ID = bson.NewObjectId()
-
 		err = self.collection.collection.Insert(self.embeddingStruct)
 	}
 	if err == nil {
-		ok, err := self.collection.HasDocumentWithID(self.ID)
+		n, err := self.collection.FilterID(self.ID).Count()
 		if err != nil {
 			panic(err)
 		}
-		if !ok {
+		if n != 1 {
 			// panic("Something went wrong with saving")
 			debug.Print("Something went wrong with saving")
 		}
