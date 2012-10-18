@@ -167,6 +167,10 @@ func (self *QueryError) Count() (n int, err error) {
 	return 0, self.Err
 }
 
+func (self *QueryError) HasDocumentWithID(id bson.ObjectId) (bool, error) {
+	return false, self.Err
+}
+
 func (self *QueryError) Explain() string {
 	return self.Err.Error()
 }

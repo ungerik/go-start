@@ -61,6 +61,11 @@ func (self *queryBase) Count() (n int, err error) {
 	return q.Count()
 }
 
+func (self *queryBase) HasDocumentWithID(id bson.ObjectId) (bool, error) {
+	n, err := self.thisQuery.Count()
+	return n == 1, err
+}
+
 func (self *queryBase) SubDocument(selector string) Query {
 	q := &subDocumentQuery{selector: selector}
 	q.init(q, self.thisQuery)

@@ -61,6 +61,7 @@ type Query interface {
 
 	// Statistics
 	Count() (n int, err error)
+	HasDocumentWithID(id bson.ObjectId) (bool, error)
 	// Distinct() int
 	Explain() string
 
