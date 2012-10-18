@@ -47,8 +47,7 @@ var UploadImage = view.NewViewURLWrapper(view.RenderViewBindURLArgs(
 	},
 ))
 
-// Uses https://github.com/valums/file-uploader
-func UploadImageButton(parentSelector, dropZoneSelector, listSelector string, thumbnailSize int, onComplete string) view.View {
+func uploadImageButtonScript(ctx *view.Context, parentSelector, dropZoneSelector, listSelector string, thumbnailSize int, onComplete string) string {
 	extraDropzones := "[]"
 	if dropZoneSelector != "" {
 		dropZoneSelector = fmt.Sprintf(`[jQuery("%s")[0]]`, dropZoneSelector)
@@ -60,31 +59,35 @@ func UploadImageButton(parentSelector, dropZoneSelector, listSelector string, th
 	if onComplete == "" {
 		onComplete = "function(){}"
 	}
+	uploadURL := UploadImage.URL(ctx.ForURLArgsConvert(thumbnailSize))
+	return fmt.Sprintf(
+		`jQuery(function() {
+			var uploader = new qq.FileUploader({
+				debug: true,
+			    element: jQuery("%s")[0],
+			    extraDropzones: %s,
+			    listElement: %s,
+			    action: "%s",
+			    allowedExtensions: ["png", "jpg", "jpeg", "gif", "bmp", "tif", "tiff"],
+			    acceptFiles: ["image/png", "image/jpeg", "image/gif", "image/bmp", "image/tiff"],
+			    sizeLimit: 1024*1024*64,
+			    multiple: false,
+			    onComplete: %s
+			});
+		});`,
+		parentSelector,
+		extraDropzones,
+		listElement,
+		uploadURL,
+		onComplete,
+	)
+}
 
-	uploaderScript := view.RenderView(
+// Uses https://github.com/valums/file-uploader
+func RequireUploadImageButtonScript(parentSelector, dropZoneSelector, listSelector string, thumbnailSize int, onComplete string) view.View {
+	return view.RenderView(
 		func(ctx *view.Context) error {
-			uploadURL := UploadImage.URL(ctx.ForURLArgsConvert(thumbnailSize))
-			script := fmt.Sprintf(
-				`jQuery(function() {
-					var uploader = new qq.FileUploader({
-						debug: true,
-					    element: jQuery("%s")[0],
-					    extraDropzones: %s,
-					    listElement: %s,
-					    action: "%s",
-					    allowedExtensions: ["png", "jpg", "jpeg", "gif", "bmp", "tif", "tiff"],
-					    acceptFiles: ["image/png", "image/jpeg", "image/gif", "image/bmp", "image/tiff"],
-					    sizeLimit: 1024*1024*64,
-					    multiple: false,
-					    onComplete: %s
-					});
-				});`,
-				parentSelector,
-				extraDropzones,
-				listElement,
-				uploadURL,
-				onComplete,
-			)
+			script := uploadImageButtonScript(ctx, parentSelector, dropZoneSelector, listSelector, thumbnailSize, onComplete)
 			ctx.Response.RequireScript(script, 20)
 			if !Config.NoDynamicStyleAndScript {
 				ctx.Response.RequireStyleURL("/media/fileuploader.css", 0)
@@ -93,5 +96,13 @@ func UploadImageButton(parentSelector, dropZoneSelector, listSelector string, th
 			return nil
 		},
 	)
-	return uploaderScript
+}
+
+func UploadImageButton(dropZoneSelector, listSelector string, thumbnailSize int, onComplete string) view.View {
+	var button view.Div
+	button.Content = view.Views{
+		view.HTML("jQuery required!"),
+		RequireUploadImageButtonScript("#"+button.ID(), dropZoneSelector, listSelector, thumbnailSize, onComplete),
+	}
+	return &button
 }

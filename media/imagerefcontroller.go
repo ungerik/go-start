@@ -102,10 +102,7 @@ func (self ImageRefController) NewInput(withLabel bool, metaData *model.MetaData
 		},
 	)
 
-	uploadButton := view.DIV("")
-	uploadButtonID := uploadButton.ID()
-	uploadButton.Content = UploadImageButton(
-		"#"+uploadButtonID,
+	uploadButton := UploadImageButton(
 		"#"+thumbnailFrame.ID(),
 		"#"+uploadList.ID(),
 		thumbnailSize,
@@ -147,6 +144,7 @@ func (self ImageRefController) NewInput(withLabel bool, metaData *model.MetaData
 			},
 		},
 		uploadList,
+		view.DivClearBoth(),
 	)
 
 	if withLabel {
