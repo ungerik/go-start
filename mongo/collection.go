@@ -2,9 +2,6 @@ package mongo
 
 import (
 	"fmt"
-	// "reflect"
-	// "strconv"
-	// "strings"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -13,12 +10,11 @@ import (
 	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/model"
-	// "github.com/ungerik/go-start/reflection"
 )
 
 func NewCollection(name string) *Collection {
 	if _, ok := Collections[name]; ok {
-		panic(fmt.Sprintf("Collection %s already created", name))
+		panic(fmt.Sprintf("Collection '%s' already exists", name))
 	}
 	collection := &Collection{Name: name}
 	collection.Init()

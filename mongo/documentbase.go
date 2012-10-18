@@ -1,9 +1,11 @@
 package mongo
 
 import (
+	"reflect"
+
 	"labix.org/v2/mgo/bson"
 
-	// "github.com/ungerik/go-start/debug"
+	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/model"
 )
@@ -17,18 +19,21 @@ type DocumentBase struct {
 	embeddingStruct interface{}   `gostart:"-"`
 }
 
-func (self *DocumentBase) Init(collection *Collection, embeddingStruct interface{}) {
+func (self *DocumentBase) Init(collection *Collection, embeddingStructPtr interface{}) {
 	if collection == nil {
 		panic("mongo.DocumentBase.Init() called with collection == nil")
 	}
-	if embeddingStruct == nil {
-		panic("mongo.DocumentBase.Init() called with embeddingStruct == nil")
+	if embeddingStructPtr == nil {
+		panic("mongo.DocumentBase.Init() called with embeddingStructPtr == nil")
+	}
+	if reflect.ValueOf(embeddingStructPtr).Kind() != reflect.Ptr {
+		panic("mongo.DocumentBase.Init() embeddingStructPtr must be pointer, but is " + reflect.ValueOf(embeddingStructPtr).Elem().Type().String())
 	}
 
 	self.collection = collection
-	self.embeddingStruct = embeddingStruct
+	self.embeddingStruct = embeddingStructPtr
 
-	InitRefs(embeddingStruct)
+	InitRefs(embeddingStructPtr)
 }
 
 func (self *DocumentBase) Collection() *Collection {
@@ -65,6 +70,7 @@ func (self *DocumentBase) Save() (err error) {
 		err = self.collection.collection.UpdateId(self.ID, self.embeddingStruct)
 	} else {
 		self.ID = bson.NewObjectId()
+
 		err = self.collection.collection.Insert(self.embeddingStruct)
 	}
 	if err == nil {
@@ -73,7 +79,8 @@ func (self *DocumentBase) Save() (err error) {
 			panic(err)
 		}
 		if !ok {
-			panic("Something went wrong with saving")
+			// panic("Something went wrong with saving")
+			debug.Print("Something went wrong with saving")
 		}
 	}
 	return err
