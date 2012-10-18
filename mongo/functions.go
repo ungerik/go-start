@@ -31,7 +31,8 @@ func documentFromResultPtr(resultPtr interface{}) Document {
 	if doc, ok := resultPtr.(Document); ok {
 		return doc
 	}
-	return documentFromResultPtr(reflect.ValueOf(resultPtr).Elem().Interface())
+	result := reflect.ValueOf(resultPtr).Elem().Interface()
+	return result.(Document)
 }
 
 func CollectionByName(name string) (collection *Collection, ok bool) {
