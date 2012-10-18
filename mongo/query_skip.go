@@ -3,14 +3,14 @@ package mongo
 import "labix.org/v2/mgo"
 
 ///////////////////////////////////////////////////////////////////////////////
-// skipQuery
+// query_skip
 
-type skipQuery struct {
-	queryBase
+type query_skip struct {
+	query_base
 	skip int
 }
 
-func (self *skipQuery) mongoQuery() (q *mgo.Query, err error) {
+func (self *query_skip) mongoQuery() (q *mgo.Query, err error) {
 	q, err = self.parentQuery.mongoQuery()
 	if err != nil {
 		return nil, err
@@ -18,6 +18,6 @@ func (self *skipQuery) mongoQuery() (q *mgo.Query, err error) {
 	return q.Skip(self.skip), nil
 }
 
-func (self *skipQuery) Selector() string {
+func (self *query_skip) Selector() string {
 	return ""
 }

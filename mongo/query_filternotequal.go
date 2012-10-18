@@ -5,18 +5,18 @@ import (
 )
 
 ///////////////////////////////////////////////////////////////////////////////
-// filterNotEqualQuery
+// query_filterNotEqual
 
-type filterNotEqualQuery struct {
-	filterQueryBase
+type query_filterNotEqual struct {
+	query_filterBase
 	selector string
 	value    interface{}
 }
 
-func (self *filterNotEqualQuery) bsonSelector() bson.M {
+func (self *query_filterNotEqual) bsonSelector() bson.M {
 	return bson.M{self.selector: bson.M{"$ne": self.value}}
 }
 
-func (self *filterNotEqualQuery) Selector() string {
+func (self *query_filterNotEqual) Selector() string {
 	return self.selector
 }

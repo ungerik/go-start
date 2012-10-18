@@ -3,14 +3,14 @@ package mongo
 import "labix.org/v2/mgo"
 
 ///////////////////////////////////////////////////////////////////////////////
-// limitQuery
+// query_limit
 
-type limitQuery struct {
-	queryBase
+type query_limit struct {
+	query_base
 	limit int
 }
 
-func (self *limitQuery) mongoQuery() (q *mgo.Query, err error) {
+func (self *query_limit) mongoQuery() (q *mgo.Query, err error) {
 	q, err = self.parentQuery.mongoQuery()
 	if err != nil {
 		return nil, err
@@ -18,6 +18,6 @@ func (self *limitQuery) mongoQuery() (q *mgo.Query, err error) {
 	return q.Limit(self.limit), nil
 }
 
-func (self *limitQuery) Selector() string {
+func (self *query_limit) Selector() string {
 	return ""
 }

@@ -5,22 +5,22 @@ import (
 )
 
 ///////////////////////////////////////////////////////////////////////////////
-// filterAllInQuery
+// query_filterAllIn
 
-type filterAllInQuery struct {
-	filterQueryBase
+type query_filterAllIn struct {
+	query_filterBase
 	selector string
 	values   []interface{}
 }
 
-func (self *filterAllInQuery) bsonSelector() bson.M {
+func (self *query_filterAllIn) bsonSelector() bson.M {
 	return bson.M{self.selector: bson.M{"$all": self.values}}
 }
 
-func (self *filterAllInQuery) Selector() string {
+func (self *query_filterAllIn) Selector() string {
 	return self.selector
 }
 
-//func (self *filterAllInQuery) Values() []interface{} {
+//func (self *query_filterAllIn) Values() []interface{} {
 //	return self.values
 //}

@@ -36,7 +36,7 @@ Example for creating, modifying and saving a document:
 
 */
 type Collection struct {
-	queryBase
+	query_base
 	Name       string
 	collection *mgo.Collection
 	// foreignRefs  []ForeignRef

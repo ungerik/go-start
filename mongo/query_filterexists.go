@@ -5,22 +5,22 @@ import (
 )
 
 ///////////////////////////////////////////////////////////////////////////////
-// filterExistsQuery
+// query_filterExists
 
-type filterExistsQuery struct {
-	filterQueryBase
+type query_filterExists struct {
+	query_filterBase
 	selector string
 	exists   bool
 }
 
-func (self *filterExistsQuery) bsonSelector() bson.M {
+func (self *query_filterExists) bsonSelector() bson.M {
 	return bson.M{self.selector: bson.M{"$exists": self.exists}}
 }
 
-func (self *filterExistsQuery) Selector() string {
+func (self *query_filterExists) Selector() string {
 	return self.selector
 }
 
-//func (self *filterExistsQuery) Exists() bool {
+//func (self *query_filterExists) Exists() bool {
 //	return self.exists
 //}

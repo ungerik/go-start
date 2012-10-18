@@ -5,19 +5,19 @@ import (
 )
 
 ///////////////////////////////////////////////////////////////////////////////
-// filterQuery
+// query_filterEqual
 
-type filterQuery struct {
-	filterQueryBase
+type query_filterEqual struct {
+	query_filterBase
 	selector string
 	value    interface{}
 }
 
-func (self *filterQuery) bsonSelector() bson.M {
+func (self *query_filterEqual) bsonSelector() bson.M {
 	return bson.M{self.selector: self.value}
 }
 
-func (self *filterQuery) Selector() string {
+func (self *query_filterEqual) Selector() string {
 	// Don't return special selectors that start with $
 	if self.selector != "" && self.selector[0] == '$' {
 		return ""
@@ -25,6 +25,6 @@ func (self *filterQuery) Selector() string {
 	return self.selector
 }
 
-//func (self *filterQuery) Value() interface{} {
+//func (self *query_filterEqual) Value() interface{} {
 //	return self.value
 //}

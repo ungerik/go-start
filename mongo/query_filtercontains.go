@@ -5,16 +5,16 @@ import (
 )
 
 ///////////////////////////////////////////////////////////////////////////////
-// filterContainsQuery
+// query_filterContains
 
-type filterContainsQuery struct {
-	filterQueryBase
+type query_filterContains struct {
+	query_filterBase
 	selector        string
 	str             string
 	caseInsensitive bool
 }
 
-func (self *filterContainsQuery) bsonSelector() bson.M {
+func (self *query_filterContains) bsonSelector() bson.M {
 	s := escapeStringForRegex(self.str)
 	var options string
 	if self.caseInsensitive {
@@ -23,14 +23,14 @@ func (self *filterContainsQuery) bsonSelector() bson.M {
 	return bson.M{self.selector: bson.RegEx{s, options}}
 }
 
-func (self *filterContainsQuery) Selector() string {
+func (self *query_filterContains) Selector() string {
 	return self.selector
 }
 
-//func (self *filterContainsQuery) CompareString() string {
+//func (self *query_filterContains) CompareString() string {
 //	return self.str
 //}
 //
-//func (self *filterContainsQuery) CaseInsensitive() bool {
+//func (self *query_filterContains) CaseInsensitive() bool {
 //	return self.caseInsensitive
 //}

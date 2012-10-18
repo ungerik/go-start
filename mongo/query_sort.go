@@ -6,17 +6,17 @@ import (
 )
 
 ///////////////////////////////////////////////////////////////////////////////
-// sortQuery
+// query_sort
 
-type sortQuery struct {
-	queryBase
+type query_sort struct {
+	query_base
 	selectors []string
 }
 
-func (self *sortQuery) mongoQuery() (q *mgo.Query, err error) {
+func (self *query_sort) mongoQuery() (q *mgo.Query, err error) {
 	selectors := self.selectors
 	for query := self.parentQuery; query != nil; query = query.ParentQuery() {
-		s, ok := query.(*sortQuery)
+		s, ok := query.(*query_sort)
 		if !ok {
 			break
 		}
@@ -29,6 +29,6 @@ func (self *sortQuery) mongoQuery() (q *mgo.Query, err error) {
 	return q.Sort(selectors...), nil
 }
 
-func (self *sortQuery) Selector() string {
+func (self *query_sort) Selector() string {
 	return strings.Join(self.selectors, ",")
 }

@@ -5,18 +5,18 @@ import (
 )
 
 ///////////////////////////////////////////////////////////////////////////////
-// filterLessEqualQuery
+// query_filterLessEqual
 
-type filterLessEqualQuery struct {
-	filterQueryBase
+type query_filterLessEqual struct {
+	query_filterBase
 	selector string
 	value    interface{}
 }
 
-func (self *filterLessEqualQuery) bsonSelector() bson.M {
+func (self *query_filterLessEqual) bsonSelector() bson.M {
 	return bson.M{self.selector: bson.M{"$lte": self.value}}
 }
 
-func (self *filterLessEqualQuery) Selector() string {
+func (self *query_filterLessEqual) Selector() string {
 	return self.selector
 }

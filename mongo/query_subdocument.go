@@ -5,21 +5,21 @@ import (
 )
 
 ///////////////////////////////////////////////////////////////////////////////
-// subDocumentQuery
+// query_subDocument
 
-type subDocumentQuery struct {
-	filterQueryBase
+type query_subDocument struct {
+	query_filterBase
 	selector string
 }
 
-func (self *subDocumentQuery) subDocumentSelector() string {
+func (self *query_subDocument) subDocumentSelector() string {
 	return self.selector
 }
 
-func (self *subDocumentQuery) bsonSelector() bson.M {
+func (self *query_subDocument) bsonSelector() bson.M {
 	return bson.M{self.selector: 1}
 }
 
-func (self *subDocumentQuery) Selector() string {
+func (self *query_subDocument) Selector() string {
 	return "" // Empty because the self.selector is already returned by subDocumentSelector()
 }

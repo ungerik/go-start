@@ -5,19 +5,19 @@ import (
 )
 
 ///////////////////////////////////////////////////////////////////////////////
-// filterModuloQuery
+// query_filterModulo
 
-type filterModuloQuery struct {
-	filterQueryBase
+type query_filterModulo struct {
+	query_filterBase
 	selector string
 	divisor  interface{}
 	result   interface{}
 }
 
-func (self *filterModuloQuery) bsonSelector() bson.M {
+func (self *query_filterModulo) bsonSelector() bson.M {
 	return bson.M{self.selector: bson.M{"$mod": []interface{}{self.divisor, self.result}}}
 }
 
-func (self *filterModuloQuery) Selector() string {
+func (self *query_filterModulo) Selector() string {
 	return self.selector
 }

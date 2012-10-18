@@ -5,22 +5,22 @@ import (
 )
 
 ///////////////////////////////////////////////////////////////////////////////
-// filterArraySizeQuery
+// query_filterArraySize
 
-type filterArraySizeQuery struct {
-	filterQueryBase
+type query_filterArraySize struct {
+	query_filterBase
 	selector string
 	size     int
 }
 
-func (self *filterArraySizeQuery) bsonSelector() bson.M {
+func (self *query_filterArraySize) bsonSelector() bson.M {
 	return bson.M{self.selector: bson.M{"$size": self.size}}
 }
 
-func (self *filterArraySizeQuery) Selector() string {
+func (self *query_filterArraySize) Selector() string {
 	return self.selector
 }
 
-//func (self *filterArraySizeQuery) Size() int {
+//func (self *query_filterArraySize) Size() int {
 //	return self.size
 //}

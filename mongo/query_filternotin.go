@@ -5,18 +5,18 @@ import (
 )
 
 ///////////////////////////////////////////////////////////////////////////////
-// filterNotInQuery
+// query_filterNotIn
 
-type filterNotInQuery struct {
-	filterQueryBase
+type query_filterNotIn struct {
+	query_filterBase
 	selector string
 	values   []interface{}
 }
 
-func (self *filterNotInQuery) bsonSelector() bson.M {
+func (self *query_filterNotIn) bsonSelector() bson.M {
 	return bson.M{self.selector: bson.M{"$nin": self.values}}
 }
 
-func (self *filterNotInQuery) Selector() string {
+func (self *query_filterNotIn) Selector() string {
 	return self.selector
 }

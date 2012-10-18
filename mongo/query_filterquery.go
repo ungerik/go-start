@@ -10,10 +10,10 @@ import (
 )
 
 ///////////////////////////////////////////////////////////////////////////////
-// filterQueryBase
+// query_filterBase
 
-type filterQueryBase struct {
-	queryBase
+type query_filterBase struct {
+	query_base
 }
 
 func bsonQuery(query Query) (bsonQuery bson.M, err error) {
@@ -24,7 +24,7 @@ func bsonQuery(query Query) (bsonQuery bson.M, err error) {
 		if parent.IsFilter() {
 			chainedFilters = append(chainedFilters, parent)
 		}
-		if _, or := parent.(*orQuery); or {
+		if _, or := parent.(*query_or); or {
 			// todo check if filter and or interleave
 			orChained = true
 		}
@@ -53,7 +53,7 @@ func bsonQuery(query Query) (bsonQuery bson.M, err error) {
 	return bsonQuery, nil
 }
 
-func (self *filterQueryBase) mongoQuery() (q *mgo.Query, err error) {
+func (self *query_filterBase) mongoQuery() (q *mgo.Query, err error) {
 	bsonQuery, err := bsonQuery(self.thisQuery)
 	if err != nil {
 		return nil, err
@@ -63,6 +63,6 @@ func (self *filterQueryBase) mongoQuery() (q *mgo.Query, err error) {
 	return collection.collection.Find(bsonQuery), nil
 }
 
-func (self *filterQueryBase) IsFilter() bool {
+func (self *query_filterBase) IsFilter() bool {
 	return true
 }

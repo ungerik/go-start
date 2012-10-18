@@ -5,18 +5,18 @@ import (
 )
 
 ///////////////////////////////////////////////////////////////////////////////
-// filterRefQuery
+// query_filterRef
 
-type filterRefQuery struct {
-	filterQueryBase
+type query_filterRef struct {
+	query_filterBase
 	selector string
 	refs     []Ref
 }
 
-func (self *filterRefQuery) bsonSelector() bson.M {
+func (self *query_filterRef) bsonSelector() bson.M {
 	return bson.M{self.selector: bson.M{"$in": self.refs}}
 }
 
-func (self *filterRefQuery) Selector() string {
+func (self *query_filterRef) Selector() string {
 	return self.selector
 }

@@ -20,31 +20,31 @@ func init() {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// queryBase
+// query_base
 
-type queryBase struct {
+type query_base struct {
 	thisQuery   Query
 	parentQuery Query
 }
 
-func (self *queryBase) init(thisQuery Query, parentQuery Query) {
+func (self *query_base) init(thisQuery Query, parentQuery Query) {
 	self.thisQuery = thisQuery
 	self.parentQuery = parentQuery
 }
 
-func (self *queryBase) subDocumentSelector() string {
+func (self *query_base) subDocumentSelector() string {
 	return ""
 }
 
-func (self *queryBase) bsonSelector() bson.M {
+func (self *query_base) bsonSelector() bson.M {
 	return self.thisQuery.bsonSelector()
 }
 
-func (self *queryBase) ParentQuery() Query {
+func (self *query_base) ParentQuery() Query {
 	return self.parentQuery
 }
 
-func (self *queryBase) Collection() *Collection {
+func (self *query_base) Collection() *Collection {
 	for query := self.thisQuery; query != nil; query = query.ParentQuery() {
 		if collection, ok := query.(*Collection); ok {
 			return collection
@@ -53,7 +53,7 @@ func (self *queryBase) Collection() *Collection {
 	return nil
 }
 
-func (self *queryBase) Count() (n int, err error) {
+func (self *query_base) Count() (n int, err error) {
 	q, err := self.thisQuery.mongoQuery()
 	if err != nil {
 		return 0, err
@@ -61,44 +61,44 @@ func (self *queryBase) Count() (n int, err error) {
 	return q.Count()
 }
 
-func (self *queryBase) SubDocument(selector string) Query {
-	q := &subDocumentQuery{selector: selector}
+func (self *query_base) SubDocument(selector string) Query {
+	q := &query_subDocument{selector: selector}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) Skip(skip int) Query {
+func (self *query_base) Skip(skip int) Query {
 	if skip < 0 {
 		return &QueryError{self.ParentQuery(), errs.Format("Invalid negative skip count: %d", skip)}
 	}
-	q := &skipQuery{skip: skip}
+	q := &query_skip{skip: skip}
 	q.init(q, self.thisQuery)
 	return q
 }
 
-func (self *queryBase) Limit(limit int) Query {
+func (self *query_base) Limit(limit int) Query {
 	if limit < 0 {
 		return &QueryError{self.ParentQuery(), errs.Format("Invalid negative limit: %d", limit)}
 	}
-	q := &limitQuery{limit: limit}
+	q := &query_limit{limit: limit}
 	q.init(q, self.thisQuery)
 	return q
 }
 
-func (self *queryBase) Sort(selectors ...string) Query {
+func (self *query_base) Sort(selectors ...string) Query {
 	for i := range selectors {
 		selectors[i] = strings.ToLower(selectors[i])
 	}
-	q := &sortQuery{selectors: selectors}
+	q := &query_sort{selectors: selectors}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) SortFunc(lessFunc func(a, b interface{}) bool) model.Iterator {
+func (self *query_base) SortFunc(lessFunc func(a, b interface{}) bool) model.Iterator {
 	return model.NewSortIterator(self.Iterator(), lessFunc)
 }
 
-func (self *queryBase) Explain() string {
+func (self *query_base) Explain() string {
 	q, err := self.thisQuery.mongoQuery()
 	if err != nil {
 		return err.Error()
@@ -111,33 +111,33 @@ func (self *queryBase) Explain() string {
 	return fmt.Sprintf("Explain: %#v\n", m)
 }
 
-func (self *queryBase) IsFilter() bool {
+func (self *query_base) IsFilter() bool {
 	return false
 }
 
-func (self *queryBase) Filter(selector string, value interface{}) Query {
+func (self *query_base) Filter(selector string, value interface{}) Query {
 	selector = strings.ToLower(selector)
-	q := &filterQuery{selector: selector, value: value}
+	q := &query_filterEqual{selector: selector, value: value}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) FilterWhere(javascript string) Query {
+func (self *query_base) FilterWhere(javascript string) Query {
 	return self.Filter("$where", javascript)
 }
 
-func (self *queryBase) FilterFunc(passFilter model.FilterFunc) model.Iterator {
+func (self *query_base) FilterFunc(passFilter model.FilterFunc) model.Iterator {
 	return &model.FilterIterator{self.Iterator(), passFilter}
 }
 
-func (self *queryBase) FilterRef(selector string, refs ...Ref) Query {
+func (self *query_base) FilterRef(selector string, refs ...Ref) Query {
 	selector = strings.ToLower(selector)
-	q := &filterRefQuery{selector: selector, refs: refs}
+	q := &query_filterRef{selector: selector, refs: refs}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) FilterID(ids ...bson.ObjectId) Query {
+func (self *query_base) FilterID(ids ...bson.ObjectId) Query {
 	if len(ids) == 1 {
 		return self.Filter("_id", ids[0])
 	}
@@ -148,142 +148,142 @@ func (self *queryBase) FilterID(ids ...bson.ObjectId) Query {
 	return self.FilterIn("_id", values)
 }
 
-func (self *queryBase) FilterEqualCaseInsensitive(selector string, str string) Query {
+func (self *query_base) FilterEqualCaseInsensitive(selector string, str string) Query {
 	selector = strings.ToLower(selector)
-	q := &filterEqualCaseInsensitiveQuery{selector: selector, str: str}
+	q := &query_filterEqualCaseInsensitive{selector: selector, str: str}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) FilterNotEqual(selector string, value interface{}) Query {
+func (self *query_base) FilterNotEqual(selector string, value interface{}) Query {
 	selector = strings.ToLower(selector)
-	q := &filterNotEqualQuery{selector: selector, value: value}
+	q := &query_filterNotEqual{selector: selector, value: value}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) FilterLess(selector string, value interface{}) Query {
+func (self *query_base) FilterLess(selector string, value interface{}) Query {
 	selector = strings.ToLower(selector)
-	q := &filterLessQuery{selector: selector, value: value}
+	q := &query_filterLess{selector: selector, value: value}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) FilterGreater(selector string, value interface{}) Query {
+func (self *query_base) FilterGreater(selector string, value interface{}) Query {
 	selector = strings.ToLower(selector)
-	q := &filterGreaterQuery{selector: selector, value: value}
+	q := &query_filterGreater{selector: selector, value: value}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) FilterLessEqual(selector string, value interface{}) Query {
+func (self *query_base) FilterLessEqual(selector string, value interface{}) Query {
 	selector = strings.ToLower(selector)
-	q := &filterLessEqualQuery{selector: selector, value: value}
+	q := &query_filterLessEqual{selector: selector, value: value}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) FilterGreaterEqual(selector string, value interface{}) Query {
+func (self *query_base) FilterGreaterEqual(selector string, value interface{}) Query {
 	selector = strings.ToLower(selector)
-	q := &filterGreaterEqualQuery{selector: selector, value: value}
+	q := &query_filterGreaterEqual{selector: selector, value: value}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) FilterModulo(selector string, divisor, result interface{}) Query {
+func (self *query_base) FilterModulo(selector string, divisor, result interface{}) Query {
 	selector = strings.ToLower(selector)
-	q := &filterModuloQuery{selector: selector, divisor: divisor, result: result}
+	q := &query_filterModulo{selector: selector, divisor: divisor, result: result}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) FilterIn(selector string, values ...interface{}) Query {
+func (self *query_base) FilterIn(selector string, values ...interface{}) Query {
 	selector = strings.ToLower(selector)
-	q := &filterInQuery{selector: selector, values: values}
+	q := &query_filterIn{selector: selector, values: values}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) FilterNotIn(selector string, values ...interface{}) Query {
+func (self *query_base) FilterNotIn(selector string, values ...interface{}) Query {
 	selector = strings.ToLower(selector)
-	q := &filterNotInQuery{selector: selector, values: values}
+	q := &query_filterNotIn{selector: selector, values: values}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) FilterAllIn(selector string, values ...interface{}) Query {
+func (self *query_base) FilterAllIn(selector string, values ...interface{}) Query {
 	selector = strings.ToLower(selector)
-	q := &filterAllInQuery{selector: selector, values: values}
+	q := &query_filterAllIn{selector: selector, values: values}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) FilterArraySize(selector string, size int) Query {
+func (self *query_base) FilterArraySize(selector string, size int) Query {
 	selector = strings.ToLower(selector)
-	q := &filterArraySizeQuery{selector: selector, size: size}
+	q := &query_filterArraySize{selector: selector, size: size}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) FilterStartsWith(selector string, str string) Query {
+func (self *query_base) FilterStartsWith(selector string, str string) Query {
 	selector = strings.ToLower(selector)
-	q := &filterStartsWithQuery{selector: selector, str: str}
+	q := &query_filterStartsWith{selector: selector, str: str}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) FilterStartsWithCaseInsensitive(selector string, str string) Query {
+func (self *query_base) FilterStartsWithCaseInsensitive(selector string, str string) Query {
 	selector = strings.ToLower(selector)
-	q := &filterStartsWithQuery{selector: selector, str: str, caseInsensitive: true}
+	q := &query_filterStartsWith{selector: selector, str: str, caseInsensitive: true}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) FilterEndsWith(selector string, str string) Query {
+func (self *query_base) FilterEndsWith(selector string, str string) Query {
 	selector = strings.ToLower(selector)
-	q := &filterEndsWithQuery{selector: selector, str: str}
+	q := &query_filterEndsWith{selector: selector, str: str}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) FilterEndsWithCaseInsensitive(selector string, str string) Query {
+func (self *query_base) FilterEndsWithCaseInsensitive(selector string, str string) Query {
 	selector = strings.ToLower(selector)
-	q := &filterEndsWithQuery{selector: selector, str: str, caseInsensitive: true}
+	q := &query_filterEndsWith{selector: selector, str: str, caseInsensitive: true}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) FilterContains(selector string, str string) Query {
+func (self *query_base) FilterContains(selector string, str string) Query {
 	selector = strings.ToLower(selector)
-	q := &filterContainsQuery{selector: selector, str: str}
+	q := &query_filterContains{selector: selector, str: str}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) FilterContainsCaseInsensitive(selector string, str string) Query {
+func (self *query_base) FilterContainsCaseInsensitive(selector string, str string) Query {
 	selector = strings.ToLower(selector)
-	q := &filterContainsQuery{selector: selector, str: str, caseInsensitive: true}
+	q := &query_filterContains{selector: selector, str: str, caseInsensitive: true}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) FilterExists(selector string, exists bool) Query {
+func (self *query_base) FilterExists(selector string, exists bool) Query {
 	selector = strings.ToLower(selector)
-	q := &filterExistsQuery{selector: selector, exists: exists}
+	q := &query_filterExists{selector: selector, exists: exists}
 	q.init(q, self.thisQuery)
 	return checkQuery(q)
 }
 
-func (self *queryBase) Or() Query {
+func (self *query_base) Or() Query {
 	if !self.thisQuery.IsFilter() {
 		return &QueryError{self.thisQuery, errs.Format("Or() can only be called after Filter()")}
 	}
-	q := &orQuery{}
+	q := &query_or{}
 	q.init(q, self.thisQuery)
 	return q
 }
 
-func (self *queryBase) OneDocument(resultPtr interface{}) error {
+func (self *query_base) OneDocument(resultPtr interface{}) error {
 	q, err := self.thisQuery.mongoQuery()
 	if err != nil {
 		return err
@@ -299,7 +299,7 @@ func (self *queryBase) OneDocument(resultPtr interface{}) error {
 	return nil
 }
 
-func (self *queryBase) TryOneDocument(resultPtr interface{}) (found bool, err error) {
+func (self *query_base) TryOneDocument(resultPtr interface{}) (found bool, err error) {
 	err = self.OneDocument(resultPtr)
 	if err == mgo.ErrNotFound {
 		return false, nil
@@ -307,7 +307,7 @@ func (self *queryBase) TryOneDocument(resultPtr interface{}) (found bool, err er
 	return err == nil, err
 }
 
-func (self *queryBase) OneSubDocument(selector string, resultPtr interface{}) error {
+func (self *query_base) OneSubDocument(selector string, resultPtr interface{}) error {
 	q, err := self.thisQuery.mongoQuery()
 	if err != nil {
 		return err
@@ -324,7 +324,7 @@ func (self *queryBase) OneSubDocument(selector string, resultPtr interface{}) er
 	return nil
 }
 
-func (self *queryBase) TryOneSubDocument(selector string, resultPtr interface{}) (found bool, err error) {
+func (self *query_base) TryOneSubDocument(selector string, resultPtr interface{}) (found bool, err error) {
 	err = self.OneSubDocument(selector, resultPtr)
 	if err == mgo.ErrNotFound {
 		return false, nil
@@ -332,11 +332,11 @@ func (self *queryBase) TryOneSubDocument(selector string, resultPtr interface{})
 	return err == nil, err
 }
 
-func (self *queryBase) Iterator() model.Iterator {
+func (self *query_base) Iterator() model.Iterator {
 	return newIterator(self.thisQuery)
 }
 
-func (self *queryBase) OneDocumentID() (id bson.ObjectId, err error) {
+func (self *query_base) OneDocumentID() (id bson.ObjectId, err error) {
 	q, err := self.thisQuery.mongoQuery()
 	if err != nil {
 		return bson.ObjectId(""), err
@@ -346,7 +346,7 @@ func (self *queryBase) OneDocumentID() (id bson.ObjectId, err error) {
 	return doc.ID, err
 }
 
-func (self *queryBase) TryOneDocumentID() (id bson.ObjectId, found bool, err error) {
+func (self *query_base) TryOneDocumentID() (id bson.ObjectId, found bool, err error) {
 	id, err = self.OneDocumentID()
 	if err == mgo.ErrNotFound {
 		return id, false, nil
@@ -354,7 +354,7 @@ func (self *queryBase) TryOneDocumentID() (id bson.ObjectId, found bool, err err
 	return id, err == nil, err
 }
 
-func (self *queryBase) DocumentIDs() (ids []bson.ObjectId, err error) {
+func (self *query_base) DocumentIDs() (ids []bson.ObjectId, err error) {
 	q, err := self.thisQuery.mongoQuery()
 	if err != nil {
 		return nil, err
@@ -370,7 +370,7 @@ func (self *queryBase) DocumentIDs() (ids []bson.ObjectId, err error) {
 	return ids, nil
 }
 
-func (self *queryBase) Refs() (refs []Ref, err error) {
+func (self *query_base) Refs() (refs []Ref, err error) {
 	q, err := self.thisQuery.mongoQuery()
 	if err != nil {
 		return nil, err
@@ -387,7 +387,7 @@ func (self *queryBase) Refs() (refs []Ref, err error) {
 	return refs, nil
 }
 
-func (self *queryBase) UpdateOne(selector string, value interface{}) error {
+func (self *query_base) UpdateOne(selector string, value interface{}) error {
 	bsonQuery, err := bsonQuery(self.thisQuery)
 	if err != nil {
 		return err
@@ -395,7 +395,7 @@ func (self *queryBase) UpdateOne(selector string, value interface{}) error {
 	return self.Collection().collection.Update(bsonQuery, bson.M{"$set": bson.M{selector: value}})
 }
 
-func (self *queryBase) UpdateAll(selector string, value interface{}) (numUpdated int, err error) {
+func (self *query_base) UpdateAll(selector string, value interface{}) (numUpdated int, err error) {
 	bsonQuery, err := bsonQuery(self.thisQuery)
 	if err != nil {
 		return 0, err
@@ -404,7 +404,7 @@ func (self *queryBase) UpdateAll(selector string, value interface{}) (numUpdated
 	return info.Updated, err
 }
 
-func (self *queryBase) UpdateSubDocument(selector string, subDocument interface{}) error {
+func (self *query_base) UpdateSubDocument(selector string, subDocument interface{}) error {
 	bsonQuery, err := bsonQuery(self.thisQuery)
 	if err != nil {
 		return err
@@ -422,7 +422,7 @@ func (self *queryBase) UpdateSubDocument(selector string, subDocument interface{
 	return self.Collection().collection.Update(bsonQuery, bson.M{"$set": bson.M{selector: subDocument}})
 }
 
-func (self *queryBase) RemoveAll() (numRemoved int, err error) {
+func (self *query_base) RemoveAll() (numRemoved int, err error) {
 	info, err := self.Collection().collection.RemoveAll(self.bsonSelector())
 	return info.Removed, err
 }

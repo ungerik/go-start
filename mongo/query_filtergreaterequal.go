@@ -5,18 +5,18 @@ import (
 )
 
 ///////////////////////////////////////////////////////////////////////////////
-// filterGreaterEqualQuery
+// query_filterGreaterEqual
 
-type filterGreaterEqualQuery struct {
-	filterQueryBase
+type query_filterGreaterEqual struct {
+	query_filterBase
 	selector string
 	value    interface{}
 }
 
-func (self *filterGreaterEqualQuery) bsonSelector() bson.M {
+func (self *query_filterGreaterEqual) bsonSelector() bson.M {
 	return bson.M{self.selector: bson.M{"$gte": self.value}}
 }
 
-func (self *filterGreaterEqualQuery) Selector() string {
+func (self *query_filterGreaterEqual) Selector() string {
 	return self.selector
 }
