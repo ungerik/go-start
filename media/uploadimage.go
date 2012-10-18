@@ -99,10 +99,10 @@ func RequireUploadImageButtonScript(parentSelector, dropZoneSelector, listSelect
 }
 
 func UploadImageButton(dropZoneSelector, listSelector string, thumbnailSize int, onComplete string) view.View {
-	var button view.Div
+	button := view.DIV("qq-upload-button")
 	button.Content = view.Views{
-		view.HTML("jQuery required!"),
+		view.B("jQuery required!"),
 		RequireUploadImageButtonScript("#"+button.ID(), dropZoneSelector, listSelector, thumbnailSize, onComplete),
 	}
-	return &button
+	return button
 }
