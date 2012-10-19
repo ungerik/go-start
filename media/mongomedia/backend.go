@@ -37,21 +37,22 @@ func (self *Backend) TryLoadImage(id string) (*media.Image, bool, error) {
 }
 
 func (self *Backend) SaveImage(image *media.Image) error {
+	var imageDoc ImageDoc
+	imageDoc.Image = *image
+	self.Images.InitDocument(&imageDoc)
+
 	if image.ID == "" {
-		var imageDoc ImageDoc
-		imageDoc.Image = *image
+		// Save to acquire an ID
 		err := imageDoc.Save()
 		if err != nil {
 			return err
 		}
 		imageDoc.Image.ID.Set(imageDoc.ObjectId().Hex())
-		return imageDoc.Save()
+	} else {
+		imageDoc.SetObjectId(bson.ObjectIdHex(image.ID.Get()))
 	}
 
-	var imageDoc ImageDoc
-	imageDoc.SetObjectId(bson.ObjectIdHex(image.ID.Get()))
-	imageDoc.Image = *image
-	return self.Images.InitAndSaveDocument(&imageDoc)
+	return imageDoc.Save()
 }
 
 func (self *Backend) DeleteImage(image *media.Image) error {
