@@ -28,6 +28,7 @@ type Backend interface {
 	// regardless of the former value
 	ImageVersionWriter(version *ImageVersion) (writer io.WriteCloser, err error)
 
+	// ImageIterator iterates all images, use Next(*Image), not Next(**Image)
 	ImageIterator() model.Iterator
 
 	// CountImageRefs counts all ImageRef occurances with imageID

@@ -11,7 +11,7 @@ var AllThumbnailsAPI = view.NewViewURLWrapper(view.RenderViewBindURLArgs(
 		ctx.Response.WriteString("[\n")
 		first := true
 		i := Config.Backend.ImageIterator()
-		var image *Image
+		var image Image
 		for i.Next(&image) {
 			thumbnail, err := image.Thumbnail(thumbnailSize)
 			if err != nil {
