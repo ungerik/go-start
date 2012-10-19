@@ -6,7 +6,11 @@ import (
 )
 
 var Config = Configuration{
-	Safe:                mgo.Safe{FSync: true, J: true},
+	Safe: mgo.Safe{ // be conservative...
+		W:     1,
+		FSync: true,
+		J:     true,
+	},
 	CheckQuerySelectors: true,
 }
 
@@ -60,6 +64,7 @@ func (self *Configuration) Init() error {
 func (self *Configuration) Close() error {
 	if Database.Session != nil {
 		Database.Session.Close()
+		Database.Session = nil
 	}
 	return nil
 }
