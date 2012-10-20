@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"reflect"
+	"time"
 
 	"labix.org/v2/mgo/bson"
 
@@ -56,6 +57,13 @@ func (self *DocumentBase) SetObjectId(id bson.ObjectId) {
 
 func (self *DocumentBase) Iterator() model.Iterator {
 	return model.NewSliceIterator(self.embeddingStruct)
+}
+
+func (self *DocumentBase) CreationTime() (t time.Time) {
+	if !self.ID.Valid() {
+		return t
+	}
+	return self.ID.Time()
 }
 
 func (self *DocumentBase) Ref() Ref {
