@@ -71,12 +71,13 @@ func ImagesAdmin() view.View {
 						SubmitButtonConfirm: deleteConfirmation,
 						SubmitButtonClass:   Config.ImagesAdmin.ButtonClass,
 						FormID:              "delete" + image.ID.Get(),
+						Redirect:            view.StringURL("."),
 						OnSubmit: func(form *view.Form, formModel interface{}, ctx *view.Context) (message string, redirect view.URL, err error) {
-							_, err = image.RemoveAllRefs()
-							if err != nil {
-								return "", nil, err
-							}
-							return "", view.StringURL("."), image.Delete()
+							// _, err = image.RemoveAllRefs()
+							// if err != nil {
+							// 	return "", nil, err
+							// }
+							return "", nil, image.Delete()
 						},
 					},
 					view.DivClearBoth(),

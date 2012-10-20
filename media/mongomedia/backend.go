@@ -66,7 +66,7 @@ func (self *Backend) DeleteImage(image *media.Image) error {
 }
 
 func (self *Backend) DeleteImageVersion(id string) error {
-	return self.GridFS.RemoveId(id)
+	return self.GridFS.RemoveId(bson.ObjectIdHex(id))
 }
 
 func (self *Backend) ImageVersionReader(id string) (reader io.ReadCloser, ctype string, err error) {
@@ -81,7 +81,7 @@ func (self *Backend) ImageVersionReader(id string) (reader io.ReadCloser, ctype 
 
 func (self *Backend) ImageVersionWriter(version *media.ImageVersion) (writer io.WriteCloser, err error) {
 	if version.ID != "" {
-		err = self.GridFS.RemoveId(version.ID)
+		err = self.GridFS.RemoveId(bson.ObjectIdHex(version.ID.Get()))
 		if err != nil {
 			return nil, err
 		}
