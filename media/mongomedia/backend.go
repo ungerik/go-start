@@ -134,7 +134,6 @@ func (self *Backend) getImageRefCollectionSelectors() map[*mongo.Collection][]st
 
 func (self *Backend) CountImageRefs(imageID string) (count int, err error) {
 	colSel := self.getImageRefCollectionSelectors()
-	// debug.Dump(colSel)
 	for collection, selectors := range colSel {
 		for _, selector := range selectors {
 			c, err := collection.Filter(selector, imageID).Count()
