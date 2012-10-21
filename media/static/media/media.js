@@ -3,7 +3,7 @@ var gostart_media = gostart_media || {};
 gostart_media.fillChooseDialog = function(thumbnailsSelector, thumbnailsURL, onClickFunc) {
 	var thumbnails = jQuery(thumbnailsSelector);
 	thumbnails.empty();
-	jQuery.ajax(thumbnailsURL)
+	jQuery.ajax({url: thumbnailsURL, dataType: "json"})
 	.fail(function(jqXHR, textStatus) {
 		alert("Request failed: " + textStatus);
 	})
