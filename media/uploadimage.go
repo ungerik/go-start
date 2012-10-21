@@ -47,6 +47,7 @@ var UploadImage = view.NewViewURLWrapper(view.RenderViewBindURLArgs(
 	},
 ))
 
+// todo move to media.js
 func uploadImageButtonScript(ctx *view.Context, parentSelector, dropZoneSelector, listSelector string, thumbnailSize int, onComplete string) string {
 	extraDropzones := "[]"
 	if dropZoneSelector != "" {

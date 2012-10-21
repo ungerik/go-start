@@ -22,7 +22,7 @@ func (self *ImageDoc) Delete() error {
 	return self.DocumentBase.Delete()
 }
 
-func (self *ImageDoc) GetAndInitImage() *media.Image {
+func (self *ImageDoc) InitAndGetImage() *media.Image {
 	self.Image.Init()
 	return &self.Image
 }
