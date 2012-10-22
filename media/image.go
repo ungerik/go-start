@@ -84,7 +84,6 @@ func NewImage(filename string, data []byte) (*Image, error) {
 	}
 
 	image := new(Image)
-
 	version := image.addVersion(
 		MakePrettyUrlFilename(filename),
 		"image/"+t,
@@ -97,7 +96,10 @@ func NewImage(filename string, data []byte) (*Image, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	err = image.Save()
+	if err != nil {
+		return nil, err
+	}
 	return image, nil
 }
 
@@ -324,7 +326,7 @@ func (self *Image) VersionSourceRect(sourceRect image.Rectangle, width, height i
 	if err != nil {
 		return nil, err
 	}
-	err = Config.Backend.SaveImage(self)
+	err = self.Save()
 	if err != nil {
 		return nil, err
 	}

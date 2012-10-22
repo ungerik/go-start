@@ -6,8 +6,7 @@ import (
 
 var AllThumbnailsAPI = view.NewViewURLWrapper(view.RenderViewBindURLArgs(
 	func(ctx *view.Context, thumbnailSize int) error {
-		// ctx.Response.SetContentType("application/json")
-		ctx.Response.SetContentTypeByExt(".json")
+		ctx.Response.Header().Set("Content-Type", "application/json")
 		ctx.Response.WriteString("[\n")
 		first := true
 		i := Config.Backend.ImageIterator()

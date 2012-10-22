@@ -24,7 +24,7 @@ func (self *Backend) LoadImage(id string) (*media.Image, error) {
 	if err != nil {
 		return nil, err
 	}
-	return doc.GetAndInitImage(), nil
+	return doc.InitAndGetImage(), nil
 }
 
 func (self *Backend) TryLoadImage(id string) (*media.Image, bool, error) {
@@ -33,7 +33,7 @@ func (self *Backend) TryLoadImage(id string) (*media.Image, bool, error) {
 	if !found {
 		return nil, found, err
 	}
-	return doc.GetAndInitImage(), true, nil
+	return doc.InitAndGetImage(), true, nil
 }
 
 func (self *Backend) SaveImage(image *media.Image) error {
@@ -47,7 +47,9 @@ func (self *Backend) SaveImage(image *media.Image) error {
 		if err != nil {
 			return err
 		}
-		imageDoc.Image.ID.Set(imageDoc.ObjectId().Hex())
+		// Set ID back at image and at imageDoc
+		image.ID.Set(imageDoc.ObjectId().Hex())
+		imageDoc.Image.ID = image.ID
 	} else {
 		imageDoc.SetObjectId(bson.ObjectIdHex(image.ID.Get()))
 	}
@@ -103,7 +105,7 @@ func (self *Backend) ImageIterator() model.Iterator {
 		self.Images.Iterator(),
 		new(ImageDoc),
 		func(doc interface{}) interface{} {
-			return doc.(*ImageDoc).GetAndInitImage()
+			return doc.(*ImageDoc).InitAndGetImage()
 		},
 	)
 }
@@ -134,7 +136,6 @@ func (self *Backend) getImageRefCollectionSelectors() map[*mongo.Collection][]st
 
 func (self *Backend) CountImageRefs(imageID string) (count int, err error) {
 	colSel := self.getImageRefCollectionSelectors()
-	// debug.Dump(colSel)
 	for collection, selectors := range colSel {
 		for _, selector := range selectors {
 			c, err := collection.Filter(selector, imageID).Count()
