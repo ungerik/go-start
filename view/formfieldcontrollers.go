@@ -164,6 +164,49 @@ func (self ModelTextController) NewInput(withLabel bool, metaData *model.MetaDat
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// ModelRichTextController
+
+type ModelRichTextController struct {
+	SetModelValueControllerBase
+}
+
+func (self ModelRichTextController) Supports(metaData *model.MetaData, form *Form) bool {
+	_, ok := metaData.Value.Addr().Interface().(*model.RichText)
+	return ok
+}
+
+func (self ModelRichTextController) NewInput(withLabel bool, metaData *model.MetaData, form *Form) (input View, err error) {
+	text := metaData.Value.Addr().Interface().(*model.RichText)
+	var cols int // will be zero if not available, which is OK
+	if str, ok := metaData.Attrib(StructTagKey, "cols"); ok {
+		cols, err = strconv.Atoi(str)
+		if err != nil {
+			panic("Error in StandardFormFieldFactory.NewInput(): " + err.Error())
+		}
+	}
+	var rows int // will be zero if not available, which is OK
+	if str, ok := metaData.Attrib(StructTagKey, "rows"); ok {
+		rows, err = strconv.Atoi(str)
+		if err != nil {
+			panic("Error in StandardFormFieldFactory.NewInput(): " + err.Error())
+		}
+	}
+	input = &RichTextArea{
+		Class:       form.FieldInputClass(metaData),
+		Name:        metaData.Selector(),
+		Text:        text.Get(),
+		Cols:        cols,
+		Rows:        rows,
+		Disabled:    form.IsFieldDisabled(metaData),
+		Placeholder: form.InputFieldPlaceholder(metaData),
+	}
+	if withLabel {
+		return AddStandardLabel(form, input, metaData), nil
+	}
+	return input, nil
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // ModelUrlController
 
 type ModelUrlController struct {
