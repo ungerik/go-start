@@ -64,7 +64,7 @@ func (self *Backend) DeleteImage(image *media.Image) error {
 			return err
 		}
 	}
-	return self.Images.Delete(bson.ObjectIdHex(image.ID.Get()))
+	return self.Images.DeleteWithID(bson.ObjectIdHex(image.ID.Get()))
 }
 
 func (self *Backend) DeleteImageVersion(id string) error {

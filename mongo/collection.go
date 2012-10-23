@@ -282,12 +282,15 @@ func (self *Collection) Count() (n int, err error) {
 	return self.collection.Count()
 }
 
-func (self *Collection) Delete(ids ...bson.ObjectId) (err error) {
+func (self *Collection) DeleteWithID(ids ...bson.ObjectId) (err error) {
 	self.checkDBConnection()
+	if len(ids) == 1 {
+		return self.collection.Remove(bson.M{"_id": ids[0]})
+	}
 	return self.collection.Remove(bson.M{"_id": bson.M{"$in": ids}})
 }
 
-func (self *Collection) DeleteAllNotIn(ids ...bson.ObjectId) error {
+func (self *Collection) DeleteAllNotWithID(ids ...bson.ObjectId) error {
 	self.checkDBConnection()
 	return self.collection.Remove(bson.M{"_id": bson.M{"$nin": ids}})
 }
