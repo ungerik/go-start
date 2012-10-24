@@ -20,19 +20,21 @@ func ModelIterator(iter model.Iterator) GetModelIteratorFunc {
 type ModelIteratorView struct {
 	ViewBase
 	GetModelIterator GetModelIteratorFunc
-	// Model will be used by Next() from the model iterator
-	Model                interface{}
-	GetModelIteratorView GetModelIteratorViewFunc // nil Views will be ignored
+	// GetModel returns the model used GetModelIteratorView.
+	// Only return the same object if you know exactly what you are doing.
+	// To be on the safe side, return a new model instance at every call.
+	GetModel     func(ctx *Context) (model interface{}, err error)
+	GetModelView GetModelIteratorViewFunc // nil Views will be ignored
 }
 
 func (self *ModelIteratorView) Render(ctx *Context) (err error) {
-	if self.Model == nil {
-		panic("view.ModelIteratorTableView.RowModel is nil")
-	}
-
 	iter := self.GetModelIterator(ctx)
-	for iter.Next(self.Model) {
-		view, err := self.GetModelIteratorView(ctx, self.Model)
+	model, err := self.GetModel(ctx)
+	if err != nil {
+		return err
+	}
+	for iter.Next(model) {
+		view, err := self.GetModelView(ctx, model)
 		if err != nil {
 			return err
 		}
@@ -42,6 +44,10 @@ func (self *ModelIteratorView) Render(ctx *Context) (err error) {
 			if err != nil {
 				return err
 			}
+		}
+		model, err = self.GetModel(ctx)
+		if err != nil {
+			return err
 		}
 	}
 	return iter.Err()
