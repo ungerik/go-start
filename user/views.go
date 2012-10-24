@@ -118,7 +118,8 @@ func NewSignupForm(buttonText, class, errorMessageClass, successMessageClass str
 				}
 				user.Password.SetHashed(password)
 			} else {
-				err = user.InitEmailPassword(email, password)
+				Config.Collection.InitDocument(&user)
+				err = user.SetEmailPassword(email, password)
 				if err != nil {
 					return "", nil, err
 				}

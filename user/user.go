@@ -29,7 +29,7 @@ type User struct {
 	Skype              []SkypeIdentity
 }
 
-func (self *User) InitEmailPassword(email, password string) error {
+func (self *User) SetEmailPassword(email, password string) error {
 	err := self.AddEmail(email, "via signup")
 	if err != nil {
 		return err

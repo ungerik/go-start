@@ -114,7 +114,7 @@ func (self *DocumentBase) Save() (err error) {
 // }
 
 func (self *DocumentBase) Delete() error {
-	return self.collection.Delete(self.ID)
+	return self.collection.DeleteWithID(self.ID)
 }
 
 func (self *DocumentBase) RemoveInvalidRefs() (invalidRefs []InvalidRefData, err error) {

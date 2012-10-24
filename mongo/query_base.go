@@ -410,13 +410,16 @@ func (self *query_base) UpdateSubDocument(selector string, subDocument interface
 		return err
 	}
 	if selector == "" {
-		var valMap bson.M
+		valMap := make(bson.M)
 		model.VisitMaxDepth(subDocument, 1, model.FieldOnlyVisitor(
 			func(field *model.MetaData) error {
 				valMap[field.Name] = field.Value.Addr().Interface()
 				return nil
 			},
 		))
+		if len(valMap) == 0 {
+			return nil
+		}
 		return self.Collection().collection.Update(bsonQuery, bson.M{"$set": valMap})
 	}
 	return self.Collection().collection.Update(bsonQuery, bson.M{"$set": bson.M{selector: subDocument}})

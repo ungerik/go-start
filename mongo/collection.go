@@ -282,14 +282,21 @@ func (self *Collection) Count() (n int, err error) {
 	return self.collection.Count()
 }
 
-func (self *Collection) Delete(ids ...bson.ObjectId) (err error) {
+func (self *Collection) DeleteWithID(id bson.ObjectId) error {
 	self.checkDBConnection()
-	return self.collection.Remove(bson.M{"_id": bson.M{"$in": ids}})
+	return self.collection.RemoveId(id)
 }
 
-func (self *Collection) DeleteAllNotIn(ids ...bson.ObjectId) error {
+func (self *Collection) DeleteAllWithIDs(ids ...bson.ObjectId) (numDeleted int, err error) {
 	self.checkDBConnection()
-	return self.collection.Remove(bson.M{"_id": bson.M{"$nin": ids}})
+	info, err := self.collection.RemoveAll(bson.M{"_id": bson.M{"$in": ids}})
+	return info.Removed, err
+}
+
+func (self *Collection) DeleteAllNotWithIDs(ids ...bson.ObjectId) (numDeleted int, err error) {
+	self.checkDBConnection()
+	info, err := self.collection.RemoveAll(bson.M{"_id": bson.M{"$nin": ids}})
+	return info.Removed, err
 }
 
 // RemoveInvalidRefs removes invalid refs from all documents and saves
