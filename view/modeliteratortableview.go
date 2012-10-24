@@ -25,8 +25,10 @@ type ModelIteratorTableView struct {
 	Caption           string
 	GetModelIterator  GetModelIteratorFunc
 	GetHeaderRowViews func(ctx *Context) (views Views, err error)
-	// RowModel will be used by Next() from the model iterator
-	RowModel    interface{}
+	// GetRowModel returns the model used GetRowViews.
+	// Only return the same object if you know exactly what you are doing.
+	// To be on the safe side, return a new model instance at every call.
+	GetRowModel func(ctx *Context) (model interface{}, err error)
 	GetRowViews func(row int, rowModel interface{}, ctx *Context) (views Views, err error)
 	table       Table
 }
@@ -36,10 +38,6 @@ func (self *ModelIteratorTableView) IterateChildren(callback IterateChildrenCall
 }
 
 func (self *ModelIteratorTableView) Render(ctx *Context) (err error) {
-	if self.RowModel == nil {
-		panic("view.ModelIteratorTableView.RowModel is nil")
-	}
-
 	self.table.Class = self.Class
 	self.table.Caption = self.Caption
 
@@ -59,14 +57,22 @@ func (self *ModelIteratorTableView) Render(ctx *Context) (err error) {
 
 	rowNr := 0
 	iter := self.GetModelIterator(ctx)
-	for iter.Next(self.RowModel) {
-		views, err := self.GetRowViews(rowNr, self.RowModel, ctx)
+	rowModel, err := self.GetRowModel(ctx)
+	if err != nil {
+		return err
+	}
+	for iter.Next(rowModel) {
+		views, err := self.GetRowViews(rowNr, rowModel, ctx)
 		if err != nil {
 			return err
 		}
 		if views != nil {
 			tableModel = append(tableModel, views)
 			rowNr++
+		}
+		rowModel, err = self.GetRowModel(ctx)
+		if err != nil {
+			return err
 		}
 	}
 	if iter.Err() != nil {

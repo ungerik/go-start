@@ -18,11 +18,13 @@ func ImagesAdmin() view.View {
 	return view.Views{
 		UploadImageButton("", "", Config.ImagesAdmin.ThumbnailSize, "function(){window.location.reload()}"),
 		&view.ModelIteratorView{
-			Model: new(Image),
 			GetModelIterator: func(ctx *view.Context) model.Iterator {
 				return Config.Backend.ImageIterator()
 			},
-			GetModelIteratorView: func(ctx *view.Context, m interface{}) (view.View, error) {
+			GetModel: func(ctx *view.Context) (interface{}, error) {
+				return new(Image), nil
+			},
+			GetModelView: func(ctx *view.Context, m interface{}) (view.View, error) {
 				image := m.(*Image)
 				refCount, err := image.CountRefs()
 				if err != nil {
