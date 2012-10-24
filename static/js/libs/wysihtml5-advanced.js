@@ -41,6 +41,8 @@ var wysihtml5ParserRules = {
         "wysiwyg-clear-both": 1,
         "wysiwyg-clear-left": 1,
         "wysiwyg-clear-right": 1,
+        "wysiwyg-color-primary": 1,
+        "wysiwyg-color-secondary": 1,
         "wysiwyg-color-aqua": 1,
         "wysiwyg-color-black": 1,
         "wysiwyg-color-blue": 1,

@@ -191,14 +191,20 @@ func (self ModelRichTextController) NewInput(withLabel bool, metaData *model.Met
 			panic("Error in StandardFormFieldFactory.NewInput(): " + err.Error())
 		}
 	}
+	var stylesheetURL string
+	if style, ok := metaData.Attrib(StructTagKey, "stylesheetURL"); ok {
+		stylesheetURL = style
+	}
+
 	input = &RichTextArea{
-		Class:       form.FieldInputClass(metaData),
-		Name:        metaData.Selector(),
-		Text:        text.Get(),
-		Cols:        cols,
-		Rows:        rows,
-		Disabled:    form.IsFieldDisabled(metaData),
-		Placeholder: form.InputFieldPlaceholder(metaData),
+		Class:                form.FieldInputClass(metaData),
+		Name:                 metaData.Selector(),
+		Text:                 text.Get(),
+		Cols:                 cols,
+		Rows:                 rows,
+		Disabled:             form.IsFieldDisabled(metaData),
+		Placeholder:          form.InputFieldPlaceholder(metaData),
+		ToolbarStylesheetURL: stylesheetURL,
 	}
 	if withLabel {
 		return AddStandardLabel(form, input, metaData), nil

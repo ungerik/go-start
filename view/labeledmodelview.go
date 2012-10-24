@@ -75,7 +75,7 @@ func (self *LabeledModelView) Render(ctx *Context) (err error) {
 			if !self.IsFieldExcluded(field) {
 				if value, ok := field.ModelValue(); ok {
 					if !value.IsEmpty() || !self.HideEmpty {
-						v := DIV((Config.LabeledModelViewValueClass + " " + strings.ToLower(field.NameOrIndex())), value)
+						v := DIV((Config.LabeledModelViewValueClass + " " + strings.ToLower(field.NameOrIndex())), HTML(value.String()))
 						label := &Label{
 							Class:   Config.LabeledModelViewLabelClass + " " + strings.ToLower(field.NameOrIndex()),
 							Content: Escape(self.FieldLabel(field)),

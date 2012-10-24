@@ -52,6 +52,12 @@ var Config = Configuration{
 			ModelBlobController{},
 		},
 	},
+	RichText: RichTextConfiguration{
+		DefaultToolbar: SetDefaultToolbar(),
+		ToolbarCSS:     "/css/wysihtml5/toolbar-stylesheet.css",
+		EditorCSS:      "",
+		UseGlobalCSS:   false,
+	},
 	LabeledModelViewLabelClass: "labeled-model-view-label",
 	LabeledModelViewValueClass: "labeled-model-view-value",
 	BaseDirs:                   []string{"."},
@@ -72,6 +78,7 @@ type Configuration struct {
 	TemplateSystem             templatesystem.Implementation
 	Page                       PageConfiguration
 	Form                       FormConfiguration
+	RichText                   RichTextConfiguration
 	LabeledModelViewLabelClass string
 	LabeledModelViewValueClass string
 	DisableCachedViews         bool
@@ -172,6 +179,21 @@ type FormConfiguration struct {
 	GeneralErrorMessageOnFieldError string
 	DefaultRequiredMarker           View
 	DefaultFieldControllers         FormFieldControllers
+}
+
+type RichTextConfiguration struct {
+	DefaultToolbar string
+	ToolbarCSS     string
+	EditorCSS      string
+	UseGlobalCSS   bool
+}
+
+func (self *RichTextConfiguration) SetStylesheet(url string) {
+	if url != "" {
+		Config.RichText.ToolbarCSS = url
+	} else {
+		Config.RichText.UseGlobalCSS = true
+	}
 }
 
 // // Init updates Config with the site-name, cookie secret and base directories used

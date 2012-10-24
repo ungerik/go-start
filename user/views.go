@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+
 	"github.com/ungerik/go-start/view"
 )
 
@@ -9,6 +10,7 @@ import (
 func EmailConfirmationView(profileURL view.URL) view.View {
 	return view.DynamicView(
 		func(ctx *view.Context) (view.View, error) {
+
 			confirmationCode, ok := ctx.Request.Params["code"]
 			if !ok {
 				return view.DIV("error", view.HTML("Invalid email confirmation code!")), nil
