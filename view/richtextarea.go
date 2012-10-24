@@ -59,7 +59,8 @@ func (self *RichTextArea) Render(ctx *Context) (err error) {
 	// ctx.Response.XML.OpenTag("form")
 	ctx.Response.XML.OpenTag("textarea")
 	ctx.Response.XML.AttribIfNotDefault("id", self.id)
-	ctx.Response.XML.AttribIfNotDefault("class", ""+self.Class)
+
+	ctx.Response.XML.Attrib("class", "wysihtml5 "+self.Class)
 
 	cols := self.Cols
 	if cols == 0 {
