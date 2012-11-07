@@ -333,7 +333,7 @@ func (self *query_base) TryOneSubDocument(selector string, resultPtr interface{}
 }
 
 func (self *query_base) Iterator() model.Iterator {
-	return newIterator(self.thisQuery)
+	return NewMongoIterator(self.thisQuery)
 }
 
 func (self *query_base) OneDocumentID() (id bson.ObjectId, err error) {

@@ -32,7 +32,7 @@ func (self *ImageVersion) AspectRatio() float64 {
 }
 
 func (self *ImageVersion) SaveImageData(data []byte) error {
-	writer, err := Config.Backend.ImageVersionWriter(self)
+	writer, id, err := Config.Backend.FileWriter(self.Filename.Get(), self.ContentType.Get())
 	if err != nil {
 		return err
 	}
@@ -41,11 +41,15 @@ func (self *ImageVersion) SaveImageData(data []byte) error {
 		writer.Close()
 		return err
 	}
-	return writer.Close()
+	err = writer.Close()
+	if err == nil {
+		self.ID.Set(id)
+	}
+	return err
 }
 
 func (self *ImageVersion) SaveImage(im image.Image) error {
-	writer, err := Config.Backend.ImageVersionWriter(self)
+	writer, id, err := Config.Backend.FileWriter(self.Filename.Get(), self.ContentType.Get())
 	if err != nil {
 		return err
 	}
@@ -61,11 +65,15 @@ func (self *ImageVersion) SaveImage(im image.Image) error {
 		writer.Close()
 		return err
 	}
-	return writer.Close()
+	err = writer.Close()
+	if err == nil {
+		self.ID.Set(id)
+	}
+	return err
 }
 
 func (self *ImageVersion) LoadImage() (image.Image, error) {
-	reader, _, err := Config.Backend.ImageVersionReader(self.ID.Get())
+	reader, _, _, err := Config.Backend.FileReader(self.ID.Get())
 	if err != nil {
 		return nil, err
 	}

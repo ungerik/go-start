@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"path"
 
 	_ "code.google.com/p/go.image/bmp"
 	_ "code.google.com/p/go.image/tiff"
@@ -34,34 +35,7 @@ const (
 	Bottom
 )
 
-// LoadImage loads an existing image from Config.Backend.
-func LoadImage(id string) (*Image, error) {
-	return Config.Backend.LoadImage(id)
-}
-
-// NewImageFromURL creates a new Image by downloading it from url.
-// GIF, TIFF, BMP images will be read, but saved as PNG.
-func NewImageFromURL(url string) (*Image, error) {
-	response, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	filename := ""
-	defer response.Body.Close()
-	return NewImageFromReader(filename, response.Body)
-}
-
-// NewImageFromReader creates a new Image and saves the original version to Config.Backend.
-// GIF, TIFF, BMP images will be read, but saved as PNG.
-func NewImageFromReader(filename string, reader io.Reader) (*Image, error) {
-	data, err := ioutil.ReadAll(reader)
-	if err != nil {
-		return nil, err
-	}
-	return NewImage(filename, data)
-}
-
-// NewImage creates a new Image and saves the original version to Config.Backend.
+// NewImage creates and saves a new Image.
 // GIF, TIFF, BMP images will be read, but saved as PNG.
 func NewImage(filename string, data []byte) (*Image, error) {
 	i, t, err := image.Decode(bytes.NewReader(data))
@@ -101,6 +75,32 @@ func NewImage(filename string, data []byte) (*Image, error) {
 		return nil, err
 	}
 	return image, nil
+}
+
+// NewImageFromURL creates and saves a new Image by downloading it from url.
+// GIF, TIFF, BMP images will be read, but saved as PNG.
+func NewImageFromURL(url string) (*Image, error) {
+	response, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+	return NewImageFromReader(path.Base(url), response.Body)
+}
+
+// NewImageFromReader creates and saves a new Image from reader.
+// GIF, TIFF, BMP images will be read, but saved as PNG.
+func NewImageFromReader(filename string, reader io.Reader) (*Image, error) {
+	data, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return nil, err
+	}
+	return NewImage(filename, data)
+}
+
+// LoadImage loads an existing image from Config.Backend.
+func LoadImage(id string) (*Image, error) {
+	return Config.Backend.LoadImage(id)
 }
 
 type Image struct {
@@ -147,7 +147,7 @@ func (self *Image) addVersion(filename, contentType string, sourceRect image.Rec
 }
 
 func (self *Image) DeleteVersion(index int) error {
-	err := Config.Backend.DeleteImageVersion(self.Versions[index].ID.Get())
+	err := Config.Backend.DeleteFile(self.Versions[index].ID.Get())
 	if err != nil {
 		return err
 	}
@@ -363,7 +363,6 @@ func (self *Image) Thumbnail(size int) (im *ImageVersion, err error) {
 	return self.VersionCentered(size, size, self.Grayscale())
 }
 
-////
 func (self *Image) VersionSourceRectView(sourceRect image.Rectangle, width, height int, grayscale bool, outsideColor color.Color, class string) (*view.Image, error) {
 	version, err := self.VersionSourceRect(sourceRect, width, height, grayscale, outsideColor)
 	if err != nil {

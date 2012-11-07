@@ -10,6 +10,11 @@ type ImageDoc struct {
 	media.Image        `bson:",inline"`
 }
 
+func (self *ImageDoc) InitAndGetImage() *media.Image {
+	self.Image.Init()
+	return &self.Image
+}
+
 func (self *ImageDoc) Init(collection *mongo.Collection, embeddingStructPtr interface{}) {
 	self.DocumentBase.Init(collection, embeddingStructPtr)
 }
@@ -20,9 +25,4 @@ func (self *ImageDoc) Save() error {
 
 func (self *ImageDoc) Delete() error {
 	return self.DocumentBase.Delete()
-}
-
-func (self *ImageDoc) InitAndGetImage() *media.Image {
-	self.Image.Init()
-	return &self.Image
 }

@@ -1,7 +1,6 @@
 package model
 
 type Value interface {
-	//Init(metaData *MetaData)
 	String() string
 	// SetString returns only error from converting str to the
 	// underlying value type.

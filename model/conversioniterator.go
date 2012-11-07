@@ -1,25 +1,24 @@
 package model
 
-import "reflect"
+import "github.com/ungerik/go-start/reflection"
 
 // ConvertIterator returns an Iterator that calls conversionFunc
 // for every from.Next() result and returns the result
 // of conversionFunc at every Next().
-func ConversionIterator(from Iterator, sourceResult interface{}, conversionFunc func(interface{}) interface{}) Iterator {
-	return &conversionIterator{from, sourceResult, conversionFunc}
+func ConversionIterator(from Iterator, fromResultPtr interface{}, conversionFunc func(interface{}) interface{}) Iterator {
+	return &conversionIterator{from, fromResultPtr, conversionFunc}
 }
 
 type conversionIterator struct {
 	Iterator
-	SourceResultPtr interface{}
-	conversionFunc  func(interface{}) interface{}
+	FromResultPtr  interface{}
+	conversionFunc func(interface{}) interface{}
 }
 
 func (self *conversionIterator) Next(resultPtr interface{}) bool {
-	if !self.Iterator.Next(self.SourceResultPtr) {
+	if !self.Iterator.Next(self.FromResultPtr) {
 		return false
 	}
-	destinationResultPtr := self.conversionFunc(self.SourceResultPtr)
-	reflect.ValueOf(resultPtr).Elem().Set(reflect.ValueOf(destinationResultPtr).Elem())
+	reflection.AssignToResultPtr(self.conversionFunc(self.FromResultPtr), resultPtr)
 	return true
 }

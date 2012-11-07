@@ -2,6 +2,7 @@ package mongomedia
 
 import (
 	"io"
+	"strings"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -13,53 +14,104 @@ import (
 )
 
 type Backend struct {
-	GridFS                      *mgo.GridFS
-	Images                      *mongo.Collection
+	GridFS *mgo.GridFS
+	Images *mongo.Collection
+	Blobs  *mongo.Collection
+
 	imageRefCollectionSelectors map[*mongo.Collection][]string
+}
+
+func (self *Backend) Init(gridFSName string) {
+	self.GridFS = mongo.Database.GridFS(gridFSName)
+	self.Images = mongo.NewCollection(gridFSName + ".images")
+	self.Blobs = mongo.NewCollection(gridFSName + ".blobs")
+}
+
+func (self *Backend) FileWriter(filename, contentType string) (writer io.WriteCloser, id string, err error) {
+	file, err := self.GridFS.Create("")
+	if err != nil {
+		return nil, "", err
+	}
+	id = file.Id().(bson.ObjectId).Hex()
+	file.SetName(id + "/" + filename)
+	file.SetContentType(contentType)
+	return file, id, err
+}
+
+func (self *Backend) FileReader(id string) (reader io.ReadCloser, filename, contentType string, err error) {
+	file, err := self.GridFS.OpenId(bson.ObjectIdHex(id))
+	if err == mgo.ErrNotFound {
+		return nil, "", "", media.ErrNotFound(id)
+	} else if err != nil {
+		return nil, "", "", err
+	}
+	filename = id[strings.Index(id, "/")+1:]
+	return file, filename, file.ContentType(), nil
+}
+
+func (self *Backend) DeleteFile(id string) error {
+	return self.GridFS.RemoveId(bson.ObjectIdHex(id))
+}
+
+func (self *Backend) LoadBlob(id string) (*media.Blob, error) {
+	var doc BlobDoc
+	err := self.Blobs.DocumentWithID(bson.ObjectIdHex(id), &doc)
+	if err == mgo.ErrNotFound {
+		return nil, media.ErrNotFound(id)
+	} else if err != nil {
+		return nil, err
+	}
+	return &doc.Blob, nil
+}
+
+func (self *Backend) SaveBlob(blob *media.Blob) error {
+	if blob.ID == "" {
+		blob.ID.Set(bson.NewObjectId().Hex())
+	}
+	var blobDoc BlobDoc
+	blobDoc.SetObjectId(bson.ObjectIdHex(blob.ID.Get()))
+	blobDoc.Blob = *blob
+	return self.Images.InitAndSaveDocument(&blobDoc)
+}
+
+func (self *Backend) DeleteBlob(blob *media.Blob) error {
+	return self.Blobs.DeleteWithID(bson.ObjectIdHex(blob.ID.Get()))
+}
+
+func (self *Backend) BlobIterator() model.Iterator {
+	return model.ConversionIterator(
+		self.Blobs.Iterator(),
+		new(BlobDoc),
+		func(doc interface{}) interface{} {
+			return &doc.(*BlobDoc).Blob
+		},
+	)
 }
 
 func (self *Backend) LoadImage(id string) (*media.Image, error) {
 	var doc ImageDoc
 	err := self.Images.DocumentWithID(bson.ObjectIdHex(id), &doc)
-	if err != nil {
+	if err == mgo.ErrNotFound {
+		return nil, media.ErrNotFound(id)
+	} else if err != nil {
 		return nil, err
 	}
 	return doc.InitAndGetImage(), nil
 }
 
-func (self *Backend) TryLoadImage(id string) (*media.Image, bool, error) {
-	var doc ImageDoc
-	found, err := self.Images.TryDocumentWithID(bson.ObjectIdHex(id), &doc)
-	if !found {
-		return nil, found, err
-	}
-	return doc.InitAndGetImage(), true, nil
-}
-
 func (self *Backend) SaveImage(image *media.Image) error {
-	var imageDoc ImageDoc
-	imageDoc.Image = *image
-	self.Images.InitDocument(&imageDoc)
-
 	if image.ID == "" {
-		// Save to acquire an ID
-		err := imageDoc.Save()
-		if err != nil {
-			return err
-		}
-		// Set ID back at image and at imageDoc
-		image.ID.Set(imageDoc.ObjectId().Hex())
-		imageDoc.Image.ID = image.ID
-	} else {
-		imageDoc.SetObjectId(bson.ObjectIdHex(image.ID.Get()))
+		image.ID.Set(bson.NewObjectId().Hex())
 	}
-
-	return imageDoc.Save()
+	var imageDoc ImageDoc
+	imageDoc.SetObjectId(bson.ObjectIdHex(image.ID.Get()))
+	imageDoc.Image = *image
+	return self.Images.InitAndSaveDocument(&imageDoc)
 }
 
 func (self *Backend) DeleteImage(image *media.Image) error {
 	for i := range image.Versions {
-		err := self.DeleteImageVersion(image.Versions[i].ID.Get())
+		err := self.DeleteFile(image.Versions[i].ID.Get())
 		if err != nil {
 			return err
 		}
@@ -67,38 +119,24 @@ func (self *Backend) DeleteImage(image *media.Image) error {
 	return self.Images.DeleteWithID(bson.ObjectIdHex(image.ID.Get()))
 }
 
-func (self *Backend) DeleteImageVersion(id string) error {
-	return self.GridFS.RemoveId(bson.ObjectIdHex(id))
-}
-
-func (self *Backend) ImageVersionReader(id string) (reader io.ReadCloser, ctype string, err error) {
-	file, err := self.GridFS.OpenId(bson.ObjectIdHex(id))
-	if err == mgo.ErrNotFound {
-		return nil, "", media.ErrInvalidImageID(id)
-	} else if err != nil {
-		return nil, "", err
-	}
-	return file, file.ContentType(), nil
-}
-
-func (self *Backend) ImageVersionWriter(version *media.ImageVersion) (writer io.WriteCloser, err error) {
-	if version.ID != "" {
-		err = self.GridFS.RemoveId(bson.ObjectIdHex(version.ID.Get()))
-		if err != nil {
-			return nil, err
-		}
-		version.ID = ""
-	}
-	file, err := self.GridFS.Create("")
-	if err != nil {
-		return nil, err
-	}
-	id := file.Id().(bson.ObjectId).Hex()
-	file.SetName(id + "/" + version.Filename.Get())
-	file.SetMeta(version)
-	version.ID.Set(id)
-	return file, err
-}
+// func (self *Backend) ImageVersionWriter(version *media.ImageVersion) (writer io.WriteCloser, err error) {
+// 	if version.ID != "" {
+// 		err = self.GridFS.RemoveId(bson.ObjectIdHex(version.ID.Get()))
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		version.ID = ""
+// 	}
+// 	file, err := self.GridFS.Create("")
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	id := file.Id().(bson.ObjectId).Hex()
+// 	file.SetName(id + "/" + version.Filename.Get())
+// 	file.SetMeta(version)
+// 	version.ID.Set(id)
+// 	return file, err
+// }
 
 func (self *Backend) ImageIterator() model.Iterator {
 	return model.ConversionIterator(

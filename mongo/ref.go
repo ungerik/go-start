@@ -123,10 +123,6 @@ func (self *Ref) Required(metaData *model.MetaData) bool {
 	return metaData.BoolAttrib(model.StructTagKey, "required")
 }
 
-// Dummy function to implement model.Reference
-func (self *Ref) Reference() {
-}
-
 func (self *Ref) Collection() *Collection {
 	if self.CollectionName == "" {
 		panic(errs.Format("Missing collection name. Did you call mongo.Document.Init()?"))

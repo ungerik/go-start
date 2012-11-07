@@ -8,20 +8,21 @@ import (
 ///////////////////////////////////////////////////////////////////////////////
 // MongoIterator
 
-func newIterator(query Query) model.Iterator {
+func NewMongoIterator(query Query) model.Iterator {
 	mgoQuery, err := query.mongoQuery()
 	if err != nil {
 		return model.NewErrorOnlyIterator(err)
 	}
-	mgoIter := mgoQuery.Iter()
-	collection, selectors := collectionAndSubDocumentSelectors(query)
-	return &MongoIterator{collection: collection, selectors: selectors, iter: mgoIter}
+	return &MongoIterator{collection: query.Collection(), iter: mgoQuery.Iter()}
+	// mgoIter := mgoQuery.Iter()
+	// collection, selectors := collectionAndSubDocumentSelectors(query)
+	// return &MongoIterator{collection: collection, selectors: selectors, iter: mgoIter}
 }
 
 type MongoIterator struct {
 	collection *Collection
-	selectors  []string
-	iter       *mgo.Iter
+	// selectors  []string
+	iter *mgo.Iter
 }
 
 func (self *MongoIterator) Next(resultPtr interface{}) bool {

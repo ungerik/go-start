@@ -8,9 +8,9 @@ import (
 
 var ImageView = view.NewViewURLWrapper(view.RenderView(
 	func(ctx *view.Context) error {
-		reader, contentType, err := Config.Backend.ImageVersionReader(ctx.URLArgs[0])
+		reader, _, contentType, err := Config.Backend.FileReader(ctx.URLArgs[0])
 		if err != nil {
-			if _, ok := err.(ErrInvalidImageID); ok {
+			if _, ok := err.(ErrNotFound); ok {
 				return view.NotFound(ctx.URLArgs[0] + "/" + ctx.URLArgs[1] + " not found")
 			}
 			return err

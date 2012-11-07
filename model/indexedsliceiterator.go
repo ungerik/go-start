@@ -1,9 +1,8 @@
 package model
 
 import (
-	"reflect"
-
 	"github.com/ungerik/go-start/errs"
+	"github.com/ungerik/go-start/reflection"
 )
 
 func NewIndexedSliceIterator(slice []interface{}, indices []int) *IndexedSliceIterator {
@@ -25,14 +24,8 @@ func (self *IndexedSliceIterator) Next(resultPtr interface{}) bool {
 		self.err = errs.Format("Index %d from indices greater or equal than length of slice %d", self.indices[self.index], len(self.slice))
 		return false
 	}
-	v := reflect.ValueOf(self.slice[self.indices[self.index]])
+	reflection.AssignToResultPtr(self.slice[self.indices[self.index]], resultPtr)
 	self.index++
-	resultVal := reflect.ValueOf(resultPtr).Elem()
-	if resultVal.Type() == v.Type() {
-		resultVal.Set(v)
-	} else {
-		resultVal.Set(v.Elem())
-	}
 	return false
 }
 

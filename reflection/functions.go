@@ -12,6 +12,19 @@ import (
 // TypeOfError is the built-in error type
 var TypeOfError = reflect.TypeOf(func(error) {}).In(0)
 
+func GenericSlice(sliceOrArray interface{}) []interface{} {
+	v := reflect.ValueOf(sliceOrArray)
+	if v.Kind() != reflect.Slice && v.Kind() != reflect.Array {
+		panic(fmt.Errorf("Expected slice or array, got %T", sliceOrArray))
+	}
+	l := v.Len()
+	result := make([]interface{}, l)
+	for i := 0; i < l; i++ {
+		result[i] = v.Index(i).Interface()
+	}
+	return result
+}
+
 /*
 DereferenceValue recursively dereferences v if it is a pointer or interface.
 It will return ok == false if nil is encountered.
@@ -302,4 +315,31 @@ func CanStringToValueOfType(t reflect.Type) bool {
 		return true
 	}
 	return false
+}
+
+// AssignToResultPtr assigns source to resultPtr by
+// dereferencing source and resultPtr if necessary
+// to find a matching assignable type.
+// If resultPtr is a pointer to a pointer type,
+// then a new instance of that pointer type is created.
+// AssignToResultPtr is typically used for iterators with
+// a method Next(resultPtr interface{}) bool.
+func AssignToResultPtr(source, resultPtr interface{}) {
+	resultPtrVal := reflect.ValueOf(resultPtr)
+	if resultPtrVal.Kind() != reflect.Ptr {
+		panic(fmt.Errorf("reflection.AssignToResultPtr(): resultPtr must be a pointer, got %T", resultPtr))
+	}
+	resultVal := resultPtrVal.Elem()
+	if resultVal.Kind() == reflect.Ptr {
+		resultVal.Set(reflect.New(resultVal.Type().Elem()))
+		resultVal = resultVal.Elem()
+	}
+	sourceVal := reflect.ValueOf(source)
+	if sourceVal.Type() == resultVal.Type() {
+		resultVal.Set(sourceVal)
+	} else if sourceVal.Kind() == reflect.Ptr && sourceVal.Elem().Type() == resultVal.Type() {
+		resultVal.Set(sourceVal.Elem())
+	} else {
+		panic(fmt.Errorf("reflection.AssignToResultPtr(): Can't assign %T to %T", source, resultPtr))
+	}
 }

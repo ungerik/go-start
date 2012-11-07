@@ -37,7 +37,11 @@ func (self *ImageRef) TryGet() (*Image, bool, error) {
 	if self.IsEmpty() {
 		return nil, false, nil
 	}
-	return Config.Backend.TryLoadImage(self.String())
+	image, err := Config.Backend.LoadImage(self.String())
+	if _, notFound := err.(ErrNotFound); notFound {
+		return nil, false, nil
+	}
+	return image, err == nil, err
 }
 
 // SetImage sets the ID of image, or an empty reference if image is nil.

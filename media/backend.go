@@ -7,41 +7,49 @@ import (
 )
 
 type Backend interface {
+	// General file methods:
+
+	FileWriter(filename, contentType string) (writer io.WriteCloser, id string, err error)
+	// Returns ErrNotFound if no file with id is found.
+	FileReader(id string) (reader io.ReadCloser, filename, contentType string, err error)
+	// Returns ErrNotFound if no file with id is found.
+	DeleteFile(id string) error
+
+	// Blob methods:
+
+	LoadBlob(id string) (*Blob, error)
+	SaveBlob(blob *Blob) error
+	DeleteBlob(blob *Blob) error
+
+	// BlobIterator returns an iterator that iterates
+	// all blobs as Blob structs.
+	BlobIterator() model.Iterator
+
+	// Image methods:
+
+	// Returns ErrNotFound if no image with id is found.
 	LoadImage(id string) (*Image, error)
-	TryLoadImage(id string) (*Image, bool, error)
 
 	// SaveImage saves image and updates its ID if it is empty.
 	SaveImage(image *Image) error
 
 	DeleteImage(image *Image) error
-	DeleteImageVersion(id string) error
 
-	// ImageVersionReader returns an io.ReadCloser to read the image-data
-	// with the given id from the backend.
-	// If there is no image with the given id,
-	// an error of type ErrInvalidImageID will be returned.
-	ImageVersionReader(id string) (reader io.ReadCloser, ctype string, err error)
-
-	// ImageVersionWriter returns an io.WriteCloser to write the image-data
-	// to the backend. version.ID can be empty for a new image or the id
-	// of an existing image. version.ID can be changed by the function call
-	// regardless of the former value
-	ImageVersionWriter(version *ImageVersion) (writer io.WriteCloser, err error)
-
-	// ImageIterator iterates all images, use Next(*Image), not Next(**Image)
+	// ImageIterator returns an iterator that iterates
+	// all images as Image structs.
 	ImageIterator() model.Iterator
 
-	// CountImageRefs counts all ImageRef occurances with imageID
+	// CountImageRefs counts all ImageRef occurrences with imageID
 	// in all known databases.
 	CountImageRefs(imageID string) (count int, err error)
 
-	// RemoveAllImageRefs removes all ImageRef occurances with imageID
+	// RemoveAllImageRefs removes all ImageRef occurrences with imageID
 	// in all known databases.
 	RemoveAllImageRefs(imageID string) (count int, err error)
 }
 
-type ErrInvalidImageID string
+type ErrNotFound string
 
-func (self ErrInvalidImageID) Error() string {
-	return "Invalid image ID: \"" + string(self) + "\""
+func (self ErrNotFound) Error() string {
+	return "Media not found: \"" + string(self) + "\""
 }

@@ -1,6 +1,6 @@
 package model
 
-import "reflect"
+import "github.com/ungerik/go-start/reflection"
 
 func NewSliceIterator(objects ...interface{}) *SliceIterator {
 	return &SliceIterator{slice: objects}
@@ -24,14 +24,8 @@ func (self *SliceIterator) Next(resultPtr interface{}) bool {
 	if self.index >= len(self.slice) {
 		return false
 	}
-	v := reflect.ValueOf(self.slice[self.index])
+	reflection.AssignToResultPtr(self.slice[self.index], resultPtr)
 	self.index++
-	resultVal := reflect.ValueOf(resultPtr).Elem()
-	if resultVal.Type() == v.Type() {
-		resultVal.Set(v)
-	} else {
-		resultVal.Set(v.Elem())
-	}
 	return true
 }
 
