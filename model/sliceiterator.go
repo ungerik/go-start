@@ -1,9 +1,18 @@
 package model
 
-import "github.com/ungerik/go-start/reflection"
+import (
+	"fmt"
+	"reflect"
 
-func NewSliceIterator(objects ...interface{}) *SliceIterator {
-	return &SliceIterator{slice: objects}
+	"github.com/ungerik/go-start/reflection"
+)
+
+func NewSliceIterator(slice interface{}) *SliceIterator {
+	v := reflect.ValueOf(slice)
+	if v.Kind() != reflect.Slice || v.Kind() != reflect.Array {
+		panic(fmt.Errorf("Expected slice or array, got %T", slice))
+	}
+	return &SliceIterator{slice: v}
 }
 
 func NewSliceOrErrorOnlyIterator(slice interface{}, err error) Iterator {
@@ -14,17 +23,16 @@ func NewSliceOrErrorOnlyIterator(slice interface{}, err error) Iterator {
 }
 
 // SliceIterator
-// When calling Next, resultRef must be a pointer to the slice element type
 type SliceIterator struct {
-	slice []interface{}
+	slice reflect.Value
 	index int
 }
 
 func (self *SliceIterator) Next(resultRef interface{}) bool {
-	if self.index >= len(self.slice) {
+	if self.index >= self.slice.Len() {
 		return false
 	}
-	reflection.SmartCopy(self.slice[self.index], resultRef)
+	reflection.SmartCopy(self.slice.Index(self.index).Interface(), resultRef)
 	self.index++
 	return true
 }

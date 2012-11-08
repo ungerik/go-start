@@ -47,7 +47,7 @@ func (self *SortIterator) Next(resultRef interface{}) bool {
 			return false
 		}
 		utils.Sort(slice, self.LessFunc)
-		self.sliceIterator = NewSliceIterator(slice...)
+		self.sliceIterator = NewSliceIterator(slice)
 	}
 	return self.sliceIterator.Next(resultRef)
 }

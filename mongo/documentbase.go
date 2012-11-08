@@ -56,7 +56,7 @@ func (self *DocumentBase) SetObjectId(id bson.ObjectId) {
 }
 
 func (self *DocumentBase) Iterator() model.Iterator {
-	return model.NewSliceIterator(self.embeddingStruct)
+	return model.NewSingletonIterator(self.embeddingStruct)
 }
 
 func (self *DocumentBase) CreationTime() (t time.Time) {
