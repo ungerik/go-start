@@ -43,15 +43,11 @@ func DereferenceValue(v reflect.Value) (result reflect.Value, ok bool) {
 
 type MatchStructFieldFunc func(field *reflect.StructField) bool
 
-func IsExportedName(name string) bool {
-	return name != "" && unicode.IsUpper(rune(name[0]))
-}
-
 func FindFlattenedStructField(t reflect.Type, matchFunc MatchStructFieldFunc) *reflect.StructField {
 	fieldCount := t.NumField()
 	for i := 0; i < fieldCount; i++ {
 		field := t.Field(i)
-		if unicode.IsUpper(rune(field.Name[0])) {
+		if IsExportedField(field) {
 			if field.Anonymous {
 				if field.Type.Kind() == reflect.Struct {
 					result := FindFlattenedStructField(field.Type, matchFunc)
@@ -118,8 +114,8 @@ func IsDefaultValue(value interface{}) bool {
 	if value == nil {
 		return true
 	}
-	v := reflect.ValueOf(value)
-	switch v.Kind() {
+
+	switch v := reflect.ValueOf(value); v.Kind() {
 	case reflect.Ptr:
 		if v.IsNil() {
 			return true
@@ -148,44 +144,69 @@ func IsDefaultValue(value interface{}) bool {
 		return v.IsNil()
 	}
 
-	return false
+	panic(fmt.Errorf("Unknown value kind %T", value))
 }
 
-// Non nil interfaces can wrap nil values. Comparing the interface to nil, won't return if the wrapped value is nil.
-func IsDeepNil(i interface{}) bool {
+// IsNilOrWrappedNil returns if i is nil, or wraps a nil pointer
+// in a non nil interface.
+func IsNilOrWrappedNil(i interface{}) bool {
 	if i == nil {
 		return true
 	}
-	v := reflect.ValueOf(i)
-	switch v.Kind() {
+	switch v := reflect.ValueOf(i); v.Kind() {
 	case reflect.Chan, reflect.Func, reflect.Map, reflect.Slice:
 		return v.IsNil()
 	case reflect.Ptr, reflect.Interface:
-		return v.IsNil() || IsDeepNil(v.Elem().Interface())
+		return v.IsNil() || IsNilOrWrappedNil(v.Elem().Interface())
 	}
 	return false
 }
 
-func ExportedStructFields(s interface{}) map[string]interface{} {
-	result := make(map[string]interface{})
-	v := reflect.ValueOf(s)
+// ExportedStructFields returns a map of exported struct fields
+// with the field name as key and the reflect.Value as map value.
+// s can be a struct, a struct pointer or a reflect.Value of
+// a struct or struct pointer.
+func ExportedStructFields(s interface{}) map[string]reflect.Value {
+	result := make(map[string]reflect.Value)
+	v, ok := s.(reflect.Value)
+	if !ok {
+		v = reflect.ValueOf(s)
+	}
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
 	t := reflect.TypeOf(s)
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
-		if IsExportedName(field.Name) {
-			result[field.Name] = v.Field(i).Interface()
+		if IsExportedField(field) {
+			result[field.Name] = v.Field(i)
 		}
 	}
 	return result
 }
 
-func CopyExportedStructFields(src, dst interface{}) (copied int) {
+func IsExportedName(name string) bool {
+	return name != "" && unicode.IsUpper(rune(name[0]))
+}
+
+func IsExportedField(structField reflect.StructField) bool {
+	return structField.PkgPath == ""
+}
+
+// CopyExportedStructFields copies all exported struct fields from src
+// that are assignable to their name siblings at dstPtr to dstPtr.
+// src can be a struct or a pointer to a struct, dstPtr must be
+// a pointer to a struct.
+func CopyExportedStructFields(src, dstPtr interface{}) (copied int) {
 	vsrc := reflect.ValueOf(src)
-	vdst := reflect.ValueOf(dst)
+	if vsrc.Kind() == reflect.Ptr {
+		vsrc = vsrc.Elem()
+	}
+	vdst := reflect.ValueOf(dstPtr).Elem()
 	tsrc := reflect.TypeOf(src)
 	for i := 0; i < tsrc.NumField(); i++ {
 		tsrcfield := tsrc.Field(i)
-		if IsExportedName(tsrcfield.Name) {
+		if IsExportedField(tsrcfield) {
 			dstfield := vdst.FieldByName(tsrcfield.Name)
 			if dstfield.IsValid() && dstfield.CanSet() && tsrcfield.Type.AssignableTo(dstfield.Type()) {
 				dstfield.Set(vsrc.Field(i))
@@ -317,29 +338,87 @@ func CanStringToValueOfType(t reflect.Type) bool {
 	return false
 }
 
-// AssignToResultPtr assigns source to resultPtr by
-// dereferencing source and resultPtr if necessary
+// SmartCopy copies the struct or map fields from source
+// to equally named struct or map fields of resultRef,
+// by dereferencing source and resultRef if necessary
 // to find a matching assignable type.
-// If resultPtr is a pointer to a pointer type,
+// If resultRef is a pointer to a pointer type,
 // then a new instance of that pointer type is created.
-// AssignToResultPtr is typically used for iterators with
-// a method Next(resultPtr interface{}) bool.
-func AssignToResultPtr(source, resultPtr interface{}) {
-	resultPtrVal := reflect.ValueOf(resultPtr)
-	if resultPtrVal.Kind() != reflect.Ptr {
-		panic(fmt.Errorf("reflection.AssignToResultPtr(): resultPtr must be a pointer, got %T", resultPtr))
+// SmartCopy is typically used for iterators with
+// a method Next(resultRefRef interface{}) bool.
+func SmartCopy(source, resultRef interface{}) {
+	resultRefVal := reflect.ValueOf(resultRef)
+	if resultRefVal.Kind() != reflect.Ptr && resultRefVal.Kind() != reflect.Map {
+		panic(fmt.Errorf("reflection.SmartCopy(): resultRef must be a pointer or a map, got %T", resultRef))
 	}
-	resultVal := resultPtrVal.Elem()
+	var resultVal reflect.Value
+	if resultRefVal.Kind() == reflect.Ptr {
+		resultVal = resultRefVal.Elem()
+	} else {
+		resultVal = resultRefVal
+	}
 	if resultVal.Kind() == reflect.Ptr {
+		// If resultRef points to a pointer,
+		// create an instance of the pointer type
 		resultVal.Set(reflect.New(resultVal.Type().Elem()))
 		resultVal = resultVal.Elem()
 	}
-	sourceVal := reflect.ValueOf(source)
-	if sourceVal.Type() == resultVal.Type() {
-		resultVal.Set(sourceVal)
-	} else if sourceVal.Kind() == reflect.Ptr && sourceVal.Elem().Type() == resultVal.Type() {
-		resultVal.Set(sourceVal.Elem())
-	} else {
-		panic(fmt.Errorf("reflection.AssignToResultPtr(): Can't assign %T to %T", source, resultPtr))
+	if !smartCopyVals(reflect.ValueOf(source), resultVal) {
+		panic(fmt.Errorf("reflection.SmartCopy(): Can't copy %T to %T", source, resultRef))
 	}
+}
+
+func smartCopyVals(sourceVal, resultVal reflect.Value) bool {
+	switch {
+	case sourceVal.Type().AssignableTo(resultVal.Type()):
+		resultVal.Set(sourceVal)
+		return true
+
+	case sourceVal.Kind() == reflect.Ptr && sourceVal.Elem().Type().AssignableTo(resultVal.Type()):
+		smartCopyVals(sourceVal.Elem(), resultVal)
+		return true
+
+	case sourceVal.Kind() == reflect.Struct && resultVal.Kind() == reflect.Struct:
+		CopyExportedStructFields(sourceVal.Interface(), resultVal.Interface())
+		return true
+
+	case sourceVal.Kind() == reflect.Map && sourceVal.Type().Key().Kind() == reflect.String &&
+		resultVal.Kind() == reflect.Struct:
+
+		resultMap := ExportedStructFields(resultVal)
+		for _, key := range sourceVal.MapKeys() {
+			if dst, ok := resultMap[key.String()]; ok {
+				src := sourceVal.MapIndex(key)
+				if src.Type().AssignableTo(dst.Type()) {
+					dst.Set(src)
+				}
+			}
+		}
+		return true
+
+	case sourceVal.Kind() == reflect.Struct &&
+		resultVal.Kind() == reflect.Map && resultVal.Type().Key().Kind() == reflect.String:
+
+		sourceMap := ExportedStructFields(sourceVal)
+		for key, src := range sourceMap {
+			dst := resultVal.MapIndex(reflect.ValueOf(key))
+			if dst.IsValid() && src.Type().AssignableTo(dst.Type()) {
+				dst.Set(src)
+			}
+		}
+		return true
+
+	case sourceVal.Kind() == reflect.Map && sourceVal.Type().Key().Kind() == reflect.String &&
+		resultVal.Kind() == reflect.Map && resultVal.Type().Key().Kind() == reflect.String &&
+		sourceVal.Type().Elem().AssignableTo(resultVal.Type().Elem()):
+
+		for _, key := range sourceVal.MapKeys() {
+			if dst := resultVal.MapIndex(key); dst.IsValid() {
+				dst.Set(sourceVal.MapIndex(key))
+			}
+		}
+		return true
+	}
+
+	return false
 }

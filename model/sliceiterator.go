@@ -14,17 +14,17 @@ func NewSliceOrErrorOnlyIterator(slice interface{}, err error) Iterator {
 }
 
 // SliceIterator
-// When calling Next, resultPtr must be a pointer to the slice element type
+// When calling Next, resultRef must be a pointer to the slice element type
 type SliceIterator struct {
 	slice []interface{}
 	index int
 }
 
-func (self *SliceIterator) Next(resultPtr interface{}) bool {
+func (self *SliceIterator) Next(resultRef interface{}) bool {
 	if self.index >= len(self.slice) {
 		return false
 	}
-	reflection.AssignToResultPtr(self.slice[self.index], resultPtr)
+	reflection.SmartCopy(self.slice[self.index], resultRef)
 	self.index++
 	return true
 }

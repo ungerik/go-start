@@ -283,49 +283,49 @@ func (self *query_base) Or() Query {
 	return q
 }
 
-func (self *query_base) OneDocument(resultPtr interface{}) error {
+func (self *query_base) OneDocument(resultRef interface{}) error {
 	q, err := self.thisQuery.mongoQuery()
 	if err != nil {
 		return err
 	}
-	err = q.One(resultPtr)
+	err = q.One(resultRef)
 	if err != nil {
 		return err
 	}
-	// resultPtr has to be initialized again,
+	// resultRef has to be initialized again,
 	// because mgo zeros the struct while unmarshalling.
 	// Newly created slice elements need to be initialized too
-	self.Collection().InitDocument(documentFromResultPtr(resultPtr))
+	self.Collection().InitDocument(documentFromResultPtr(resultRef))
 	return nil
 }
 
-func (self *query_base) TryOneDocument(resultPtr interface{}) (found bool, err error) {
-	err = self.OneDocument(resultPtr)
+func (self *query_base) TryOneDocument(resultRef interface{}) (found bool, err error) {
+	err = self.OneDocument(resultRef)
 	if err == mgo.ErrNotFound {
 		return false, nil
 	}
 	return err == nil, err
 }
 
-func (self *query_base) OneSubDocument(selector string, resultPtr interface{}) error {
+func (self *query_base) OneSubDocument(selector string, resultRef interface{}) error {
 	q, err := self.thisQuery.mongoQuery()
 	if err != nil {
 		return err
 	}
 	q = q.Select(bson.M{selector: 1})
-	err = q.One(resultPtr)
+	err = q.One(resultRef)
 	if err != nil {
 		return err
 	}
-	// resultPtr has to be initialized again,
+	// resultRef has to be initialized again,
 	// because mgo zeros the struct while unmarshalling.
 	// Newly created slice elements need to be initialized too
-	self.Collection().InitSubDocument(resultPtr)
+	self.Collection().InitSubDocument(resultRef)
 	return nil
 }
 
-func (self *query_base) TryOneSubDocument(selector string, resultPtr interface{}) (found bool, err error) {
-	err = self.OneSubDocument(selector, resultPtr)
+func (self *query_base) TryOneSubDocument(selector string, resultRef interface{}) (found bool, err error) {
+	err = self.OneSubDocument(selector, resultRef)
 	if err == mgo.ErrNotFound {
 		return false, nil
 	}

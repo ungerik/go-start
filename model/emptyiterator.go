@@ -3,7 +3,7 @@ package model
 type EmptyIterator struct {
 }
 
-func (self *EmptyIterator) Next(resultPtr interface{}) bool {
+func (self *EmptyIterator) Next(resultRef interface{}) bool {
 	return false
 }
 

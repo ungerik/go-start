@@ -11,11 +11,11 @@ type DereferenceIterator struct {
 	err   error
 }
 
-func (self *DereferenceIterator) Next(resultPtr interface{}) bool {
+func (self *DereferenceIterator) Next(resultRef interface{}) bool {
 	if self.err != nil || self.index >= len(self.Refs) {
 		return false
 	}
-	self.err = self.Refs[self.index].Get(resultPtr)
+	self.err = self.Refs[self.index].Get(resultRef)
 	self.index++
 	return self.err == nil
 }

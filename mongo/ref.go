@@ -40,13 +40,13 @@ func (self *Ref) String() string {
 }
 
 // Returns nil and no error if the reference is empty
-func (self *Ref) Get(resultPtr interface{}) error {
-	return self.Collection().DocumentWithID(self.ID, resultPtr)
+func (self *Ref) Get(resultRef interface{}) error {
+	return self.Collection().DocumentWithID(self.ID, resultRef)
 }
 
 // Returns an error if the reference is empty
-func (self *Ref) TryGet(resultPtr interface{}) (found bool, err error) {
-	return self.Collection().TryDocumentWithID(self.ID, resultPtr)
+func (self *Ref) TryGet(resultRef interface{}) (found bool, err error) {
+	return self.Collection().TryDocumentWithID(self.ID, resultRef)
 }
 
 // nil is valid and sets the reference to empty

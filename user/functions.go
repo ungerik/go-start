@@ -44,12 +44,12 @@ func FromDocument(document interface{}) (user *User) {
 
 // Will use user.User.Username for search
 // Sets the username also as first name
-func EnsureExists(username, email, password string, admin bool, resultPtr interface{}) (exists bool, err error) {
-	exists, err = Config.Collection.Filter("Username", username).TryOneDocument(resultPtr)
+func EnsureExists(username, email, password string, admin bool, resultRef interface{}) (exists bool, err error) {
+	exists, err = Config.Collection.Filter("Username", username).TryOneDocument(resultRef)
 	if err != nil {
 		return false, err
 	}
-	user := FromDocument(resultPtr)
+	user := FromDocument(resultRef)
 
 	user.Username.Set(username)
 	user.Name.First.Set(username)
@@ -80,8 +80,8 @@ func EnsureExists(username, email, password string, admin bool, resultPtr interf
 	return exists, nil
 }
 
-func WithID(id string, resultPtr interface{}) (found bool, err error) {
-	return Config.Collection.TryDocumentWithID(bson.ObjectIdHex(id), resultPtr)
+func WithID(id string, resultRef interface{}) (found bool, err error) {
+	return Config.Collection.TryDocumentWithID(bson.ObjectIdHex(id), resultRef)
 }
 
 func IsConfirmedUserID(id string) (confirmed bool, err error) {
@@ -96,9 +96,9 @@ func IsConfirmedUserID(id string) (confirmed bool, err error) {
 ///////////////////////////////////////////////////////////////////////////////
 // Email functions
 
-func WithEmail(addr string, resultPtr interface{}) (found bool, err error) {
+func WithEmail(addr string, resultRef interface{}) (found bool, err error) {
 	query := Config.Collection.FilterEqualCaseInsensitive("Email.Address", strings.TrimSpace(addr))
-	return query.TryOneDocument(resultPtr)
+	return query.TryOneDocument(resultRef)
 }
 
 func ConfirmEmail(confirmationCode string) (userID, email string, confirmed bool, err error) {
@@ -147,6 +147,8 @@ func LoggedIn(session *view.Session) bool {
 }
 
 func LoginEmailPassword(session *view.Session, email, password string) (emailPasswdMatch bool, err error) {
+	// todo: throttle login attempts from same IP or same user to 1 per second, double delay after a few attempts
+	// todo: log bad login frequency to detect attacks
 	email = strings.TrimSpace(email)
 	var user User
 	found, err := WithEmail(email, &user)
@@ -160,10 +162,10 @@ func LoginEmailPassword(session *view.Session, email, password string) (emailPas
 	return true, nil
 }
 
-func OfSession(session *view.Session, resultPtr interface{}) (found bool, err error) {
+func OfSession(session *view.Session, resultRef interface{}) (found bool, err error) {
 	id := session.ID()
 	if id == "" {
 		return false, nil
 	}
-	return WithID(id, resultPtr)
+	return WithID(id, resultRef)
 }

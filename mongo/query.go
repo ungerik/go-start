@@ -66,11 +66,11 @@ type Query interface {
 	Explain() string
 
 	// Read
-	OneDocument(resultPtr interface{}) error
-	TryOneDocument(resultPtr interface{}) (found bool, err error)
+	OneDocument(resultRef interface{}) error
+	TryOneDocument(resultRef interface{}) (found bool, err error)
 
-	OneSubDocument(selector string, resultPtr interface{}) error
-	TryOneSubDocument(selector string, resultPtr interface{}) (found bool, err error)
+	OneSubDocument(selector string, resultRef interface{}) error
+	TryOneSubDocument(selector string, resultRef interface{}) (found bool, err error)
 
 	Iterator() model.Iterator
 

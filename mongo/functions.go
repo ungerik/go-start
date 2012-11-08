@@ -24,14 +24,14 @@ import (
 // 	return nil
 // }
 
-func documentFromResultPtr(resultPtr interface{}) Document {
-	if resultPtr == nil {
+func documentFromResultPtr(resultRef interface{}) Document {
+	if resultRef == nil {
 		return nil
 	}
-	if doc, ok := resultPtr.(Document); ok {
+	if doc, ok := resultRef.(Document); ok {
 		return doc
 	}
-	result := reflect.ValueOf(resultPtr).Elem().Interface()
+	result := reflect.ValueOf(resultRef).Elem().Interface()
 	return result.(Document)
 }
 

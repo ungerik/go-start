@@ -13,10 +13,10 @@ type LimitedIterator struct {
 	index int
 }
 
-func (self *LimitedIterator) Next(resultPtr interface{}) bool {
+func (self *LimitedIterator) Next(resultRef interface{}) bool {
 	if self.index >= self.limit {
 		return false
 	}
 	self.index++
-	return self.Iterator.Next(resultPtr)
+	return self.Iterator.Next(resultRef)
 }

@@ -16,7 +16,7 @@ type IndexedSliceIterator struct {
 	err     error
 }
 
-func (self *IndexedSliceIterator) Next(resultPtr interface{}) bool {
+func (self *IndexedSliceIterator) Next(resultRef interface{}) bool {
 	if self.err != nil || self.index >= len(self.indices) {
 		return false
 	}
@@ -24,7 +24,7 @@ func (self *IndexedSliceIterator) Next(resultPtr interface{}) bool {
 		self.err = errs.Format("Index %d from indices greater or equal than length of slice %d", self.indices[self.index], len(self.slice))
 		return false
 	}
-	reflection.AssignToResultPtr(self.slice[self.indices[self.index]], resultPtr)
+	reflection.SmartCopy(self.slice[self.indices[self.index]], resultRef)
 	self.index++
 	return false
 }

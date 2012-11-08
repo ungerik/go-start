@@ -46,7 +46,7 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 	if self.Name != "" && !PathFragmentRegexp.MatchString(self.Name) {
 		panic("Invalid characters in view.ViewPath.Name: " + self.Name)
 	}
-	if self.View != nil && reflection.IsDeepNil(self.View) {
+	if self.View != nil && reflection.IsNilOrWrappedNil(self.View) {
 		panic("Nil value wrapped with non nil view.View under parentPath: " + parentPath)
 	}
 

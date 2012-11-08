@@ -179,19 +179,19 @@ func (self *QueryError) Explain() string {
 	return self.Err.Error()
 }
 
-func (self *QueryError) OneDocument(resultPtr interface{}) error {
+func (self *QueryError) OneDocument(resultRef interface{}) error {
 	return self.Err
 }
 
-func (self *QueryError) TryOneDocument(resultPtr interface{}) (found bool, err error) {
+func (self *QueryError) TryOneDocument(resultRef interface{}) (found bool, err error) {
 	return false, self.Err
 }
 
-func (self *QueryError) OneSubDocument(selector string, resultPtr interface{}) error {
+func (self *QueryError) OneSubDocument(selector string, resultRef interface{}) error {
 	return self.Err
 }
 
-func (self *QueryError) TryOneSubDocument(selector string, resultPtr interface{}) (found bool, err error) {
+func (self *QueryError) TryOneSubDocument(selector string, resultRef interface{}) (found bool, err error) {
 	return false, self.Err
 }
 

@@ -22,16 +22,16 @@ type RandomIterator struct {
 	indexedSliceIterator *IndexedSliceIterator
 }
 
-func (self *RandomIterator) Next(resultPtr interface{}) bool {
+func (self *RandomIterator) Next(resultRef interface{}) bool {
 	if self.Err() != nil {
 		return false
 	}
 	if self.indexedSliceIterator == nil {
-		resultType := reflect.ValueOf(resultPtr).Elem().Type()
+		resultType := reflect.ValueOf(resultRef).Elem().Type()
 		resultKind := resultType.Kind()
 		slice := []interface{}{}
-		for self.Iterator.Next(resultPtr) {
-			resultVal := reflect.ValueOf(resultPtr).Elem()
+		for self.Iterator.Next(resultRef) {
+			resultVal := reflect.ValueOf(resultRef).Elem()
 			if resultKind == reflect.Struct {
 				resultCopy := reflect.New(resultType)
 				resultCopy.Elem().Set(resultVal)
@@ -47,5 +47,5 @@ func (self *RandomIterator) Next(resultPtr interface{}) bool {
 		indices := r.Perm(len(slice))
 		self.indexedSliceIterator = NewIndexedSliceIterator(slice, indices)
 	}
-	return self.indexedSliceIterator.Next(resultPtr)
+	return self.indexedSliceIterator.Next(resultRef)
 }

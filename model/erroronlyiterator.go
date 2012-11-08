@@ -8,7 +8,7 @@ type ErrorOnlyIterator struct {
 	err error
 }
 
-func (self *ErrorOnlyIterator) Next(resultPtr interface{}) bool {
+func (self *ErrorOnlyIterator) Next(resultRef interface{}) bool {
 	return false
 }
 

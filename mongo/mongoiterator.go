@@ -25,17 +25,17 @@ type MongoIterator struct {
 	iter *mgo.Iter
 }
 
-func (self *MongoIterator) Next(resultPtr interface{}) bool {
+func (self *MongoIterator) Next(resultRef interface{}) bool {
 	if self.iter.Err() != nil {
 		return false
 	}
-	if !self.iter.Next(resultPtr) {
+	if !self.iter.Next(resultRef) {
 		return false
 	}
-	// resultPtr has to be initialized again,
+	// resultRef has to be initialized again,
 	// because mgo zeros the struct while unmarshalling.
 	// Newly created slice elements need to be initialized too
-	self.collection.InitDocument(documentFromResultPtr(resultPtr))
+	self.collection.InitDocument(documentFromResultPtr(resultRef))
 	return true
 }
 

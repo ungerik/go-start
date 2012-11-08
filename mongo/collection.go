@@ -159,61 +159,61 @@ func (self *Collection) logIdNotFoundError(id bson.ObjectId) {
 	debug.LogCallStack()
 }
 
-func (self *Collection) documentWithID(id bson.ObjectId, resultPtr interface{}) error {
+func (self *Collection) documentWithID(id bson.ObjectId, resultRef interface{}) error {
 	if id == "" {
 		return errs.Format("mongo.Collection %s: Can't get document with empty id", self.Name)
 	}
 	self.checkDBConnection()
 	q := self.collection.FindId(id)
-	err := q.One(resultPtr)
+	err := q.One(resultRef)
 	if err != nil {
 		return err
 	}
-	// resultPtr has to be initialized again,
+	// resultRef has to be initialized again,
 	// because mgo zeros the struct while unmarshalling.
 	// Newly created slice elements need to be initialized too
-	self.InitDocument(documentFromResultPtr(resultPtr))
+	self.InitDocument(documentFromResultPtr(resultRef))
 	return nil
 }
 
-func (self *Collection) DocumentWithID(id bson.ObjectId, resultPtr interface{}) error {
-	err := self.documentWithID(id, resultPtr)
+func (self *Collection) DocumentWithID(id bson.ObjectId, resultRef interface{}) error {
+	err := self.documentWithID(id, resultRef)
 	if err == mgo.ErrNotFound {
 		self.logIdNotFoundError(id)
 	}
 	return err
 }
 
-func (self *Collection) TryDocumentWithID(id bson.ObjectId, resultPtr interface{}) (found bool, err error) {
+func (self *Collection) TryDocumentWithID(id bson.ObjectId, resultRef interface{}) (found bool, err error) {
 	if id == "" {
 		return false, nil
 	}
-	err = self.documentWithID(id, resultPtr)
+	err = self.documentWithID(id, resultRef)
 	if err == mgo.ErrNotFound {
 		return false, nil
 	}
 	return err == nil, err
 }
 
-func (self *Collection) SubDocumentWithID(id bson.ObjectId, selector string, resultPtr interface{}) error {
+func (self *Collection) SubDocumentWithID(id bson.ObjectId, selector string, resultRef interface{}) error {
 	if id == "" {
 		return errs.Format("mongo.Collection %s: Can't get document with empty id", self.Name)
 	}
 	self.checkDBConnection()
 	q := self.collection.FindId(id).Select(bson.M{selector: 1})
-	err := q.One(resultPtr)
+	err := q.One(resultRef)
 	if err != nil {
 		return err
 	}
-	// resultPtr has to be initialized again,
+	// resultRef has to be initialized again,
 	// because mgo zeros the struct while unmarshalling.
 	// Newly created slice elements need to be initialized too
-	self.InitSubDocument(resultPtr)
+	self.InitSubDocument(resultRef)
 	return nil
 }
 
-func (self *Collection) TrySubDocumentWithID(id bson.ObjectId, selector string, resultPtr interface{}) (found bool, err error) {
-	err = self.SubDocumentWithID(id, selector, resultPtr)
+func (self *Collection) TrySubDocumentWithID(id bson.ObjectId, selector string, resultRef interface{}) (found bool, err error) {
+	err = self.SubDocumentWithID(id, selector, resultRef)
 	if err == mgo.ErrNotFound {
 		return false, nil
 	}
@@ -231,11 +231,11 @@ type documentWithIDIterator struct {
 	nextCalled bool
 }
 
-func (self *documentWithIDIterator) Next(resultPtr interface{}) (ok bool) {
+func (self *documentWithIDIterator) Next(resultRef interface{}) (ok bool) {
 	if self.nextCalled {
 		return false
 	}
-	self.err = self.collection.DocumentWithID(self.id, resultPtr)
+	self.err = self.collection.DocumentWithID(self.id, resultRef)
 	self.nextCalled = true
 	return self.err == nil
 }
@@ -251,11 +251,11 @@ type tryDocumentWithIDIterator struct {
 	nextCalled bool
 }
 
-func (self *tryDocumentWithIDIterator) Next(resultPtr interface{}) (ok bool) {
+func (self *tryDocumentWithIDIterator) Next(resultRef interface{}) (ok bool) {
 	if self.nextCalled {
 		return false
 	}
-	ok, self.err = self.collection.TryDocumentWithID(self.id, resultPtr)
+	ok, self.err = self.collection.TryDocumentWithID(self.id, resultRef)
 	self.nextCalled = true
 	return ok
 }

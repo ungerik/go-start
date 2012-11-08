@@ -15,10 +15,10 @@ type conversionIterator struct {
 	conversionFunc func(interface{}) interface{}
 }
 
-func (self *conversionIterator) Next(resultPtr interface{}) bool {
+func (self *conversionIterator) Next(resultRef interface{}) bool {
 	if !self.Iterator.Next(self.FromResultPtr) {
 		return false
 	}
-	reflection.AssignToResultPtr(self.conversionFunc(self.FromResultPtr), resultPtr)
+	reflection.SmartCopy(self.conversionFunc(self.FromResultPtr), resultRef)
 	return true
 }

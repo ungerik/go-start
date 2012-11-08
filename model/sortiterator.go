@@ -25,16 +25,16 @@ type SortIterator struct {
 	sliceIterator *SliceIterator
 }
 
-func (self *SortIterator) Next(resultPtr interface{}) bool {
+func (self *SortIterator) Next(resultRef interface{}) bool {
 	if self.Err() != nil {
 		return false
 	}
 	if self.sliceIterator == nil {
-		resultType := reflect.ValueOf(resultPtr).Elem().Type()
+		resultType := reflect.ValueOf(resultRef).Elem().Type()
 		resultKind := resultType.Kind()
 		slice := []interface{}{}
-		for self.Iterator.Next(resultPtr) {
-			resultVal := reflect.ValueOf(resultPtr).Elem()
+		for self.Iterator.Next(resultRef) {
+			resultVal := reflect.ValueOf(resultRef).Elem()
 			if resultKind == reflect.Struct {
 				resultCopy := reflect.New(resultType)
 				resultCopy.Elem().Set(resultVal)
@@ -49,5 +49,5 @@ func (self *SortIterator) Next(resultPtr interface{}) bool {
 		utils.Sort(slice, self.LessFunc)
 		self.sliceIterator = NewSliceIterator(slice...)
 	}
-	return self.sliceIterator.Next(resultPtr)
+	return self.sliceIterator.Next(resultRef)
 }

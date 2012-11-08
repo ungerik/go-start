@@ -4,11 +4,11 @@ import (
 	"testing"
 )
 
-func Test_AssignToResultPtr(t *testing.T) {
+func Test_SmartCopy(t *testing.T) {
 	{
 		src := 1
 		dst := 0
-		AssignToResultPtr(src, &dst)
+		SmartCopy(src, &dst)
 		if dst != 1 {
 			t.Fail()
 		}
@@ -17,7 +17,7 @@ func Test_AssignToResultPtr(t *testing.T) {
 	{
 		src := 1
 		var dst *int
-		AssignToResultPtr(src, &dst)
+		SmartCopy(src, &dst)
 		if dst == nil || *dst != 1 {
 			t.Fail()
 		}
@@ -27,7 +27,7 @@ func Test_AssignToResultPtr(t *testing.T) {
 		src := new(int)
 		*src = 1
 		var dst *int
-		AssignToResultPtr(src, &dst)
+		SmartCopy(src, &dst)
 		if dst == nil || *dst != 1 {
 			t.Fail()
 		}
@@ -37,7 +37,7 @@ func Test_AssignToResultPtr(t *testing.T) {
 		src := new(int)
 		*src = 1
 		dst := 0
-		AssignToResultPtr(src, &dst)
+		SmartCopy(src, &dst)
 		if dst != 1 {
 			t.Fail()
 		}

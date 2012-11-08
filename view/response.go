@@ -94,6 +94,7 @@ func (self *Response) Bytes() []byte {
 
 func (self *Response) SetSecureCookie(name string, val string, age int64, path string) {
 	self.webContext.SetSecureCookie(name, val, age, path)
+	/// todo: ";HttpOnly"
 }
 
 func (self *Response) Abort(status int, body string) {

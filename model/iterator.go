@@ -10,7 +10,7 @@ import (
 
 // Iteration stops with Next() == nil, check Err() afterwards
 type Iterator interface {
-	Next(resultPtr interface{}) bool
+	Next(resultRef interface{}) bool
 	Err() error
 }
 
