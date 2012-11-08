@@ -29,7 +29,7 @@ func (self *RandomIterator) Next(resultRef interface{}) bool {
 	if self.indexedSliceIterator == nil {
 		resultType := reflect.ValueOf(resultRef).Elem().Type()
 		resultKind := resultType.Kind()
-		slice := []interface{}{}
+		slice := make([]interface{}, 0, 16)
 		for self.Iterator.Next(resultRef) {
 			resultVal := reflect.ValueOf(resultRef).Elem()
 			if resultKind == reflect.Struct {

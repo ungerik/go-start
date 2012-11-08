@@ -10,7 +10,7 @@ import (
 
 func NewIndexedSliceIterator(slice interface{}, indices []int) *IndexedSliceIterator {
 	v := reflect.ValueOf(slice)
-	if v.Kind() != reflect.Slice || v.Kind() != reflect.Array {
+	if v.Kind() != reflect.Slice && v.Kind() != reflect.Array {
 		panic(fmt.Errorf("Expected slice or array, got %T", slice))
 	}
 	return &IndexedSliceIterator{slice: v, indices: indices}
