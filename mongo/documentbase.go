@@ -6,7 +6,7 @@ import (
 
 	"labix.org/v2/mgo/bson"
 
-	"github.com/ungerik/go-start/debug"
+	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/model"
 )
@@ -74,30 +74,18 @@ func (self *DocumentBase) Save() (err error) {
 	if self.embeddingStruct == nil {
 		return errs.Format("Can't save uninitialized mongo.Document. embeddingStruct is nil.")
 	}
-	// if self.ID.Valid() {
-	// 	err = self.collection.collection.UpdateId(self.ID, self.embeddingStruct)
-	// } else {
-	// 	self.ID = bson.NewObjectId()
-	// 	err = self.collection.collection.Insert(self.embeddingStruct)
-	// }
-	// if err == nil {
-	// 	n, err := self.collection.FilterID(self.ID).Count()
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	if n != 1 {
-	// 		// panic("Something went wrong with saving")
-	// 		debug.Print("Something went wrong with saving")
-	// 	}
-	// }
+	if !self.ID.Valid() {
+		self.ID = bson.NewObjectId()
+	}
 	info, err := self.collection.collection.UpsertId(self.ID, self.embeddingStruct)
 	if err != nil {
 		return err
 	}
 	if info.UpsertedId != nil {
-		self.ID = info.UpsertedId.(bson.ObjectId)
+		if info.UpsertedId.(bson.ObjectId) != self.ID {
+			return errs.Format("Something went wrong with saving")
+		}
 	} else if info.Updated != 1 {
-		debug.Nop()
 		return errs.Format("Something went wrong with saving")
 	}
 	return nil
