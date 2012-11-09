@@ -16,17 +16,7 @@ import (
 	"unicode/utf8"
 
 	// "github.com/ungerik/go-start/debug"
-	"github.com/ungerik/go-start/view"
 )
-
-// ViewPath returns the view.ViewPath for all media URLs.
-func ViewPath(name string) view.ViewPath {
-	return view.ViewPath{Name: name, Sub: []view.ViewPath{
-		{Name: "image", Args: 2, View: ImageView},
-		{Name: "upload-image", Args: 1, View: UploadImage},
-		{Name: "thumbnails.json", Args: 1, View: AllThumbnailsAPI},
-	}}
-}
 
 // MakePrettyUrlFilename modifies a filename so it looks good as part on an URL.
 func MakePrettyUrlFilename(filename string) string {

@@ -55,7 +55,6 @@ func NewLoginForm(buttonText, class, errorMessageClass, successMessageClass stri
 				SubmitButtonText:    buttonText,
 				FormID:              "gostart_user_login",
 				GetModel:            view.FormModel(model),
-				Redirect:            redirectURL,
 				OnSubmit: func(form *view.Form, formModel interface{}, ctx *view.Context) (string, view.URL, error) {
 					m := formModel.(*LoginFormModel)
 					ok, err := LoginEmailPassword(ctx.Session, m.Email.Get(), m.Password.Get())
@@ -69,7 +68,7 @@ func NewLoginForm(buttonText, class, errorMessageClass, successMessageClass stri
 					if !ok {
 						return "", nil, errors.New("Wrong email and password combination")
 					}
-					return "", nil, nil
+					return "", redirectURL, nil
 				},
 			}
 			return form, nil
@@ -102,7 +101,6 @@ func NewSignupForm(buttonText, class, errorMessageClass, successMessageClass str
 		GetModel: func(form *view.Form, ctx *view.Context) (interface{}, error) {
 			return &EmailPasswordFormModel{}, nil
 		},
-		Redirect: redirectURL,
 		OnSubmit: func(form *view.Form, formModel interface{}, ctx *view.Context) (string, view.URL, error) {
 			m := formModel.(*EmailPasswordFormModel)
 			email := m.Email.Get()
@@ -128,7 +126,7 @@ func NewSignupForm(buttonText, class, errorMessageClass, successMessageClass str
 			if err != nil {
 				return "", nil, err
 			}
-			return "", nil, Config.Collection.UpdateSubDocumentWithID(user.ID, "", &user)
+			return "", redirectURL, Config.Collection.UpdateSubDocumentWithID(user.ID, "", &user)
 		},
 	}
 }

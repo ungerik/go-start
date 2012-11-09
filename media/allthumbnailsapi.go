@@ -23,7 +23,7 @@ var AllThumbnailsAPI = view.NewViewURLWrapper(view.RenderViewBindURLArgs(
 			}
 			ctx.Response.Printf(
 				`{"id": "%s", "title": "%s", "url": "%s"}`,
-				image.ID, image.TitleOrFilename(), thumbnail.GetURL().URL(ctx),
+				image.ID, image.TitleOrFilename(), thumbnail.FileURL().URL(ctx),
 			)
 		}
 		if i.Err() != nil {

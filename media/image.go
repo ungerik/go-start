@@ -2,6 +2,7 @@ package media
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
@@ -117,6 +118,9 @@ func (self *Image) Init() {
 }
 
 func (self *Image) Save() error {
+	if len(self.Versions) == 0 {
+		return fmt.Errorf("Trying to save an Image without an original version, soemthing went wrong\n%v", self)
+	}
 	return Config.Backend.SaveImage(self)
 }
 
@@ -188,8 +192,8 @@ func (self *Image) Grayscale() bool {
 	return self.Versions[0].Grayscale.Get()
 }
 
-func (self *Image) GetURL() view.URL {
-	return self.Versions[0].GetURL()
+func (self *Image) FileURL() view.URL {
+	return self.Versions[0].FileURL()
 }
 
 // AspectRatio returns Width / Height

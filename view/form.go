@@ -234,8 +234,8 @@ type Form struct {
 	/*
 		OnSubmit is called after the form was submitted by the user
 		and did not contain any validation errors.
-		If the OnSubmit result err is nil and the redirect result or Form.Redirect
-		is not nil, then a HTTP redirect will be issued.
+		If the OnSubmit result err is nil and the redirect result
+		is not nil, then a HTTP 302 redirect will be issued.
 		Else if the OnSubmit result message is not empty, it will be displayed
 		in the form regardless of the result err.
 		If the results message and err are nil, then Form.SuccessMessage
@@ -271,7 +271,6 @@ type Form struct {
 	SubmitButtonText         string
 	SubmitButtonClass        string
 	SubmitButtonConfirm      string // Will add a confirmation dialog for onclick
-	Redirect                 URL    // 302 redirect after successful OnSubmit()
 	ShowRefIDs               bool
 	Enctype                  string
 }
@@ -351,9 +350,6 @@ func (self *Form) Render(ctx *Context) (err error) {
 	if isPost && len(fieldValidationErrors) == 0 && len(generalValidationErrors) == 0 {
 		message, redirect, err := self.OnSubmit(self, formModel, ctx)
 		if err == nil {
-			if redirect == nil {
-				redirect = self.Redirect
-			}
 			if redirect != nil {
 				return Redirect(redirect.URL(ctx))
 			}
@@ -877,6 +873,21 @@ func OnFormSubmitSaveModel(form *Form, formModel interface{}, ctx *Context) (msg
 		}
 	}
 	return msg, nil, err
+}
+
+func OnFormSubmitSaveModelAndRedirect(redirectURL URL) OnFormSubmitFunc {
+	return func(form *Form, formModel interface{}, ctx *Context) (msg string, url URL, err error) {
+		err = formModel.(mongo.Document).Save()
+		if err != nil {
+			config.Logger.Println(err)
+			debug.LogCallStack()
+			msg = "An error occured while saving the form data"
+			if Config.Debug.Mode {
+				msg += ": " + err.Error()
+			}
+		}
+		return msg, redirectURL, err
+	}
 }
 
 // OnFormSubmit wraps onSubmitFunc as a OnFormSubmitFunc with the

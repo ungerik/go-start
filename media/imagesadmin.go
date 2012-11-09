@@ -16,7 +16,7 @@ type imageData struct {
 
 func ImagesAdmin() view.View {
 	return view.Views{
-		UploadImageButton("", "", Config.ImagesAdmin.ThumbnailSize, "function(){window.location.reload()}"),
+		UploadImageButton("", "", Config.Admin.ThumbnailSize, "function(){window.location.reload()}"),
 		&view.ModelIteratorView{
 			GetModelIterator: func(ctx *view.Context) model.Iterator {
 				return Config.Backend.ImageIterator()
@@ -30,7 +30,7 @@ func ImagesAdmin() view.View {
 				if err != nil {
 					return nil, err
 				}
-				thumbnail, err := image.Thumbnail(Config.ImagesAdmin.ThumbnailSize)
+				thumbnail, err := image.Thumbnail(Config.Admin.ThumbnailSize)
 				if err != nil {
 					return nil, err
 				}
@@ -38,18 +38,18 @@ func ImagesAdmin() view.View {
 				if refCount > 0 {
 					deleteConfirmation += fmt.Sprintf(" It is used %d times!", refCount)
 				}
-				editor := view.DIV(Config.ImagesAdmin.ImageEditorClass,
+				editor := view.DIV(Config.Admin.ImageEditorClass,
 					view.H3(image.TitleOrFilename()),
 					view.P(
-						view.A_blank(image.GetURL(), "Link to original"),
+						view.A_blank(image.FileURL(), "Link to original"),
 						view.Printf(" | Used %d times", refCount),
 					),
-					view.DIV(Config.ImagesAdmin.ThumbnailFrameClass,
+					view.DIV(Config.Admin.ThumbnailFrameClass,
 						thumbnail.View(""),
 					),
 					&view.Form{
 						FormID:            "edit" + image.ID.Get(),
-						SubmitButtonClass: Config.ImagesAdmin.ButtonClass,
+						SubmitButtonClass: Config.Admin.ButtonClass,
 						GetModel: func(form *view.Form, ctx *view.Context) (interface{}, error) {
 							return &imageData{
 								Title:    image.Title,
@@ -71,15 +71,14 @@ func ImagesAdmin() view.View {
 					&view.Form{
 						SubmitButtonText:    "Delete",
 						SubmitButtonConfirm: deleteConfirmation,
-						SubmitButtonClass:   Config.ImagesAdmin.ButtonClass,
+						SubmitButtonClass:   Config.Admin.ButtonClass,
 						FormID:              "delete" + image.ID.Get(),
-						Redirect:            view.StringURL("."),
 						OnSubmit: func(form *view.Form, formModel interface{}, ctx *view.Context) (message string, redirect view.URL, err error) {
-							// _, err = image.RemoveAllRefs()
-							// if err != nil {
-							// 	return "", nil, err
-							// }
-							return "", nil, image.Delete()
+							_, err = image.RemoveAllRefs()
+							if err != nil {
+								return "", nil, err
+							}
+							return "", view.StringURL("."), image.Delete()
 						},
 					},
 					view.DivClearBoth(),

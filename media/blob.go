@@ -8,6 +8,7 @@ import (
 	"path"
 
 	"github.com/ungerik/go-start/model"
+	"github.com/ungerik/go-start/view"
 )
 
 func NewBlob(filename string, data []byte) (*Blob, error) {
@@ -61,6 +62,21 @@ func (self *Blob) TitleOrFilename() string {
 		return self.Filename.Get()
 	}
 	return self.Title.Get()
+}
+
+func (self *Blob) FileURL() view.URL {
+	return view.NewURLWithArgs(FileView, self.ID.Get(), self.Filename.Get())
+}
+
+func (self *Blob) FileLink(class string) *view.Link {
+	return &view.Link{
+		Model: &view.URLLink{
+			Url:     self.FileURL(),
+			Title:   self.TitleOrFilename(),
+			Content: view.HTML(self.Filename.Get()),
+		},
+		Class: class,
+	}
 }
 
 func (self *Blob) Save() error {

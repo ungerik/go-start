@@ -22,8 +22,8 @@ type ImageVersion struct {
 	Grayscale    model.Bool
 }
 
-func (self *ImageVersion) GetURL() view.URL {
-	return view.NewURLWithArgs(ImageView, self.ID.Get(), self.Filename.Get())
+func (self *ImageVersion) FileURL() view.URL {
+	return view.NewURLWithArgs(FileView, self.ID.Get(), self.Filename.Get())
 }
 
 // AspectRatio returns Width / Height
@@ -91,10 +91,10 @@ func (self *ImageVersion) LoadImage() (image.Image, error) {
 
 func (self *ImageVersion) View(class string) *view.Image {
 	return &view.Image{
-		URL:    self.GetURL(),
+		URL:    self.FileURL(),
 		Width:  self.Width.GetInt(),
 		Height: self.Height.GetInt(),
-		Title:  self.image.Title.Get(),
+		Title:  self.image.TitleOrFilename(),
 		Class:  class,
 	}
 }
@@ -103,7 +103,7 @@ func (self *ImageVersion) LinkedView(imageClass, linkClass string) *view.Link {
 	return &view.Link{
 		Model: &view.StringLink{
 			Url:     self.image.Link.Get(),
-			Title:   self.image.Title.Get(),
+			Title:   self.image.TitleOrFilename(),
 			Content: self.View(imageClass),
 		},
 		Class: linkClass,

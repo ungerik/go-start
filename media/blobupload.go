@@ -3,13 +3,12 @@ package media
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 
 	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/view"
 )
 
-var UploadImage = view.NewViewURLWrapper(view.RenderViewBindURLArgs(
+var UploadBlob = view.NewViewURLWrapper(view.RenderViewBindURLArgs(
 	func(ctx *view.Context, thumbnailSize int) error {
 		formatError := func(err error) error {
 			return fmt.Errorf(`{success: false, error: "%s"}`, err.Error())
@@ -28,27 +27,18 @@ var UploadImage = view.NewViewURLWrapper(view.RenderViewBindURLArgs(
 			r = f
 		}
 		defer r.Close()
-		// debug.Print("UploadImage", filename, thumbnailSize)
-		b, err := ioutil.ReadAll(r)
-		if err != nil {
-			return formatError(err)
-		}
-		i, err := NewImage(filename, b)
-		if err != nil {
-			return formatError(err)
-		}
-		v, err := i.Thumbnail(thumbnailSize)
+		blob, err := NewBlobFromReader(filename, r)
 		if err != nil {
 			return formatError(err)
 		}
 
-		ctx.Response.Printf(`{success: true, imageID: "%s", thumbnailURL: "%s", thumbnailSize: %d}`, i.ID, v.GetURL().URL(ctx), thumbnailSize)
+		ctx.Response.Printf(`{success: true, blobID: "%s"}`, blob.ID)
 		return nil
 	},
 ))
 
 // todo move to media.js
-func uploadImageButtonScript(ctx *view.Context, parentSelector, dropZoneSelector, listSelector string, thumbnailSize int, onComplete string) string {
+func uploadBlobButtonScript(ctx *view.Context, parentSelector, dropZoneSelector, listSelector, onComplete string) string {
 	extraDropzones := "[]"
 	if dropZoneSelector != "" {
 		dropZoneSelector = fmt.Sprintf(`[jQuery("%s")[0]]`, dropZoneSelector)
@@ -60,7 +50,6 @@ func uploadImageButtonScript(ctx *view.Context, parentSelector, dropZoneSelector
 	if onComplete == "" {
 		onComplete = "function(){}"
 	}
-	uploadURL := UploadImage.URL(ctx.ForURLArgsConvert(thumbnailSize))
 	return fmt.Sprintf(
 		`jQuery(function() {
 			var uploader = new qq.FileUploader({
@@ -69,8 +58,6 @@ func uploadImageButtonScript(ctx *view.Context, parentSelector, dropZoneSelector
 			    extraDropzones: %s,
 			    listElement: %s,
 			    action: "%s",
-			    allowedExtensions: ["png", "jpg", "jpeg", "gif", "bmp", "tif", "tiff"],
-			    acceptFiles: ["image/png", "image/jpeg", "image/gif", "image/bmp", "image/tiff"],
 			    sizeLimit: 1024*1024*64,
 			    multiple: false,
 			    onComplete: %s
@@ -79,16 +66,16 @@ func uploadImageButtonScript(ctx *view.Context, parentSelector, dropZoneSelector
 		parentSelector,
 		extraDropzones,
 		listElement,
-		uploadURL,
+		UploadBlob.URL(ctx),
 		onComplete,
 	)
 }
 
 // Uses https://github.com/valums/file-uploader
-func RequireUploadImageButtonScript(parentSelector, dropZoneSelector, listSelector string, thumbnailSize int, onComplete string) view.View {
+func RequireUploadBlobButtonScript(parentSelector, dropZoneSelector, listSelector, onComplete string) view.View {
 	return view.RenderView(
 		func(ctx *view.Context) error {
-			script := uploadImageButtonScript(ctx, parentSelector, dropZoneSelector, listSelector, thumbnailSize, onComplete)
+			script := uploadBlobButtonScript(ctx, parentSelector, dropZoneSelector, listSelector, onComplete)
 			ctx.Response.RequireScript(script, 20)
 			if !Config.NoDynamicStyleAndScript {
 				ctx.Response.RequireStyleURL("/media/fileuploader.css", 0)
@@ -99,11 +86,11 @@ func RequireUploadImageButtonScript(parentSelector, dropZoneSelector, listSelect
 	)
 }
 
-func UploadImageButton(dropZoneSelector, listSelector string, thumbnailSize int, onComplete string) view.View {
+func UploadBlobButton(dropZoneSelector, listSelector, onComplete string) view.View {
 	var button view.Div
 	button.Content = view.Views{
 		view.H1("jQuery required!"),
-		RequireUploadImageButtonScript("#"+button.ID(), dropZoneSelector, listSelector, thumbnailSize, onComplete),
+		RequireUploadBlobButtonScript("#"+button.ID(), dropZoneSelector, listSelector, onComplete),
 	}
 	return &button
 }

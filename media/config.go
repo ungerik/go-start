@@ -14,7 +14,7 @@ http://deepliquid.com/content/Jcrop.html
 
 var Config = Configuration{
 	DummyImageColor: "#a8a8a8",
-	ImagesAdmin: ImagesAdminConfiguration{
+	Admin: AdminConfiguration{
 		ImageEditorClass:    "media-image-editor",
 		ThumbnailSize:       200,
 		ThumbnailFrameClass: "thumbnail-frame",
@@ -28,7 +28,7 @@ var Config = Configuration{
 	},
 }
 
-type ImagesAdminConfiguration struct {
+type AdminConfiguration struct {
 	ImageEditorClass    string
 	ThumbnailSize       int
 	ThumbnailFrameClass string
@@ -48,7 +48,7 @@ type Configuration struct {
 	NoDynamicStyleAndScript bool
 	DummyImageColor         string // web color
 	dummyImageURL           string
-	ImagesAdmin             ImagesAdminConfiguration
+	Admin                   AdminConfiguration
 	ImageRefController      ImageRefControllerConfiguration
 }
 

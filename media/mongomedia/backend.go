@@ -71,7 +71,7 @@ func (self *Backend) SaveBlob(blob *media.Blob) error {
 	var blobDoc BlobDoc
 	blobDoc.SetObjectId(bson.ObjectIdHex(blob.ID.Get()))
 	blobDoc.Blob = *blob
-	return self.Images.InitAndSaveDocument(&blobDoc)
+	return self.Blobs.InitAndSaveDocument(&blobDoc)
 }
 
 func (self *Backend) DeleteBlob(blob *media.Blob) error {

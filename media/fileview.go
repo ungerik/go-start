@@ -6,7 +6,7 @@ import (
 	"github.com/ungerik/go-start/view"
 )
 
-var ImageView = view.NewViewURLWrapper(view.RenderView(
+var FileView = view.NewViewURLWrapper(view.RenderView(
 	func(ctx *view.Context) error {
 		reader, _, contentType, err := Config.Backend.FileReader(ctx.URLArgs[0])
 		if err != nil {
