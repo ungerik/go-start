@@ -1,0 +1,103 @@
+/* === Common === */
+
+.clear {
+	clear:both;
+}
+
+.center {
+	margin: 0 auto;
+	width: 990px;
+	height: 100%;
+}
+
+.menu {
+	display: inline;
+	padding: 0;
+}
+
+.menu li {
+	list-style: none;
+	display: inline;
+}
+
+.menu a {
+	padding: 0;
+	text-decoration: none;
+}
+
+::-moz-selection {
+	background: {{{Primary}}};
+}
+::selection {
+	background: {{{Primary}}};
+}
+
+a:link, a:active, a:visited, a:hover, a:focus {
+	text-decoration: none;
+	outline: none;
+	color: {{{Primary}}};
+}
+
+/* === Forms === */
+
+form label:after {
+	content: ":";
+}
+
+form input[type=checkbox] + label:after {
+	content: "";
+}
+
+form label {
+	display: block;
+	margin-right: 2em;
+}
+
+form input[type=checkbox] + label {
+	display: inline;
+}
+
+form input[type=checkbox] {
+	margin-right: 0.33em;
+}
+
+form > div,
+form > table {
+	margin-bottom: 10px;
+}
+
+form table > caption {
+	text-align: left;
+	font-weight: bold;
+}
+
+form table td,
+form table th {
+	text-align: left;
+	font-weight: normal;
+	vertical-align:bottom;
+}
+
+form table th div.table-actions {
+	width:80px;
+}
+
+form .required {
+	color: red;
+}
+
+form .error {
+	display: block;
+	padding: 5px;
+	margin: 5px 0;
+	color: white;
+	background-color: red;
+}
+
+form .success {
+	display: block;
+	padding: 5px;
+	margin: 5px 0;
+	color: white;
+	background-color: green;
+}
