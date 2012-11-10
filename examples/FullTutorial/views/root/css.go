@@ -8,5 +8,9 @@ import (
 )
 
 func init() {
-	CSS = NewHTML5BoilerplateCSSTemplate(TemplateContext(models.NewColorScheme()), "css/common.css", "css/style.css")
+	CSS = NewHTML5BoilerplateCSSTemplate(
+		TemplateContext(models.NewColorScheme()),
+		"css/common.css",
+		"css/style.css",
+	)
 }

@@ -6,23 +6,17 @@ import (
 )
 
 func HeaderTopNav() View {
-	return &Div{
-		Class: "top-nav",
-		Content: &Div{
-			Class: "center",
-			Content: Views{
-				HeaderUserNav(),
-				DynamicView(
-					func(ctx *Context) (View, error) {
-						if ctx.Request.RequestURI == "/" {
-							return nil, nil
-						}
-						return A("/", HTML("&larr; Back to the homepage")), nil
-					},
-				),
+	return DIV("center",
+		HeaderUserNav(),
+		DynamicView(
+			func(ctx *Context) (View, error) {
+				if ctx.Request.RequestURI == "/" {
+					return nil, nil
+				}
+				return A("/", HTML("&larr; Back to the homepage")), nil
 			},
-		},
-	}
+		),
+	)
 }
 
 func HeaderMenu() *Menu {

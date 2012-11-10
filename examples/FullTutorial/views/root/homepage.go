@@ -14,6 +14,7 @@ const PublicPageCacheDuration = time.Hour
 func init() {
 	Homepage = CacheView(PublicPageCacheDuration, NewPublicPage("go-start Tutorial",
 		DIV("main",
+			H1("Hello World from go-start"),
 			DivClearBoth(),
 		),
 	))
