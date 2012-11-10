@@ -73,7 +73,12 @@ func EnsureExists(username, email, password string, admin bool, resultRef interf
 	user.Blocked.Set(false)
 	user.Admin.Set(admin)
 
-	err = Config.Collection.UpdateSubDocumentWithID(user.ID, "", user)
+	if exists {
+		err = Config.Collection.UpdateSubDocumentWithID(user.ID, "", user)
+	} else {
+		err = Config.Collection.InitAndSaveDocument(resultRef.(mongo.Document))
+	}
+
 	if err != nil {
 		return false, err
 	}
