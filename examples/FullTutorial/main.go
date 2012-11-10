@@ -4,14 +4,14 @@ import (
 	"github.com/ungerik/go-mail"
 	"github.com/ungerik/go-start/config"
 	"github.com/ungerik/go-start/debug"
-	// "github.com/ungerik/go-start/errs"
+	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/media"
 	"github.com/ungerik/go-start/media/mongomedia"
 	"github.com/ungerik/go-start/mongo"
 	"github.com/ungerik/go-start/user"
 	"github.com/ungerik/go-start/view"
 
-	// "github.com/ungerik/go-start/examples/FullTutorial/models"
+	"github.com/ungerik/go-start/examples/FullTutorial/models"
 	"github.com/ungerik/go-start/examples/FullTutorial/views"
 
 	// Dummy-import view packages for initialization:
@@ -35,6 +35,16 @@ func main() {
 		&media.Config,
 		&mongomedia.Config,
 	)
+
+	///////////////////////////////////////////////////////////////////////////
+	// Ensure that an admin user exists
+
+	var admin models.User
+	_, err := user.EnsureExists("admin", "mail@ungerik.net", "test", true, &admin)
+	errs.PanicOnError(err)
+	admin.Admin = true
+	err = admin.Save()
+	errs.PanicOnError(err)
 
 	///////////////////////////////////////////////////////////////////////////
 	// Config view

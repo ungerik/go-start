@@ -52,6 +52,7 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 
 	addSlash := self.Args > 0
 	if self.View == nil {
+		// debug.Print("[Debug] No view for path: ", parentPath+self.Name)
 		addSlash = true
 		self.View = &NotFoundView{Message: "Invalid URL"}
 	} else if _, isPage := self.View.(*Page); isPage {

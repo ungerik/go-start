@@ -1,8 +1,8 @@
 #############################
 # Example executables:
 
-examples/Login/Login
-examples/CombineStaticDirs/combine-static-dirs
+examples/FullTutorial/FullTutorial
+examples/CombineStaticDirs/CombineStaticDirs
 examples/ServeStatic/ServeStatic
 examples/ViewPaths/ViewPaths
 

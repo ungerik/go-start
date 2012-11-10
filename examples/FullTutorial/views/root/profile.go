@@ -33,8 +33,6 @@ func init() {
 									SubmitButtonText:  "Save name",
 									SubmitButtonClass: "button",
 									FormID:            "profile",
-									ExcludedFields:    []string{"Organization"},
-									Labels:            map[string]string{"First": "Given Name", "Middle": "Middle Name", "Last": "Family Name"},
 									GetModel: func(form *Form, ctx *Context) (interface{}, error) {
 										return &usr.Name, nil
 									},

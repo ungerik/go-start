@@ -9,8 +9,8 @@
     },
     "mongo": {
         "Database": "gostarttutorial",
-        "User": "gostarttutorial",
-        "Password": "gostarttutorial"
+        "User": "",
+        "Password": ""
     },
     "media": {
         "Admin": {
