@@ -19,5 +19,5 @@ type User struct {
 	user.User `bson:",inline"`
 
 	Image  media.ImageRef
-	Gender model.Choice `model:"options=Male,Female"`
+	Gender model.Choice `model:"options=,Male,Female"`
 }

@@ -49,15 +49,12 @@ func main() {
 	///////////////////////////////////////////////////////////////////////////
 	// Config view
 
-	// view.Config.LoginSignupPage = &views.LoginSignup
-	//view.Config.GlobalAuth = view.NewBasicAuth("statuplive.in", "gostart", "gostart")
-
 	view.Config.NamedAuthenticators["admin"] = views.Admin_Auth
-
-	// view.Config.Debug.Mode = true
+	view.Config.Debug.Mode = true
 	// view.Config.Debug.LogPaths = true
 	// view.Config.Debug.LogRedirects = true
 	// view.Config.DisableCachedViews = true
+	// view.Config.GlobalAuth = view.NewBasicAuth("statuplive.in", "gostart", "gostart")
 
 	///////////////////////////////////////////////////////////////////////////
 	// Run server
