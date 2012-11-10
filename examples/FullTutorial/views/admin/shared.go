@@ -30,40 +30,28 @@ func NewAdminPage(title string, main View) *Page {
 						},
 					},
 					HeaderUserNav(),
-					&Div{
-						Class: "menu-frame",
-						Content: Views{
-							&Menu{
-								Class:           "menu",
-								ItemClass:       "menu-item",
-								ActiveItemClass: "active",
-								BetweenItems:    " &nbsp;/&nbsp; ",
-								Items: []LinkModel{
-									NewPageLink(&Admin, "Dashboard"),
-									NewPageLink(&Admin_Users, "Users"),
-									NewPageLink(&Admin_Images, "Images"),
-								},
+					DIV("menu-frame",
+						&Menu{
+							Class:           "menu",
+							ItemClass:       "menu-item",
+							ActiveItemClass: "active",
+							BetweenItems:    " &nbsp;/&nbsp; ",
+							Items: []LinkModel{
+								NewPageLink(&Admin, "Dashboard"),
+								NewPageLink(&Admin_Users, "Users"),
+								NewPageLink(&Admin_Images, "Images"),
 							},
-							DivClearBoth(),
 						},
-					},
+						DivClearBoth(),
+					),
 				},
 			},
-			&Div{
-				Class: "content",
-				Content: Views{
-					&Div{
-						Class: "center",
-						Content: Views{
-							&Div{
-								Class:   "main",
-								Content: main,
-							},
-							DivClearBoth(),
-						},
-					},
-				},
-			},
+			DIV("content",
+				DIV("center",
+					DIV("main", main),
+					DivClearBoth(),
+				),
+			),
 			Footer(),
 		},
 	}

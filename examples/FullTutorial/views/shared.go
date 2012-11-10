@@ -11,6 +11,7 @@ func HeaderTopNav() View {
 		DynamicView(
 			func(ctx *Context) (View, error) {
 				if ctx.Request.RequestURI == "/" {
+					// return nil, so nothing will be rendered
 					return nil, nil
 				}
 				return A("/", HTML("&larr; Back to the homepage")), nil
@@ -65,33 +66,20 @@ func NewPublicPage(title string, main View) *Page {
 				Class: "header",
 				Content: Views{
 					HeaderTopNav(),
-					&Div{
-						Class: "menu-area",
-						Content: &Div{
-							Class: "center",
-							Content: Views{
-								DIV("logo-container", IMG("/images/gopher.png")),
-								HeaderMenu(),
-							},
-						},
-					},
+					DIV("menu-area",
+						DIV("center",
+							DIV("logo-container", IMG("/images/gopher.png")),
+							HeaderMenu(),
+						),
+					),
 				},
 			},
-			&Div{
-				Class: "content",
-				Content: Views{
-					&Div{
-						Class: "center",
-						Content: Views{
-							&Div{
-								Class:   "main",
-								Content: main,
-							},
-							DivClearBoth(),
-						},
-					},
-				},
-			},
+			DIV("content",
+				DIV("center",
+					DIV("main", main),
+					DivClearBoth(),
+				),
+			),
 			Footer(),
 		},
 	}

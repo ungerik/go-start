@@ -46,8 +46,6 @@ func init() {
 							if err != nil {
 								return "", nil, err
 							}
-							// if m.Send_notification_email.Get() {
-							// }
 							return "", StringURL("."), nil
 						},
 					},
