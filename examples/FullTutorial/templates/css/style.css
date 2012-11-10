@@ -1,6 +1,7 @@
 .title-bar {
 	position: absolute;
-	top: -20px;
+	top: 20px;
+	left:50px;
 	-webkit-transform: rotate(-2deg);
 	-moz-transform:    rotate(-2deg);
 	-ms-transform:     rotate(-2deg);

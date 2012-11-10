@@ -1,10 +1,10 @@
 {
     "email": {
         "Host": "smtp.gmail.com",
-        "Username": "example@gmail.com",
-        "Password": "example",
+        "Username": "gostarttutorial@gmail.com",
+        "Password": "gopher123",
         "From": {
-            "Name": "Example"
+            "Name": "Gopher"
         }
     },
     "mongo": {

@@ -36,7 +36,7 @@ func init() {
 						)
 					} else {
 						view = DIV("row",
-							DIV("cell right-border",
+							DIV("cell left",
 								TitleBar("Log in"),
 								DIV("main-content",
 									gostartuser.NewLoginForm("Log in", "login", "error", "success", IndirectURL(&Homepage)),
