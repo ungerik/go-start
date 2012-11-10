@@ -116,7 +116,7 @@ func NewSignupForm(buttonText, class, errorMessageClass, successMessageClass str
 				}
 				user.Password.SetHashed(password)
 			} else {
-				Config.Collection.InitDocument(&user)
+				// Config.Collection.InitDocument(&user)
 				err = user.SetEmailPassword(email, password)
 				if err != nil {
 					return "", nil, err
@@ -126,7 +126,13 @@ func NewSignupForm(buttonText, class, errorMessageClass, successMessageClass str
 			if err != nil {
 				return "", nil, err
 			}
-			return "", redirectURL, Config.Collection.UpdateSubDocumentWithID(user.ID, "", &user)
+
+			if found {
+				err = Config.Collection.UpdateSubDocumentWithID(user.ID, "", &user)
+			} else {
+				err = Config.Collection.InitAndSaveDocument(&user)
+			}
+			return "", redirectURL, err
 		},
 	}
 }
