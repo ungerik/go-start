@@ -174,11 +174,10 @@ Auto generated form for a model:
 	models.Users.DocumentWithID(id, &userModel)
 
 	&Form{
-		SubmitButtonText:         "Save User Data",
-		FormID:                   "user" + userModel.ID.Hex(),
-		GetModel:                 FormModel(&userModel),
-		GeneralErrorOnFieldError: true,
-		OnSubmit:                 OnFormSubmitSaveModelAndRedirect(Admin_Users),
+		SubmitButtonText: "Save User Data",
+		FormID:           "user" + userModel.ID.Hex(),
+		GetModel:         FormModel(&userModel),
+		OnSubmit:         OnFormSubmitSaveModelAndRedirect(Admin_Users),
 	}
 
 More form features:
@@ -201,10 +200,6 @@ More form features:
 			m := formModel.(*passwordFormModel)
 			userModel.Password.SetHashed(m.New_password.Get())
 			userModel.ConfirmEmailPassword()
-			err = userModel.Save()
-			if err != nil {
-				return "", nil, err
-			}
-			return "", StringURL("."), nil
+			return "", StringURL("."), userModel.Save()
 		},
 	}
