@@ -58,8 +58,14 @@ func STYLE(css string) HTML {
 }
 
 // StylesheetLink creates <link rel='stylesheet' href='url'>
-func StylesheetLink(url string) HTML {
-	return Printf("<link rel='stylesheet' href='%s'>", url)
+func StylesheetLink(url string) *Link {
+	return &Link{
+		Model: &StringLink{
+			Url: url,
+			Rel: "stylesheet",
+		},
+		UseLinkTag: true,
+	}
 }
 
 // SCRIPT creates <script>javascript</script>
