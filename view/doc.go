@@ -3,7 +3,7 @@ The View of MVC.
 
 Instead of using text templates, go-start creates HTML by using strongly typed Go composite literals.
 For some HTML constructs there are high level Go representations,
-but most HTML elements have direct Go type or shortcut function counterpart.
+but most HTML elements have a direct Go type or shortcut function counterpart.
 
 Shortcut functions for HTML elements are all upper case,
 other utility functions follow the normal camel case naming convention.
