@@ -42,11 +42,7 @@ func init() {
 							m := formModel.(*passwordFormModel)
 							u.Password.SetHashed(m.New_password.Get())
 							u.ConfirmEmailPassword()
-							err = u.Save()
-							if err != nil {
-								return "", nil, err
-							}
-							return "", StringURL("."), nil
+							return "", StringURL("."), u.Save()
 						},
 					},
 					HR(),
