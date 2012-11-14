@@ -24,7 +24,7 @@ func TemplateContext(context interface{}) GetTemplateContextFunc {
 // Template
 
 type Template struct {
-	ViewBase
+	ViewWithURLBase
 	Filename       string // Will set file extension at ContentType
 	Text           string
 	ContentTypeExt string
@@ -94,22 +94,3 @@ func (self *Template) Render(ctx *Context) (err error) {
 	// Config, context.Web
 	return self.template.Render(ctx.Response, context)
 }
-
-//func (self *Template) SetFilename(filename string) {
-//	self.Filename = filename
-//	self.Text = ""
-//	self.template = nil
-//	ViewChanged(self)
-//}
-//
-//func (self *Template) SetText(text string) {
-//	self.Filename = ""
-//	self.Text = text
-//	self.template = nil
-//	ViewChanged(self)
-//}
-//
-//func (self *Template) SetContext(context interface{}) {
-//	self.Context = context
-//	ViewChanged(self)
-//}

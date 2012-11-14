@@ -14,7 +14,7 @@ Example:
 func HTML5BoilerplateCSS(staticCssFilenames ...string) ViewWithURL {
 	staticCssFilenames = append(staticCssFilenames, "css/html5boilerplate/poststyle.css")
 	staticCssFilenames = append([]string{"css/html5boilerplate/normalize.css"}, staticCssFilenames...)
-	return NewViewURLWrapper(NewConcatStaticFiles(staticCssFilenames...))
+	return NewConcatStaticFiles(staticCssFilenames...)
 }
 
 // NewHTML5BoilerplateCSSTemplate returns a ViewWithURL that concatenates

@@ -16,7 +16,7 @@ func NewStaticFile(filename string) *StaticFile {
 // The output is cached in memory but changes to the file on the filesystem
 // cause the the cache to be rebuilt.
 type StaticFile struct {
-	ViewBase
+	ViewWithURLBase
 	Filename string
 	// Will be set automatically from Filename if empty
 	ContentTypeExt string

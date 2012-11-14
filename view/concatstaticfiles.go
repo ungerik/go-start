@@ -14,8 +14,10 @@ func NewConcatStaticFiles(filenames ...string) *ConcatStaticFiles {
 }
 
 // ConcatStaticFiles renders multiple static files concatenated as single file.
+// The output is cached in memory but changes to the files on the filesystem
+// cause the the cache to be rebuilt.
 type ConcatStaticFiles struct {
-	ViewBase
+	ViewWithURLBase
 	Filenames []string
 	// Will be set automatically from Filenames[0] if empty
 	ContentTypeExt  string
