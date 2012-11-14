@@ -26,6 +26,10 @@ var Config = Configuration{
 		ThumbnailFrameClass: "thumbnail-frame",
 		ActionsClass:        "actions",
 	},
+	BlobRefController: BlobRefControllerConfiguration{
+		Class:        "media-blobref-editor",
+		ActionsClass: "actions",
+	},
 }
 
 type AdminConfiguration struct {
@@ -43,6 +47,11 @@ type ImageRefControllerConfiguration struct {
 	ActionsClass        string
 }
 
+type BlobRefControllerConfiguration struct {
+	Class        string
+	ActionsClass string
+}
+
 type Configuration struct {
 	Backend                 Backend
 	NoDynamicStyleAndScript bool
@@ -50,6 +59,7 @@ type Configuration struct {
 	dummyImageURL           string
 	Admin                   AdminConfiguration
 	ImageRefController      ImageRefControllerConfiguration
+	BlobRefController       BlobRefControllerConfiguration
 }
 
 func (self *Configuration) Name() string {
@@ -59,7 +69,10 @@ func (self *Configuration) Name() string {
 func (self *Configuration) Init() error {
 	c := model.NewColor(self.DummyImageColor)
 	self.dummyImageURL = ColoredImageDataURL(c.RGBA())
-	view.Config.Form.DefaultFieldControllers = view.Config.Form.DefaultFieldControllers.Append(ImageRefController{})
+	view.Config.Form.DefaultFieldControllers = append(view.Config.Form.DefaultFieldControllers,
+		ImageRefController{},
+		BlobRefController{},
+	)
 	return nil
 }
 

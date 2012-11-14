@@ -214,8 +214,6 @@ func (self *ImageRef) ThumbnailView(size int, class string) (*view.Image, error)
 	return image.ThumbnailView(size, class)
 }
 
-///
-
 func (self *ImageRef) OriginalVersionLinkedView(imageClass, linkClass string) (*view.Link, error) {
 	image, err := self.Get()
 	if err != nil {

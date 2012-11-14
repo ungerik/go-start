@@ -60,10 +60,6 @@ func (self FormFieldControllers) SetValue(value string, ctx *Context, metaData *
 	return nil
 }
 
-func (self FormFieldControllers) Append(controllers ...FormFieldController) FormFieldControllers {
-	return append(self, controllers...)
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 // ErrFormFieldTypeNotSupported
 
