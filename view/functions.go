@@ -3,6 +3,7 @@ package view
 import (
 	"io"
 	"strconv"
+	"time"
 
 	"github.com/ungerik/go-start/config"
 	"github.com/ungerik/go-start/errs"
@@ -42,11 +43,11 @@ func NewViewID(view View) (id string) {
 // 	delete(viewsByID, id)
 // }
 
-func FindStaticFile(filename string) (filePath string, found bool, modifiedTime int64) {
+func FindStaticFile(filename string) (filePath string, found bool, modifiedTime time.Time) {
 	return utils.FindFile2ModifiedTime(Config.BaseDirs, Config.StaticDirs, filename)
 }
 
-func FindTemplateFile(filename string) (filePath string, found bool, modifiedTime int64) {
+func FindTemplateFile(filename string) (filePath string, found bool, modifiedTime time.Time) {
 	return utils.FindFile2ModifiedTime(Config.BaseDirs, Config.TemplateDirs, filename)
 }
 

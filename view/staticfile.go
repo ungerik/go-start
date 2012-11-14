@@ -1,20 +1,27 @@
 package view
 
 import (
-	"github.com/ungerik/go-start/errs"
 	"io/ioutil"
 	"path"
+	"time"
+
+	"github.com/ungerik/go-start/errs"
 )
 
-///////////////////////////////////////////////////////////////////////////////
-// StaticFile
+func NewStaticFile(filename string) *StaticFile {
+	return &StaticFile{Filename: filename}
+}
 
+// StaticFile renders a static file.
+// The output is cached in memory but changes to the file on the filesystem
+// cause the the cache to be rebuilt.
 type StaticFile struct {
 	ViewBase
-	Filename       string // Will set file extension at ContentType
+	Filename string
+	// Will be set automatically from Filename if empty
 	ContentTypeExt string
-	modifiedTime   int64
-	fileContent    []byte
+	modifiedTime   time.Time
+	cachedFileData []byte
 }
 
 func (self *StaticFile) Render(ctx *Context) (err error) {
@@ -27,14 +34,14 @@ func (self *StaticFile) Render(ctx *Context) (err error) {
 		self.ContentTypeExt = path.Ext(filePath)
 	}
 
-	if self.fileContent == nil || modified > self.modifiedTime {
-		self.fileContent, err = ioutil.ReadFile(filePath)
+	if self.cachedFileData == nil || modified.After(self.modifiedTime) {
+		self.cachedFileData, err = ioutil.ReadFile(filePath)
 		if err != nil {
 			return err
 		}
 	}
 
 	ctx.Response.SetContentTypeByExt(self.ContentTypeExt)
-	ctx.Response.Write(self.fileContent)
+	ctx.Response.Write(self.cachedFileData)
 	return nil
 }

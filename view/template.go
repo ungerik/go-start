@@ -1,25 +1,17 @@
 package view
 
 import (
+	"path"
+	"time"
+
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/templatesystem"
-	"path"
 )
 
 type GetTemplateContextFunc func(ctx *Context) (context interface{}, err error)
 
 func NewTemplate(filename string, getContext GetTemplateContextFunc) *Template {
 	return &Template{Filename: filename, GetContext: getContext}
-}
-
-func NewHTML5BoilerplateCSSTemplate(getContext GetTemplateContextFunc, filenames ...string) Views {
-	views := make(Views, len(filenames)+2)
-	views[0] = &StaticFile{Filename: "css/html5boilerplate/normalize.css"}
-	for i := range filenames {
-		views[i+1] = NewTemplate(filenames[i], getContext)
-	}
-	views[len(views)-1] = &StaticFile{Filename: "css/html5boilerplate/poststyle.css"}
-	return views
 }
 
 func TemplateContext(context interface{}) GetTemplateContextFunc {
@@ -39,7 +31,7 @@ type Template struct {
 	GetContext     GetTemplateContextFunc
 	TemplateSystem templatesystem.Implementation // If nil, self.App.Config.TemplateSystem is used
 	template       templatesystem.Template
-	modifiedTime   int64
+	modifiedTime   time.Time
 }
 
 func (self *Template) parseTemplate() (templ templatesystem.Template, err error) {
@@ -49,7 +41,7 @@ func (self *Template) parseTemplate() (templ templatesystem.Template, err error)
 	}
 
 	if self.Filename == "" {
-		self.modifiedTime = 0
+		self.modifiedTime = time.Time{}
 		return templateSystem.ParseString(self.Text, "")
 	}
 
@@ -72,7 +64,7 @@ func (self *Template) Render(ctx *Context) (err error) {
 		if !found {
 			return errs.Format("Template file not found: %s", self.Filename)
 		}
-		if modified > self.modifiedTime {
+		if modified.After(self.modifiedTime) {
 			self.template = nil
 			self.ContentTypeExt = ""
 		}

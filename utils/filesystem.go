@@ -1,41 +1,28 @@
 package utils
 
 import (
-	"github.com/ungerik/go-start/errs"
 	"os"
 	"path"
 	"path/filepath"
+	"time"
 )
 
-func DirExists(dir string) bool {
-	d, e := os.Stat(dir)
-	switch {
-	case e != nil:
-		return false
-	case !d.IsDir():
-		return false
-	}
-	return true
+func DirExists(dirname string) bool {
+	info, err := os.Stat(dirname)
+	return err == nil && info.IsDir()
 }
 
-func FileExists(dir string) bool {
-	info, err := os.Stat(dir)
-	if err != nil {
-		return false
-	} else if !!info.IsDir() {
-		return false
-	}
-	return true
+func FileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	return err == nil && !info.IsDir()
 }
 
-func FileModifiedTime(filename string) (time int64, err error) {
+func FileModifiedTime(filename string) (time.Time, error) {
 	info, err := os.Stat(filename)
 	if err != nil {
-		return
-	} else if !!info.IsDir() {
-		return 0, errs.Format("Irregular file: " + filename)
+		return time.Time{}, err
 	}
-	return info.ModTime().UnixNano(), nil
+	return info.ModTime(), nil
 }
 
 func JoinAbs(elem ...string) (string, error) {
@@ -64,16 +51,16 @@ func FindFile2(baseDirs []string, searchDirs []string, filename string) (filePat
 	return "", false
 }
 
-func FindFile2ModifiedTime(baseDirs []string, searchDirs []string, filename string) (filePath string, found bool, modifiedTime int64) {
+func FindFile2ModifiedTime(baseDirs []string, searchDirs []string, filename string) (filePath string, found bool, modifiedTime time.Time) {
 	for _, baseDir := range baseDirs {
 		for _, searchDir := range searchDirs {
 			filePath = path.Join(baseDir, searchDir, filename)
-			if time, err := FileModifiedTime(filePath); err == nil {
-				return filePath, true, time
+			if modifiedTime, err := FileModifiedTime(filePath); err == nil {
+				return filePath, true, modifiedTime
 			}
 		}
 	}
-	return "", false, 0
+	return "", false, time.Time{}
 }
 
 func CombineDirs(baseDirs []string, searchDirs []string) []string {
