@@ -22,6 +22,7 @@ func NewBlobFromReader(filename string, reader io.Reader) (*Blob, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer writer.Close()
 	_, err = io.Copy(writer, reader)
 	if err != nil {
 		return nil, err
@@ -65,7 +66,7 @@ func (self *Blob) TitleOrFilename() string {
 }
 
 func (self *Blob) FileURL() view.URL {
-	return view.NewURLWithArgs(FileView, self.ID.Get(), self.Filename.Get())
+	return view.NewURLWithArgs(FileView, self.FileID.Get(), self.Filename.Get())
 }
 
 func (self *Blob) FileLink(class string) *view.Link {

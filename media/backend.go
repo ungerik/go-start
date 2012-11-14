@@ -19,6 +19,7 @@ type Backend interface {
 
 	LoadBlob(id string) (*Blob, error)
 	SaveBlob(blob *Blob) error
+	// DeleteBlob does not delete the file associated with it, also use DeleteFile().
 	DeleteBlob(blob *Blob) error
 
 	// BlobIterator returns an iterator that iterates

@@ -26,7 +26,7 @@ func BlobsAdmin() view.View {
 				return new(Blob), nil
 			},
 			GetModelView: func(ctx *view.Context, m interface{}) (view.View, error) {
-				blob := m.(*Blob)
+				blob := *m.(*Blob) // copy by value because it will be used in a closure later on
 				// refCount, err := blob.CountRefs()
 				// if err != nil {
 				// 	return nil, err
@@ -38,7 +38,8 @@ func BlobsAdmin() view.View {
 				editor := view.DIV(Config.Admin.ImageEditorClass,
 					view.H3(blob.TitleOrFilename()),
 					view.P(
-						view.A_blank(blob.FileURL(), "Link to file"),
+						view.HTML("Link to file: "),
+						view.A_blank(blob.FileURL()),
 						// view.Printf(" | Used %d times", refCount),
 					),
 					&view.Form{

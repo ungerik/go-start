@@ -25,7 +25,7 @@ func ImagesAdmin() view.View {
 				return new(Image), nil
 			},
 			GetModelView: func(ctx *view.Context, m interface{}) (view.View, error) {
-				image := m.(*Image)
+				image := *m.(*Image) // copy by value because it will be used in a closure later on
 				refCount, err := image.CountRefs()
 				if err != nil {
 					return nil, err

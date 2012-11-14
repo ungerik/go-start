@@ -5,12 +5,14 @@ import (
 	"io"
 
 	// "github.com/ungerik/go-start/debug"
+	"github.com/ungerik/go-start/config"
 	"github.com/ungerik/go-start/view"
 )
 
 var UploadImage = view.NewViewURLWrapper(view.RenderViewBindURLArgs(
 	func(ctx *view.Context, thumbnailSize int) error {
 		formatError := func(err error) error {
+			config.Logger.Println("UploadImage:", err)
 			return fmt.Errorf(`{success: false, error: "%s"}`, err.Error())
 		}
 

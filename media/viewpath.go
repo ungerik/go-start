@@ -8,7 +8,7 @@ import (
 func ViewPath(name string) view.ViewPath {
 	return view.ViewPath{Name: name, Sub: []view.ViewPath{
 		{Name: "file", Args: 2, View: FileView},
-		{Name: "upload-blob", Args: 1, View: UploadBlob},
+		{Name: "upload-blob", View: UploadBlob},
 		{Name: "upload-image", Args: 1, View: UploadImage},
 		{Name: "thumbnails.json", Args: 1, View: AllThumbnailsAPI},
 	}}
