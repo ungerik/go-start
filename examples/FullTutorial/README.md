@@ -119,7 +119,7 @@ Dynamic views return a view object for a request context:
 			}
 			return A("/", HTML("&larr; Back to the homepage")), nil
 		},
-	),
+	)
 
 Render views use a writer to render the response for a request:
 (https://github.com/ungerik/go-start/blob/master/examples/FullTutorial/views/admin/export-emails.go)

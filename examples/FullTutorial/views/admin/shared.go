@@ -20,13 +20,7 @@ func NewAdminPage(title string, main View) *Page {
 						Class: "title",
 						Model: &PageLink{
 							Page: &Admin,
-							Content: &Tag{
-								Tag: "h1",
-								Content: Views{
-									&Image{Class: "logo", Src: "/images/gopher.png"},
-									HTML("Admin Panel"),
-								},
-							},
+							H1(&Image{Class: "logo", Src: "/images/gopher.png"}, HTML("Admin Panel")),
 						},
 					},
 					HeaderUserNav(),
