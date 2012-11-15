@@ -1,11 +1,10 @@
 package mongo
 
 import (
+	"github.com/ungerik/go-start/config"
 	"reflect"
 	"sort"
 	"strings"
-
-	"github.com/ungerik/go-start/config"
 	// "github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/reflection"
