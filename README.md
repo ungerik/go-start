@@ -6,6 +6,9 @@ go get github.com/ungerik/go-start
 Documentation:
 http://go.pkgdoc.org/github.com/ungerik/go-start
 
+Tutorial with user login and administration:
+https://github.com/ungerik/go-start/tree/master/examples/FullTutorial
+
 Presentation Slides:
 http://speakerdeck.com/u/ungerik/
 
