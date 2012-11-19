@@ -7,6 +7,17 @@ import (
 	"github.com/ungerik/go-start/reflection"
 )
 
+// DynamicViewWithURL returns a ViewWithURL for getViewFunc.
+func DynamicViewWithURL(getViewFunc func(*Context) (View, error)) ViewWithURL {
+	return NewViewURLWrapper(DynamicView(getViewFunc))
+}
+
+// DynamicViewWithURLBindURLArgs returns a ViewWithURL for getViewFunc.
+// For an explanation of getViewFunc see DynamicViewBindURLArgs().
+func DynamicViewWithURLBindURLArgs(getViewFunc interface{}) ViewWithURL {
+	return NewViewURLWrapper(DynamicViewBindURLArgs(getViewFunc))
+}
+
 /*
 DynamicView implements View for a function that creates and renders a dynamic
 child-view in the Render method.
