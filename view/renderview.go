@@ -7,6 +7,17 @@ import (
 	"github.com/ungerik/go-start/reflection"
 )
 
+// RenderViewWithURL returns a ViewWithURL for renderFunc.
+func RenderViewWithURL(renderFunc func(*Context) error) ViewWithURL {
+	return NewViewURLWrapper(RenderView(renderFunc))
+}
+
+// RenderViewWithURLBindURLArgs returns a ViewWithURL for renderFunc.
+// For an explanation of renderFunc see RenderViewBindURLArgs().
+func RenderViewWithURLBindURLArgs(renderFunc interface{}) ViewWithURL {
+	return NewViewURLWrapper(RenderViewBindURLArgs(renderFunc))
+}
+
 /*
 RenderView implements all View methods for a View.Render compatible function.
 
