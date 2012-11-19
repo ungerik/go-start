@@ -8,9 +8,22 @@ import (
 ///////////////////////////////////////////////////////////////////////////////
 // Iterator
 
-// Iteration stops with Next() == nil, check Err() afterwards
+// Iteration stops with Next() == nil, check Err() afterwards.
+//
+// Be careful when using the address of a local variable for resultRef
+// in a loop that creates a closure function that will be called later for rendering.
+// Go does not make copies of variables that are bound to closure, but references them.
+// If a closure is called outside of the loop, it will always reference the
+// same variable with the value from the last Next() call in it.
 type Iterator interface {
+	// Next tries to unmarshalles the next iteration's data into resultRef
+	// and returns a bool indicating if it was successful.
+	// After Next() has returned false, check the result of Err().
 	Next(resultRef interface{}) bool
+
+	// Err returns the error of the last iteration.
+	// Err returns nil if the last iteration was successful,
+	// or there was no last iteration.
 	Err() error
 }
 
