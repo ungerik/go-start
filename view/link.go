@@ -1,10 +1,7 @@
 package view
 
-import ()
-
-///////////////////////////////////////////////////////////////////////////////
-// Link
-
+// Link represents an HTML <a> or <link> element depending on UseLinkTag.
+// Content and title of the Model will only be rendered for <a>.
 type Link struct {
 	ViewBaseWithId
 	Class      string
@@ -26,16 +23,16 @@ func (self *Link) Render(ctx *Context) (err error) {
 	}
 	if self.Model != nil {
 		ctx.Response.XML.Attrib("href", self.Model.URL(ctx))
-		ctx.Response.XML.AttribIfNotDefault("title", self.Model.LinkTitle(ctx))
 		ctx.Response.XML.AttribIfNotDefault("rel", self.Model.LinkRel(ctx))
-		content := self.Model.LinkContent(ctx)
-		if content != nil {
-			err = content.Render(ctx)
-		}
 	}
 	if self.UseLinkTag {
 		ctx.Response.XML.CloseTag() // link
 	} else {
+		ctx.Response.XML.AttribIfNotDefault("title", self.Model.LinkTitle(ctx))
+		content := self.Model.LinkContent(ctx)
+		if content != nil {
+			err = content.Render(ctx)
+		}
 		ctx.Response.XML.ForceCloseTag() // a
 	}
 	return err
