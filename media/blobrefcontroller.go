@@ -3,7 +3,7 @@ package media
 import (
 	"fmt"
 
-	"github.com/ungerik/go-start/debug"
+	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/view"
 )
@@ -13,7 +13,7 @@ type BlobRefController struct {
 }
 
 func (self BlobRefController) Supports(metaData *model.MetaData, form *view.Form) bool {
-	debug.Dump(metaData.Value.Addr().Interface())
+	// debug.Dump(metaData.Value.Addr().Interface())
 	_, ok := metaData.Value.Addr().Interface().(*BlobRef)
 	return ok
 }
