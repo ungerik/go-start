@@ -2,7 +2,6 @@ package view
 
 import (
 	"fmt"
-	"github.com/ungerik/go-start/debug"
 	"html"
 	"reflect"
 )
@@ -234,9 +233,7 @@ func ABBR(longTitle, abbreviation string) View {
 //
 func UL(items ...interface{}) *List {
 	model := make(ViewsListModel, len(items))
-	debug.Print("length: ", len(items))
 	for i, item := range items {
-		debug.Print("i: ", i)
 		model[i] = NewView(item)
 	}
 	return &List{Model: model}
