@@ -401,7 +401,7 @@ func (self *Form) Render(ctx *Context) (err error) {
 			return err
 		}
 	}
-	ctx.Response.XML.ForceCloseTag() // form
+	ctx.Response.XML.CloseTagAlways() // form
 	return nil
 }
 
@@ -423,10 +423,29 @@ func (self *Form) GetFieldControllers() FormFieldControllers {
 	return self.FieldControllers
 }
 
-func (self *Form) AddMongoRefController(refSelector, labelSelector string, options model.Iterator) {
+// AddCustomMongoRefController adds a FormFieldController that creates a
+// drop-down lists or auto-completion fields for mongo.Ref fields in
+// the form model. refSelector selects for which mongo.Ref fields this
+// FormFieldController should be used.
+// An empty string selects all mongo.Ref in the form model.
+// labelSelector is a selector into the referenced documents to retrieve
+// the labels for the documents.
+// If labelSelector is an empty string, then a struct tag `view:"optionsLabel="`
+// will be used or DocumentLabelSelector from the mongo.Ref's collection.
+// options iterates the possible documents for the mongo.Ref.
+// If options is nil, then all documents of the mongo.Ref's collection are used.
+func (self *Form) AddMongoRefController(refSelector string, labelSelectors ...string) {
+	self.AddRestrictedMongoRefController(nil, refSelector, labelSelectors...)
+}
+
+func (self *Form) AddRestrictedMongoRefController(options model.Iterator, refSelector string, labelSelectors ...string) {
 	self.FieldControllers = append(
 		self.GetFieldControllers(),
-		&MongoRefController{RefSelector: refSelector, LabelSelector: labelSelector, OptionsIterator: options},
+		&MongoRefController{
+			RefSelector:     refSelector,
+			LabelSelectors:  labelSelectors,
+			OptionsIterator: options,
+		},
 	)
 }
 

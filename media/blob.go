@@ -11,13 +11,21 @@ import (
 	"github.com/ungerik/go-start/view"
 )
 
+func BlobIterator() model.Iterator {
+	return Config.Backend.BlobIterator()
+}
+
 func NewBlob(filename string, data []byte) (*Blob, error) {
 	return NewBlobFromReader(filename, bytes.NewReader(data))
 }
 
 func NewBlobFromReader(filename string, reader io.Reader) (*Blob, error) {
 	contentType := mime.TypeByExtension(path.Ext(filename))
-	blob := &Blob{Filename: model.String(filename), ContentType: model.String(contentType)}
+	blob := &Blob{
+		Filename:    model.String(filename),
+		ContentType: model.String(contentType),
+	}
+	blob.Init()
 	writer, err := blob.FileWriter()
 	if err != nil {
 		return nil, err
@@ -58,11 +66,11 @@ type Blob struct {
 	FileID      model.String
 }
 
-func (self *Blob) TitleOrFilename() string {
-	if self.Title.IsEmpty() {
-		return self.Filename.Get()
+func (self *Blob) Init() *Blob {
+	if self.Title == "" {
+		self.Title = self.Filename
 	}
-	return self.Title.Get()
+	return self
 }
 
 func (self *Blob) FileURL() view.URL {
@@ -73,7 +81,7 @@ func (self *Blob) FileLink(class string) *view.Link {
 	return &view.Link{
 		Model: &view.URLLink{
 			Url:     self.FileURL(),
-			Title:   self.TitleOrFilename(),
+			Title:   self.Title.Get(),
 			Content: view.HTML(self.Filename.Get()),
 		},
 		Class: class,

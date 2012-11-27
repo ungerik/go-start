@@ -51,14 +51,14 @@ func (self *Table) Render(ctx *Context) (err error) {
 				if err != nil {
 					return err
 				}
-				ctx.Response.XML.ForceCloseTag() // td/th
+				ctx.Response.XML.CloseTagAlways() // td/th
 			}
 
-			ctx.Response.XML.ForceCloseTag() // tr
+			ctx.Response.XML.CloseTagAlways() // tr
 		}
 	}
 
-	ctx.Response.XML.ForceCloseTag() // table
+	ctx.Response.XML.CloseTagAlways() // table
 	return nil
 }
 

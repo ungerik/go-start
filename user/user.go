@@ -7,8 +7,9 @@ import (
 	"github.com/ungerik/go-start/view"
 )
 
-///////////////////////////////////////////////////////////////////////////////
-// User
+func NewCollection(name string) *mongo.Collection {
+	return mongo.NewCollection(name, modelext.NameDocLabelSelectors...)
+}
 
 type User struct {
 	mongo.DocumentBase `bson:",inline"`

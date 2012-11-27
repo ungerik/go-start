@@ -110,29 +110,29 @@ func DeleteEmptySliceElements(slice interface{}) interface{} {
 // }
 
 // Implements sort.Interface
-type Sortable struct {
+type SortableInterfaceSlice struct {
 	Slice    []interface{}
 	LessFunc func(a, b interface{}) bool
 }
 
-func (self *Sortable) Len() int {
+func (self *SortableInterfaceSlice) Len() int {
 	return len(self.Slice)
 }
 
-func (self *Sortable) Less(i, j int) bool {
+func (self *SortableInterfaceSlice) Less(i, j int) bool {
 	return self.LessFunc(self.Slice[i], self.Slice[j])
 }
 
-func (self *Sortable) Swap(i, j int) {
+func (self *SortableInterfaceSlice) Swap(i, j int) {
 	self.Slice[i], self.Slice[j] = self.Slice[j], self.Slice[i]
 }
 
-func (self *Sortable) Sort() {
+func (self *SortableInterfaceSlice) Sort() {
 	sort.Sort(self)
 }
 
-func Sort(slice []interface{}, lessFunc func(a, b interface{}) bool) {
-	sortable := Sortable{slice, lessFunc}
+func SortInterfaceSlice(slice []interface{}, lessFunc func(a, b interface{}) bool) {
+	sortable := SortableInterfaceSlice{slice, lessFunc}
 	sortable.Sort()
 }
 

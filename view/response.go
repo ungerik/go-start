@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"hash/crc32"
 	"net/http"
+	"strings"
 
 	"github.com/ungerik/go-start/utils"
 	"github.com/ungerik/web.go"
@@ -148,6 +149,8 @@ func (self *Response) ContentDispositionAttachment(filename string) {
 // RequireStyle adds dynamic CSS content to the page.
 // Multiple dynamic entries will be sorted by priority.
 // Dynamic CSS will be inserted after the regular CSS of the page.
+// If css does not start with "<style",
+// then the css string will be wrapped with a style tag.
 // 
 // Use this feature to dynamically add CSS to the page if the
 // HTML content requires it.
@@ -155,7 +158,10 @@ func (self *Response) RequireStyle(css string, priority int) {
 	if self.dynamicStyle == nil {
 		self.dynamicStyle = newDependencyHeap()
 	}
-	self.dynamicStyle.AddIfNew("<style>"+css+"</style>", priority)
+	if strings.Index(strings.ToLower(css), "<style") != 0 {
+		css = "<style>" + css + "</style>"
+	}
+	self.dynamicStyle.AddIfNew(css, priority)
 }
 
 // RequireStyleURL adds a dynamic CSS link to the page.
@@ -175,6 +181,8 @@ func (self *Response) RequireStyleURL(url string, priority int) {
 // Multiple dynamic entries will be sorted by priority.
 // The dynamic JavaScript will be inserted after the regular
 // head-scripts of the page.
+// If script does not start with "<script",
+// then the script string will be wrapped with a script tag.
 // 
 // Use this feature to dynamically add JavaScript to
 // the page if the HTML content requires it.
@@ -182,7 +190,10 @@ func (self *Response) RequireHeadScript(script string, priority int) {
 	if self.dynamicHeadScripts == nil {
 		self.dynamicHeadScripts = newDependencyHeap()
 	}
-	self.dynamicHeadScripts.AddIfNew("<script>"+script+"</script>", priority)
+	if strings.Index(strings.ToLower(script), "<script") != 0 {
+		script = "<script>" + script + "</script>"
+	}
+	self.dynamicHeadScripts.AddIfNew(script, priority)
 }
 
 // RequireHeadScriptURL adds a dynamic JavaScript link to the page.
@@ -203,6 +214,8 @@ func (self *Response) RequireHeadScriptURL(url string, priority int) {
 // Multiple dynamic entries will be sorted by priority.
 // The dynamic JavaScript will be inserted after the regular
 // scripts near the end of the page.
+// If script does not start with "<script",
+// then the script string will be wrapped with a script tag.
 // 
 // Use this feature to dynamically add JavaScript to
 // the page if the HTML content requires it.
@@ -210,7 +223,10 @@ func (self *Response) RequireScript(script string, priority int) {
 	if self.dynamicScripts == nil {
 		self.dynamicScripts = newDependencyHeap()
 	}
-	self.dynamicScripts.AddIfNew("<script>"+script+"</script>", priority)
+	if strings.Index(strings.ToLower(script), "<script") != 0 {
+		script = "<script>" + script + "</script>"
+	}
+	self.dynamicScripts.AddIfNew(script, priority)
 }
 
 // RequireScriptURL adds a dynamic JavaScript link to the page.

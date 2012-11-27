@@ -37,11 +37,11 @@ func (self *List) Render(ctx *Context) (err error) {
 			if err != nil {
 				return err
 			}
-			ctx.Response.XML.ForceCloseTag() // li
+			ctx.Response.XML.CloseTagAlways() // li
 		}
 	}
 
-	ctx.Response.XML.ForceCloseTag() // ol/ul
+	ctx.Response.XML.CloseTagAlways() // ol/ul
 	return nil
 }
 

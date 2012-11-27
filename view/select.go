@@ -12,10 +12,6 @@ type Select struct {
 	Disabled bool
 }
 
-func (self *Select) IterateChildren(callback IterateChildrenCallback) {
-	self.Model.IterateChildren(self, callback)
-}
-
 func (self *Select) Render(ctx *Context) (err error) {
 	ctx.Response.XML.OpenTag("select")
 	ctx.Response.XML.AttribIfNotDefault("id", self.id)
@@ -25,10 +21,9 @@ func (self *Select) Render(ctx *Context) (err error) {
 		ctx.Response.XML.Attrib("disabled", "disabled")
 	}
 
-	size := self.Size
-
 	if self.Model != nil {
 		numOptions := self.Model.NumOptions()
+		size := self.Size
 		if size == 0 {
 			size = numOptions
 		}
@@ -43,17 +38,17 @@ func (self *Select) Render(ctx *Context) (err error) {
 			if self.Model.Disabled(i) {
 				ctx.Response.XML.Attrib("disabled", "disabled")
 			}
-			err = self.Model.RenderItem(i, ctx)
+			err = self.Model.RenderLabel(i, ctx)
 			if err != nil {
 				return err
 			}
 			ctx.Response.XML.CloseTag() // option
 		}
 	} else {
-		ctx.Response.XML.Attrib("size", size)
+		ctx.Response.XML.Attrib("size", self.Size)
 	}
 
-	ctx.Response.XML.CloseTag() // select
+	ctx.Response.XML.CloseTagAlways() // select
 	return nil
 }
 
@@ -65,8 +60,7 @@ type SelectModel interface {
 	Value(index int) string
 	Selected(index int) bool
 	Disabled(index int) bool
-	RenderItem(index int, ctx *Context) (err error)
-	IterateChildren(parent *Select, callback func(parent View, child View) (next bool))
+	RenderLabel(index int, ctx *Context) (err error)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -93,12 +87,9 @@ func (self *StringsSelectModel) Disabled(index int) bool {
 	return false
 }
 
-func (self *StringsSelectModel) RenderItem(index int, ctx *Context) (err error) {
+func (self *StringsSelectModel) RenderLabel(index int, ctx *Context) (err error) {
 	ctx.Response.WriteString(self.Options[index])
 	return nil
-}
-
-func (self *StringsSelectModel) IterateChildren(parent *Select, callback func(parent View, child View) (next bool)) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -125,10 +116,36 @@ func (self *IndexedStringsSelectModel) Disabled(index int) bool {
 	return false
 }
 
-func (self *IndexedStringsSelectModel) RenderItem(index int, ctx *Context) (err error) {
+func (self *IndexedStringsSelectModel) RenderLabel(index int, ctx *Context) (err error) {
 	ctx.Response.WriteString(self.Options[index])
 	return nil
 }
 
-func (self *IndexedStringsSelectModel) IterateChildren(parent *Select, callback func(parent View, child View) (next bool)) {
+///////////////////////////////////////////////////////////////////////////////
+// ValueLabelSelectModel
+
+type ValueLabelSelectModel struct {
+	ValuesAndLabels []string // Values and labels are interleaved starting with a value
+	SelectedValue   string
+}
+
+func (self *ValueLabelSelectModel) NumOptions() int {
+	return len(self.ValuesAndLabels) / 2
+}
+
+func (self *ValueLabelSelectModel) Value(index int) string {
+	return self.ValuesAndLabels[index*2]
+}
+
+func (self *ValueLabelSelectModel) Selected(index int) bool {
+	return self.ValuesAndLabels[index*2] == self.SelectedValue
+}
+
+func (self *ValueLabelSelectModel) Disabled(index int) bool {
+	return false
+}
+
+func (self *ValueLabelSelectModel) RenderLabel(index int, ctx *Context) (err error) {
+	ctx.Response.WriteString(self.ValuesAndLabels[index*2+1])
+	return nil
 }

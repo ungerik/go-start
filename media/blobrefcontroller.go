@@ -3,7 +3,7 @@ package media
 import (
 	"fmt"
 
-	"github.com/ungerik/go-start/debug"
+	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/view"
 )
@@ -13,7 +13,6 @@ type BlobRefController struct {
 }
 
 func (self BlobRefController) Supports(metaData *model.MetaData, form *view.Form) bool {
-	debug.Dump(metaData.Value.Addr().Interface())
 	_, ok := metaData.Value.Addr().Interface().(*BlobRef)
 	return ok
 }
@@ -36,11 +35,9 @@ func (self BlobRefController) NewInput(withLabel bool, metaData *model.MetaData,
 		),
 	}
 
-	chooseButton := view.DynamicView(
-		func(ctx *view.Context) (view.View, error) {
-			return &view.Div{}, nil
-		},
-	)
+	chooseList := view.Views{
+		view.JQueryUIAutocompleteFromURL(".gostart-select-blob", API.AllBlobs, 2),
+	}
 
 	uploadButton := UploadBlobButton(
 		"",
@@ -66,14 +63,7 @@ func (self BlobRefController) NewInput(withLabel bool, metaData *model.MetaData,
 			10,
 		),
 		hiddenInput,
-		&view.Div{
-			Class: Config.BlobRefController.ActionsClass,
-			Content: view.Views{
-				removeButton,
-				chooseButton,
-				uploadButton,
-			},
-		},
+		view.DIV(Config.BlobRefController.ActionsClass, chooseList, removeButton, uploadButton),
 		uploadList,
 		view.DivClearBoth(),
 	)

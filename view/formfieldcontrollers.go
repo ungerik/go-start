@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strconv"
-	"strings"
-
-	"labix.org/v2/mgo/bson"
 
 	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
@@ -103,12 +100,20 @@ func (self ModelStringController) NewInput(withLabel bool, metaData *model.MetaD
 		Size:        form.GetInputSize(metaData),
 		Disabled:    form.IsFieldDisabled(metaData),
 		Placeholder: form.InputFieldPlaceholder(metaData),
+		Required:    form.IsFieldRequired(metaData),
+		Title:       form.FieldLabel(metaData),
 	}
 	if maxlen, ok, _ := str.Maxlen(metaData); ok {
 		textField.MaxLength = maxlen
 		if maxlen < textField.Size {
 			textField.Size = maxlen
 		}
+	}
+	if metaData.BoolAttrib("view", "search") {
+		textField.Type = SearchTextField
+	}
+	if metaData.BoolAttrib("view", "autofocus") {
+		textField.Autofocus = true
 	}
 	if withLabel {
 		return AddStandardLabel(form, textField, metaData), nil
@@ -144,7 +149,7 @@ func (self ModelTextController) NewInput(withLabel bool, metaData *model.MetaDat
 			panic("Error in StandardFormFieldFactory.NewInput(): " + err.Error())
 		}
 	}
-	input = &TextArea{
+	textArea := &TextArea{
 		Class:       form.FieldInputClass(metaData),
 		Name:        metaData.Selector(),
 		Text:        text.Get(),
@@ -153,10 +158,13 @@ func (self ModelTextController) NewInput(withLabel bool, metaData *model.MetaDat
 		Disabled:    form.IsFieldDisabled(metaData),
 		Placeholder: form.InputFieldPlaceholder(metaData),
 	}
-	if withLabel {
-		return AddStandardLabel(form, input, metaData), nil
+	if metaData.BoolAttrib("view", "autofocus") {
+		textArea.Autofocus = true
 	}
-	return input, nil
+	if withLabel {
+		return AddStandardLabel(form, textArea, metaData), nil
+	}
+	return textArea, nil
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -220,15 +228,20 @@ func (self ModelUrlController) Supports(metaData *model.MetaData, form *Form) bo
 	return ok
 }
 
-func (self ModelUrlController) NewInput(withLabel bool, metaData *model.MetaData, form *Form) (input View, err error) {
+func (self ModelUrlController) NewInput(withLabel bool, metaData *model.MetaData, form *Form) (View, error) {
 	url := metaData.Value.Addr().Interface().(*model.Url)
-	input = &TextField{
+	input := &TextField{
 		Class:       form.FieldInputClass(metaData),
 		Name:        metaData.Selector(),
 		Text:        url.Get(),
 		Size:        form.GetInputSize(metaData),
 		Disabled:    form.IsFieldDisabled(metaData),
 		Placeholder: form.InputFieldPlaceholder(metaData),
+		Required:    form.IsFieldRequired(metaData),
+		Title:       form.FieldLabel(metaData),
+	}
+	if metaData.BoolAttrib("view", "autofocus") {
+		input.Autofocus = true
 	}
 	if withLabel {
 		return AddStandardLabel(form, input, metaData), nil
@@ -248,9 +261,9 @@ func (self ModelEmailController) Supports(metaData *model.MetaData, form *Form) 
 	return ok
 }
 
-func (self ModelEmailController) NewInput(withLabel bool, metaData *model.MetaData, form *Form) (input View, err error) {
+func (self ModelEmailController) NewInput(withLabel bool, metaData *model.MetaData, form *Form) (View, error) {
 	email := metaData.Value.Addr().Interface().(*model.Email)
-	input = &TextField{
+	input := &TextField{
 		Class:       form.FieldInputClass(metaData),
 		Name:        metaData.Selector(),
 		Type:        EmailTextField,
@@ -258,6 +271,11 @@ func (self ModelEmailController) NewInput(withLabel bool, metaData *model.MetaDa
 		Size:        form.GetInputSize(metaData),
 		Disabled:    form.IsFieldDisabled(metaData),
 		Placeholder: form.InputFieldPlaceholder(metaData),
+		Required:    form.IsFieldRequired(metaData),
+		Title:       form.FieldLabel(metaData),
+	}
+	if metaData.BoolAttrib("view", "autofocus") {
+		input.Autofocus = true
 	}
 	if withLabel {
 		return AddStandardLabel(form, input, metaData), nil
@@ -287,12 +305,17 @@ func (self ModelPasswordController) NewInput(withLabel bool, metaData *model.Met
 		Size:        form.GetInputSize(metaData),
 		Disabled:    form.IsFieldDisabled(metaData),
 		Placeholder: form.InputFieldPlaceholder(metaData),
+		Required:    form.IsFieldRequired(metaData),
+		Title:       form.FieldLabel(metaData),
 	}
 	if maxlen, ok, _ := password.Maxlen(metaData); ok {
 		textField.MaxLength = maxlen
 		if maxlen < textField.Size {
 			textField.Size = maxlen
 		}
+	}
+	if metaData.BoolAttrib("view", "autofocus") {
+		textField.Autofocus = true
 	}
 	if withLabel {
 		return AddStandardLabel(form, textField, metaData), nil
@@ -314,18 +337,23 @@ func (self ModelPhoneController) Supports(metaData *model.MetaData, form *Form) 
 
 func (self ModelPhoneController) NewInput(withLabel bool, metaData *model.MetaData, form *Form) (input View, err error) {
 	phone := metaData.Value.Addr().Interface().(*model.Phone)
-	input = &TextField{
+	textField := &TextField{
 		Class:       form.FieldInputClass(metaData),
 		Name:        metaData.Selector(),
 		Text:        phone.Get(),
 		Size:        form.GetInputSize(metaData),
 		Disabled:    form.IsFieldDisabled(metaData),
 		Placeholder: form.InputFieldPlaceholder(metaData),
+		Required:    form.IsFieldRequired(metaData),
+		Title:       form.FieldLabel(metaData),
+	}
+	if metaData.BoolAttrib("view", "autofocus") {
+		textField.Autofocus = true
 	}
 	if withLabel {
-		return AddStandardLabel(form, input, metaData), nil
+		return AddStandardLabel(form, textField, metaData), nil
 	}
-	return input, nil
+	return textField, nil
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -491,6 +519,8 @@ func (self ModelDateController) NewInput(withLabel bool, metaData *model.MetaDat
 			Size:        len(model.DateFormat),
 			Disabled:    form.IsFieldDisabled(metaData),
 			Placeholder: form.InputFieldPlaceholder(metaData),
+			Required:    form.IsFieldRequired(metaData),
+			Title:       form.FieldLabel(metaData),
 		},
 	}
 	if withLabel {
@@ -522,6 +552,8 @@ func (self ModelDateTimeController) NewInput(withLabel bool, metaData *model.Met
 			Size:        len(model.DateTimeFormat),
 			Disabled:    form.IsFieldDisabled(metaData),
 			Placeholder: form.InputFieldPlaceholder(metaData),
+			Required:    form.IsFieldRequired(metaData),
+			Title:       form.FieldLabel(metaData),
 		},
 	}
 	if withLabel {
@@ -544,17 +576,22 @@ func (self ModelFloatController) Supports(metaData *model.MetaData, form *Form) 
 
 func (self ModelFloatController) NewInput(withLabel bool, metaData *model.MetaData, form *Form) (input View, err error) {
 	f := metaData.Value.Addr().Interface().(*model.Float)
-	input = &TextField{
+	textField := &TextField{
 		Class:       form.FieldInputClass(metaData),
 		Name:        metaData.Selector(),
 		Text:        f.String(),
 		Disabled:    form.IsFieldDisabled(metaData),
 		Placeholder: form.InputFieldPlaceholder(metaData),
+		Required:    form.IsFieldRequired(metaData),
+		Title:       form.FieldLabel(metaData),
+	}
+	if metaData.BoolAttrib("view", "autofocus") {
+		textField.Autofocus = true
 	}
 	if withLabel {
-		return AddStandardLabel(form, input, metaData), nil
+		return AddStandardLabel(form, textField, metaData), nil
 	}
-	return input, nil
+	return textField, nil
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -571,17 +608,22 @@ func (self ModelIntController) Supports(metaData *model.MetaData, form *Form) bo
 
 func (self ModelIntController) NewInput(withLabel bool, metaData *model.MetaData, form *Form) (input View, err error) {
 	i := metaData.Value.Addr().Interface().(*model.Int)
-	input = &TextField{
+	textField := &TextField{
 		Class:       form.FieldInputClass(metaData),
 		Name:        metaData.Selector(),
 		Text:        i.String(),
 		Disabled:    form.IsFieldDisabled(metaData),
 		Placeholder: form.InputFieldPlaceholder(metaData),
+		Required:    form.IsFieldRequired(metaData),
+		Title:       form.FieldLabel(metaData),
+	}
+	if metaData.BoolAttrib("view", "autofocus") {
+		textField.Autofocus = true
 	}
 	if withLabel {
-		return AddStandardLabel(form, input, metaData), nil
+		return AddStandardLabel(form, textField, metaData), nil
 	}
-	return input, nil
+	return textField, nil
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -663,8 +705,19 @@ func (self ModelBlobController) SetValue(value string, ctx *Context, metaData *m
 // MongoRefController
 
 type MongoRefController struct {
-	RefSelector     string // Empty string matches all selectors
-	LabelSelector   string // Selector for the string field with the name of the referenced document
+	// RefSelector selects for which mongo.Ref fields this
+	// FormFieldController should be used.
+	// An empty string selects all mongo.Ref in the form model.
+	RefSelector string
+
+	// LabelSelector is a selector into the referenced documents to retrieve
+	// the labels for the documents.
+	// If labelSelector is an empty string, then a struct tag `view:"optionsLabel="`
+	// will be used or DocumentLabelSelector from the mongo.Ref's collection.
+	LabelSelectors []string
+
+	// OptionsIterator iterates the possible documents for the mongo.Ref.
+	// If options is nil, then all documents of the mongo.Ref's collection are used
 	OptionsIterator model.Iterator
 }
 
@@ -673,78 +726,40 @@ func (self *MongoRefController) Supports(metaData *model.MetaData, form *Form) b
 	return ok && (self.RefSelector == "" || self.RefSelector == metaData.Selector() || self.RefSelector == metaData.WildcardSelector())
 }
 
-func (self *MongoRefController) getLabel(doc bson.M, labelSelectorParts []string) (label string) {
-	part := doc
-	for i, s := range labelSelectorParts {
-		switch p := part[s].(type) {
-		case bson.M:
-			part = p
-
-		case string:
-			if i < len(labelSelectorParts)-1 {
-				return ""
-			}
-			return p
-
-		case int:
-			if i < len(labelSelectorParts)-1 {
-				return ""
-			}
-			return strconv.Itoa(p)
-
-		case float64:
-			if i < len(labelSelectorParts)-1 {
-				return ""
-			}
-			return strconv.FormatFloat(p, 'f', -1, 64)
-
-		case bool:
-			if i < len(labelSelectorParts)-1 {
-				return ""
-			}
-			return strconv.FormatBool(p)
-
-		default:
-			return ""
-		}
-	}
-	return ""
-}
-
 func (self *MongoRefController) NewInput(withLabel bool, metaData *model.MetaData, form *Form) (input View, err error) {
 	mongoRef := metaData.Value.Addr().Interface().(*mongo.Ref)
-	options := []string{""}
-	labelSelectorParts := strings.Split(self.LabelSelector, ".")
-	var doc bson.M
-	for self.OptionsIterator.Next(&doc) {
-		if label := self.getLabel(doc, labelSelectorParts); label != "" {
-			for _, option := range options {
-				if option == label {
-					return nil, fmt.Errorf("Names of mongo documents must be unique, found double '%s'", label)
-				}
-			}
-			options = append(options, label)
+	valuesAndLabels := []string{"", ""}
+	labelSelectors := self.LabelSelectors
+	if len(labelSelectors) == 0 {
+		if selector, ok := metaData.Attrib("view", "optionsLabel"); ok {
+			labelSelectors = []string{selector}
 		}
 	}
-	if self.OptionsIterator.Err() != nil {
-		return nil, self.OptionsIterator.Err()
+	i := self.OptionsIterator
+	if i == nil {
+		i = mongoRef.Collection().Iterator()
 	}
-
-	label := ""
-	ok, err := mongoRef.TryGet(&doc)
-	if err != nil {
-		return nil, err
+	var doc mongo.DocumentBase
+	for i.Next(&doc) {
+		label, err := mongoRef.Collection().DocumentLabel(doc.ID, labelSelectors...)
+		if err != nil {
+			return nil, err
+		}
+		valuesAndLabels = append(valuesAndLabels, doc.ID.Hex(), label)
 	}
-	if ok {
-		label = self.getLabel(doc, labelSelectorParts)
+	if i.Err() != nil {
+		return nil, i.Err()
 	}
 
 	input = &Select{
-		Class:    form.FieldInputClass(metaData),
-		Name:     metaData.Selector(),
-		Model:    &StringsSelectModel{options, label},
-		Disabled: form.IsFieldDisabled(metaData),
+		Class: form.FieldInputClass(metaData),
+		Name:  metaData.Selector(),
+		Model: &ValueLabelSelectModel{
+			ValuesAndLabels: valuesAndLabels,
+			SelectedValue:   mongoRef.StringID(),
+		},
 		Size:     1,
+		Disabled: form.IsFieldDisabled(metaData),
 	}
 	if withLabel {
 		return AddStandardLabel(form, input, metaData), nil
@@ -754,19 +769,5 @@ func (self *MongoRefController) NewInput(withLabel bool, metaData *model.MetaDat
 
 func (self *MongoRefController) SetValue(value string, ctx *Context, metaData *model.MetaData, form *Form) error {
 	mongoRef := metaData.Value.Addr().Interface().(*mongo.Ref)
-	mongoRef.Set(nil)
-	if value != "" {
-		labelSelectorParts := strings.Split(self.LabelSelector, ".")
-		var doc bson.M
-		for self.OptionsIterator.Next(&doc) {
-			if self.getLabel(doc, labelSelectorParts) == value {
-				mongoRef.ID = doc["_id"].(bson.ObjectId)
-				return nil
-			}
-		}
-		if self.OptionsIterator.Err() != nil {
-			return self.OptionsIterator.Err()
-		}
-	}
-	return nil
+	return mongoRef.SetStringID(value)
 }

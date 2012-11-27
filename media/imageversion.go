@@ -94,7 +94,7 @@ func (self *ImageVersion) View(class string) *view.Image {
 		URL:    self.FileURL(),
 		Width:  self.Width.GetInt(),
 		Height: self.Height.GetInt(),
-		Title:  self.image.TitleOrFilename(),
+		Title:  self.image.Title.Get(),
 		Class:  class,
 	}
 }
@@ -103,7 +103,7 @@ func (self *ImageVersion) LinkedView(imageClass, linkClass string) *view.Link {
 	return &view.Link{
 		Model: &view.StringLink{
 			Url:     self.image.Link.Get(),
-			Title:   self.image.TitleOrFilename(),
+			Title:   self.image.Title.Get(),
 			Content: self.View(imageClass),
 		},
 		Class: linkClass,

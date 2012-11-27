@@ -19,6 +19,8 @@ type TextArea struct {
 	TabIndex    int
 	Class       string
 	Placeholder string
+	Required    bool // HTML5
+	Autofocus   bool // HTML5
 }
 
 func (self *TextArea) Render(ctx *Context) (err error) {
@@ -39,17 +41,15 @@ func (self *TextArea) Render(ctx *Context) (err error) {
 	ctx.Response.XML.Attrib("rows", rows)
 	ctx.Response.XML.Attrib("cols", cols)
 	ctx.Response.XML.AttribIfNotDefault("tabindex", self.TabIndex)
-	if self.Readonly {
-		ctx.Response.XML.Attrib("readonly", "readonly")
-	}
-	if self.Disabled {
-		ctx.Response.XML.Attrib("disabled", "disabled")
-	}
+	ctx.Response.XML.AttribFlag("readonly", self.Readonly)
+	ctx.Response.XML.AttribFlag("disabled", self.Disabled)
+	ctx.Response.XML.AttribFlag("required", self.Required)
+	ctx.Response.XML.AttribFlag("autofocus", self.Autofocus)
 	ctx.Response.XML.AttribIfNotDefault("placeholder", self.Placeholder)
 
 	ctx.Response.XML.EscapeContent(self.Text)
 
-	ctx.Response.XML.ForceCloseTag()
+	ctx.Response.XML.CloseTagAlways()
 	return nil
 }
 

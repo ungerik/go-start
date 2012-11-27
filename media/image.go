@@ -36,6 +36,10 @@ const (
 	Bottom
 )
 
+func ImageIterator() model.Iterator {
+	return Config.Backend.ImageIterator()
+}
+
 // NewImage creates and saves a new Image.
 // GIF, TIFF, BMP images will be read, but saved as PNG.
 func NewImage(filename string, data []byte) (*Image, error) {
@@ -67,6 +71,7 @@ func NewImage(filename string, data []byte) (*Image, error) {
 		i.Bounds().Dy(),
 		i.ColorModel() == color.GrayModel || i.ColorModel() == color.Gray16Model,
 	)
+	image.Init()
 	err = version.SaveImageData(data)
 	if err != nil {
 		return nil, err
@@ -111,10 +116,14 @@ type Image struct {
 	Versions []ImageVersion
 }
 
-func (self *Image) Init() {
+func (self *Image) Init() *Image {
+	if self.Title == "" {
+		self.Title.Set(self.Filename())
+	}
 	for i := range self.Versions {
 		self.Versions[i].image = self
 	}
+	return self
 }
 
 func (self *Image) Save() error {
@@ -161,15 +170,6 @@ func (self *Image) DeleteVersion(index int) error {
 
 func (self *Image) Filename() string {
 	return self.Versions[0].Filename.Get()
-}
-
-// TitleOrFilename returns Title if not empty,
-// or else Filename().
-func (self *Image) TitleOrFilename() string {
-	if self.Title.IsEmpty() {
-		return self.Filename()
-	}
-	return self.Title.Get()
 }
 
 func (self *Image) ContentType() string {

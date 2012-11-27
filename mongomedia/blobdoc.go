@@ -10,6 +10,10 @@ type BlobDoc struct {
 	media.Blob         `bson:",inline"`
 }
 
+func (self *BlobDoc) Init(collection *mongo.Collection, embeddingStructPtr interface{}) {
+	self.DocumentBase.Init(collection, embeddingStructPtr)
+}
+
 func (self *BlobDoc) Save() error {
 	return self.DocumentBase.Save()
 }

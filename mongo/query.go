@@ -27,7 +27,13 @@ type Query interface {
 	Skip(int) Query
 	Limit(int) Query
 	Sort(selectors ...string) Query // sort reverse by prefixing the selector with a minus -
-	SortFunc(less func(a, b interface{}) bool) model.Iterator
+
+	// SortFunc will sort the query according to compareFunc.
+	// compareFunc must have two arguments that are assignable from
+	// the iterated document type or pointers to such a type.
+	// The result of compareFunc must be a bool indicating
+	// if the first argument is less than the second.
+	SortFunc(compareFunc interface{}) model.Iterator
 
 	// FilterX must be the first query on a Collection
 	IsFilter() bool

@@ -9,8 +9,14 @@ import (
 	// "github.com/ungerik/go-start/errs"
 )
 
-// TypeOfError is the built-in error type
-var TypeOfError = reflect.TypeOf(func(error) {}).In(0)
+// Built-in types
+var (
+	// TypeOfError is the built-in error type
+	TypeOfError = reflect.TypeOf((*error)(nil)).Elem()
+
+	// TypeOfInterface is the type of an empty interface{}
+	TypeOfInterface = reflect.TypeOf((*interface{})(nil)).Elem()
+)
 
 func GenericSlice(sliceOrArray interface{}) []interface{} {
 	v := reflect.ValueOf(sliceOrArray)
@@ -116,14 +122,8 @@ func IsDefaultValue(value interface{}) bool {
 	}
 
 	switch v := reflect.ValueOf(value); v.Kind() {
-	case reflect.Ptr:
-		if v.IsNil() {
-			return true
-		}
-		return IsDefaultValue(v.Elem().Interface())
-
 	case reflect.String:
-		return v.String() == ""
+		return v.Len() == 0
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return v.Int() == 0
@@ -137,11 +137,11 @@ func IsDefaultValue(value interface{}) bool {
 	case reflect.Bool:
 		return v.Bool() == false
 
+	case reflect.Ptr, reflect.Chan, reflect.Func, reflect.Interface, reflect.Slice, reflect.Map:
+		return v.IsNil()
+
 	case reflect.Struct:
 		return reflect.DeepEqual(value, reflect.Zero(v.Type()).Interface())
-
-	case reflect.Slice, reflect.Map, reflect.Chan, reflect.Func, reflect.Interface:
-		return v.IsNil()
 	}
 
 	panic(fmt.Errorf("Unknown value kind %T", value))
@@ -338,12 +338,60 @@ func CanStringToValueOfType(t reflect.Type) bool {
 	return false
 }
 
-// SmartCopy copies the struct or map fields from source
+// SetStructZero sets all elements of a struct to their zero values.
+func SetStructZero(structVal reflect.Value) {
+	for i := 0; i < structVal.Type().NumField(); i++ {
+		elem := structVal.Index(i)
+		if elem.Kind() == reflect.Struct {
+			SetStructZero(elem)
+		} else {
+			elem.Set(reflect.Zero(elem.Type()))
+		}
+	}
+}
+
+// Reset sets all elements of the object pointed to
+// by resultRef to their default or zero values.
+// But it works different from simply zeroing out everything,
+// here are the exceptions:
+// If resultRef is a pointer to a pointer, then
+// the pointed to pointer will be reset to a new instance
+// If resultRef is a pointer to a map, then the map
+// will be reset to a new empty one.
+// All other types pointed to by resultRef will be set
+// to their default zero values.
+func Reset(resultRef interface{}) {
+	ptr := reflect.ValueOf(resultRef)
+	if ptr.Kind() != reflect.Ptr {
+		panic(fmt.Errorf("reflection.Reset(): resultRef must be a pointer, got %T", resultRef))
+	}
+	val := ptr.Elem()
+	switch val.Kind() {
+	case reflect.Ptr:
+		// If resultRef is a pointer to a pointer,
+		// set the pointer to a new instance
+		// of the pointed to type
+		ptr.Set(reflect.New(val.Type().Elem()))
+
+	case reflect.Map:
+		// If resultRef is a pointer to a map,
+		// set make an empty new map
+		ptr.Set(reflect.MakeChan(val.Type(), 0))
+
+	case reflect.Struct:
+		SetStructZero(val)
+
+	default:
+		val.Set(reflect.Zero(val.Type()))
+	}
+}
+
+// SmartCopy copies struct or map fields from source
 // to equally named struct or map fields of resultRef,
 // by dereferencing source and resultRef if necessary
 // to find a matching assignable type.
-// If resultRef is a pointer to a pointer type,
-// then a new instance of that pointer type is created.
+// All fields of the object referenced by resultPtr will be
+// set to their default values before copying from source.
 // SmartCopy is typically used for iterators with
 // a method Next(resultRefRef interface{}) bool.
 func SmartCopy(source, resultRef interface{}) {
@@ -421,4 +469,55 @@ func smartCopyVals(sourceVal, resultVal reflect.Value) bool {
 	}
 
 	return false
+}
+
+func checkFunctionSignatureNums(t reflect.Type, args, results int) error {
+	if t.Kind() != reflect.Func {
+		return fmt.Errorf("Expected a function but got a %s", t)
+	}
+	if t.NumIn() != args {
+		return fmt.Errorf("Expected %d function arguments, got %d", args, t.NumIn())
+	}
+	if t.NumOut() != results {
+		return fmt.Errorf("Expected %d function results, got %d", results, t.NumOut())
+	}
+	return nil
+}
+
+func CheckFunctionSignature(f interface{}, args, results []reflect.Type) error {
+	t := reflect.TypeOf(f)
+	err := checkFunctionSignatureNums(t, len(args), len(results))
+	if err != nil {
+		return err
+	}
+	for i := range args {
+		if args[i] != t.In(i) {
+			return fmt.Errorf("Function argument %d must be %s, got %s", i, args[i], t.In(i))
+		}
+	}
+	for i := range results {
+		if results[i] != t.Out(i) {
+			return fmt.Errorf("Function result %d must be %s, got %s", i, results[i], t.Out(i))
+		}
+	}
+	return nil
+}
+
+func CheckFunctionSignatureKind(f interface{}, args, results []reflect.Kind) error {
+	t := reflect.TypeOf(f)
+	err := checkFunctionSignatureNums(t, len(args), len(results))
+	if err != nil {
+		return err
+	}
+	for i := range args {
+		if args[i] != t.In(i).Kind() {
+			return fmt.Errorf("Function argument %d must be %s kind, got %s kind", i, args[i], t.In(i).Kind())
+		}
+	}
+	for i := range results {
+		if results[i] != t.Out(i).Kind() {
+			return fmt.Errorf("Function result %d must be %s kind, got %s kind", i, results[i], t.Out(i).Kind())
+		}
+	}
+	return nil
 }

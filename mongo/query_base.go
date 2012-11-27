@@ -94,8 +94,8 @@ func (self *query_base) Sort(selectors ...string) Query {
 	return checkQuery(q)
 }
 
-func (self *query_base) SortFunc(lessFunc func(a, b interface{}) bool) model.Iterator {
-	return model.NewSortIterator(self.Iterator(), lessFunc)
+func (self *query_base) SortFunc(compareFunc interface{}) model.Iterator {
+	return model.NewSortIterator(self.Iterator(), compareFunc)
 }
 
 func (self *query_base) Explain() string {
