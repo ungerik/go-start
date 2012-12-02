@@ -330,31 +330,41 @@ func (self *Collection) DocumentLabel(docId bson.ObjectId, labelSelectors ...str
 
 	labels := make([]string, len(labelSelectors))
 	for i, selector := range labelSelectors {
-		var doc interface{}
-		err := self.collection.FindId(docId).Select(selector).One(&doc)
+		if len(selector) == 0 {
+			return "", fmt.Errorf("Label selector must not be an empty string")
+		}
+
+		selector = strings.ToLower(selector)
+
+		var doc bson.M
+		err := self.collection.FindId(docId).Select(bson.M{selector: 1}).One(&doc)
 		if err != nil {
 			return "", err
 		}
 
-		// Support the basic BSON types from unmarshalling
-		switch s := doc.(type) {
-		case string:
-			labels[i] = s
+		if label, ok := doc[selector]; ok {
+			// Support the basic BSON types from unmarshalling
+			switch s := label.(type) {
+			case string:
+				labels[i] = s
 
-		case int:
-			labels[i] = strconv.Itoa(s)
+			case int:
+				labels[i] = strconv.Itoa(s)
 
-		case float64:
-			labels[i] = strconv.FormatFloat(s, 'f', -1, 64)
+			case float64:
+				labels[i] = strconv.FormatFloat(s, 'f', -1, 64)
 
-		case bool:
-			labels[i] = strconv.FormatBool(s)
+			case bool:
+				labels[i] = strconv.FormatBool(s)
 
-		case bson.ObjectId:
-			labels[i] = s.Hex()
+			case bson.ObjectId:
+				labels[i] = s.Hex()
 
-		default:
-			return "", fmt.Errorf("Can't get label of %s for '%s' because it is of type %T", docId.Hex(), selector, doc)
+			default:
+				return "", fmt.Errorf("Can't get label of %s for '%s' because it is of type %T", docId.Hex(), selector, doc)
+			}
+		} else {
+			return "", fmt.Errorf("Document %s of collection %s does not have a label-field %s", docId.Hex(), self, selector)
 		}
 	}
 

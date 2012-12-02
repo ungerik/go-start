@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"strconv"
 
-	// "github.com/ungerik/go-start/debug"
+	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/mongo"
 )
@@ -741,13 +741,16 @@ func (self *MongoRefController) NewInput(withLabel bool, metaData *model.MetaDat
 	}
 	var doc mongo.DocumentBase
 	for i.Next(&doc) {
+		debug.Dump(doc)
 		label, err := mongoRef.Collection().DocumentLabel(doc.ID, labelSelectors...)
 		if err != nil {
+			debug.Dump(err)
 			return nil, err
 		}
 		valuesAndLabels = append(valuesAndLabels, doc.ID.Hex(), label)
 	}
 	if i.Err() != nil {
+		debug.Dump(i.Err())
 		return nil, i.Err()
 	}
 

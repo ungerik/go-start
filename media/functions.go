@@ -8,14 +8,12 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
-	"io/ioutil"
-	"net/http"
 	"path"
 	"strings"
 	"unicode"
 	"unicode/utf8"
 
-	// "github.com/ungerik/go-start/debug"
+	"github.com/ungerik/go-start/utils"
 )
 
 // MakePrettyUrlFilename modifies a filename so it looks good as part on an URL.
@@ -48,7 +46,8 @@ func ColoredImageDataURL(c color.Color) string {
 	return "data:image/png;base64," + base64.StdEncoding.EncodeToString(buf.Bytes())
 }
 
-// ImageDataURL downloads an image and encodes it as a data URL.
+// ImageDataURL loads an image and encodes it as a data URL.
+// Use a file-URL that begins with file:// to load local files.
 func ImageDataURL(imageURL string) (dataURL string, err error) {
 	var prefix string
 	switch strings.ToLower(path.Ext(imageURL)) {
@@ -62,12 +61,7 @@ func ImageDataURL(imageURL string) (dataURL string, err error) {
 		return "", fmt.Errorf("Invalid image filename extension in URL: %s", imageURL)
 	}
 
-	r, err := http.Get(imageURL)
-	if err != nil {
-		return "", err
-	}
-	defer r.Body.Close()
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := utils.ReadURL(imageURL)
 	if err != nil {
 		return "", err
 	}
