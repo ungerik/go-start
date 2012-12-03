@@ -342,7 +342,23 @@ func (self *Collection) DocumentLabel(docId bson.ObjectId, labelSelectors ...str
 			return "", err
 		}
 
-		if label, ok := doc[selector]; ok {
+		var label interface{}
+		if strings.IndexRune(selector, '.') != -1 {
+			for _, subSel := range strings.Split(selector, ".") {
+				label, _ = doc[subSel]
+				if label == nil {
+					break
+				}
+				doc, _ = label.(bson.M)
+				if doc == nil {
+					break
+				}
+			}
+		} else {
+			label, _ = doc[selector]
+		}
+
+		if label != nil {
 			// Support the basic BSON types from unmarshalling
 			switch s := label.(type) {
 			case string:
@@ -361,10 +377,8 @@ func (self *Collection) DocumentLabel(docId bson.ObjectId, labelSelectors ...str
 				labels[i] = s.Hex()
 
 			default:
-				return "", fmt.Errorf("Can't get label of %s for '%s' because it is of type %T", docId.Hex(), selector, doc)
+				return "", fmt.Errorf("Can't get label of %s for '%s' because it is of type %T", docId.Hex(), selector, label)
 			}
-		} else {
-			return "", fmt.Errorf("Document %s of collection %s does not have a label-field %s", docId.Hex(), self, selector)
 		}
 	}
 

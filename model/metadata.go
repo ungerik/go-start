@@ -188,7 +188,7 @@ func (self *MetaData) Path() []*MetaData {
 func ParseTagAttribs(tag string) map[string]string {
 	attribs := make(map[string]string)
 	for _, s := range strings.Split(tag, "|") {
-		pos := strings.Index(s, "=")
+		pos := strings.IndexRune(s, '=')
 		if pos == -1 {
 			attribs[s] = "true"
 		} else {

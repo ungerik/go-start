@@ -45,7 +45,7 @@ func (self *Backend) FileReader(id string) (reader io.ReadCloser, filename, cont
 	} else if err != nil {
 		return nil, "", "", err
 	}
-	filename = id[strings.Index(id, "/")+1:]
+	filename = id[strings.IndexRune(id, '/')+1:]
 	return file, filename, file.ContentType(), nil
 }
 

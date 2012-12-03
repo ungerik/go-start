@@ -148,7 +148,7 @@ func StripHTMLTags(text string) (plainText string) {
 
 func AddUrlParam(url, name, value string) string {
 	var separator string
-	if strings.Index(url, "?") == -1 {
+	if strings.IndexRune(url, '?') == -1 {
 		separator = "?"
 	} else {
 		separator = "&"
