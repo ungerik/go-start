@@ -235,8 +235,8 @@ func ResampleImage(m image.Image, r image.Rectangle, w, h int) image.Image {
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
 			// Get a source pixel.
-			subx := x * curw / w
-			suby := y * curh / h
+			subx := r.Min.X + x*curw/w
+			suby := r.Min.Y + y*curh/h
 			r32, g32, b32, a32 := m.At(subx, suby).RGBA()
 			r := uint8(r32 >> 8)
 			g := uint8(g32 >> 8)
