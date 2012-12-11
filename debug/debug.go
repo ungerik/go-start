@@ -48,9 +48,16 @@ func Stack() string {
 	return string(debug.Stack())
 }
 
+func formatValue(value interface{}) string {
+	return fmt.Sprintf("\n     Type: %T\n    Value: %v\nGo Syntax: %#v", value, value, value)
+}
+
+func formatCallstack(skip int) string {
+	return fmt.Sprintf("\nCallstack: %s", CallStackInfo(skip + 1))
+}
+
 func FormatSkip(skip int, value interface{}) string {
-	callstack := CallStackInfo(skip + 1)
-	return fmt.Sprintf("\n     Type: %T\n    Value: %v\nGo Syntax: %#v\nCallstack: %s", value, value, value, callstack)
+	return formatValue(value) + formatCallstack(skip + 1)
 }
 
 func Format(value interface{}) string {
@@ -60,9 +67,10 @@ func Format(value interface{}) string {
 func Dump(values ...interface{}) {
 	if Logger != nil {
 		for _, value := range values {
-			Logger.Println(FormatSkip(2, value))
+			Logger.Println(formatValue(value))
 		}
 	}
+	Logger.Println(formatCallstack(2))
 }
 
 func Print(values ...interface{}) {
