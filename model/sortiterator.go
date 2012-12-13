@@ -3,51 +3,54 @@ package model
 import (
 	"reflect"
 
-	"github.com/ungerik/go-start/utils"
+	"github.com/ungerik/go-start/reflection"
 )
 
-type LessFunc func(a, b interface{}) (less bool)
-
-func NewSortIterator(iterator Iterator, lessFunc LessFunc) *SortIterator {
-	return &SortIterator{Iterator: iterator, LessFunc: lessFunc}
+func NewSortIterator(iterator Iterator, compareFunc interface{}) *SortIterator {
+	return &SortIterator{Iterator: iterator, CompareFunc: compareFunc}
 }
 
-// SortIterator stores all values from Iterator in a slice and
-// iterates them sorted by LessFunc.
-// LessFunc will always be called with a pointer to the struct if Next
-// is called with a pointer to a struct or the address of a
-// pointer to a stract.
-// For all other types LessFunc will be called with the type that
-// that the argument of Next points to.
 type SortIterator struct {
-	Iterator
-	LessFunc      LessFunc
+	Iterator      Iterator
+	CompareFunc   interface{}
 	sliceIterator *SliceIterator
+	err           error
 }
 
 func (self *SortIterator) Next(resultRef interface{}) bool {
-	if self.Err() != nil {
+	if self.err != nil {
 		return false
 	}
+
 	if self.sliceIterator == nil {
-		resultType := reflect.ValueOf(resultRef).Elem().Type()
-		resultKind := resultType.Kind()
-		slice := []interface{}{}
-		for self.Iterator.Next(resultRef) {
-			resultVal := reflect.ValueOf(resultRef).Elem()
-			if resultKind == reflect.Struct {
-				resultCopy := reflect.New(resultType)
-				resultCopy.Elem().Set(resultVal)
-				slice = append(slice, resultCopy.Interface())
-			} else {
-				slice = append(slice, resultVal.Interface())
-			}
-		}
-		if self.Err() != nil {
+		f, err := reflection.NewSortCompareFunc(self.CompareFunc)
+		if err != nil {
+			self.err = err
 			return false
 		}
-		utils.Sort(slice, self.LessFunc)
+
+		slice := make([]interface{}, 0, 16)
+		result := reflect.New(f.ArgType).Interface()
+		for self.Iterator.Next(result) {
+			slice = append(slice, result)
+			result = reflect.New(f.ArgType).Interface()
+		}
+		self.err = self.Iterator.Err()
+		if self.err != nil {
+			return false
+		}
+
+		self.err = f.Sort(slice)
+		if self.err != nil {
+			return false
+		}
+
 		self.sliceIterator = NewSliceIterator(slice)
 	}
+
 	return self.sliceIterator.Next(resultRef)
+}
+
+func (self *SortIterator) Err() error {
+	return self.err
 }

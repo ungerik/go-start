@@ -10,6 +10,7 @@ func ViewPath(name string) view.ViewPath {
 		{Name: "file", Args: 2, View: FileView},
 		{Name: "upload-blob", View: UploadBlob},
 		{Name: "upload-image", Args: 1, View: UploadImage},
-		{Name: "thumbnails.json", Args: 1, View: AllThumbnailsAPI},
+		{Name: "thumbnails.json", Args: 1, View: API.AllThumbnails},
+		{Name: "blobs.json", View: API.AllBlobs},
 	}}
 }

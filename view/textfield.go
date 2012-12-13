@@ -6,6 +6,7 @@ const (
 	NormalTextField TextFieldType = iota
 	PasswordTextField
 	EmailTextField
+	SearchTextField
 )
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -18,32 +19,36 @@ type TextField struct {
 	Size        int
 	MaxLength   int
 	Type        TextFieldType
-	Readonly    bool
-	Disabled    bool
 	TabIndex    int
 	Class       string
 	Placeholder string
+	Title       string
+	Readonly    bool
+	Disabled    bool
+	Required    bool // HTML5
+	Autofocus   bool // HTML5
 }
 
 func (self *TextField) Render(ctx *Context) (err error) {
 	ctx.Response.XML.OpenTag("input")
 	ctx.Response.XML.AttribIfNotDefault("id", self.id)
 	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
+	ctx.Response.XML.AttribIfNotDefault("title", self.Title)
 
 	ctx.Response.XML.Attrib("name", self.Name)
 	ctx.Response.XML.AttribIfNotDefault("tabindex", self.TabIndex)
-	if self.Readonly {
-		ctx.Response.XML.Attrib("readonly", "readonly")
-	}
-	if self.Disabled {
-		ctx.Response.XML.Attrib("disabled", "disabled")
-	}
+	ctx.Response.XML.AttribFlag("readonly", self.Readonly)
+	ctx.Response.XML.AttribFlag("disabled", self.Disabled)
+	ctx.Response.XML.AttribFlag("required", self.Required)
+	ctx.Response.XML.AttribFlag("autofocus", self.Autofocus)
 
 	switch self.Type {
 	case PasswordTextField:
 		ctx.Response.XML.Attrib("type", "password")
 	case EmailTextField:
 		ctx.Response.XML.Attrib("type", "email")
+	case SearchTextField:
+		ctx.Response.XML.Attrib("type", "search")
 	default:
 		ctx.Response.XML.Attrib("type", "text")
 	}

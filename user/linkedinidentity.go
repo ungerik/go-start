@@ -19,7 +19,7 @@ type LinkedInIdentity struct {
 func (self *LinkedInIdentity) ProfileURL() string {
 	if !self.Name.IsEmpty() {
 		name := self.Name.Get()
-		if strings.Index(name, "/") == -1 {
+		if strings.IndexRune(name, '/') == -1 {
 			return "http://linkedin.com/in/" + name
 		} else {
 			return "http://linkedin.com/pub/" + name

@@ -86,11 +86,11 @@ func (self *Menu) Render(ctx *Context) (err error) {
 				return err
 			}
 		}
-		ctx.Response.XML.ForceCloseTag() // a
+		ctx.Response.XML.CloseTagAlways() // a
 
-		ctx.Response.XML.ForceCloseTag() // li
+		ctx.Response.XML.CloseTagAlways() // li
 	}
 
-	ctx.Response.XML.ForceCloseTag() // ul
+	ctx.Response.XML.CloseTagAlways() // ul
 	return nil
 }

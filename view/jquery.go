@@ -4,16 +4,32 @@ import (
 	"fmt"
 )
 
-var (
-	JQuery   HTML = `<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script><script>window.jQuery || document.write('<script src="/js/libs/jquery-1.7.1.min.js"><\/script>')</script>`
-	JQueryUI HTML = `<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/jquery-ui.min.js"></script><script>window.jQuery.ui || document.write('<script src="/js/libs/jquery-ui-1.8.17.custom.min.js"><\/script>')</script>`
-)
+var JQuery HTML = `<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script><script>window.jQuery || document.write('<script src="/js/libs/jquery-1.7.1.min.js"><\/script>')</script>`
+var JQueryUI HTML = `<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/jquery-ui.min.js"></script><script>window.jQuery.ui || document.write('<script src="/js/libs/jquery-ui-1.8.17.custom.min.js"><\/script>')</script>`
+
+func RequireJQuery(priority int) View {
+	return RequireScript(string(JQuery), priority)
+}
+
+func RequireJQueryUI(priority int) View {
+	return RequireScript(string(JQueryUI), priority)
+}
+
+/*
+
+Add the following to your CSS to set the max height of the drop-down:
+
+	.ui-autocomplete {
+	    max-height: 200px;
+	    overflow-y: auto;
+	    overflow-x: hidden;
+	}
+*/
 
 func JQueryUIAutocompleteFromURL(domSelector string, dataURL URL, minLength int) View {
 	return RenderView(
 		func(ctx *Context) (err error) {
-			url := dataURL.URL(ctx)
-			ctx.Response.Printf("<script>$('%s').autocomplete({source:'%s',minLength:%d});</script>", domSelector, url, minLength)
+			ctx.Response.Printf("<script>jQuery('%s').autocomplete({source:'%s',minLength:%d});</script>", domSelector, dataURL.URL(ctx), minLength)
 			return nil
 		},
 	)
@@ -22,7 +38,7 @@ func JQueryUIAutocompleteFromURL(domSelector string, dataURL URL, minLength int)
 func JQueryUIAutocomplete(domSelector string, options []string, minLength int) View {
 	return RenderView(
 		func(ctx *Context) (err error) {
-			ctx.Response.Printf("<script>$('%s').autocomplete({source:[", domSelector)
+			ctx.Response.Printf("<script>jQuery('%s').autocomplete({source:[", domSelector)
 			for i := range options {
 				if i > 0 {
 					ctx.Response.WriteByte(',')

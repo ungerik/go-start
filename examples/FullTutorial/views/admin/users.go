@@ -37,12 +37,12 @@ func init() {
 			&ModelIteratorTableView{
 				Class: "visual-table",
 				GetModelIterator: func(ctx *Context) model.Iterator {
-					return models.Users.SortFunc(func(a, b interface{}) bool {
-						nameA := a.(*models.User).Name.String()
-						nameB := b.(*models.User).Name.String()
-						return utils.CompareStringsCaseInsensitive(nameA, nameB)
-					})
-					return models.Users.Iterator()
+					// return models.Users.Iterator()
+					return models.Users.SortFunc(
+						func(a, b *models.User) bool {
+							return utils.CompareCaseInsensitive(a.Name.String(), b.Name.String())
+						},
+					)
 				},
 				GetRowModel: func(ctx *Context) (interface{}, error) {
 					return new(models.User), nil

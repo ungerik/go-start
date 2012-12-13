@@ -27,7 +27,7 @@ func (self *ModalDialog) Render(ctx *Context) (err error) {
 	if self.Content != nil {
 		err = self.Content.Render(ctx)
 	}
-	ctx.Response.XML.ForceCloseTag()
+	ctx.Response.XML.CloseTagAlways()
 	return err
 }
 

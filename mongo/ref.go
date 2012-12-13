@@ -39,6 +39,10 @@ func (self *Ref) String() string {
 	return fmt.Sprintf("mongo.Ref of ID %s in collection %s", self.ID.Hex(), self.CollectionName)
 }
 
+func (self *Ref) DocumentLabel() (string, error) {
+	return self.Collection().DocumentLabel(self.ID)
+}
+
 // Returns nil and no error if the reference is empty
 func (self *Ref) Get(resultRef interface{}) error {
 	return self.Collection().DocumentWithID(self.ID, resultRef)

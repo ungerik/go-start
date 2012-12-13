@@ -63,6 +63,15 @@ func (self *XMLWriter) AttribIfNotDefault(name string, value interface{}) *XMLWr
 	return self.Attrib(name, value)
 }
 
+// AttribFlag writes a name="name" attribute if flag is true,
+// else nothing will be written.
+func (self *XMLWriter) AttribFlag(name string, flag bool) *XMLWriter {
+	if flag {
+		self.Attrib(name, name)
+	}
+	return self
+}
+
 func (self *XMLWriter) Content(s string) *XMLWriter {
 	self.Write([]byte(s))
 	return self
@@ -108,7 +117,7 @@ func (self *XMLWriter) CloseTag() *XMLWriter {
 }
 
 // Creates an explicit close tag, even if there is no content
-func (self *XMLWriter) ForceCloseTag() *XMLWriter {
+func (self *XMLWriter) CloseTagAlways() *XMLWriter {
 	self.finishOpenTag()
 	return self.CloseTag()
 }

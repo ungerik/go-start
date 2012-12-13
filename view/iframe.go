@@ -32,6 +32,6 @@ func (self *Iframe) Render(ctx *Context) (err error) {
 		ctx.Response.XML.Attrib("seamless", "seamless")
 	}
 	ctx.Response.XML.Attrib("src", self.URL)
-	ctx.Response.XML.ForceCloseTag()
+	ctx.Response.XML.CloseTagAlways()
 	return nil
 }

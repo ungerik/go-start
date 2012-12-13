@@ -18,9 +18,7 @@ func (self *SubmitButton) Render(ctx *Context) (err error) {
 	ctx.Response.XML.Attrib("type", "submit")
 	ctx.Response.XML.AttribIfNotDefault("name", self.Name)
 	ctx.Response.XML.AttribIfNotDefault("value", self.Value)
-	if self.Disabled {
-		ctx.Response.XML.Attrib("disabled", "disabled")
-	}
+	ctx.Response.XML.AttribFlag("disabled", self.Disabled)
 	ctx.Response.XML.AttribIfNotDefault("tabindex", self.TabIndex)
 	if self.OnClickConfirm != "" {
 		ctx.Response.XML.Attrib("onclick", "return confirm('", self.OnClickConfirm, "');")

@@ -75,20 +75,16 @@ func (self *RichTextArea) Render(ctx *Context) (err error) {
 	ctx.Response.XML.Attrib("rows", rows)
 	ctx.Response.XML.Attrib("cols", cols)
 	ctx.Response.XML.AttribIfNotDefault("tabindex", self.TabIndex)
-	if self.Readonly {
-		ctx.Response.XML.Attrib("readonly", "readonly")
-	}
-	if self.Disabled {
-		ctx.Response.XML.Attrib("disabled", "disabled")
-	}
+	ctx.Response.XML.AttribFlag("readonly", self.Readonly)
+	ctx.Response.XML.AttribFlag("disabled", self.Disabled)
 	ctx.Response.XML.AttribIfNotDefault("placeholder", self.Placeholder)
 
 	ctx.Response.XML.Attrib("autofocus", "autofocus")
 
 	ctx.Response.XML.EscapeContent(self.Text)
 
-	ctx.Response.XML.ForceCloseTag()
-	// ctx.Response.XML.ForceCloseTag()
+	ctx.Response.XML.CloseTagAlways()
+	// ctx.Response.XML.CloseTagAlways()
 	return nil
 }
 

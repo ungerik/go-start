@@ -31,12 +31,12 @@ func BlobsAdmin() view.View {
 				// if err != nil {
 				// 	return nil, err
 				// }
-				deleteConfirmation := fmt.Sprintf("Are you sure you want to delete the blob %s?", blob.TitleOrFilename())
+				deleteConfirmation := fmt.Sprintf("Are you sure you want to delete the blob %s?", blob.Title)
 				// if refCount > 0 {
 				// 	deleteConfirmation += fmt.Sprintf(" It is used %d times!", refCount)
 				// }
 				editor := view.DIV(Config.Admin.ImageEditorClass,
-					view.H3(blob.TitleOrFilename()),
+					view.H3(blob.Title.Get()),
 					view.P(
 						view.HTML("Link to file: "),
 						view.A_blank(blob.FileURL()),

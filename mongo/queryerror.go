@@ -63,7 +63,7 @@ func (self *QueryError) Sort(selectors ...string) Query {
 	return self
 }
 
-func (self *QueryError) SortFunc(less func(a, b interface{}) bool) model.Iterator {
+func (self *QueryError) SortFunc(compareFunc interface{}) model.Iterator {
 	return self.Iterator()
 }
 

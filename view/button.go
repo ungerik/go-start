@@ -23,9 +23,7 @@ func (self *Button) Render(ctx *Context) (err error) {
 	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
 	ctx.Response.XML.Attrib("type", "button")
 	ctx.Response.XML.AttribIfNotDefault("name", self.Name)
-	if self.Disabled {
-		ctx.Response.XML.Attrib("disabled", "disabled")
-	}
+	ctx.Response.XML.AttribFlag("disabled", self.Disabled)
 	ctx.Response.XML.AttribIfNotDefault("tabindex", self.TabIndex)
 	if self.OnClickConfirm != "" {
 		ctx.Response.XML.Attrib("onclick", "return confirm('", self.OnClickConfirm, "');")
@@ -35,6 +33,6 @@ func (self *Button) Render(ctx *Context) (err error) {
 	if self.Content != nil {
 		err = self.Content.Render(ctx)
 	}
-	ctx.Response.XML.ForceCloseTag()
+	ctx.Response.XML.CloseTagAlways()
 	return err
 }

@@ -30,7 +30,7 @@ func (self *Tag) Render(ctx *Context) (err error) {
 		err = self.Content.Render(ctx)
 	}
 	if self.ExtraClose {
-		ctx.Response.XML.ForceCloseTag()
+		ctx.Response.XML.CloseTagAlways()
 	} else {
 		ctx.Response.XML.CloseTag()
 	}

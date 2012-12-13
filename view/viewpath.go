@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/ungerik/go-start/config"
-	"github.com/ungerik/go-start/debug"
+	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/reflection"
 	"github.com/ungerik/web.go"
 )
@@ -147,11 +147,11 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 				ctx.Response.Forbidden403(err.Error())
 			default:
 				config.Logger.Println(err.Error())
-				debug.LogCallStack()
-				msg := err.Error()
-				if Config.Debug.Mode {
-					msg += debug.Stack()
-				}
+				// debug.LogCallStack()
+				msg := "<html><pre>" + err.Error()
+				// if Config.Debug.Mode {
+				// 	msg += debug.Stack()
+				// }
 				ctx.Response.Abort(http.StatusInternalServerError, msg)
 			}
 			return ""

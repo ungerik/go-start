@@ -23,8 +23,8 @@ type Backend struct {
 
 func (self *Backend) Init(gridFSName string) {
 	self.GridFS = mongo.Database.GridFS(gridFSName)
-	self.Images = mongo.NewCollection(gridFSName + ".images")
-	self.Blobs = mongo.NewCollection(gridFSName + ".blobs")
+	self.Images = mongo.NewCollection(gridFSName+".images", "Title")
+	self.Blobs = mongo.NewCollection(gridFSName+".blobs", "Title")
 }
 
 func (self *Backend) FileWriter(filename, contentType string) (writer io.WriteCloser, id string, err error) {
@@ -45,7 +45,7 @@ func (self *Backend) FileReader(id string) (reader io.ReadCloser, filename, cont
 	} else if err != nil {
 		return nil, "", "", err
 	}
-	filename = id[strings.Index(id, "/")+1:]
+	filename = id[strings.IndexRune(id, '/')+1:]
 	return file, filename, file.ContentType(), nil
 }
 
@@ -61,7 +61,7 @@ func (self *Backend) LoadBlob(id string) (*media.Blob, error) {
 	} else if err != nil {
 		return nil, err
 	}
-	return &doc.Blob, nil
+	return doc.Blob.Init(), nil
 }
 
 func (self *Backend) SaveBlob(blob *media.Blob) error {
@@ -96,7 +96,7 @@ func (self *Backend) LoadImage(id string) (*media.Image, error) {
 	} else if err != nil {
 		return nil, err
 	}
-	return doc.InitAndGetImage(), nil
+	return doc.Image.Init(), nil
 }
 
 func (self *Backend) SaveImage(image *media.Image) error {
@@ -143,7 +143,7 @@ func (self *Backend) ImageIterator() model.Iterator {
 		self.Images.Iterator(),
 		new(ImageDoc),
 		func(doc interface{}) interface{} {
-			return doc.(*ImageDoc).InitAndGetImage()
+			return doc.(*ImageDoc).Image.Init()
 		},
 	)
 }

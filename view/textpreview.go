@@ -44,7 +44,7 @@ func (self *TextPreview) Render(ctx *Context) (err error) {
 			if content != nil {
 				err = content.Render(ctx)
 			}
-			ctx.Response.XML.ForceCloseTag() // a
+			ctx.Response.XML.CloseTagAlways() // a
 		}
 	}
 	return err

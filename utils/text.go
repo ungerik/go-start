@@ -118,7 +118,7 @@ func JoinNonEmptyStrings(sep string, strings ...string) string {
 	return buf.String()
 }
 
-func CompareStringsCaseInsensitive(a, b string) bool {
+func CompareCaseInsensitive(a, b string) bool {
 	return bytes.Compare(bytes.ToLower([]byte(a)), bytes.ToLower([]byte(b))) < 0
 }
 
@@ -148,10 +148,26 @@ func StripHTMLTags(text string) (plainText string) {
 
 func AddUrlParam(url, name, value string) string {
 	var separator string
-	if strings.Index(url, "?") == -1 {
+	if strings.IndexRune(url, '?') == -1 {
 		separator = "?"
 	} else {
 		separator = "&"
 	}
 	return url + separator + name + "=" + value
+}
+
+func RemoveMultipleWhiteSpace(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	buf := bytes.NewBufferString(s)
+	buf.Reset()
+	var lastC rune
+	for i, c := range s {
+		if i == 0 || !unicode.IsSpace(c) || !unicode.IsSpace(lastC) {
+			buf.WriteRune(c)
+		}
+		lastC = c
+	}
+	return buf.String()
 }

@@ -12,9 +12,7 @@ func (self *FileInput) Render(ctx *Context) (err error) {
 	ctx.Response.XML.AttribIfNotDefault("id", self.id)
 	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
 	ctx.Response.XML.Attrib("type", "file").Attrib("name", self.Name)
-	if self.Disabled {
-		ctx.Response.XML.Attrib("disabled", "disabled")
-	}
+	ctx.Response.XML.AttribFlag("disabled", self.Disabled)
 	ctx.Response.XML.CloseTag()
 	return err
 }

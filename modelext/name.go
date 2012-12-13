@@ -6,8 +6,7 @@ import (
 	"strings"
 )
 
-///////////////////////////////////////////////////////////////////////////////
-// Name
+var NameDocLabelSelectors = []string{"Name.Prefix", "Name.First", "Name.Middle", "Name.Last", "Name.Postfix", "Name.Organization"}
 
 type Name struct {
 	Prefix       model.String `view:"size=10"`

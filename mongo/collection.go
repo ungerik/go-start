@@ -2,6 +2,8 @@ package mongo
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -10,13 +12,18 @@ import (
 	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/model"
+	"github.com/ungerik/go-start/utils"
 )
 
-func NewCollection(name string) *Collection {
+func NewCollection(name string, documentLabelSelectors ...string) *Collection {
 	if _, ok := Collections[name]; ok {
 		panic(fmt.Sprintf("Collection '%s' already exists", name))
 	}
-	collection := &Collection{Name: name}
+	collection := &Collection{
+		Name:              name,
+		DocLabelSelectors: documentLabelSelectors,
+		DocLabelSeparator: " ",
+	}
 	collection.Init()
 	return collection
 }
@@ -37,8 +44,10 @@ Example for creating, modifying and saving a document:
 */
 type Collection struct {
 	query_base
-	Name       string
-	collection *mgo.Collection
+	Name              string
+	DocLabelSelectors []string
+	DocLabelSeparator string
+	collection        *mgo.Collection
 	// foreignRefs  []ForeignRef
 }
 
@@ -297,6 +306,86 @@ func (self *Collection) DeleteAllNotWithIDs(ids ...bson.ObjectId) (numDeleted in
 	self.checkDBConnection()
 	info, err := self.collection.RemoveAll(bson.M{"_id": bson.M{"$nin": ids}})
 	return info.Removed, err
+}
+
+func (self *Collection) DocumentLabel(docId bson.ObjectId, labelSelectors ...string) (string, error) {
+	if !docId.Valid() {
+		return "", fmt.Errorf("Invalid bson.ObjectId")
+	}
+	if len(labelSelectors) == 0 {
+		labelSelectors = self.DocLabelSelectors
+	}
+
+	if len(labelSelectors) == 0 {
+		// No label selectors, use hex ID as label
+		count, err := self.collection.FindId(docId).Count()
+		if err != nil {
+			return "", err
+		}
+		if count == 0 {
+			return "", fmt.Errorf("No document with ID '%s' in collection '%s'", docId.Hex(), self.Name)
+		}
+		return docId.Hex(), nil
+	}
+
+	labels := make([]string, len(labelSelectors))
+	for i, selector := range labelSelectors {
+		if len(selector) == 0 {
+			return "", fmt.Errorf("Label selector must not be an empty string")
+		}
+
+		selector = strings.ToLower(selector)
+
+		var doc bson.M
+		err := self.collection.FindId(docId).Select(bson.M{selector: 1}).One(&doc)
+		if err != nil {
+			return "", err
+		}
+
+		var label interface{}
+		if strings.IndexRune(selector, '.') != -1 {
+			for _, subSel := range strings.Split(selector, ".") {
+				label, _ = doc[subSel]
+				if label == nil {
+					break
+				}
+				doc, _ = label.(bson.M)
+				if doc == nil {
+					break
+				}
+			}
+		} else {
+			label, _ = doc[selector]
+		}
+
+		if label != nil {
+			// Support the basic BSON types from unmarshalling
+			switch s := label.(type) {
+			case string:
+				labels[i] = s
+
+			case int:
+				labels[i] = strconv.Itoa(s)
+
+			case float64:
+				labels[i] = strconv.FormatFloat(s, 'f', -1, 64)
+
+			case bool:
+				labels[i] = strconv.FormatBool(s)
+
+			case bson.ObjectId:
+				labels[i] = s.Hex()
+
+			default:
+				return "", fmt.Errorf("Can't get label of %s for '%s' because it is of type %T", docId.Hex(), selector, label)
+			}
+		}
+	}
+
+	label := strings.Join(labels, self.DocLabelSeparator)
+	label = strings.TrimSpace(utils.RemoveMultipleWhiteSpace(label))
+
+	return label, nil
 }
 
 // RemoveInvalidRefs removes invalid refs from all documents and saves

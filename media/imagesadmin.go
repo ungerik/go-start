@@ -34,12 +34,12 @@ func ImagesAdmin() view.View {
 				if err != nil {
 					return nil, err
 				}
-				deleteConfirmation := fmt.Sprintf("Are you sure you want to delete the image %s?", image.TitleOrFilename())
+				deleteConfirmation := fmt.Sprintf("Are you sure you want to delete the image %s?", image.Title)
 				if refCount > 0 {
 					deleteConfirmation += fmt.Sprintf(" It is used %d times!", refCount)
 				}
 				editor := view.DIV(Config.Admin.ImageEditorClass,
-					view.H3(image.TitleOrFilename()),
+					view.H3(image.Title.Get()),
 					view.P(
 						view.A_blank(image.FileURL(), "Link to original"),
 						view.Printf(" | Used %d times", refCount),

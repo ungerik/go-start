@@ -30,6 +30,18 @@ func (self *Url) Set(value string) error {
 	return err
 }
 
+func (self *Url) SetDataUrl(value string) error {
+	if value == "" {
+		*self = ""
+		return nil
+	}
+	_, err := url.Parse(value)
+	if err == nil {
+		*self = Url(value)
+	}
+	return err
+}
+
 func (self *Url) IsEmpty() bool {
 	return *self == ""
 }

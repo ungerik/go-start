@@ -12,6 +12,6 @@ func (self *Canvas) Render(ctx *Context) (err error) {
 	ctx.Response.XML.AttribIfNotDefault("id", self.id)
 	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
 	ctx.Response.XML.Attrib("width", self.Width).Attrib("height", self.Height)
-	ctx.Response.XML.ForceCloseTag()
+	ctx.Response.XML.CloseTagAlways()
 	return err
 }

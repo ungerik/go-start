@@ -6,11 +6,17 @@ import (
 	"strconv"
 	"unicode"
 
-	// "github.com/ungerik/go-start/errs"
+	// "github.com/ungerik/go-start/debug"
 )
 
-// TypeOfError is the built-in error type
-var TypeOfError = reflect.TypeOf(func(error) {}).In(0)
+// Built-in types
+var (
+	// TypeOfError is the built-in error type
+	TypeOfError = reflect.TypeOf((*error)(nil)).Elem()
+
+	// TypeOfInterface is the type of an empty interface{}
+	TypeOfInterface = reflect.TypeOf((*interface{})(nil)).Elem()
+)
 
 func GenericSlice(sliceOrArray interface{}) []interface{} {
 	v := reflect.ValueOf(sliceOrArray)
@@ -65,6 +71,44 @@ func FindFlattenedStructField(t reflect.Type, matchFunc MatchStructFieldFunc) *r
 	return nil
 }
 
+/*
+ExportedStructFields returns a map from exported struct field names to values,
+inlining anonymous sub-structs so that their field names are available
+at the base level.
+Example:
+	type A struct {
+		X int
+	}
+	type B Struct {
+		A
+		Y int
+	}
+	// Yields X and Y instead of A and Y:
+	InlineAnonymousStructFields(reflect.ValueOf(B{})) 
+*/
+func ExportedStructFields(v reflect.Value) map[string]reflect.Value {
+	t := v.Type()
+	if t.Kind() != reflect.Struct {
+		panic(fmt.Errorf("Expected a struct, got %s", t))
+	}
+	result := make(map[string]reflect.Value)
+	exportedStructFields(v, t, result)
+	return result
+}
+
+func exportedStructFields(v reflect.Value, t reflect.Type, result map[string]reflect.Value) {
+	for i := 0; i < t.NumField(); i++ {
+		structField := t.Field(i)
+		if IsExportedField(structField) {
+			if structField.Anonymous && structField.Type.Kind() == reflect.Struct {
+				exportedStructFields(v.Field(i), structField.Type, result)
+			} else {
+				result[structField.Name] = v.Field(i)
+			}
+		}
+	}
+}
+
 // Creates a new zero valued instance of prototype
 func NewInstance(prototype interface{}) interface{} {
 	t := reflect.TypeOf(prototype)
@@ -116,14 +160,8 @@ func IsDefaultValue(value interface{}) bool {
 	}
 
 	switch v := reflect.ValueOf(value); v.Kind() {
-	case reflect.Ptr:
-		if v.IsNil() {
-			return true
-		}
-		return IsDefaultValue(v.Elem().Interface())
-
 	case reflect.String:
-		return v.String() == ""
+		return v.Len() == 0
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return v.Int() == 0
@@ -137,11 +175,11 @@ func IsDefaultValue(value interface{}) bool {
 	case reflect.Bool:
 		return v.Bool() == false
 
+	case reflect.Ptr, reflect.Chan, reflect.Func, reflect.Interface, reflect.Slice, reflect.Map:
+		return v.IsNil()
+
 	case reflect.Struct:
 		return reflect.DeepEqual(value, reflect.Zero(v.Type()).Interface())
-
-	case reflect.Slice, reflect.Map, reflect.Chan, reflect.Func, reflect.Interface:
-		return v.IsNil()
 	}
 
 	panic(fmt.Errorf("Unknown value kind %T", value))
@@ -162,12 +200,10 @@ func IsNilOrWrappedNil(i interface{}) bool {
 	return false
 }
 
-// ExportedStructFields returns a map of exported struct fields
-// with the field name as key and the reflect.Value as map value.
+// GetStruct returns reflect.Value for the struct found in s.
 // s can be a struct, a struct pointer or a reflect.Value of
 // a struct or struct pointer.
-func ExportedStructFields(s interface{}) map[string]reflect.Value {
-	result := make(map[string]reflect.Value)
+func GetStruct(s interface{}) reflect.Value {
 	v, ok := s.(reflect.Value)
 	if !ok {
 		v = reflect.ValueOf(s)
@@ -175,14 +211,7 @@ func ExportedStructFields(s interface{}) map[string]reflect.Value {
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
-	t := reflect.TypeOf(s)
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		if IsExportedField(field) {
-			result[field.Name] = v.Field(i)
-		}
-	}
-	return result
+	return v
 }
 
 func IsExportedName(name string) bool {
@@ -203,13 +232,25 @@ func CopyExportedStructFields(src, dstPtr interface{}) (copied int) {
 		vsrc = vsrc.Elem()
 	}
 	vdst := reflect.ValueOf(dstPtr).Elem()
-	tsrc := reflect.TypeOf(src)
-	for i := 0; i < tsrc.NumField(); i++ {
-		tsrcfield := tsrc.Field(i)
-		if IsExportedField(tsrcfield) {
-			dstfield := vdst.FieldByName(tsrcfield.Name)
-			if dstfield.IsValid() && dstfield.CanSet() && tsrcfield.Type.AssignableTo(dstfield.Type()) {
-				dstfield.Set(vsrc.Field(i))
+	return CopyExportedStructFieldsVal(vsrc, vdst)
+}
+
+func CopyExportedStructFieldsVal(src, dst reflect.Value) (copied int) {
+	if src.Kind() != reflect.Struct {
+		panic(fmt.Errorf("CopyExportedStructFieldsVal: src must be struct, got %s", src.Type()))
+	}
+	if dst.Kind() != reflect.Struct {
+		panic(fmt.Errorf("CopyExportedStructFieldsVal: dst must be struct, got %s", dst.Type()))
+	}
+	if !dst.CanSet() {
+		panic(fmt.Errorf("CopyExportedStructFieldsVal: dst (%s) is not set-able", dst.Type()))
+	}
+	srcFields := ExportedStructFields(src)
+	dstFields := ExportedStructFields(dst)
+	for name, srcV := range srcFields {
+		if dstV, ok := dstFields[name]; ok {
+			if srcV.Type().AssignableTo(dstV.Type()) {
+				dstV.Set(srcV)
 				copied++
 			}
 		}
@@ -338,32 +379,85 @@ func CanStringToValueOfType(t reflect.Type) bool {
 	return false
 }
 
-// SmartCopy copies the struct or map fields from source
+// SetStructZero sets all elements of a struct to their zero values.
+func SetStructZero(structVal reflect.Value) {
+	t := structVal.Type()
+	for i := 0; i < t.NumField(); i++ {
+		if IsExportedField(t.Field(i)) {
+			elem := structVal.Field(i)
+			if elem.Kind() == reflect.Struct {
+				SetStructZero(elem)
+			} else {
+				elem.Set(reflect.Zero(elem.Type()))
+			}
+		}
+	}
+}
+
+// Reset sets all elements of the object pointed to
+// by resultRef to their default or zero values.
+// But it works different from simply zeroing out everything,
+// here are the exceptions:
+// If resultRef is a pointer to a pointer, then
+// the pointed to pointer will be reset to a new instance
+// If resultRef is a pointer to a map, then the map
+// will be reset to a new empty one.
+// All other types pointed to by resultRef will be set
+// to their default zero values.
+func Reset(resultRef interface{}) {
+	ptr := reflect.ValueOf(resultRef)
+	if ptr.Kind() != reflect.Ptr {
+		panic(fmt.Errorf("reflection.Reset(): resultRef must be a pointer, got %T", resultRef))
+	}
+	val := ptr.Elem()
+	switch val.Kind() {
+	case reflect.Ptr:
+		// If resultRef is a pointer to a pointer,
+		// set the pointer to a new instance
+		// of the pointed to type
+		ptr.Set(reflect.New(val.Type().Elem()))
+
+	case reflect.Map:
+		// If resultRef is a pointer to a map,
+		// set make an empty new map
+		ptr.Set(reflect.MakeChan(val.Type(), 0))
+
+	case reflect.Struct:
+		SetStructZero(val)
+
+	default:
+		val.Set(reflect.Zero(val.Type()))
+	}
+}
+
+// SmartCopy copies struct or map fields from source
 // to equally named struct or map fields of resultRef,
 // by dereferencing source and resultRef if necessary
 // to find a matching assignable type.
-// If resultRef is a pointer to a pointer type,
-// then a new instance of that pointer type is created.
+// All fields of the object referenced by resultPtr will be
+// set to their default values before copying from source
+// by calling Reset().
 // SmartCopy is typically used for iterators with
-// a method Next(resultRefRef interface{}) bool.
+// a method Next(resultRef interface{}) bool.
 func SmartCopy(source, resultRef interface{}) {
 	resultRefVal := reflect.ValueOf(resultRef)
 	if resultRefVal.Kind() != reflect.Ptr && resultRefVal.Kind() != reflect.Map {
 		panic(fmt.Errorf("reflection.SmartCopy(): resultRef must be a pointer or a map, got %T", resultRef))
 	}
+	Reset(resultRef)
+
 	var resultVal reflect.Value
-	if resultRefVal.Kind() == reflect.Ptr {
-		resultVal = resultRefVal.Elem()
-	} else {
+	if resultRefVal.Kind() == reflect.Map {
 		resultVal = resultRefVal
+	} else {
+		resultVal = resultRefVal.Elem()
 	}
-	if resultVal.Kind() == reflect.Ptr {
-		// If resultRef points to a pointer,
-		// create an instance of the pointer type
-		resultVal.Set(reflect.New(resultVal.Type().Elem()))
-		resultVal = resultVal.Elem()
+
+	sourceVal := reflect.ValueOf(source)
+	if sourceVal.Kind() == reflect.Ptr {
+		sourceVal = sourceVal.Elem()
 	}
-	if !smartCopyVals(reflect.ValueOf(source), resultVal) {
+	if !smartCopyVals(sourceVal, resultVal) {
 		panic(fmt.Errorf("reflection.SmartCopy(): Can't copy %T to %T", source, resultRef))
 	}
 }
@@ -372,15 +466,12 @@ func smartCopyVals(sourceVal, resultVal reflect.Value) bool {
 	switch {
 	case sourceVal.Type().AssignableTo(resultVal.Type()):
 		resultVal.Set(sourceVal)
-		return true
+
+	case sourceVal.Kind() == reflect.Struct && resultVal.Kind() == reflect.Struct:
+		CopyExportedStructFieldsVal(sourceVal, resultVal)
 
 	case sourceVal.Kind() == reflect.Ptr && sourceVal.Elem().Type().AssignableTo(resultVal.Type()):
 		smartCopyVals(sourceVal.Elem(), resultVal)
-		return true
-
-	case sourceVal.Kind() == reflect.Struct && resultVal.Kind() == reflect.Struct:
-		CopyExportedStructFields(sourceVal.Interface(), resultVal.Interface())
-		return true
 
 	case sourceVal.Kind() == reflect.Map && sourceVal.Type().Key().Kind() == reflect.String &&
 		resultVal.Kind() == reflect.Struct:
@@ -394,7 +485,6 @@ func smartCopyVals(sourceVal, resultVal reflect.Value) bool {
 				}
 			}
 		}
-		return true
 
 	case sourceVal.Kind() == reflect.Struct &&
 		resultVal.Kind() == reflect.Map && resultVal.Type().Key().Kind() == reflect.String:
@@ -406,7 +496,6 @@ func smartCopyVals(sourceVal, resultVal reflect.Value) bool {
 				dst.Set(src)
 			}
 		}
-		return true
 
 	case sourceVal.Kind() == reflect.Map && sourceVal.Type().Key().Kind() == reflect.String &&
 		resultVal.Kind() == reflect.Map && resultVal.Type().Key().Kind() == reflect.String &&
@@ -417,8 +506,61 @@ func smartCopyVals(sourceVal, resultVal reflect.Value) bool {
 				dst.Set(sourceVal.MapIndex(key))
 			}
 		}
-		return true
+
+	default:
+		return false
 	}
 
-	return false
+	return true
+}
+
+func checkFunctionSignatureNums(t reflect.Type, args, results int) error {
+	if t.Kind() != reflect.Func {
+		return fmt.Errorf("Expected a function but got a %s", t)
+	}
+	if t.NumIn() != args {
+		return fmt.Errorf("Expected %d function arguments, got %d", args, t.NumIn())
+	}
+	if t.NumOut() != results {
+		return fmt.Errorf("Expected %d function results, got %d", results, t.NumOut())
+	}
+	return nil
+}
+
+func CheckFunctionSignature(f interface{}, args, results []reflect.Type) error {
+	t := reflect.TypeOf(f)
+	err := checkFunctionSignatureNums(t, len(args), len(results))
+	if err != nil {
+		return err
+	}
+	for i := range args {
+		if args[i] != t.In(i) {
+			return fmt.Errorf("Function argument %d must be %s, got %s", i, args[i], t.In(i))
+		}
+	}
+	for i := range results {
+		if results[i] != t.Out(i) {
+			return fmt.Errorf("Function result %d must be %s, got %s", i, results[i], t.Out(i))
+		}
+	}
+	return nil
+}
+
+func CheckFunctionSignatureKind(f interface{}, args, results []reflect.Kind) error {
+	t := reflect.TypeOf(f)
+	err := checkFunctionSignatureNums(t, len(args), len(results))
+	if err != nil {
+		return err
+	}
+	for i := range args {
+		if args[i] != t.In(i).Kind() {
+			return fmt.Errorf("Function argument %d must be %s kind, got %s kind", i, args[i], t.In(i).Kind())
+		}
+	}
+	for i := range results {
+		if results[i] != t.Out(i).Kind() {
+			return fmt.Errorf("Function result %d must be %s kind, got %s kind", i, results[i], t.Out(i).Kind())
+		}
+	}
+	return nil
 }

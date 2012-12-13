@@ -20,12 +20,8 @@ func (self *Checkbox) Render(ctx *Context) (err error) {
 	ctx.Response.XML.Attrib("type", "checkbox")
 	ctx.Response.XML.Attrib("name", self.Name)
 	ctx.Response.XML.Attrib("value", "true")
-	if self.Disabled {
-		ctx.Response.XML.Attrib("disabled", "disabled")
-	}
-	if self.Checked {
-		ctx.Response.XML.Attrib("checked", "checked")
-	}
+	ctx.Response.XML.AttribFlag("disabled", self.Disabled)
+	ctx.Response.XML.AttribFlag("checked", self.Checked)
 	ctx.Response.XML.CloseTag()
 
 	if self.Label != "" {

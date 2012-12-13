@@ -13,33 +13,30 @@ func NewAdminPage(title string, main View) *Page {
 			JQuery,
 		},
 		Content: Views{
-			&Div{
-				Class: "header",
-				Content: Views{
-					&Link{
-						Class: "title",
-						Model: &PageLink{
-							Page: &Admin,
-							H1(&Image{Class: "logo", Src: "/images/gopher.png"}, HTML("Admin Panel")),
+			DIV("header",
+				&Link{
+					Class: "title",
+					Model: &PageLink{
+						Page:    &Admin,
+						Content: H1(&Image{Class: "logo", Src: "/images/gopher.png"}, HTML("Admin Panel")),
+					},
+				},
+				HeaderUserNav(),
+				DIV("menu-frame",
+					&Menu{
+						Class:           "menu",
+						ItemClass:       "menu-item",
+						ActiveItemClass: "active",
+						BetweenItems:    " &nbsp;/&nbsp; ",
+						Items: []LinkModel{
+							NewPageLink(&Admin, "Dashboard"),
+							NewPageLink(&Admin_Users, "Users"),
+							NewPageLink(&Admin_Images, "Images"),
 						},
 					},
-					HeaderUserNav(),
-					DIV("menu-frame",
-						&Menu{
-							Class:           "menu",
-							ItemClass:       "menu-item",
-							ActiveItemClass: "active",
-							BetweenItems:    " &nbsp;/&nbsp; ",
-							Items: []LinkModel{
-								NewPageLink(&Admin, "Dashboard"),
-								NewPageLink(&Admin_Users, "Users"),
-								NewPageLink(&Admin_Images, "Images"),
-							},
-						},
-						DivClearBoth(),
-					),
-				},
-			},
+					DivClearBoth(),
+				),
+			),
 			DIV("content",
 				DIV("center",
 					DIV("main", main),

@@ -92,7 +92,7 @@ func (self ImageRefController) NewInput(withLabel bool, metaData *model.MetaData
 					});
 					%s;`,
 					chooseDialogThumbnailsID,
-					AllThumbnailsAPI.URL(ctx.ForURLArgsConvert(Config.ImageRefController.ThumbnailSize)),
+					API.AllThumbnails.URL(ctx.ForURLArgsConvert(Config.ImageRefController.ThumbnailSize)),
 					hiddenInput.ID(),
 					thumbnailFrame.ID(),
 					view.ModalDialogCloseScript,
