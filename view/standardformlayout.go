@@ -320,7 +320,7 @@ func (self *StandardFormLayout) NewAddButton(onclick string, form *Form) View {
 
 func (self *StandardFormLayout) NewRemoveButton(onclick string, form *Form) View {
 	return &Button{
-		Content: HTML("X"),
+		Content: HTML("&times;"),
 		OnClick: onclick,
 		Class:   "form-table-button",
 	}
