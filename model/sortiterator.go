@@ -1,9 +1,8 @@
 package model
 
 import (
-	"reflect"
-
 	"github.com/ungerik/go-start/reflection"
+	"reflect"
 )
 
 func NewSortIterator(iterator Iterator, compareFunc interface{}) *SortIterator {
