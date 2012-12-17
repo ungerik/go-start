@@ -302,7 +302,7 @@ func (self *StandardFormLayout) NewSuccessMessage(message string, form *Form) Vi
 	return SPAN(form.GetSuccessMessageClass(), Escape(message))
 }
 
-func (self *StandardFormLayout) NewSubmitButton(text, confirmationMessage string, form *Form) View {
+func (self *StandardFormLayout) NewSubmitButton(text, confirmationMessage string, form *Form) *SubmitButton {
 	return &SubmitButton{
 		Class:          form.GetSubmitButtonClass(),
 		Value:          text,

@@ -63,32 +63,6 @@ func (self *TextField) Render(ctx *Context) (err error) {
 	return nil
 }
 
-//func (self *TextField) SetText(text string) {
-//	self.Text = text
-//	ViewChanged(self)
-//}
-//
-//func (self *TextField) SetName(name string) {
-//	self.Name = name
-//	ViewChanged(self)
-//}
-//
-//func (self *TextField) SetReadonly(readonly bool) {
-//	self.Readonly = readonly
-//	ViewChanged(self)
-//}
-//
-//func (self *TextField) SetMaxLength(maxlength int) {
-//	self.MaxLength = maxlength
-//	ViewChanged(self)
-//}
-//
-//func (self *TextField) SetTabIndex(tabindex int) {
-//	self.TabIndex = tabindex
-//	ViewChanged(self)
-//}
-//
-//func (self *TextField) SetClass(class string) {
-//	self.Class = class
-//	ViewChanged(self)
-//}
+func (self *TextField) SetRequired(required bool) {
+	self.Required = required
+}

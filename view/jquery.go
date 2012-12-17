@@ -35,6 +35,16 @@ func JQueryUIAutocompleteFromURL(domSelector string, dataURL URL, minLength int)
 	)
 }
 
+func RequireJQueryUIAutocompleteFromURL(domSelector string, dataURL URL, minLength int, priority int) View {
+	return RenderView(
+		func(ctx *Context) (err error) {
+			script := fmt.Sprintf("jQuery('%s').autocomplete({source:'%s',minLength:%d});", domSelector, dataURL.URL(ctx), minLength)
+			ctx.Response.RequireScript(script, priority)
+			return nil
+		},
+	)
+}
+
 func JQueryUIAutocomplete(domSelector string, options []string, minLength int) View {
 	return RenderView(
 		func(ctx *Context) (err error) {

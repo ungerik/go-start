@@ -100,7 +100,7 @@ func (self ModelStringController) NewInput(withLabel bool, metaData *model.MetaD
 		Size:        form.GetInputSize(metaData),
 		Disabled:    form.IsFieldDisabled(metaData),
 		Placeholder: form.InputFieldPlaceholder(metaData),
-		Required:    form.IsFieldRequired(metaData),
+		Required:    form.IsFieldRequired(metaData) && !metaData.IsSelfOrParentIndexed(),
 		Title:       form.FieldLabel(metaData),
 	}
 	if maxlen, ok, _ := str.Maxlen(metaData); ok {
@@ -237,7 +237,7 @@ func (self ModelUrlController) NewInput(withLabel bool, metaData *model.MetaData
 		Size:        form.GetInputSize(metaData),
 		Disabled:    form.IsFieldDisabled(metaData),
 		Placeholder: form.InputFieldPlaceholder(metaData),
-		Required:    form.IsFieldRequired(metaData),
+		Required:    form.IsFieldRequired(metaData) && !metaData.IsSelfOrParentIndexed(),
 		Title:       form.FieldLabel(metaData),
 	}
 	if metaData.BoolAttrib("view", "autofocus") {
@@ -271,7 +271,7 @@ func (self ModelEmailController) NewInput(withLabel bool, metaData *model.MetaDa
 		Size:        form.GetInputSize(metaData),
 		Disabled:    form.IsFieldDisabled(metaData),
 		Placeholder: form.InputFieldPlaceholder(metaData),
-		Required:    form.IsFieldRequired(metaData),
+		Required:    form.IsFieldRequired(metaData) && !metaData.IsSelfOrParentIndexed(),
 		Title:       form.FieldLabel(metaData),
 	}
 	if metaData.BoolAttrib("view", "autofocus") {
@@ -305,7 +305,7 @@ func (self ModelPasswordController) NewInput(withLabel bool, metaData *model.Met
 		Size:        form.GetInputSize(metaData),
 		Disabled:    form.IsFieldDisabled(metaData),
 		Placeholder: form.InputFieldPlaceholder(metaData),
-		Required:    form.IsFieldRequired(metaData),
+		Required:    form.IsFieldRequired(metaData) && !metaData.IsSelfOrParentIndexed(),
 		Title:       form.FieldLabel(metaData),
 	}
 	if maxlen, ok, _ := password.Maxlen(metaData); ok {
@@ -344,7 +344,7 @@ func (self ModelPhoneController) NewInput(withLabel bool, metaData *model.MetaDa
 		Size:        form.GetInputSize(metaData),
 		Disabled:    form.IsFieldDisabled(metaData),
 		Placeholder: form.InputFieldPlaceholder(metaData),
-		Required:    form.IsFieldRequired(metaData),
+		Required:    form.IsFieldRequired(metaData) && !metaData.IsSelfOrParentIndexed(),
 		Title:       form.FieldLabel(metaData),
 	}
 	if metaData.BoolAttrib("view", "autofocus") {
@@ -519,7 +519,7 @@ func (self ModelDateController) NewInput(withLabel bool, metaData *model.MetaDat
 			Size:        len(model.DateFormat),
 			Disabled:    form.IsFieldDisabled(metaData),
 			Placeholder: form.InputFieldPlaceholder(metaData),
-			Required:    form.IsFieldRequired(metaData),
+			Required:    form.IsFieldRequired(metaData) && !metaData.IsSelfOrParentIndexed(),
 			Title:       form.FieldLabel(metaData),
 		},
 	}
@@ -552,7 +552,7 @@ func (self ModelDateTimeController) NewInput(withLabel bool, metaData *model.Met
 			Size:        len(model.DateTimeFormat),
 			Disabled:    form.IsFieldDisabled(metaData),
 			Placeholder: form.InputFieldPlaceholder(metaData),
-			Required:    form.IsFieldRequired(metaData),
+			Required:    form.IsFieldRequired(metaData) && !metaData.IsSelfOrParentIndexed(),
 			Title:       form.FieldLabel(metaData),
 		},
 	}
@@ -582,7 +582,7 @@ func (self ModelFloatController) NewInput(withLabel bool, metaData *model.MetaDa
 		Text:        f.String(),
 		Disabled:    form.IsFieldDisabled(metaData),
 		Placeholder: form.InputFieldPlaceholder(metaData),
-		Required:    form.IsFieldRequired(metaData),
+		Required:    form.IsFieldRequired(metaData) && !metaData.IsSelfOrParentIndexed(),
 		Title:       form.FieldLabel(metaData),
 	}
 	if metaData.BoolAttrib("view", "autofocus") {
@@ -614,7 +614,7 @@ func (self ModelIntController) NewInput(withLabel bool, metaData *model.MetaData
 		Text:        i.String(),
 		Disabled:    form.IsFieldDisabled(metaData),
 		Placeholder: form.InputFieldPlaceholder(metaData),
-		Required:    form.IsFieldRequired(metaData),
+		Required:    form.IsFieldRequired(metaData) && !metaData.IsSelfOrParentIndexed(),
 		Title:       form.FieldLabel(metaData),
 	}
 	if metaData.BoolAttrib("view", "autofocus") {

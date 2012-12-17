@@ -144,6 +144,16 @@ func (self *MetaData) RootParent() *MetaData {
 // 	return self.Parent.Kind
 // }
 
+func (self *MetaData) IsSelfOrParentIndexed() bool {
+	if self.Name == "" {
+		return true
+	}
+	if self.Parent != nil {
+		return self.Parent.IsSelfOrParentIndexed()
+	}
+	return false
+}
+
 func (self *MetaData) IsIndexedValue() bool {
 	return self.Kind == ValueKind && self.Name == ""
 }
