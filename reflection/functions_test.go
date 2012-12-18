@@ -13,7 +13,6 @@ func Test_SmartCopy(t *testing.T) {
 			t.Fail()
 		}
 	}
-	return // todo
 	{
 		src := 1
 		var dst *int
@@ -22,6 +21,7 @@ func Test_SmartCopy(t *testing.T) {
 			t.Fail()
 		}
 	}
+	return // todo
 
 	{
 		src := new(int)

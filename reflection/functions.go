@@ -415,12 +415,12 @@ func Reset(resultRef interface{}) {
 		// If resultRef is a pointer to a pointer,
 		// set the pointer to a new instance
 		// of the pointed to type
-		ptr.Set(reflect.New(val.Type().Elem()))
+		val.Set(reflect.New(val.Type().Elem()))
 
 	case reflect.Map:
 		// If resultRef is a pointer to a map,
 		// set make an empty new map
-		ptr.Set(reflect.MakeChan(val.Type(), 0))
+		val.Set(reflect.MakeChan(val.Type(), 0))
 
 	case reflect.Struct:
 		SetStructZero(val)
@@ -451,6 +451,10 @@ func SmartCopy(source, resultRef interface{}) {
 		resultVal = resultRefVal
 	} else {
 		resultVal = resultRefVal.Elem()
+	}
+	if resultVal.Kind() == reflect.Ptr {
+		// Pointer to a pointer
+		resultVal = resultVal.Elem()
 	}
 
 	sourceVal := reflect.ValueOf(source)
