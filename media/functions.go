@@ -69,6 +69,50 @@ func ImageDataURL(imageURL string) (dataURL string, err error) {
 	return prefix + base64.StdEncoding.EncodeToString(data), nil
 }
 
+func SubImage(src image.Image, rect image.Rectangle) image.Image {
+	switch i := src.(type) {
+	case *image.RGBA:
+		i = i.SubImage(rect).(*image.RGBA)
+		// Fix Bounds
+		i.Rect.Max.X = i.Rect.Dx()
+		i.Rect.Min.X = 0
+		i.Rect.Max.Y = i.Rect.Dy()
+		i.Rect.Min.Y = 0
+		return i
+
+	case *image.NRGBA:
+		i = i.SubImage(rect).(*image.NRGBA)
+		// Fix Bounds
+		i.Rect.Max.X = i.Rect.Dx()
+		i.Rect.Min.X = 0
+		i.Rect.Max.Y = i.Rect.Dy()
+		i.Rect.Min.Y = 0
+		return i
+
+	case *image.YCbCr:
+		i = i.SubImage(rect).(*image.YCbCr)
+		// Fix Bounds
+		i.Rect.Max.X = i.Rect.Dx()
+		i.Rect.Min.X = 0
+		i.Rect.Max.Y = i.Rect.Dy()
+		i.Rect.Min.Y = 0
+		return i
+
+	case *image.Gray:
+		i = i.SubImage(rect).(*image.Gray)
+		// Fix Bounds
+		i.Rect.Max.X = i.Rect.Dx()
+		i.Rect.Min.X = 0
+		i.Rect.Max.Y = i.Rect.Dy()
+		i.Rect.Min.Y = 0
+		return i
+
+	case *image.Uniform:
+		return i
+	}
+	panic(fmt.Errorf("SubImage: unsupported image type %T", src))
+}
+
 type SubImager interface {
 	SubImage(r image.Rectangle) image.Image
 }

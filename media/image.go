@@ -13,13 +13,13 @@ import (
 	"net/http"
 	"path"
 
-	"code.google.com/p/graphics-go/graphics"
 	_ "code.google.com/p/go.image/bmp"
 	_ "code.google.com/p/go.image/tiff"
+	"code.google.com/p/graphics-go/graphics"
 
+	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/view"
-	"github.com/ungerik/go-start/debug"
 )
 
 type HorAlignment int
@@ -272,6 +272,21 @@ func (self *Image) OriginalVersion() *ImageVersion {
 // VersionSourceRect searches and returns an existing matching version,
 // or a new one will be created and saved.
 func (self *Image) VersionSourceRect(sourceRect image.Rectangle, width, height int, grayscale bool, outsideColor color.Color) (im *ImageVersion, err error) {
+	debug.Nop()
+	// debug.Printf(
+	// 	"VersionSourceRect: from %dx%d image take rectangle [%d,%d,%d,%d] (%dx%d) and scale it to %dx%d",
+	// 	self.Width(),
+	// 	self.Height(),
+	// 	sourceRect.Min.X,
+	// 	sourceRect.Min.Y,
+	// 	sourceRect.Max.X,
+	// 	sourceRect.Max.Y,
+	// 	sourceRect.Dx(),
+	// 	sourceRect.Dy(),
+	// 	width,
+	// 	height,
+	// )
+
 	if self.Grayscale() {
 		grayscale = true // Ignore color requests when original image is grayscale
 	}
@@ -302,9 +317,11 @@ func (self *Image) VersionSourceRect(sourceRect image.Rectangle, width, height i
 		versionImage = image.NewRGBA(image.Rect(0, 0, width, height))
 	}
 	if sourceRect.In(self.Rectangle()) {
-		debug.Dump(origImage.Bounds(), sourceRect, self.Rectangle())
+		// debug.Print("VersionSourceRect: rectangle is within image")
+
 		// versionImage = ResampleImage(origImage, sourceRect, width, height)
-		err = graphics.Scale(versionImage.(draw.Image), origImage.(SubImager).SubImage(sourceRect))
+		subImage := SubImage(origImage, sourceRect)
+		err = graphics.Scale(versionImage.(draw.Image), subImage)
 		if err != nil {
 			return nil, err
 		}
@@ -314,6 +331,8 @@ func (self *Image) VersionSourceRect(sourceRect image.Rectangle, width, height i
 			versionImage = grayVersion
 		}
 	} else {
+		// debug.Print("VersionSourceRect: rectangle is not completely within image, using outsideColor")
+
 		// Fill version with outsideColor
 		draw.Draw(versionImage.(draw.Image), versionImage.Bounds(), image.NewUniform(outsideColor), image.ZP, draw.Src)
 		// Where to draw the source image into the version image
@@ -330,8 +349,9 @@ func (self *Image) VersionSourceRect(sourceRect image.Rectangle, width, height i
 
 		// destImage := ResampleImage(origImage, origImage.Bounds(), destRect.Dx(), destRect.Dy())
 		// draw.Draw(versionImage.(draw.Image), destRect, destImage, image.ZP, draw.Src)
-		destImage := versionImage.(SubImager).SubImage(destRect)
-		err = graphics.Scale(destImage.(draw.Image), origImage.(SubImager).SubImage(sourceRect))
+		subImage := SubImage(origImage, sourceRect)
+		destImage := SubImage(versionImage, destRect)
+		err = graphics.Scale(destImage.(draw.Image), subImage)
 		if err != nil {
 			return nil, err
 		}
