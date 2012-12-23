@@ -95,15 +95,19 @@ func (self *sortable) Less(i, j int) bool {
 	}
 	if (arg0.Kind() == reflect.Ptr) != self.PtrArgs {
 		if self.PtrArgs {
+			// Expects PtrArgs for SortCompareFunc, but slice is value type
 			arg0 = arg0.Addr()
 		} else {
+			// Expects value type for SortCompareFunc, but slice is PtrArgs
 			arg0 = arg0.Elem()
 		}
 	}
 	if (arg1.Kind() == reflect.Ptr) != self.PtrArgs {
 		if self.PtrArgs {
+			// Expects PtrArgs for SortCompareFunc, but slice is value type
 			arg1 = arg1.Addr()
 		} else {
+			// Expects value type for SortCompareFunc, but slice is PtrArgs
 			arg1 = arg1.Elem()
 		}
 	}
@@ -111,7 +115,7 @@ func (self *sortable) Less(i, j int) bool {
 }
 
 func (self *sortable) Swap(i, j int) {
-	temp := self.slice.Index(i)
+	temp := self.slice.Index(i).Interface()
 	self.slice.Index(i).Set(self.slice.Index(j))
-	self.slice.Index(j).Set(temp)
+	self.slice.Index(j).Set(reflect.ValueOf(temp))
 }

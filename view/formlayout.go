@@ -37,7 +37,7 @@ type FormLayout interface {
 	NewFieldErrorMessage(message string, metaData *model.MetaData, form *Form) View
 	NewGeneralErrorMessage(message string, form *Form) View
 	NewSuccessMessage(message string, form *Form) View
-	NewSubmitButton(text, confirmationMessage string, form *Form) View
+	NewSubmitButton(text, confirmationMessage string, form *Form) *SubmitButton
 	NewAddButton(onclick string, form *Form) View
 	NewRemoveButton(onclick string, form *Form) View
 	NewUpButton(disabled bool, onclick string, form *Form) View

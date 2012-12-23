@@ -59,7 +59,7 @@ gostart_form.onLengthChanged = function(table) {
 		if (lastRow) {
 			buttons.eq(2).attr("onclick", "gostart_form.addRow(this);").text("+");
 		} else {
-			buttons.eq(2).attr("onclick", "gostart_form.removeRow(this);").text("X");
+			buttons.eq(2).attr("onclick", "gostart_form.removeRow(this);").html("&times;");
 		}
 	});
 };

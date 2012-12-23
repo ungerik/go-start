@@ -32,6 +32,20 @@ func PrintfEscape(text string, args ...interface{}) HTML {
 	return Escape(fmt.Sprintf(text, args...))
 }
 
+// LABEL creates a Label for target and returns it together with target.
+func LABEL(label interface{}, target View) Views {
+	if target.ID() == "" {
+		panic("Label target must have an ID")
+	}
+	return Views{
+		&Label{
+			Content: NewView(label),
+			For:     target,
+		},
+		target,
+	}
+}
+
 // A creates <a href="url">content</a>
 func A(url interface{}, content ...interface{}) *Link {
 	return &Link{Model: NewLinkModel(url, content...)}
