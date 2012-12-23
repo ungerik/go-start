@@ -68,3 +68,37 @@ func ImageDataURL(imageURL string) (dataURL string, err error) {
 
 	return prefix + base64.StdEncoding.EncodeToString(data), nil
 }
+
+type SubImager interface {
+	SubImage(r image.Rectangle) image.Image
+}
+
+func NewImageOfType(src image.Image, width, height int) image.Image {
+	return NewImageOfTypeRect(src, image.Rect(0, 0, width, height))
+}
+
+func NewImageOfTypeRect(src image.Image, bounds image.Rectangle) image.Image {
+	switch i := src.(type) {
+	case *image.Alpha:
+		return image.NewAlpha(bounds)
+	case *image.Alpha16:
+		return image.NewAlpha16(bounds)
+	case *image.Gray:
+		return image.NewGray(bounds)
+	case *image.Gray16:
+		return image.NewGray16(bounds)
+	case *image.NRGBA:
+		return image.NewNRGBA(bounds)
+	case *image.NRGBA64:
+		return image.NewNRGBA64(bounds)
+	case *image.Paletted:
+		return image.NewPaletted(bounds, i.Palette)
+	case *image.RGBA:
+		return image.NewRGBA(bounds)
+	case *image.RGBA64:
+		return image.NewRGBA64(bounds)
+	case *image.YCbCr:
+		return image.NewYCbCr(bounds, i.SubsampleRatio)
+	}
+	panic("Unknown image type")
+}
