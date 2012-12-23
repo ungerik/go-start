@@ -162,11 +162,24 @@ func (self *Image) addVersion(filename, contentType string, sourceRect image.Rec
 }
 
 func (self *Image) DeleteVersion(index int) error {
+	if index <= 0 || index >= len(self.Versions) {
+		return fmt.Errorf("Invalid index %d", index)
+	}
 	err := Config.Backend.DeleteFile(self.Versions[index].ID.Get())
 	if err != nil {
 		return err
 	}
 	self.Versions = append(self.Versions[:index], self.Versions[index+1:]...)
+	return nil
+}
+
+func (self *Image) DeleteVersions() error {
+	for len(self.Versions) > 1 {
+		err := self.DeleteVersion(1)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
