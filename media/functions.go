@@ -69,11 +69,15 @@ func ImageDataURL(imageURL string) (dataURL string, err error) {
 	return prefix + base64.StdEncoding.EncodeToString(data), nil
 }
 
-func SubImage(src image.Image, rect image.Rectangle) image.Image {
+// type SubImager interface {
+// 	SubImage(r image.Rectangle) image.Image
+// }
+
+func SubImageWithoutOffset(src image.Image, rect image.Rectangle) image.Image {
 	switch i := src.(type) {
 	case *image.RGBA:
 		i = i.SubImage(rect).(*image.RGBA)
-		// Fix Bounds
+		// Remove offset
 		i.Rect.Max.X = i.Rect.Dx()
 		i.Rect.Min.X = 0
 		i.Rect.Max.Y = i.Rect.Dy()
@@ -82,7 +86,25 @@ func SubImage(src image.Image, rect image.Rectangle) image.Image {
 
 	case *image.NRGBA:
 		i = i.SubImage(rect).(*image.NRGBA)
-		// Fix Bounds
+		// Remove offset
+		i.Rect.Max.X = i.Rect.Dx()
+		i.Rect.Min.X = 0
+		i.Rect.Max.Y = i.Rect.Dy()
+		i.Rect.Min.Y = 0
+		return i
+
+	case *image.RGBA64:
+		i = i.SubImage(rect).(*image.RGBA64)
+		// Remove offset
+		i.Rect.Max.X = i.Rect.Dx()
+		i.Rect.Min.X = 0
+		i.Rect.Max.Y = i.Rect.Dy()
+		i.Rect.Min.Y = 0
+		return i
+
+	case *image.NRGBA64:
+		i = i.SubImage(rect).(*image.NRGBA64)
+		// Remove offset
 		i.Rect.Max.X = i.Rect.Dx()
 		i.Rect.Min.X = 0
 		i.Rect.Max.Y = i.Rect.Dy()
@@ -91,7 +113,7 @@ func SubImage(src image.Image, rect image.Rectangle) image.Image {
 
 	case *image.YCbCr:
 		i = i.SubImage(rect).(*image.YCbCr)
-		// Fix Bounds
+		// Remove offset
 		i.Rect.Max.X = i.Rect.Dx()
 		i.Rect.Min.X = 0
 		i.Rect.Max.Y = i.Rect.Dy()
@@ -100,7 +122,43 @@ func SubImage(src image.Image, rect image.Rectangle) image.Image {
 
 	case *image.Gray:
 		i = i.SubImage(rect).(*image.Gray)
-		// Fix Bounds
+		// Remove offset
+		i.Rect.Max.X = i.Rect.Dx()
+		i.Rect.Min.X = 0
+		i.Rect.Max.Y = i.Rect.Dy()
+		i.Rect.Min.Y = 0
+		return i
+
+	case *image.Gray16:
+		i = i.SubImage(rect).(*image.Gray16)
+		// Remove offset
+		i.Rect.Max.X = i.Rect.Dx()
+		i.Rect.Min.X = 0
+		i.Rect.Max.Y = i.Rect.Dy()
+		i.Rect.Min.Y = 0
+		return i
+
+	case *image.Alpha:
+		i = i.SubImage(rect).(*image.Alpha)
+		// Remove offset
+		i.Rect.Max.X = i.Rect.Dx()
+		i.Rect.Min.X = 0
+		i.Rect.Max.Y = i.Rect.Dy()
+		i.Rect.Min.Y = 0
+		return i
+
+	case *image.Alpha16:
+		i = i.SubImage(rect).(*image.Alpha16)
+		// Remove offset
+		i.Rect.Max.X = i.Rect.Dx()
+		i.Rect.Min.X = 0
+		i.Rect.Max.Y = i.Rect.Dy()
+		i.Rect.Min.Y = 0
+		return i
+
+	case *image.Paletted:
+		i = i.SubImage(rect).(*image.Paletted)
+		// Remove offset
 		i.Rect.Max.X = i.Rect.Dx()
 		i.Rect.Min.X = 0
 		i.Rect.Max.Y = i.Rect.Dy()
@@ -111,10 +169,6 @@ func SubImage(src image.Image, rect image.Rectangle) image.Image {
 		return i
 	}
 	panic(fmt.Errorf("SubImage: unsupported image type %T", src))
-}
-
-type SubImager interface {
-	SubImage(r image.Rectangle) image.Image
 }
 
 func NewImageOfType(src image.Image, width, height int) image.Image {

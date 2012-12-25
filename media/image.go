@@ -335,7 +335,7 @@ func (self *Image) VersionSourceRect(sourceRect image.Rectangle, width, height i
 		// debug.Print("VersionSourceRect: rectangle is within image")
 
 		// versionImage = ResampleImage(origImage, sourceRect, width, height)
-		subImage := SubImage(origImage, sourceRect)
+		subImage := SubImageWithoutOffset(origImage, sourceRect)
 		err = graphics.Scale(versionImage.(draw.Image), subImage)
 		if err != nil {
 			return nil, err
@@ -364,8 +364,8 @@ func (self *Image) VersionSourceRect(sourceRect image.Rectangle, width, height i
 
 		// destImage := ResampleImage(origImage, origImage.Bounds(), destRect.Dx(), destRect.Dy())
 		// draw.Draw(versionImage.(draw.Image), destRect, destImage, image.ZP, draw.Src)
-		subImage := SubImage(origImage, sourceRect)
-		destImage := SubImage(versionImage, destRect)
+		subImage := SubImageWithoutOffset(origImage, sourceRect)
+		destImage := SubImageWithoutOffset(versionImage, destRect)
 		err = graphics.Scale(destImage.(draw.Image), subImage)
 		if err != nil {
 			return nil, err
