@@ -26,6 +26,14 @@ type Backend interface {
 	// all blobs as Blob structs.
 	BlobIterator() model.Iterator
 
+	// CountBlobRefs counts all BlobRef occurrences with blobID
+	// in all known databases.
+	CountBlobRefs(blobID string) (count int, err error)
+
+	// RemoveAllBlobRefs removes all BlobRef occurrences with blobID
+	// in all known databases.
+	RemoveAllBlobRefs(blobID string) (count int, err error)
+
 	// Image methods:
 
 	// Returns ErrNotFound if no image with id is found.

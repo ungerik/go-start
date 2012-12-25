@@ -31,10 +31,11 @@ func NewBlobFromReader(filename string, reader io.Reader) (*Blob, error) {
 		return nil, err
 	}
 	defer writer.Close()
-	_, err = io.Copy(writer, reader)
+	size, err := io.Copy(writer, reader)
 	if err != nil {
 		return nil, err
 	}
+	blob.Size.Set(size)
 	err = blob.Save()
 	if err != nil {
 		return nil, err
@@ -63,6 +64,7 @@ type Blob struct {
 	Link        model.Url
 	Filename    model.String
 	ContentType model.String
+	Size        model.Int
 	FileID      model.String
 }
 
@@ -98,6 +100,14 @@ func (self *Blob) Delete() error {
 		return err
 	}
 	return Config.Backend.DeleteBlob(self)
+}
+
+func (self *Blob) CountRefs() (int, error) {
+	return Config.Backend.CountBlobRefs(self.ID.Get())
+}
+
+func (self *Blob) RemoveAllRefs() (count int, err error) {
+	return Config.Backend.RemoveAllBlobRefs(self.ID.Get())
 }
 
 // FileWriter deletes the current blob-file and returns a writer

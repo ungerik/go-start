@@ -64,10 +64,7 @@ var API = Api{
 				} else {
 					ctx.Response.WriteByte(',')
 				}
-				// ctx.Response.WriteByte('"')
-				// ctx.Response.WriteString(utils.EscapeJSON(name))
-				// ctx.Response.WriteByte('"')
-				//writer.Printf(`{"id":"%s","label":"%s","value":"%s"}`, name, name, name)
+				ctx.Response.Printf(`{"id": "%s", "title": "%s"}`, blob.ID, blob.Title)
 			}
 			ctx.Response.WriteByte(']')
 			return i.Err()

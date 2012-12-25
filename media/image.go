@@ -76,6 +76,7 @@ func NewImage(filename string, data []byte) (*Image, error) {
 	if err != nil {
 		return nil, err
 	}
+	image.Size.SetInt(len(data))
 	err = image.Save()
 	if err != nil {
 		return nil, err
@@ -113,6 +114,7 @@ type Image struct {
 	ID       model.String `bson:",omitempty"`
 	Title    model.String
 	Link     model.Url
+	Size     model.Int
 	Versions []ImageVersion
 }
 

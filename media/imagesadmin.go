@@ -40,10 +40,8 @@ func ImagesAdmin() view.View {
 				}
 				editor := view.DIV(Config.Admin.ImageEditorClass,
 					view.H3(image.Title.Get()),
-					view.P(
-						view.A_blank(image.FileURL(), "Link to original"),
-						view.Printf(" | Used %d times", refCount),
-					),
+					view.P(view.A_blank(image.FileURL(), "Link to original") /*, view.Printf(" | Used %d times", refCount)*/),
+					view.P("Size in MB: ", view.Printf("%f", (float32)(image.Size.Get())/(1024.0*1024.0))),
 					view.DIV(Config.Admin.ThumbnailFrameClass,
 						thumbnail.View(""),
 					),

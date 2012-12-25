@@ -19,6 +19,7 @@ type Backend struct {
 	Blobs  *mongo.Collection
 
 	imageRefCollectionSelectors map[*mongo.Collection][]string
+	blobRefCollectionSelectors  map[*mongo.Collection][]string
 }
 
 func (self *Backend) Init(gridFSName string) {
@@ -88,6 +89,60 @@ func (self *Backend) BlobIterator() model.Iterator {
 	)
 }
 
+func (self *Backend) getBlobRefCollectionSelectors() map[*mongo.Collection][]string {
+	return nil
+
+	if self.imageRefCollectionSelectors == nil {
+		colSel := make(map[*mongo.Collection][]string)
+		for _, collection := range mongo.Collections {
+			var doc BlobDoc // todo needs to be document type of collection
+			collection.InitDocument(&doc)
+			model.SetAllSliceLengths(&doc, 1)
+			model.Visit(&doc, model.FieldOnlyVisitor(
+				func(data *model.MetaData) error {
+					if _, ok := data.Value.Addr().Interface().(*media.BlobRef); ok {
+						if _, ok := colSel[collection]; !ok {
+							colSel[collection] = nil
+						}
+						colSel[collection] = append(colSel[collection], data.WildcardSelector())
+					}
+					return nil
+				},
+			))
+		}
+		self.blobRefCollectionSelectors = colSel
+	}
+	return self.blobRefCollectionSelectors
+}
+
+func (self *Backend) CountBlobRefs(blobID string) (count int, err error) {
+	colSel := self.getBlobRefCollectionSelectors()
+	for collection, selectors := range colSel {
+		for _, selector := range selectors {
+			c, err := collection.Filter(selector, blobID).Count()
+			if err != nil {
+				return 0, err
+			}
+			count += c
+		}
+	}
+	return count, nil
+}
+
+func (self *Backend) RemoveAllBlobRefs(blobID string) (count int, err error) {
+	colSel := self.getImageRefCollectionSelectors()
+	for collection, selectors := range colSel {
+		for _, selector := range selectors {
+			c, err := collection.Filter(selector, blobID).UpdateAll(selector, "")
+			if err != nil {
+				return count, err
+			}
+			count += c
+		}
+	}
+	return count, nil
+}
+
 func (self *Backend) LoadImage(id string) (*media.Image, error) {
 	var doc ImageDoc
 	err := self.Images.DocumentWithID(bson.ObjectIdHex(id), &doc)
@@ -149,10 +204,12 @@ func (self *Backend) ImageIterator() model.Iterator {
 }
 
 func (self *Backend) getImageRefCollectionSelectors() map[*mongo.Collection][]string {
+	return nil
+
 	if self.imageRefCollectionSelectors == nil {
 		colSel := make(map[*mongo.Collection][]string)
 		for _, collection := range mongo.Collections {
-			var doc ImageDoc
+			var doc ImageDoc // todo needs to be document type of collection
 			collection.InitDocument(&doc)
 			model.SetAllSliceLengths(&doc, 1)
 			model.Visit(&doc, model.FieldOnlyVisitor(

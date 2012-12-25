@@ -19,6 +19,16 @@ func (self BlobRefController) Supports(metaData *model.MetaData, form *view.Form
 
 func (self BlobRefController) NewInput(withLabel bool, metaData *model.MetaData, form *view.Form) (input view.View, err error) {
 	blobRef := metaData.Value.Addr().Interface().(*BlobRef)
+	blob, _, err := blobRef.TryGet()
+	if err != nil {
+		return nil, err
+	}
+	var title view.View
+	if blob == nil {
+		title = view.SPAN("", "Not set")
+	} else {
+		title = view.SPAN("", blob.Title)
+	}
 
 	hiddenInput := &view.HiddenInput{Name: metaData.Selector(), Value: blobRef.String()}
 
@@ -28,24 +38,30 @@ func (self BlobRefController) NewInput(withLabel bool, metaData *model.MetaData,
 		Class:   "qq-upload-button",
 		Content: view.HTML("Remove"),
 		OnClick: fmt.Sprintf(
-			`jQuery("#%s").attr("value", "");
+			`jQuery("#%s").text("Not set");
+			jQuery("#%s").attr("value", "");
 			jQuery("#%s").empty();`,
+			title.ID(),
 			hiddenInput.ID(),
 			uploadList.ID(),
 		),
 	}
 
-	chooseList := view.Views{
-		view.JQueryUIAutocompleteFromURL(".gostart-select-blob", API.AllBlobs, 2),
+	type chooseModel struct {
+		Title model.String `view:"class=gostart-select-blob"`
 	}
+
+	chooseList := view.Views{}
 
 	uploadButton := UploadBlobButton(
 		"",
 		"#"+uploadList.ID(),
 		fmt.Sprintf(
 			`function(id, fileName, responseJSON) {
+				jQuery("#%s").text(fileName);
 				jQuery("#%s").attr("value", responseJSON.blobID);
 			}`,
+			title.ID(),
 			hiddenInput.ID(),
 		),
 	)
@@ -63,7 +79,12 @@ func (self BlobRefController) NewInput(withLabel bool, metaData *model.MetaData,
 			10,
 		),
 		hiddenInput,
-		view.DIV(Config.BlobRefController.ActionsClass, chooseList, removeButton, uploadButton),
+		view.DIV(
+			Config.BlobRefController.ActionsClass,
+			title,
+			chooseList,
+			removeButton,
+			uploadButton),
 		uploadList,
 		view.DivClearBoth(),
 	)
