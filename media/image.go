@@ -15,7 +15,9 @@ import (
 
 	_ "code.google.com/p/go.image/bmp"
 	_ "code.google.com/p/go.image/tiff"
+	"code.google.com/p/graphics-go/graphics"
 
+	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/view"
 )
@@ -162,11 +164,24 @@ func (self *Image) addVersion(filename, contentType string, sourceRect image.Rec
 }
 
 func (self *Image) DeleteVersion(index int) error {
+	if index <= 0 || index >= len(self.Versions) {
+		return fmt.Errorf("Invalid index %d", index)
+	}
 	err := Config.Backend.DeleteFile(self.Versions[index].ID.Get())
 	if err != nil {
 		return err
 	}
 	self.Versions = append(self.Versions[:index], self.Versions[index+1:]...)
+	return nil
+}
+
+func (self *Image) DeleteVersions() error {
+	for len(self.Versions) > 1 {
+		err := self.DeleteVersion(1)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -269,9 +284,24 @@ func (self *Image) OriginalVersion() *ImageVersion {
 	return &self.Versions[0]
 }
 
-// SourceRectVersion searches and returns an existing matching version,
+// VersionSourceRect searches and returns an existing matching version,
 // or a new one will be created and saved.
 func (self *Image) VersionSourceRect(sourceRect image.Rectangle, width, height int, grayscale bool, outsideColor color.Color) (im *ImageVersion, err error) {
+	debug.Nop()
+	// debug.Printf(
+	// 	"VersionSourceRect: from %dx%d image take rectangle [%d,%d,%d,%d] (%dx%d) and scale it to %dx%d",
+	// 	self.Width(),
+	// 	self.Height(),
+	// 	sourceRect.Min.X,
+	// 	sourceRect.Min.Y,
+	// 	sourceRect.Max.X,
+	// 	sourceRect.Max.Y,
+	// 	sourceRect.Dx(),
+	// 	sourceRect.Dy(),
+	// 	width,
+	// 	height,
+	// )
+
 	if self.Grayscale() {
 		grayscale = true // Ignore color requests when original image is grayscale
 	}
@@ -296,19 +326,28 @@ func (self *Image) VersionSourceRect(sourceRect image.Rectangle, width, height i
 	}
 
 	var versionImage image.Image
+	if grayscale {
+		versionImage = image.NewGray(image.Rect(0, 0, width, height))
+	} else {
+		versionImage = image.NewRGBA(image.Rect(0, 0, width, height))
+	}
 	if sourceRect.In(self.Rectangle()) {
-		versionImage = ResampleImage(origImage, sourceRect, width, height)
+		// debug.Print("VersionSourceRect: rectangle is within image")
+
+		// versionImage = ResampleImage(origImage, sourceRect, width, height)
+		subImage := SubImage(origImage, sourceRect)
+		err = graphics.Scale(versionImage.(draw.Image), subImage)
+		if err != nil {
+			return nil, err
+		}
 		if grayscale && !self.Grayscale() {
 			var grayVersion image.Image = image.NewGray(versionImage.Bounds())
 			draw.Draw(grayVersion.(draw.Image), versionImage.Bounds(), versionImage, image.ZP, draw.Src)
 			versionImage = grayVersion
 		}
 	} else {
-		if grayscale {
-			versionImage = image.NewGray(image.Rect(0, 0, width, height))
-		} else {
-			versionImage = image.NewRGBA(image.Rect(0, 0, width, height))
-		}
+		// debug.Print("VersionSourceRect: rectangle is not completely within image, using outsideColor")
+
 		// Fill version with outsideColor
 		draw.Draw(versionImage.(draw.Image), versionImage.Bounds(), image.NewUniform(outsideColor), image.ZP, draw.Src)
 		// Where to draw the source image into the version image
@@ -322,8 +361,15 @@ func (self *Image) VersionSourceRect(sourceRect image.Rectangle, width, height i
 		destRect.Min.Y = int(float64(-sourceRect.Min.Y) / sourceH * float64(height))
 		destRect.Max.X = destRect.Min.X + int(float64(self.Width())/sourceW*float64(width))
 		destRect.Max.Y = destRect.Min.Y + int(float64(self.Height())/sourceH*float64(height))
-		destImage := ResampleImage(origImage, origImage.Bounds(), destRect.Dx(), destRect.Dy())
-		draw.Draw(versionImage.(draw.Image), destRect, destImage, image.ZP, draw.Src)
+
+		// destImage := ResampleImage(origImage, origImage.Bounds(), destRect.Dx(), destRect.Dy())
+		// draw.Draw(versionImage.(draw.Image), destRect, destImage, image.ZP, draw.Src)
+		subImage := SubImage(origImage, sourceRect)
+		destImage := SubImage(versionImage, destRect)
+		err = graphics.Scale(destImage.(draw.Image), subImage)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Save new image version

@@ -62,9 +62,10 @@ func (self *Configuration) Init() error {
 }
 
 func (self *Configuration) Close() error {
-	if Database.Session != nil {
+	if Database != nil && Database.Session != nil {
 		Database.Session.Close()
 		Database.Session = nil
+		Database = nil
 	}
 	return nil
 }
