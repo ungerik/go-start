@@ -38,7 +38,7 @@ func BlobsAdmin() view.View {
 				editor := view.DIV(Config.Admin.ImageEditorClass,
 					view.H3(blob.Title.Get()),
 					view.P("Link to file: ", view.A_blank(blob.FileURL()) /*, view.Printf(" | Used %d times", refCount)*/),
-					view.P("Size in MB: ", view.Printf("%f", (float32)(blob.Size.Get())/(1024.0*1024.0))),
+					view.P(view.Printf("Size: %d kb", blob.Size.Get()/1024.0)),
 					&view.Form{
 						FormID:            "edit" + blob.ID.Get(),
 						SubmitButtonClass: Config.Admin.ButtonClass,

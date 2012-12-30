@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/ungerik/go-start/debug"
+	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/reflection"
 )
 
@@ -33,11 +33,7 @@ func (self *SliceIterator) Next(resultRef interface{}) bool {
 	if self.index >= self.slice.Len() {
 		return false
 	}
-	debug.Print("Before::::::::::::::::::::::::")
-	debug.Dump(self.slice.Index(self.index).Interface())
 	reflection.SmartCopy(self.slice.Index(self.index).Interface(), resultRef)
-	debug.Print("After::::::::::::::::::::::::")
-	debug.Dump(resultRef)
 	self.index++
 	return true
 }

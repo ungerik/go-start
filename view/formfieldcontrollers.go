@@ -74,8 +74,11 @@ func (self FormFieldControllers) SetValue(value string, ctx *Context, metaData *
 type SetModelValueControllerBase struct{}
 
 func (self SetModelValueControllerBase) SetValue(value string, ctx *Context, metaData *model.MetaData, form *Form) error {
-	m := metaData.Value.Addr().Interface().(model.Value)
-	m.SetString(value)
+	mdl, ok := metaData.ModelValue()
+	if !ok {
+		panic("metaData must be model.Value")
+	}
+	mdl.SetString(value)
 	return nil
 }
 

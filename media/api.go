@@ -1,7 +1,7 @@
 package media
 
 import (
-	"strings"
+	// "strings"
 
 	// "github.com/ungerik/go-start/utils"
 	"github.com/ungerik/go-start/view"
@@ -9,7 +9,7 @@ import (
 
 type Api struct {
 	AllThumbnails view.ViewWithURL
-	AllBlobs      view.ViewWithURL
+	// AllBlobs      view.ViewWithURL
 }
 
 var API = Api{
@@ -44,30 +44,30 @@ var API = Api{
 		},
 	),
 
-	AllBlobs: view.RenderViewWithURL(
-		func(ctx *view.Context) error {
-			if !Config.NoDynamicStyleAndScript {
-				ctx.Response.RequireScript(string(view.JQuery), 0)
-				ctx.Response.RequireScript(string(view.JQueryUI), 1)
-			}
-			searchTerm, _ := ctx.Request.Params["term"]
-			searchTerm = strings.ToLower(searchTerm)
+	// AllBlobs: view.RenderViewWithURL(
+	// 	func(ctx *view.Context) error {
+	// 		if !Config.NoDynamicStyleAndScript {
+	// 			ctx.Response.RequireScript(string(view.JQuery), 0)
+	// 			ctx.Response.RequireScript(string(view.JQueryUI), 1)
+	// 		}
+	// 		searchTerm, _ := ctx.Request.Params["term"]
+	// 		searchTerm = strings.ToLower(searchTerm)
 
-			ctx.Response.Header().Set("Content-Type", "application/json")
-			ctx.Response.WriteByte('[')
-			first := true
-			i := BlobIterator()
-			var blob Blob
-			for i.Next(&blob) {
-				if first {
-					first = false
-				} else {
-					ctx.Response.WriteByte(',')
-				}
-				ctx.Response.Printf(`{"id": "%s", "title": "%s"}`, blob.ID, blob.Title)
-			}
-			ctx.Response.WriteByte(']')
-			return i.Err()
-		},
-	),
+	// 		ctx.Response.Header().Set("Content-Type", "application/json")
+	// 		ctx.Response.WriteByte('[')
+	// 		first := true
+	// 		i := BlobIterator()
+	// 		var blob Blob
+	// 		for i.Next(&blob) {
+	// 			if first {
+	// 				first = false
+	// 			} else {
+	// 				ctx.Response.WriteByte(',')
+	// 			}
+	// 			ctx.Response.Printf(`{"id": "%s", "title": "%s"}`, blob.ID, blob.Title)
+	// 		}
+	// 		ctx.Response.WriteByte(']')
+	// 		return i.Err()
+	// 	},
+	// ),
 }

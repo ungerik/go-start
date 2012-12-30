@@ -11,6 +11,6 @@ func ViewPath(name string) view.ViewPath {
 		{Name: "upload-blob", View: UploadBlob},
 		{Name: "upload-image", Args: 1, View: UploadImage},
 		{Name: "thumbnails.json", Args: 1, View: API.AllThumbnails},
-		{Name: "blobs.json", View: API.AllBlobs},
+		// {Name: "blobs.json", View: API.AllBlobs},
 	}}
 }

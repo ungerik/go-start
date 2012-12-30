@@ -34,7 +34,7 @@ var UploadBlob = view.NewViewURLWrapper(view.RenderViewBindURLArgs(
 			return formatError(err)
 		}
 
-		ctx.Response.Printf(`{success: true, blobID: "%s"}`, blob.ID)
+		ctx.Response.Printf(`{success: true, blobID: "%s", blobSize: %d}`, blob.ID, blob.Size)
 		return nil
 	},
 ))

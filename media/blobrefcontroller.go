@@ -19,18 +19,25 @@ func (self BlobRefController) Supports(metaData *model.MetaData, form *view.Form
 
 func (self BlobRefController) NewInput(withLabel bool, metaData *model.MetaData, form *view.Form) (input view.View, err error) {
 	blobRef := metaData.Value.Addr().Interface().(*BlobRef)
-	blob, _, err := blobRef.TryGet()
-	if err != nil {
-		return nil, err
-	}
-	var title view.View
-	if blob == nil {
-		title = view.SPAN("", "Not set")
-	} else {
-		title = view.SPAN("", blob.Title)
-	}
+	// _, _, err = blobRef.TryGet()
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	hiddenInput := &view.HiddenInput{Name: metaData.Selector(), Value: blobRef.String()}
+	selectModel := &view.ValueLabelSelectModel{
+		ValuesAndLabels: []string{"", ""},
+		SelectedValue:   blobRef.String(),
+	}
+	var b Blob
+	for i := BlobIterator(); i.Next(&b); {
+		label := fmt.Sprintf("%s (%d kb)", b.Title, b.Size.Get()/1024)
+		selectModel.ValuesAndLabels = append(selectModel.ValuesAndLabels, b.ID.Get(), label)
+	}
+	selector := &view.Select{
+		Name:  metaData.Selector(),
+		Model: selectModel,
+		Size:  1,
+	}
 
 	uploadList := &view.List{Class: "qq-upload-list"}
 
@@ -38,31 +45,23 @@ func (self BlobRefController) NewInput(withLabel bool, metaData *model.MetaData,
 		Class:   "qq-upload-button",
 		Content: view.HTML("Remove"),
 		OnClick: fmt.Sprintf(
-			`jQuery("#%s").text("Not set");
-			jQuery("#%s").attr("value", "");
+			`jQuery("#%s").attr("value", "");
 			jQuery("#%s").empty();`,
-			title.ID(),
-			hiddenInput.ID(),
+			selector.ID(),
 			uploadList.ID(),
 		),
 	}
-
-	type chooseModel struct {
-		Title model.String `view:"class=gostart-select-blob"`
-	}
-
-	chooseList := view.Views{}
 
 	uploadButton := UploadBlobButton(
 		"",
 		"#"+uploadList.ID(),
 		fmt.Sprintf(
 			`function(id, fileName, responseJSON) {
-				jQuery("#%s").text(fileName);
-				jQuery("#%s").attr("value", responseJSON.blobID);
+				var select = jQuery("#%s");
+				select.append("<option value='"+ responseJSON.blobID +"'>" + fileName + " (" + Math.floor(responseJSON.blobSize / 1024) + " kb)</option>");
+				select.attr("value", responseJSON.blobID);
 			}`,
-			title.ID(),
-			hiddenInput.ID(),
+			selector.ID(),
 		),
 	)
 
@@ -78,11 +77,9 @@ func (self BlobRefController) NewInput(withLabel bool, metaData *model.MetaData,
 			}`,
 			10,
 		),
-		hiddenInput,
 		view.DIV(
 			Config.BlobRefController.ActionsClass,
-			title,
-			chooseList,
+			selector,
 			removeButton,
 			uploadButton),
 		uploadList,
