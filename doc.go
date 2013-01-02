@@ -2,8 +2,8 @@
 go-start is a high level web-framework for Go,
 like Django for Python or Rails for Ruby.
 
-* Source: https://github.com/ungerik/go-start/
-* Documentation: http://go-start.org/pkg/go-start/gostart/
+	* Source: https://github.com/ungerik/go-start/
+	* Documentation: http://godoc.org/github.com/ungerik/go-start
 
 Note: Don't use Go on 32 bit systems in production, it has severe memory leaks.
 (If the documentation URL above doesn't work, then godoc -html has has crashed because of that issue)
@@ -12,29 +12,29 @@ Note: Don't use Go on 32 bit systems in production, it has severe memory leaks.
 
 Features:
 
-* HTML views can be defined in Go syntax
-* Optional template system
-* HTML5 Boilerplate page template (Mustache template, will be changed to Go v1 template)
-* Unified data model for forms and databases
-* Data models are simple Go structs
-* MongoDB as default database
-* User management/authentication out of the box
-* Additional packages for
-	* Email (Google Mail defaults): http://github.com/ungerik/go-mail
-	* Gravatar: http://github.com/ungerik/go-gravatar
-	* RSS parsing: http://github.com/ungerik/go-rss
-	* Amiando event management: http://github.com/ungerik/go-amiando
-		(used by http://startuplive.in)
+	* HTML views can be defined in Go syntax
+	* Optional template system
+	* HTML5 Boilerplate page template (Mustache template, will be changed to Go v1 template)
+	* Unified data model for forms and databases
+	* Data models are simple Go structs
+	* MongoDB as default database
+	* User management/authentication out of the box
+	* Additional packages for
+		* Email (Google Mail defaults): http://github.com/ungerik/go-mail
+		* Gravatar: http://github.com/ungerik/go-gravatar
+		* RSS parsing: http://github.com/ungerik/go-rss
+		* Amiando event management: http://github.com/ungerik/go-amiando
+			(used by http://startuplive.in)
 
 Planned Features:
 
-* medialib
-* CSRF protection
-* Tutorial App
-* Remove web.go
-* Controller of MVC implemented as REST service
-* Support for LESS CSS
-* Support for Twitter Bootstrap
+	* medialib
+	* CSRF protection
+	* Tutorial App
+	* Remove web.go
+	* Controller of MVC implemented as REST service
+	* Support for LESS CSS
+	* Support for Twitter Bootstrap
 
 
 ## Views:
