@@ -118,6 +118,9 @@ func (self ModelStringController) NewInput(withLabel bool, metaData *model.MetaD
 	if metaData.BoolAttrib("view", "autofocus") {
 		textField.Autofocus = true
 	}
+	if pattern, ok := metaData.Attrib("view", "pattern"); ok {
+		textField.Pattern = pattern
+	}
 	if withLabel {
 		return AddStandardLabel(form, textField, metaData), nil
 	}

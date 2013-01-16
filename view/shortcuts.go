@@ -66,6 +66,11 @@ func A_blank_nofollow(url interface{}, content ...interface{}) *Link {
 	return &Link{NewWindow: true, Model: NewLinkModelRel(url, "nofollow", content...)}
 }
 
+// A_name creates a named anchor
+func A_name(name string) HTML {
+	return Printf("<a name='%s'></a>", name)
+}
+
 // STYLE creates <style>css</style>
 func STYLE(css string) HTML {
 	return Printf("<style>%s</style>", css)

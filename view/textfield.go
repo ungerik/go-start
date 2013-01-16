@@ -25,8 +25,9 @@ type TextField struct {
 	Title       string
 	Readonly    bool
 	Disabled    bool
-	Required    bool // HTML5
-	Autofocus   bool // HTML5
+	Required    bool   // HTML5
+	Autofocus   bool   // HTML5
+	Pattern     string // HTML5
 }
 
 func (self *TextField) Render(ctx *Context) (err error) {
@@ -41,6 +42,7 @@ func (self *TextField) Render(ctx *Context) (err error) {
 	ctx.Response.XML.AttribFlag("disabled", self.Disabled)
 	ctx.Response.XML.AttribFlag("required", self.Required)
 	ctx.Response.XML.AttribFlag("autofocus", self.Autofocus)
+	ctx.Response.XML.AttribIfNotDefault("pattern", self.Pattern)
 
 	switch self.Type {
 	case PasswordTextField:
