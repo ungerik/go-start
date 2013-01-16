@@ -24,6 +24,7 @@ func ImagesAdmin() view.View {
 			FormID:            "deleteVersions",
 			OnSubmit: func(form *view.Form, formModel interface{}, ctx *view.Context) (message string, redirect view.URL, err error) {
 				var image Image
+
 				for i := ImageIterator(); i.Next(&image); {
 					err = image.DeleteVersions()
 					if err != nil {
