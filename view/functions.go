@@ -54,9 +54,7 @@ func FindTemplateFile(filename string) (filePath string, found bool, modifiedTim
 //func ViewChanged(view View) {
 //}
 
-// RunServer starts a webserver with the given paths.
-// If paths is nil, only static files will be served.
-func RunServer(paths *ViewPath) {
+func initAndGetAddr() string {
 	if !Config.initialized {
 		err := Config.Init()
 		if err != nil {
@@ -67,12 +65,22 @@ func RunServer(paths *ViewPath) {
 	if !Config.IsProductionServer && Config.Debug.ListenAndServeAt != "" {
 		addr = Config.Debug.ListenAndServeAt
 	}
+	return addr
+}
+
+// RunServer starts a webserver with the given paths.
+// If paths is nil, only static files will be served.
+func RunServer(paths *ViewPath) {
+	addr := initAndGetAddr()
 	RunServerAddr(addr, paths)
 }
 
-// RunServerAddr starts a webserver with the given paths and address.
-// If paths is nil, only static files will be served.
-func RunServerAddr(addr string, paths *ViewPath) {
+func RunServerTLS(certFile, keyFile string, paths *ViewPath) {
+	addr := initAndGetAddr()
+	RunServerAddrTLS(addr, certFile, keyFile, paths)
+}
+
+func initWebAndPaths(paths *ViewPath) {
 	if !Config.initialized {
 		err := Config.Init()
 		if err != nil {
@@ -89,8 +97,18 @@ func RunServerAddr(addr string, paths *ViewPath) {
 	web.Config.StaticDirs = utils.CombineDirs(Config.BaseDirs, Config.StaticDirs)
 	web.Config.RecoverPanic = Config.Debug.Mode
 	web.Config.CookieSecret = Config.CookieSecret
+}
 
+// RunServerAddr starts a webserver with the given paths and address.
+// If paths is nil, only static files will be served.
+func RunServerAddr(addr string, paths *ViewPath) {
+	initWebAndPaths(paths)
 	web.Run(addr)
+}
+
+func RunServerAddrTLS(addr, certFile, keyFile string, paths *ViewPath) {
+	initWebAndPaths(paths)
+	web.RunTLS(addr, certFile, keyFile)
 }
 
 func RenderTemplate(filename string, out io.Writer, context interface{}) (err error) {
