@@ -3,9 +3,9 @@ package user
 import (
 	"fmt"
 	"github.com/ungerik/go-mail"
-	"labix.org/v2/mgo/bson"
 	"github.com/ungerik/go-start/model"
 	"github.com/ungerik/go-start/view"
+	"labix.org/v2/mgo/bson"
 	"net/url"
 )
 
@@ -44,6 +44,9 @@ func (self *EmailIdentity) SendConfirmationEmail(ctx *view.Context, confirmation
 }
 
 func (self *EmailIdentity) MailtoURL() string {
+	if self == nil {
+		return ""
+	}
 	return "mailto:" + self.Address.Get()
 }
 
@@ -52,10 +55,16 @@ func (self *EmailIdentity) URL(ctx *view.Context) string {
 }
 
 func (self *EmailIdentity) LinkContent(ctx *view.Context) view.View {
+	if self == nil {
+		return nil
+	}
 	return view.Escape(self.Address.Get())
 }
 
 func (self *EmailIdentity) LinkTitle(ctx *view.Context) string {
+	if self == nil {
+		return ""
+	}
 	return self.Address.Get()
 }
 

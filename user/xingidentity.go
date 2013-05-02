@@ -13,6 +13,9 @@ type XingIdentity struct {
 }
 
 func (self *XingIdentity) ProfileURL() string {
+	if self == nil {
+		return ""
+	}
 	if self.ID == "" {
 		return ""
 	}
@@ -24,10 +27,16 @@ func (self *XingIdentity) URL(ctx *view.Context) string {
 }
 
 func (self *XingIdentity) LinkContent(ctx *view.Context) view.View {
+	if self == nil {
+		return nil
+	}
 	return view.Escape(self.LinkTitle(ctx))
 }
 
 func (self *XingIdentity) LinkTitle(ctx *view.Context) string {
+	if self == nil {
+		return ""
+	}
 	return self.ID.Get()
 }
 

@@ -35,10 +35,16 @@ func (self *TwitterIdentity) NameOrID() string {
 }
 
 func (self *TwitterIdentity) ProfileURL() string {
+	if self == nil {
+		return ""
+	}
 	return "http://twitter.com/" + self.NameOrID()
 }
 
 func (self *TwitterIdentity) ProfileImageURL() string {
+	if self == nil {
+		return ""
+	}
 	name := self.NameOrID()
 	if name == "" {
 		return ""
@@ -51,10 +57,16 @@ func (self *TwitterIdentity) URL(ctx *view.Context) string {
 }
 
 func (self *TwitterIdentity) LinkContent(ctx *view.Context) view.View {
+	if self == nil {
+		return nil
+	}
 	return view.Escape(self.LinkTitle(ctx))
 }
 
 func (self *TwitterIdentity) LinkTitle(ctx *view.Context) string {
+	if self == nil {
+		return ""
+	}
 	name := self.Name.Get()
 	if name == "" {
 		name = self.ID.Get()

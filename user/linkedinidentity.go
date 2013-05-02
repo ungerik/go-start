@@ -17,6 +17,9 @@ type LinkedInIdentity struct {
 }
 
 func (self *LinkedInIdentity) ProfileURL() string {
+	if self == nil {
+		return ""
+	}
 	if !self.Name.IsEmpty() {
 		name := self.Name.Get()
 		if strings.IndexRune(name, '/') == -1 {
@@ -36,10 +39,16 @@ func (self *LinkedInIdentity) URL(ctx *view.Context) string {
 }
 
 func (self *LinkedInIdentity) LinkContent(ctx *view.Context) view.View {
+	if self == nil {
+		return nil
+	}
 	return view.Escape(self.LinkTitle(ctx))
 }
 
 func (self *LinkedInIdentity) LinkTitle(ctx *view.Context) string {
+	if self == nil {
+		return ""
+	}
 	name := self.Name.Get()
 	if name == "" {
 		name = self.ID.Get()

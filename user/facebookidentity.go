@@ -18,6 +18,9 @@ type FacebookIdentity struct {
 }
 
 func (self *FacebookIdentity) NameOrID() string {
+	if self == nil {
+		return ""
+	}
 	if !self.Name.IsEmpty() {
 		return self.Name.Get()
 	}
@@ -25,6 +28,9 @@ func (self *FacebookIdentity) NameOrID() string {
 }
 
 func (self *FacebookIdentity) ProfileURL() string {
+	if self == nil {
+		return ""
+	}
 	return "http://facebook.com/" + self.NameOrID()
 }
 
@@ -41,6 +47,9 @@ func (self *FacebookIdentity) URL(ctx *view.Context) string {
 }
 
 func (self *FacebookIdentity) LinkContent(ctx *view.Context) view.View {
+	if self == nil {
+		return nil
+	}
 	return view.Escape(self.LinkTitle(ctx))
 }
 

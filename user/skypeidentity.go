@@ -14,6 +14,9 @@ type SkypeIdentity struct {
 }
 
 func (self *SkypeIdentity) CallURL() string {
+	if self == nil {
+		return ""
+	}
 	if self.ID == "" {
 		return ""
 	}
@@ -25,10 +28,16 @@ func (self *SkypeIdentity) URL(ctx *view.Context) string {
 }
 
 func (self *SkypeIdentity) LinkContent(ctx *view.Context) view.View {
+	if self == nil {
+		return nil
+	}
 	return view.Escape(self.LinkTitle(ctx))
 }
 
 func (self *SkypeIdentity) LinkTitle(ctx *view.Context) string {
+	if self == nil {
+		return ""
+	}
 	return self.ID.Get()
 }
 
