@@ -8,7 +8,7 @@ import (
 var Config = Configuration{
 	Safe: mgo.Safe{ // be conservative...
 		W:     1,
-		FSync: true,
+		FSync: false,
 		J:     true,
 	},
 	CheckQuerySelectors: true,
