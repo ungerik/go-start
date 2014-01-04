@@ -258,3 +258,7 @@ Example for creating, modifying and saving a document:
 	err := user.Save()
 
 
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/ungerik/go-start/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
