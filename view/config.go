@@ -2,6 +2,7 @@ package view
 
 import (
 	"net"
+	"os"
 	"path/filepath"
 
 	// "github.com/ungerik/go-start/debug"
@@ -137,7 +138,7 @@ func (self *Configuration) Init() error {
 
 	// Check if dir exists and make it absolute
 	for i := range Config.BaseDirs {
-		dir, err := filepath.Abs(Config.BaseDirs[i])
+		dir, err := filepath.Abs(os.ExpandEnv(Config.BaseDirs[i]))
 		if err != nil {
 			return err
 		}
@@ -145,6 +146,28 @@ func (self *Configuration) Init() error {
 			return errs.Format("BaseDir does not exist: %s", dir)
 		}
 		Config.BaseDirs[i] = dir
+	}
+
+	for i := range Config.StaticDirs {
+		dir, err := filepath.Abs(os.ExpandEnv(Config.StaticDirs[i]))
+		if err != nil {
+			return err
+		}
+		if !utils.DirExists(dir) {
+			return errs.Format("StaticDir does not exist: %s", dir)
+		}
+		Config.StaticDirs[i] = dir
+	}
+
+	for i := range Config.TemplateDirs {
+		dir, err := filepath.Abs(os.ExpandEnv(Config.TemplateDirs[i]))
+		if err != nil {
+			return err
+		}
+		if !utils.DirExists(dir) {
+			return errs.Format("TemplateDir does not exist: %s", dir)
+		}
+		Config.TemplateDirs[i] = dir
 	}
 
 	self.initialized = true
