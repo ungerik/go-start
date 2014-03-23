@@ -3,7 +3,6 @@ package models
 import (
 	"github.com/ungerik/go-start/media"
 	"github.com/ungerik/go-start/model"
-	"github.com/ungerik/go-start/mongo"
 	"github.com/ungerik/go-start/user"
 )
 

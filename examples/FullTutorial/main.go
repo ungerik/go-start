@@ -6,8 +6,8 @@ import (
 	"github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/errs"
 	"github.com/ungerik/go-start/media"
-	"github.com/ungerik/go-start/media/mongomedia"
 	"github.com/ungerik/go-start/mongo"
+	"github.com/ungerik/go-start/mongomedia"
 	"github.com/ungerik/go-start/user"
 	"github.com/ungerik/go-start/view"
 
@@ -25,10 +25,10 @@ func main() {
 	///////////////////////////////////////////////////////////////////////////
 	// Load configuration
 
-	defer config.Close() // Close all packages on exit	
+	defer config.Close() // Close all packages on exit
 
 	config.Load("config.json",
-		&email.Config,
+		&EmailConfig{&email.Config},
 		&mongo.Config,
 		&user.Config,
 		&view.Config,
@@ -60,4 +60,16 @@ func main() {
 	// Run server
 
 	view.RunServer(views.Paths())
+}
+
+///////////////////////////////////////////////////////////////////////////
+// Extend email.Configuration with a Name() method
+// to make it compatible with config.Load()
+
+type EmailConfig struct {
+	*email.Configuration
+}
+
+func (self *EmailConfig) Name() string {
+	return "email"
 }
