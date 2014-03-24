@@ -1,6 +1,7 @@
 package view
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"path/filepath"
@@ -136,7 +137,8 @@ func (self *Configuration) Init() error {
 		self.Debug.Mode = true
 	}
 
-	// Check if dir exists and make it absolute
+	// Check if dirs exists and make them absolute
+
 	for i := range Config.BaseDirs {
 		dir, err := filepath.Abs(os.ExpandEnv(Config.BaseDirs[i]))
 		if err != nil {
@@ -146,28 +148,17 @@ func (self *Configuration) Init() error {
 			return errs.Format("BaseDir does not exist: %s", dir)
 		}
 		Config.BaseDirs[i] = dir
+		fmt.Println("BaseDir:", dir)
 	}
 
 	for i := range Config.StaticDirs {
-		dir, err := filepath.Abs(os.ExpandEnv(Config.StaticDirs[i]))
-		if err != nil {
-			return err
-		}
-		if !utils.DirExists(dir) {
-			return errs.Format("StaticDir does not exist: %s", dir)
-		}
-		Config.StaticDirs[i] = dir
+		Config.StaticDirs[i] = os.ExpandEnv(Config.StaticDirs[i])
+		fmt.Println("StaticDir:", Config.StaticDirs[i])
 	}
 
 	for i := range Config.TemplateDirs {
-		dir, err := filepath.Abs(os.ExpandEnv(Config.TemplateDirs[i]))
-		if err != nil {
-			return err
-		}
-		if !utils.DirExists(dir) {
-			return errs.Format("TemplateDir does not exist: %s", dir)
-		}
-		Config.TemplateDirs[i] = dir
+		Config.TemplateDirs[i] = os.ExpandEnv(Config.TemplateDirs[i])
+		fmt.Println("TemplateDir:", Config.TemplateDirs[i])
 	}
 
 	self.initialized = true
