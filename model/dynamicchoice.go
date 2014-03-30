@@ -2,15 +2,22 @@ package model
 
 import (
 	"fmt"
+	"reflect"
+
 	"labix.org/v2/mgo/bson"
 )
 
-///////////////////////////////////////////////////////////////////////////////
-// DynamicChoice
+var DynamicChoiceType = reflect.TypeOf(DynamicChoice{})
 
 type DynamicChoice struct {
 	index   int
 	options []string
+}
+
+func (DynamicChoice) NoStruct() {}
+
+func (self *DynamicChoice) ZeroValue() interface{} {
+	return DynamicChoice{index: 0, options: self.options}
 }
 
 func (self *DynamicChoice) Index() int {

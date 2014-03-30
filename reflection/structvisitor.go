@@ -6,6 +6,13 @@ import (
 	// "github.com/ungerik/go-start/debug"
 )
 
+// NoStruct implementations won't be treated as structs
+type NoStruct interface {
+	NoStruct()
+}
+
+var NoStructType = reflect.TypeOf((*NoStruct)(nil)).Elem()
+
 ////////////////////////////////////////////////////////////////////////////////
 // StructVisitor
 
@@ -95,6 +102,10 @@ func visitStructRecursive(v reflect.Value, visitor StructVisitor, maxDepth, dept
 		return visitStructRecursive(v.Elem(), visitor, maxDepth, depth)
 
 	case reflect.Struct:
+		if v.Type().Implements(NoStructType) {
+			// don't treat as struct if v implements NoStruct
+			return nil
+		}
 		err = visitor.BeginStruct(depth, v)
 		if err != nil {
 			return err

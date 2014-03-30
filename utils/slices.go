@@ -1,7 +1,6 @@
 package utils
 
 import (
-	// "github.com/ungerik/go-start/errs"
 	"reflect"
 	"sort"
 	"strconv"
@@ -31,8 +30,37 @@ func StringSliceUnion(a, b []string) []string {
 	return result
 }
 
+type ZeroValuer interface {
+	ZeroValue() interface{}
+}
+
+// var ZeroValuerType = reflect.TypeOf((*ZeroValuer)(nil)).Elem()
+
+// ZeroValue returns the result of the ZeroValue() method
+// if v or v pointer implements ZeroValuer.
+// Else the zero value of v.Type() will be returned.
+// Used to clone types that have internal state that represents
+// the default value that is not all zeroes.
+func ZeroValue(v reflect.Value) reflect.Value {
+	if zv, ok := v.Interface().(ZeroValuer); ok {
+		return reflect.ValueOf(zv.ZeroValue())
+	}
+	if v.CanAddr() {
+		if zv, ok := v.Addr().Interface().(ZeroValuer); ok {
+			return reflect.ValueOf(zv.ZeroValue())
+		}
+	}
+	return reflect.Zero(v.Type())
+}
+
 func AppendEmptySliceField(slice reflect.Value) reflect.Value {
-	newField := reflect.Zero(slice.Type().Elem())
+	var newField reflect.Value
+	if slice.Len() > 0 {
+		lastField := slice.Index(slice.Len() - 1)
+		newField = ZeroValue(lastField)
+	} else {
+		newField = reflect.Zero(slice.Type().Elem())
+	}
 	return reflect.Append(slice, newField)
 }
 

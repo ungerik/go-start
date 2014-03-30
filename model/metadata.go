@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ungerik/go-start/reflection"
 	"github.com/ungerik/go-start/utils"
 )
 
@@ -54,7 +55,9 @@ const (
 func GetMetaDataKind(v reflect.Value) MetaDataKind {
 	switch v.Kind() {
 	case reflect.Struct:
-		return StructKind
+		if !v.Type().Implements(reflection.NoStructType) {
+			return StructKind
+		}
 
 	case reflect.Map:
 		if v.Type().Key().Kind() == reflect.String {
