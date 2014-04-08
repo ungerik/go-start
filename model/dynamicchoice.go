@@ -14,8 +14,15 @@ type DynamicChoice struct {
 	options []string
 }
 
-func (DynamicChoice) NoStruct() {}
+// Implements reflection.DontVisitStruct
+func (DynamicChoice) DontVisitStruct() {}
 
+// Implements reflection.FakeZero
+func (self *DynamicChoice) IsZero() bool {
+	return self.index == 0
+}
+
+// Implements reflection.FakeZero
 func (self *DynamicChoice) ZeroValue() interface{} {
 	return DynamicChoice{index: 0, options: self.options}
 }

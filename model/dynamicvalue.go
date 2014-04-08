@@ -17,7 +17,8 @@ type DynamicValue struct {
 	Attribs map[string]map[string]string
 }
 
-func (DynamicValue) NoStruct() {}
+// Implements reflection.DontVisitStruct
+func (DynamicValue) DontVisitStruct() {}
 
 func (self *DynamicValue) Attrib(tagKey, name string) string {
 	if attribs, ok := self.Attribs[tagKey]; ok {

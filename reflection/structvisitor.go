@@ -6,12 +6,19 @@ import (
 	// "github.com/ungerik/go-start/debug"
 )
 
-// NoStruct implementations won't be treated as structs
-type NoStruct interface {
-	NoStruct()
+// DontVisitStruct implementations won't be visited as structs by VisitStruct
+type DontVisitStruct interface {
+	DontVisitStruct()
 }
 
-var NoStructType = reflect.TypeOf((*NoStruct)(nil)).Elem()
+var DontVisitStructType = reflect.TypeOf((*DontVisitStruct)(nil)).Elem()
+
+// DontVisitMap implementations won't be visited as maps by VisitStruct
+type DontVisitMap interface {
+	DontVisitMap()
+}
+
+var DontVisitMapType = reflect.TypeOf((*DontVisitMap)(nil)).Elem()
 
 ////////////////////////////////////////////////////////////////////////////////
 // StructVisitor
@@ -102,8 +109,7 @@ func visitStructRecursive(v reflect.Value, visitor StructVisitor, maxDepth, dept
 		return visitStructRecursive(v.Elem(), visitor, maxDepth, depth)
 
 	case reflect.Struct:
-		if v.Type().Implements(NoStructType) {
-			// don't treat as struct if v implements NoStruct
+		if Implements(v, DontVisitStructType) {
 			return nil
 		}
 		err = visitor.BeginStruct(depth, v)
@@ -141,6 +147,9 @@ func visitStructRecursive(v reflect.Value, visitor StructVisitor, maxDepth, dept
 		return visitor.EndStruct(depth, v)
 
 	case reflect.Map:
+		if Implements(v, DontVisitMapType) {
+			return nil
+		}
 		if v.Type().Key().Kind() == reflect.String && v.Len() > 0 {
 			err = visitor.BeginMap(depth, v)
 			if err != nil {

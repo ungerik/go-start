@@ -55,7 +55,7 @@ const (
 func GetMetaDataKind(v reflect.Value) MetaDataKind {
 	switch v.Kind() {
 	case reflect.Struct:
-		if !v.Type().Implements(reflection.NoStructType) {
+		if !v.Type().Implements(reflection.DontVisitStructType) {
 			return StructKind
 		}
 

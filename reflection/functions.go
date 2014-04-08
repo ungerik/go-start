@@ -31,6 +31,24 @@ func GenericSlice(sliceOrArray interface{}) []interface{} {
 	return result
 }
 
+// Implements returns if the type of v or a pointer to the type of v
+// implements an interfaceType.
+func Implements(v reflect.Value, interfaceType reflect.Type) bool {
+	// Having a pointer to a type is the most common case for methods
+	if v.CanAddr() && v.Addr().Type().Implements(interfaceType) {
+		return true
+	}
+	// Less common is not using a pointer but the type by value for methods
+	if v.Type().Implements(interfaceType) {
+		return true
+	}
+	// Type implements method by value but we have a pointer to it
+	if v.Kind() == reflect.Ptr && v.Elem().Type().Implements(interfaceType) {
+		return true
+	}
+	return false
+}
+
 /*
 DereferenceValue recursively dereferences v if it is a pointer or interface.
 It will return ok == false if nil is encountered.
@@ -84,7 +102,7 @@ Example:
 		Y int
 	}
 	// Yields X and Y instead of A and Y:
-	InlineAnonymousStructFields(reflect.ValueOf(B{})) 
+	InlineAnonymousStructFields(reflect.ValueOf(B{}))
 */
 func ExportedStructFields(v reflect.Value) map[string]reflect.Value {
 	t := v.Type()

@@ -1,5 +1,9 @@
 package model
 
+import (
+	"reflect"
+)
+
 type Value interface {
 	String() string
 	// SetString returns only error from converting str to the
@@ -9,4 +13,10 @@ type Value interface {
 	IsEmpty() bool
 	Required(metaData *MetaData) bool
 	Validator
+}
+
+var ValueType = reflect.TypeOf((*Value)(nil)).Elem()
+
+func IsValue(v reflect.Value) bool {
+	return v.Type().Implements(ValueType) || (v.CanAddr() && v.Addr().Type().Implements(ValueType))
 }
