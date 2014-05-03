@@ -55,12 +55,19 @@ func IsDefaultValue(v reflect.Value) bool {
 	case reflect.Bool:
 		return v.Bool() == false
 
-	case reflect.Ptr, reflect.Chan, reflect.Func, reflect.Interface, reflect.Slice, reflect.Map:
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Slice, reflect.Map:
 		return v.IsNil()
 
+	case reflect.Ptr:
+		return v.IsNil() || IsDefaultValue(v.Elem())
+
 	case reflect.Struct:
-		// Todo own deep is default
-		return reflect.DeepEqual(v.Interface(), reflect.Zero(v.Type()).Interface())
+		for i := 0; i < v.NumField(); i++ {
+			if !IsDefaultValue(v.Field(i)) {
+				return false
+			}
+		}
+		return true
 	}
 
 	panic("never reached")

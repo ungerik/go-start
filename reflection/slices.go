@@ -42,7 +42,6 @@ func DeleteDefaultSliceElementsVal(slice reflect.Value) reflect.Value {
 	}
 	for i := slice.Len() - 1; i >= 0; i-- {
 		if IsDefaultValue(slice.Index(i)) {
-			fmt.Println("Found default", i)
 			before := slice.Slice(0, i)
 			if i == slice.Len()-1 {
 				slice = before
@@ -50,7 +49,6 @@ func DeleteDefaultSliceElementsVal(slice reflect.Value) reflect.Value {
 				after := slice.Slice(i+1, slice.Len())
 				slice = reflect.AppendSlice(before, after)
 			}
-			i--
 		}
 	}
 	return slice

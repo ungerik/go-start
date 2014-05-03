@@ -826,8 +826,9 @@ func (self *validateAndFormLayoutStructVisitor) BeginIndexedFields(indexedFields
 	if self.form.IsFieldExcluded(indexedFields, self.ctx) {
 		return nil
 	}
-	// Add an empty indexedFields field to generate one extra input row for indexedFieldss
+	// Add an empty indexedFields field to generate one extra input row for indexedFields
 	if indexedFields.Kind == model.SliceKind && !self.isPost && indexedFields.Value.CanSet() {
+		indexedFields.Value.Set(reflection.DeleteDefaultSliceElementsVal(indexedFields.Value))
 		indexedFields.Value.Set(reflection.AppendDefaultSliceElement(indexedFields.Value))
 		mongo.InitRefs(self.formModel)
 	}
