@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/ungerik/go-start/utils"
+	"github.com/ungerik/go-start/reflection"
 )
 
 // CopyFields copies matching struct/array/slice fields
@@ -72,7 +72,7 @@ func SetAllSliceLengths(document interface{}, length int) {
 	Visit(document, VisitorFunc(
 		func(data *MetaData) error {
 			if data.Kind == SliceKind && data.Value.Len() != length {
-				data.Value.Set(utils.SetSliceLengh(data.Value, length))
+				data.Value.Set(reflection.SetSliceLengh(data.Value, length))
 			}
 			return nil
 		},

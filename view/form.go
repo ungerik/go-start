@@ -46,7 +46,7 @@ at the data model and then validates the model.
 
 If there are multiple forms on one page, then every form
 needs a unique FormID, because the POST request with the form
-data is made to the same URL or the page. 
+data is made to the same URL or the page.
 FormID can be empty if there is only one form on a page,
 but it's good practice to always assign a FormID, because then
 forms later added to the page won't lead to conflicts.
@@ -107,7 +107,7 @@ The wildcard character $ can be used to select all fields of a slice or array.
 Example:
 
 	type MyModel struct {
-		A model.String		
+		A model.String
 		B struct {
 			X model.Int
 		}
@@ -206,7 +206,7 @@ type Form struct {
 	Method string // Default is POST
 	// If there are multiple forms on one page, then every form
 	// needs a unique FormID, because the POST request with the form
-	// data is made to the same URL or the page. 
+	// data is made to the same URL or the page.
 	// FormID can be empty if there is only one form on a page,
 	// but it's good practice to always assign a FormID, because then
 	// forms later added to the page won't lead to conflicts.
@@ -567,7 +567,7 @@ func (self *Form) IsFieldExcluded(field *model.MetaData, ctx *Context) bool {
 				if auth, ok := NamedAuthenticator(name); ok {
 					ok, err := auth.Authenticate(ctx)
 					if ok {
-						// Only needs to pass one Authenticator			
+						// Only needs to pass one Authenticator
 						return false
 					}
 					if err != nil {
@@ -717,7 +717,7 @@ func (self *setPostValuesStructVisitor) BeginIndexedFields(indexedFields *model.
 				panic(err)
 			}
 			if length != indexedFields.Value.Len() {
-				indexedFields.Value.Set(utils.SetSliceLengh(indexedFields.Value, length))
+				indexedFields.Value.Set(reflection.SetSliceLengh(indexedFields.Value, length))
 				mongo.InitRefs(self.formModel)
 			}
 		}
@@ -731,7 +731,7 @@ func (self *setPostValuesStructVisitor) IndexedField(field *model.MetaData) erro
 
 func (self *setPostValuesStructVisitor) EndIndexedFields(indexedFields *model.MetaData) error {
 	if indexedFields.Kind == model.SliceKind && indexedFields.Value.CanSet() && !self.form.IsFieldExcluded(indexedFields, self.ctx) {
-		indexedFields.Value.Set(utils.DeleteEmptySliceElementsVal(indexedFields.Value))
+		indexedFields.Value.Set(reflection.DeleteDefaultSliceElementsVal(indexedFields.Value))
 	}
 	return nil
 }
@@ -741,7 +741,7 @@ func (self *setPostValuesStructVisitor) EndIndexedFields(indexedFields *model.Me
 
 // validateAndFormLayoutStructVisitor creates the views for the form layout
 type validateAndFormLayoutStructVisitor struct {
-	// Input 
+	// Input
 	form        *Form
 	formLayout  FormLayout
 	formModel   interface{}
@@ -828,7 +828,7 @@ func (self *validateAndFormLayoutStructVisitor) BeginIndexedFields(indexedFields
 	}
 	// Add an empty indexedFields field to generate one extra input row for indexedFieldss
 	if indexedFields.Kind == model.SliceKind && !self.isPost && indexedFields.Value.CanSet() {
-		indexedFields.Value.Set(utils.AppendEmptySliceField(indexedFields.Value))
+		indexedFields.Value.Set(reflection.AppendDefaultSliceElement(indexedFields.Value))
 		mongo.InitRefs(self.formModel)
 	}
 	return self.formLayout.BeginIndexedFields(indexedFields, self.form, self.ctx, self.formContent)

@@ -27,7 +27,7 @@ type Backend interface {
 	BlobIterator() model.Iterator
 
 	// CountBlobRefs counts all BlobRef occurrences with blobID
-	// in all known databases.
+	// in all known databases
 	CountBlobRefs(blobID string) (count int, err error)
 
 	// RemoveAllBlobRefs removes all BlobRef occurrences with blobID

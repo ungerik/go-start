@@ -17,14 +17,14 @@ type DynamicChoice struct {
 // Implements reflection.DontVisitStruct
 func (DynamicChoice) DontVisitStruct() {}
 
-// Implements reflection.FakeZero
-func (self *DynamicChoice) IsZero() bool {
+// Implements reflection.DefaultValue
+func (self *DynamicChoice) IsDefault() bool {
 	return self.index == 0
 }
 
-// Implements reflection.FakeZero
-func (self *DynamicChoice) ZeroValue() interface{} {
-	return DynamicChoice{index: 0, options: self.options}
+// Implements reflection.DefaultValue
+func (self *DynamicChoice) GetDefault() interface{} {
+	return DynamicChoice{options: self.options}
 }
 
 func (self *DynamicChoice) Index() int {

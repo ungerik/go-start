@@ -84,7 +84,7 @@ Example of a dynamic view:
 			}
 			if i.Err() != nil {
 				return nil, i.Err()
-			}			
+			}
 			return &List{	// List = higher level abstraction, UL() = shortcut
 				Class: "my-ol",
 				Ordered: true,
@@ -170,7 +170,7 @@ struct type:
 		Password2 model.Password `view:"label=Repeat password"`
 	}
 
-	func (self *SignupFormModel) Validate(metaData *model.MetaData) []*model.ValidationError {
+	func (self *SignupFormModel) Validate(metaData *model.MetaData) error {
 		if self.Password1 != self.Password2 {
 			return model.NewValidationErrors(os.NewError("Passwords don't match"), metaData)
 		}

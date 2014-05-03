@@ -57,7 +57,7 @@ func (self *XMLWriter) Attrib(name string, value ...interface{}) *XMLWriter {
 }
 
 func (self *XMLWriter) AttribIfNotDefault(name string, value interface{}) *XMLWriter {
-	if reflection.IsDefaultValue(value) {
+	if reflection.IsDefault(value) {
 		return self
 	}
 	return self.Attrib(name, value)

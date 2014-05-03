@@ -3,8 +3,9 @@ package view
 import (
 	"bytes"
 	"encoding/gob"
-	"github.com/ungerik/go-start/errs"
 	"time"
+
+	"github.com/ungerik/go-start/errs"
 )
 
 ///////////////////////////////////////////////////////////////////////////////

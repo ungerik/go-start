@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -28,74 +27,6 @@ func StringSliceUnion(a, b []string) []string {
 		}
 	}
 	return result
-}
-
-type ZeroValuer interface {
-	ZeroValue() interface{}
-}
-
-// var ZeroValuerType = reflect.TypeOf((*ZeroValuer)(nil)).Elem()
-
-// ZeroValue returns the result of the ZeroValue() method
-// if v or v pointer implements ZeroValuer.
-// Else the zero value of v.Type() will be returned.
-// Used to clone types that have internal state that represents
-// the default value that is not all zeroes.
-func ZeroValue(v reflect.Value) reflect.Value {
-	if zv, ok := v.Interface().(ZeroValuer); ok {
-		return reflect.ValueOf(zv.ZeroValue())
-	}
-	if v.CanAddr() {
-		if zv, ok := v.Addr().Interface().(ZeroValuer); ok {
-			return reflect.ValueOf(zv.ZeroValue())
-		}
-	}
-	return reflect.Zero(v.Type())
-}
-
-func AppendEmptySliceField(slice reflect.Value) reflect.Value {
-	var newField reflect.Value
-	if slice.Len() > 0 {
-		lastField := slice.Index(slice.Len() - 1)
-		newField = ZeroValue(lastField)
-	} else {
-		newField = reflect.Zero(slice.Type().Elem())
-	}
-	return reflect.Append(slice, newField)
-}
-
-// Sets the length of a slice by sub-slicing a slice that's too long,
-// or appending empty fields if slice is too short.
-func SetSliceLengh(slice reflect.Value, length int) reflect.Value {
-	if length > slice.Len() {
-		for i := slice.Len(); i < length; i++ {
-			slice = AppendEmptySliceField(slice)
-		}
-	} else if length < slice.Len() {
-		slice = slice.Slice(0, length)
-	}
-	return slice
-}
-
-func DeleteEmptySliceElementsVal(sliceVal reflect.Value) reflect.Value {
-	if sliceVal.Kind() != reflect.Slice {
-		panic("Argument is not a slice: " + sliceVal.String())
-	}
-	zeroVal := reflect.Zero(sliceVal.Type().Elem())
-	for i := 0; i < sliceVal.Len(); i++ {
-		elemVal := sliceVal.Index(i)
-		if reflect.DeepEqual(elemVal.Interface(), zeroVal.Interface()) {
-			before := sliceVal.Slice(0, i)
-			after := sliceVal.Slice(i+1, sliceVal.Len())
-			sliceVal = reflect.AppendSlice(before, after)
-			i--
-		}
-	}
-	return sliceVal
-}
-
-func DeleteEmptySliceElements(slice interface{}) interface{} {
-	return DeleteEmptySliceElementsVal(reflect.ValueOf(slice)).Interface()
 }
 
 // func SliceInsert(slice []interface{}, index int, count int, value interface{}) (result []interface{}) {
