@@ -17,12 +17,12 @@ type DynamicChoice struct {
 // Implements reflection.DontVisitStruct
 func (DynamicChoice) DontVisitStruct() {}
 
-// Implements reflection.DefaultValue
+// Implements reflection.DefaultValuer
 func (self *DynamicChoice) IsDefault() bool {
 	return self.index == 0
 }
 
-// Implements reflection.DefaultValue
+// Implements reflection.DefaultValuer
 func (self *DynamicChoice) GetDefault() interface{} {
 	return DynamicChoice{options: self.options}
 }

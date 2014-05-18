@@ -49,7 +49,7 @@ gostart_form.swapRowValues = function(tr0, tr1) {
 
 gostart_form.onLengthChanged = function(table) {
 	var rows = table.find("tr");
-	table.prev("input[type=hidden]").val(rows.length-1);
+	table.next("input[type=hidden]").val(rows.length-1);
 	rows.each(function(row) {
 		var firstRow = (row == 1); // ignore header row
 		var lastRow = (row == rows.length-1);
