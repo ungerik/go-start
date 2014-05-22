@@ -643,6 +643,7 @@ func (self ModelFileController) Supports(metaData *model.MetaData, form *Form) b
 }
 
 func (self ModelFileController) NewInput(withLabel bool, metaData *model.MetaData, form *Form) (input View, err error) {
+	form.Enctype = MultipartFormData
 	input = &FileInput{
 		Class:    form.FieldInputClass(metaData),
 		Name:     metaData.Selector(),
@@ -658,6 +659,7 @@ func (self ModelFileController) SetValue(value string, ctx *Context, metaData *m
 	f := metaData.Value.Addr().Interface().(*model.File)
 	file, header, err := ctx.Request.FormFile(metaData.Selector())
 	if err != nil {
+		fmt.Println("xxxxxxxxxxx", metaData.Selector())
 		return err
 	}
 	defer file.Close()

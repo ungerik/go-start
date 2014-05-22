@@ -25,35 +25,6 @@ func Assert(condition bool, description string, args ...interface{}) {
 	}
 }
 
-// todo test
-//func Catch(err *error) {
-//	if err == nil {
-//		panic(FormatSkipStackFrames(2, "errs.Catch expects non nil error pointer"))
-//	}
-//	CatchCall(func(e error) {
-//		*err = e
-//	})
-//}
-//
-//func CatchCall(callback func(error)) {
-//	if r := recover(); r != nil {
-//		var err error
-//		if e, ok := r.(runtime.Error); ok {
-//			panic(e)
-//			//*err = e
-//		} else if e, ok := r.(error); ok {
-//			err = e
-//		} else if s, ok := r.(fmt.Stringer); ok {
-//			err = os.NewError(s.String())
-//		} else if s, ok := r.(string); ok {
-//			err = os.NewError(s)
-//		} else {
-//			panic(r)
-//		}
-//		callback(err)
-//	}
-//}
-
 // Panic if any of the args is a non nil error
 func PanicOnError(args ...interface{}) {
 	for _, arg := range args {
