@@ -529,7 +529,7 @@ func (self *Form) IsFieldExcluded(field *model.MetaData, ctx *Context) bool {
 	if field.Parent == nil {
 		return false // can't exclude root
 	}
-	if self.IsFieldExcluded(field.Parent, ctx) || field.SelectorsMatch(self.ExcludedFields) {
+	if field.BoolAttrib(StructTagKey, "excluded") || self.IsFieldExcluded(field.Parent, ctx) || field.SelectorsMatch(self.ExcludedFields) {
 		return true
 	}
 	if len(self.ModelFieldAuth) > 0 {
