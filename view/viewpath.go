@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/ungerik/go-start/config"
-	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/reflection"
 	"github.com/ungerik/web.go"
 )
@@ -46,8 +45,19 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 	if self.Name != "" && !PathFragmentRegexp.MatchString(self.Name) {
 		panic("Invalid characters in view.ViewPath.Name: " + self.Name)
 	}
+
+	path := parentPath + self.Name
+	if self.Args > 0 {
+		if self.Name != "" {
+			path += "/"
+		}
+		for i := 0; i < self.Args; i++ {
+			path += PathFragmentPattern + "/"
+		}
+	}
+
 	if self.View != nil && reflection.IsNilOrWrappedNil(self.View) {
-		panic("Nil value wrapped with non nil view.View under parentPath: " + parentPath)
+		panic("Nil value wrapped with non nil view.View at path " + path)
 	}
 
 	addSlash := self.Args > 0
@@ -61,16 +71,6 @@ func (self *ViewPath) initAndRegisterViewsRecursive(parentPath string) {
 			if self.NoAuth == nil && Config.LoginSignupPage != nil && *Config.LoginSignupPage != nil {
 				self.NoAuth = IndirectURL(Config.LoginSignupPage)
 			}
-		}
-	}
-
-	path := parentPath + self.Name
-	if self.Args > 0 {
-		if self.Name != "" {
-			path += "/"
-		}
-		for i := 0; i < self.Args; i++ {
-			path += PathFragmentPattern + "/"
 		}
 	}
 
