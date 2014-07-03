@@ -307,6 +307,7 @@ func (self *StandardFormLayout) NewSubmitButton(text, confirmationMessage string
 		Class:          form.GetSubmitButtonClass(),
 		Value:          text,
 		OnClickConfirm: confirmationMessage,
+		Disabled:       form.Disabled,
 	}
 }
 

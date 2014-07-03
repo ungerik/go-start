@@ -273,6 +273,7 @@ type Form struct {
 	SubmitButtonConfirm      string // Will add a confirmation dialog for onclick
 	ShowRefIDs               bool
 	Enctype                  string
+	Disabled                 bool // Switch to disable all fields of the form
 }
 
 func (self *Form) Render(ctx *Context) (err error) {
@@ -510,7 +511,7 @@ func (self *Form) IsFieldRequired(field *model.MetaData) bool {
 }
 
 func (self *Form) IsFieldDisabled(field *model.MetaData) bool {
-	return field.BoolAttrib(StructTagKey, "disabled") || field.SelectorsMatch(self.DisabledFields)
+	return self.Disabled || field.BoolAttrib(StructTagKey, "disabled") || field.SelectorsMatch(self.DisabledFields)
 }
 
 // IsFieldHidden returns if a hidden input element will be created for a form field.
