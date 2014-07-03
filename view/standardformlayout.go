@@ -313,35 +313,37 @@ func (self *StandardFormLayout) NewSubmitButton(text, confirmationMessage string
 
 func (self *StandardFormLayout) NewAddButton(onclick string, form *Form) View {
 	return &Button{
-		Content: HTML("+"),
-		OnClick: onclick,
-		Class:   "form-table-button",
+		Content:  HTML("+"),
+		OnClick:  onclick,
+		Class:    "form-table-button",
+		Disabled: form.Disabled,
 	}
 }
 
 func (self *StandardFormLayout) NewRemoveButton(onclick string, form *Form) View {
 	return &Button{
-		Content: HTML("&times;"),
-		OnClick: onclick,
-		Class:   "form-table-button",
+		Content:  HTML("&times;"),
+		OnClick:  onclick,
+		Class:    "form-table-button",
+		Disabled: form.Disabled,
 	}
 }
 
 func (self *StandardFormLayout) NewUpButton(disabled bool, onclick string, form *Form) View {
 	return &Button{
 		Content:  HTML("&uarr;"),
-		Disabled: disabled,
 		OnClick:  onclick,
 		Class:    "form-table-button",
+		Disabled: disabled || form.Disabled,
 	}
 }
 
 func (self *StandardFormLayout) NewDownButton(disabled bool, onclick string, form *Form) View {
 	return &Button{
 		Content:  HTML("&darr;"),
-		Disabled: disabled,
 		OnClick:  onclick,
 		Class:    "form-table-button",
+		Disabled: disabled || form.Disabled,
 	}
 }
 
