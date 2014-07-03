@@ -9,6 +9,16 @@ import (
 
 var DynamicChoiceType = reflect.TypeOf(DynamicChoice{})
 
+func NewDynamicChoice(index int, options ...string) *DynamicChoice {
+	return &DynamicChoice{index, options}
+}
+
+func NewDynamicChoiceStr(choice string, options ...string) *DynamicChoice {
+	c := &DynamicChoice{0, options}
+	c.SetString(choice)
+	return c
+}
+
 type DynamicChoice struct {
 	index   int
 	options []string
