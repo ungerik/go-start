@@ -1,74 +1,39 @@
 package view
 
 import (
-	"crypto/sha1"
 	"encoding/base64"
-	"encoding/csv"
-	"errors"
-	"os"
 	"strings"
+	"sync"
+	"time"
+
+	"github.com/ungerik/go-start/utils"
 )
 
-func stringSHA1Base64(data string) string {
-	hash := sha1.Sum([]byte(data))
-	return base64.StdEncoding.EncodeToString(hash[:])
-}
-
-// NewBasicAuth creates a BasicAuth instance with a single username and password.
-func NewBasicAuth(realm, username, password string) *BasicAuth {
-	return &BasicAuth{
-		Realm:        realm,
-		UserPassword: map[string]string{username: stringSHA1Base64(password)},
-	}
-}
-
-func NewBasicAuthFromHtpasswd(realm, filename string) (*BasicAuth, error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	csvReader := csv.NewReader(file)
-	csvReader.Comma = ':'
-	csvReader.Comment = '#'
-	csvReader.TrimLeadingSpace = true
-
-	records, err := csvReader.ReadAll()
-	if err != nil {
-		return nil, err
-	}
-
-	basicAuth := &BasicAuth{
-		Realm:        realm,
-		UserPassword: make(map[string]string),
-	}
-
-	for _, record := range records {
-		username := record[0]
-		password := record[1]
-		if len(password) < 5 {
-			return nil, errors.New("Invalid password")
-		}
-		if password[:5] != "{SHA}" {
-			return nil, errors.New("Unsupported password format, must be SHA1")
-		}
-		basicAuth.UserPassword[username] = password[5:]
-	}
-
-	return basicAuth, nil
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// BasicAuth
-
 // BasicAuth implements HTTP basic auth as Authenticator.
+// See also HtpasswdWatchingBasicAuth
 type BasicAuth struct {
 	Realm        string
 	UserPassword map[string]string // map of username to base64 encoded SHA1 hash of the password
 }
 
-func (self *BasicAuth) Authenticate(ctx *Context) (ok bool, err error) {
+// NewBasicAuth creates a BasicAuth instance with a series of
+// not encrypted usernames and passwords that are provided in alternating order.
+func NewBasicAuth(realm string, usernamesAndPasswords ...string) *BasicAuth {
+	userPass := make(map[string]string, len(usernamesAndPasswords)/2)
+
+	for i := 0; i < len(usernamesAndPasswords)/2; i++ {
+		username := usernamesAndPasswords[i*2]
+		password := usernamesAndPasswords[i*2+1]
+		userPass[username] = utils.SHA1Base64String(password)
+	}
+
+	return &BasicAuth{
+		Realm:        realm,
+		UserPassword: userPass,
+	}
+}
+
+func (basicAuth *BasicAuth) Authenticate(ctx *Context) (ok bool, err error) {
 	header := ctx.Request.Header.Get("Authorization")
 	f := strings.Fields(header)
 	if len(f) == 2 && f[0] == "Basic" {
@@ -77,15 +42,53 @@ func (self *BasicAuth) Authenticate(ctx *Context) (ok bool, err error) {
 			if len(a) == 2 {
 				username := a[0]
 				password := a[1]
-				p, ok := self.UserPassword[username]
-				if ok && p == stringSHA1Base64(password) {
+				p, ok := basicAuth.UserPassword[username]
+				if ok && p == utils.SHA1Base64String(password) {
 					return true, nil
 				}
 			}
 		}
 	}
 
-	ctx.Response.Header().Set("WWW-Authenticate", "Basic realm=\""+self.Realm+"\"")
+	ctx.Response.Header().Set("WWW-Authenticate", "Basic realm=\""+basicAuth.Realm+"\"")
 	ctx.Response.AuthorizationRequired401()
 	return false, nil
+}
+
+type HtpasswdWatchingBasicAuth struct {
+	basicAuth        BasicAuth
+	htpasswdFile     string
+	htpasswdFileTime time.Time
+	mutex            sync.Mutex
+}
+
+func NewHtpasswdWatchingBasicAuth(realm, htpasswdFile string) (auth *HtpasswdWatchingBasicAuth, err error) {
+	auth = &HtpasswdWatchingBasicAuth{
+		basicAuth:    BasicAuth{Realm: realm},
+		htpasswdFile: htpasswdFile,
+	}
+	auth.basicAuth.UserPassword, auth.htpasswdFileTime, err = utils.ReadHtpasswdFile(htpasswdFile)
+	if err != nil {
+		return nil, err
+	}
+	return auth, nil
+}
+
+func (auth *HtpasswdWatchingBasicAuth) Authenticate(ctx *Context) (ok bool, err error) {
+	auth.mutex.Lock()
+	defer auth.mutex.Unlock()
+
+	t, err := utils.FileModifiedTime(auth.htpasswdFile)
+	if err != nil {
+		return false, err
+	}
+
+	if t.After(auth.htpasswdFileTime) {
+		auth.basicAuth.UserPassword, auth.htpasswdFileTime, err = utils.ReadHtpasswdFile(auth.htpasswdFile)
+		if err != nil {
+			return false, err
+		}
+	}
+
+	return auth.basicAuth.Authenticate(ctx)
 }
