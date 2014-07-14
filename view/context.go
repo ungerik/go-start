@@ -8,9 +8,9 @@ import (
 
 func newContext(webContext *web.Context, respondingView View, urlArgs []string) *Context {
 	ctx := &Context{
-		URLArgs:  urlArgs,
-		Request:  newRequest(webContext),
-		Response: newResponse(webContext),
+		URLArgs:        urlArgs,
+		Request:        newRequest(webContext),
+		Response:       newResponse(webContext),
 		RespondingView: respondingView,
 	}
 	ctx.Session = newSession(ctx)
@@ -27,6 +27,9 @@ type Context struct {
 
 	// Arguments parsed from the URL path
 	URLArgs []string
+
+	// Authenticators can set the authenticated user name here
+	AuthUser string
 
 	// Custom response wide data that can be set by the application
 	Data      interface{}

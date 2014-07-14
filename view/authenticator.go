@@ -19,6 +19,15 @@ type Authenticator interface {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// AuthenticatorFunc
+
+type AuthenticatorFunc func(ctx *Context) (ok bool, err error)
+
+func (authFunc AuthenticatorFunc) Authenticate(ctx *Context) (ok bool, err error) {
+	return authFunc(ctx)
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // BoolAuth
 
 // BoolAuth always returns its value at Authenticate().

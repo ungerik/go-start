@@ -44,6 +44,7 @@ func (basicAuth *BasicAuth) Authenticate(ctx *Context) (ok bool, err error) {
 				password := a[1]
 				p, ok := basicAuth.UserPassword[username]
 				if ok && p == utils.SHA1Base64String(password) {
+					ctx.AuthUser = username
 					return true, nil
 				}
 			}
