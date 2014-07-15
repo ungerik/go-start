@@ -1,10 +1,13 @@
 package utils
 
 import (
+	"bytes"
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/csv"
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"os"
 	"time"
 )
@@ -54,4 +57,15 @@ func ReadHtpasswdFile(filename string) (userPass map[string]string, modified tim
 	}
 
 	return userPass, modified, nil
+}
+
+func WriteHtpasswdFile(filename string, userPass map[string]string) error {
+	var buf bytes.Buffer
+	for user, pass := range userPass {
+		_, err := fmt.Fprintf(&buf, "%s:{SHA}%s\n", user, pass)
+		if err != nil {
+			return err
+		}
+	}
+	return ioutil.WriteFile(filename, buf.Bytes(), 0660)
 }
