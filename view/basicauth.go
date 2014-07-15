@@ -33,26 +33,37 @@ func NewBasicAuth(realm string, usernamesAndPasswords ...string) *BasicAuth {
 	}
 }
 
-func (basicAuth *BasicAuth) Authenticate(ctx *Context) (ok bool, err error) {
-	header := ctx.Request.Header.Get("Authorization")
+func RequestBasicAuth(request *Request) (username, password string) {
+	header := request.Header.Get("Authorization")
 	f := strings.Fields(header)
 	if len(f) == 2 && f[0] == "Basic" {
 		if b, err := base64.StdEncoding.DecodeString(f[1]); err == nil {
 			a := strings.Split(string(b), ":")
 			if len(a) == 2 {
-				username := a[0]
-				password := a[1]
-				p, ok := basicAuth.UserPassword[username]
-				if ok && p == utils.SHA1Base64String(password) {
-					ctx.AuthUser = username
-					return true, nil
-				}
+				username = a[0]
+				password = a[1]
+				return username, password
 			}
 		}
 	}
+	return "", ""
+}
 
-	ctx.Response.Header().Set("WWW-Authenticate", "Basic realm=\""+basicAuth.Realm+"\"")
-	ctx.Response.AuthorizationRequired401()
+func SendBasicAuthRequired(response *Response, realm string) {
+	response.Header().Set("WWW-Authenticate", "Basic realm=\""+realm+"\"")
+	response.AuthorizationRequired401()
+}
+
+func (basicAuth *BasicAuth) Authenticate(ctx *Context) (ok bool, err error) {
+	username, password := RequestBasicAuth(ctx.Request)
+	if username != "" {
+		p, ok := basicAuth.UserPassword[username]
+		if ok && p == utils.SHA1Base64String(password) {
+			ctx.AuthUser = username
+			return true, nil
+		}
+	}
+	SendBasicAuthRequired(ctx.Response, basicAuth.Realm)
 	return false, nil
 }
 
