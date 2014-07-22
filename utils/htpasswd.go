@@ -59,6 +59,18 @@ func ReadHtpasswdFile(filename string) (userPass map[string]string, modified tim
 	return userPass, modified, nil
 }
 
+func ReadHtpasswdFileUsers(filename string) (users []string, err error) {
+	userPass, _, err := ReadHtpasswdFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	users = make([]string, 0, len(userPass))
+	for user := range userPass {
+		users = append(users, user)
+	}
+	return users, nil
+}
+
 func WriteHtpasswdFile(filename string, userPass map[string]string) error {
 	var buf bytes.Buffer
 	for user, pass := range userPass {
