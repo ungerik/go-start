@@ -388,7 +388,11 @@ func (self *Form) Render(ctx *Context) (err error) {
 	}
 
 	ctx.Response.XML.OpenTag("form")
-	ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	if self.FormID != "" {
+		ctx.Response.XML.Attrib("id", self.FormID)
+	} else {
+		ctx.Response.XML.AttribIfNotDefault("id", self.id)
+	}
 	ctx.Response.XML.AttribIfNotDefault("class", self.Class)
 	ctx.Response.XML.AttribIfNotDefault("style", self.Style)
 	ctx.Response.XML.Attrib("method", method)
