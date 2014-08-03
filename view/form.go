@@ -375,7 +375,7 @@ func (self *Form) Render(ctx *Context) (err error) {
 	}
 	action := self.Action
 	if action == "" {
-		action = "."
+		action = ".#" + self.FormID
 		if i := strings.IndexRune(ctx.Request.RequestURI, '?'); i != -1 {
 			action += ctx.Request.RequestURI[i:]
 		}
