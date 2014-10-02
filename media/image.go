@@ -354,8 +354,9 @@ func (self *Image) VersionSourceRect(sourceRect image.Rectangle, width, height i
 		draw.Draw(versionImage.(draw.Image), versionImage.Bounds(), image.NewUniform(outsideColor), image.ZP, draw.Src)
 		// Where to draw the source image into the version image
 		var destRect image.Rectangle
-		if !(sourceRect.Min.X < 0 || sourceRect.Min.Y < 0) {
-			panic("touching from outside means that sourceRect x or y must be negative")
+		if !(sourceRect.Min.X < 0 || sourceRect.Min.Y < 0 || sourceRect.Max.X > self.Width() || sourceRect.Max.Y > self.Height()) {
+			// sanity check
+			panic("touching from outside means that sourceRect min x or y must be negative and or (depends on rounding) max x or y is greater than width or height")
 		}
 		sourceW := float64(sourceRect.Dx())
 		sourceH := float64(sourceRect.Dy())
