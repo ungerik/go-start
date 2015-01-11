@@ -2,6 +2,8 @@ package view
 
 import (
 	"encoding/base64"
+	// "fmt"
+	"log"
 	"strings"
 	"sync"
 	"time"
@@ -9,11 +11,18 @@ import (
 	"github.com/ungerik/go-start/utils"
 )
 
+func SendBasicAuthRequired(response *Response, realm string) {
+	response.Header().Set("WWW-Authenticate", "Basic realm=\""+realm+"\"")
+	response.AuthorizationRequired401()
+	log.Printf("BasicAuth requested for realm '%s'", realm)
+}
+
 // BasicAuth implements HTTP basic auth as Authenticator.
 // See also HtpasswdWatchingBasicAuth
 type BasicAuth struct {
-	Realm        string
-	UserPassword map[string]string // map of username to base64 encoded SHA1 hash of the password
+	Realm          string
+	UserPassword   map[string]string // map of username to base64 encoded SHA1 hash of the password
+	loggedOutUsers map[string]bool
 }
 
 // NewBasicAuth creates a BasicAuth instance with a series of
@@ -28,12 +37,13 @@ func NewBasicAuth(realm string, usernamesAndPasswords ...string) *BasicAuth {
 	}
 
 	return &BasicAuth{
-		Realm:        realm,
-		UserPassword: userPass,
+		Realm:          realm,
+		UserPassword:   userPass,
+		loggedOutUsers: make(map[string]bool),
 	}
 }
 
-func RequestBasicAuth(request *Request) (username, password string) {
+func BasicAuthFromRequest(request *Request) (username, password string) {
 	header := request.Header.Get("Authorization")
 	f := strings.Fields(header)
 	if len(f) == 2 && f[0] == "Basic" {
@@ -49,26 +59,39 @@ func RequestBasicAuth(request *Request) (username, password string) {
 	return "", ""
 }
 
-func SendBasicAuthRequired(response *Response, realm string) {
-	response.Header().Set("WWW-Authenticate", "Basic realm=\""+realm+"\"")
-	response.AuthorizationRequired401()
+func (basicAuth *BasicAuth) Logout(ctx *Context) {
+	if ctx.AuthUser != "" {
+		basicAuth.loggedOutUsers[ctx.AuthUser] = true
+		ctx.AuthUser = ""
+
+		log.Println("BasicAuth logged out user", ctx.AuthUser)
+	}
 }
 
 func (basicAuth *BasicAuth) Authenticate(ctx *Context) (ok bool, err error) {
-	username, password := RequestBasicAuth(ctx.Request)
+	username, password := BasicAuthFromRequest(ctx.Request)
 	if username != "" {
+		if basicAuth.loggedOutUsers[username] {
+			basicAuth.loggedOutUsers[username] = false
+			SendBasicAuthRequired(ctx.Response, basicAuth.Realm)
+			return false, nil
+		}
+
 		p, ok := basicAuth.UserPassword[username]
 		if ok && p == utils.SHA1Base64String(password) {
 			ctx.AuthUser = username
+			// fmt.Println("BasicAuth", username)
 			return true, nil
 		}
 	}
+
+	ctx.AuthUser = ""
 	SendBasicAuthRequired(ctx.Response, basicAuth.Realm)
 	return false, nil
 }
 
 type HtpasswdWatchingBasicAuth struct {
-	basicAuth        BasicAuth
+	BasicAuth
 	htpasswdFile     string
 	htpasswdFileTime time.Time
 	mutex            sync.Mutex
@@ -76,10 +99,10 @@ type HtpasswdWatchingBasicAuth struct {
 
 func NewHtpasswdWatchingBasicAuth(realm, htpasswdFile string) (auth *HtpasswdWatchingBasicAuth, err error) {
 	auth = &HtpasswdWatchingBasicAuth{
-		basicAuth:    BasicAuth{Realm: realm},
+		BasicAuth:    BasicAuth{Realm: realm, loggedOutUsers: make(map[string]bool)},
 		htpasswdFile: htpasswdFile,
 	}
-	auth.basicAuth.UserPassword, auth.htpasswdFileTime, err = utils.ReadHtpasswdFile(htpasswdFile)
+	auth.UserPassword, auth.htpasswdFileTime, err = utils.ReadHtpasswdFile(htpasswdFile)
 	if err != nil {
 		return nil, err
 	}
@@ -96,11 +119,11 @@ func (auth *HtpasswdWatchingBasicAuth) Authenticate(ctx *Context) (ok bool, err 
 	}
 
 	if t.After(auth.htpasswdFileTime) {
-		auth.basicAuth.UserPassword, auth.htpasswdFileTime, err = utils.ReadHtpasswdFile(auth.htpasswdFile)
+		auth.UserPassword, auth.htpasswdFileTime, err = utils.ReadHtpasswdFile(auth.htpasswdFile)
 		if err != nil {
 			return false, err
 		}
 	}
 
-	return auth.basicAuth.Authenticate(ctx)
+	return auth.BasicAuth.Authenticate(ctx)
 }
