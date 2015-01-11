@@ -33,5 +33,5 @@ type indirectPageURL struct {
 }
 
 func (self *indirectPageURL) URL(ctx *Context) string {
-	return self.page.URL(ctx)
+	return (*self.page).URL(ctx)
 }

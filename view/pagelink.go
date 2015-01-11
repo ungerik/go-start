@@ -12,7 +12,7 @@ type PageLink struct {
 }
 
 func (self *PageLink) URL(ctx *Context) string {
-	return self.Page.URL(ctx)
+	return (*self.Page).URL(ctx)
 }
 
 func (self *PageLink) LinkContent(ctx *Context) View {
@@ -24,7 +24,7 @@ func (self *PageLink) LinkContent(ctx *Context) View {
 
 func (self *PageLink) LinkTitle(ctx *Context) string {
 	if self.Title == "" {
-		return self.Page.LinkTitle(ctx)
+		return (*self.Page).LinkTitle(ctx)
 	}
 	return self.Title
 }
