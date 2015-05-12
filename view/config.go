@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"time"
 
 	// "github.com/ungerik/go-start/debug"
 	"github.com/ungerik/go-start/errs"
@@ -67,6 +68,7 @@ var Config = Configuration{
 	TemplateDirs:               []string{"templates"}, // every TemplateDir will be appended to every BaseDir to search for template files
 	SessionTracker:             &CookieSessionTracker{},
 	SessionDataStore:           NewCookieSessionDataStore(),
+	SessionUserAuthLogoutAfter: 24 * time.Hour,
 	NamedAuthenticators:        make(map[string]Authenticator),
 }
 
@@ -92,6 +94,7 @@ type Configuration struct {
 	CookieSecret               string
 	SessionTracker             SessionTracker
 	SessionDataStore           SessionDataStore
+	SessionUserAuthLogoutAfter time.Duration
 	OnPreAuth                  func(ctx *Context) error
 	GlobalAuth                 Authenticator // Will allways be used before all other authenticators
 	FallbackAuth               Authenticator // Will be used when no other authenticator is defined for the view

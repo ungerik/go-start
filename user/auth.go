@@ -18,7 +18,7 @@ func (self *Auth) Authenticate(ctx *view.Context) (ok bool, err error) {
 	/// todo: Use hashed logged in cookie instead of user ID!!
 	ok, err = IsConfirmedUserID(id)
 	if !ok && err == nil && self.LoginURL != nil {
-		err = view.Redirect(self.LoginURL.URL(ctx))
+		ctx.Response.RedirectTemporary302(auth.LoginURL.URL(ctx))
 	}
 	return ok, err
 }
